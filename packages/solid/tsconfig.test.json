@@ -9,7 +9,10 @@
     "moduleResolution": "bundler",
     "rootDir": ".",
     "outDir": "build-tests",
-    "types": ["vitest/globals", "@types/chai", "@types/chai-dom"]
+    "types": ["vitest/globals", "@types/chai", "@types/chai-dom", "@testing-library/jest-dom"],
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*.spec.ts*",
@@ -17,7 +20,8 @@
     "src/index.test.ts",
     "test",
     "src/global.d.ts",
-    "package.json"
+    "package.json",
+    "eslint.config.mjs"
   ],
   "references": [{ "path": "./tsconfig.build.json" }]
 }

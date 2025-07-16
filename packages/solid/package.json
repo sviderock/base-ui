@@ -27,7 +27,10 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./accordion": "./src/accordion/index.ts"
+    "./accordion": "./src/accordion/index.ts",
+    "./collapsible": "./src/collapsible/index.ts",
+    "./merge-props": "./src/merge-props/index.ts",
+    "./solid-helpers": "./src/solid-helpers.ts"
   },
   "imports": {
     "#test-utils": "./test/index.ts"
@@ -50,11 +53,12 @@
     "@babel/runtime": "^7.27.6",
     "@floating-ui/dom": "^1.7.2",
     "@floating-ui/utils": "^0.2.10",
-    "tabbable": "^6.2.0",
-    "reselect": "^5.1.1"
+    "reselect": "^5.1.1",
+    "tabbable": "^6.2.0"
   },
   "devDependencies": {
     "@mui/internal-test-utils": "^2.0.10",
+    "@rollup/plugin-node-resolve": "^16.0.1",
     "@solidjs/testing-library": "^0.8.10",
     "@testing-library/user-event": "^14.6.1",
     "@types/chai": "^4.3.20",
@@ -62,13 +66,14 @@
     "@types/sinon": "^17.0.4",
     "chai": "^4.5.0",
     "clsx": "^2.1.1",
+    "eslint-plugin-solid": "^0.14.5",
     "fs-extra": "^11.3.0",
     "lodash": "^4.17.21",
-    "solid-js": "^1.9.7",
     "sinon": "^21.0.0",
+    "solid-js": "^1.9.7",
     "typescript": "^5.8.3",
-    "vitest": "^3.1.4",
-    "vite-plugin-solid": "^2.11.7"
+    "vite-plugin-solid": "^2.11.7",
+    "vitest": "^3.1.4"
   },
   "peerDependencies": {
     "solid-js": "^1.9.7"

@@ -1,6 +1,6 @@
-import solidPlugin from 'vite-plugin-solid';
 import { defineProject, mergeConfig } from 'vitest/config';
 // eslint-disable-next-line import/no-relative-packages
+import solidPlugin from 'vite-plugin-solid';
 import sharedConfig from '../../vitest.shared.mts';
 
 export default mergeConfig(
@@ -9,6 +9,27 @@ export default mergeConfig(
     define: {
       'process.env.NODE_ENV': JSON.stringify('test'),
     },
+    // resolve: {
+    //   dedupe: ['solid-js'],
+    //   conditions: ['development', 'browser'],
+    // },
     plugins: [solidPlugin()],
+    test: {
+      // testTransformMode: {
+      //   web: ['/\.[jt]sx?$/'],
+      // },
+      browser: {
+        // Enable browser-based testing for UI components
+        enabled: true,
+        headless: true,
+        provider: 'playwright',
+        instances: [{ browser: 'chromium', name: 'chromium-solid' }],
+      },
+      // deps: {
+      //   optimizer: {
+      //     web: { enabled: true },
+      //   },
+      // },
+    },
   }),
 );

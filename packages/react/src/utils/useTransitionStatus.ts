@@ -1,8 +1,8 @@
 'use client';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { useModernLayoutEffect } from './useModernLayoutEffect';
 import { AnimationFrame } from './useAnimationFrame';
+import { useModernLayoutEffect } from './useModernLayoutEffect';
 
 export type TransitionStatus = 'starting' | 'ending' | 'idle' | undefined;
 
@@ -21,6 +21,7 @@ export function useTransitionStatus(
   );
   const [mounted, setMounted] = React.useState(open);
 
+  console.log(222222, open, mounted);
   if (open && !mounted) {
     setMounted(true);
     setTransitionStatus('starting');

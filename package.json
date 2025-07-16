@@ -107,6 +107,7 @@
     "danger": "^13.0.4",
     "docs": "workspace:^",
     "eslint": "^9.30.1",
+    "eslint-plugin-solid": "^0.14.5",
     "execa": "^9.5.2",
     "fast-glob": "^3.3.3",
     "fs-extra": "^11.3.0",

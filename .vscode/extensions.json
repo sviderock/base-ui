@@ -13,6 +13,7 @@
     "dbaeumer.vscode-eslint", // ESLint
     "yoavbls.pretty-ts-errors", // TypeScript
     "stylelint.vscode-stylelint", // Stylelint
-    "davidanson.vscode-markdownlint" // markdownlint
+    "davidanson.vscode-markdownlint",
+    "vitest.explorer" // markdownlint
   ]
 }

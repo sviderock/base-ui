@@ -17,6 +17,8 @@
     "paths": {
       "@base-ui-components/react": ["./packages/react/src"],
       "@base-ui-components/react/*": ["./packages/react/src/*"],
+      "@base-ui-components/solid": ["./packages/solid/src"],
+      "@base-ui-components/solid/*": ["./packages/solid/src/*"],
       "docs/*": ["./docs/*"]
     }
   },

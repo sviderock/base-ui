@@ -3,9 +3,9 @@ import * as React from 'react';
 import { useAnimationsFinished } from '../../utils/useAnimationsFinished';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
-import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
 import { useEventCallback } from '../../utils/useEventCallback';
-import { useTransitionStatus, TransitionStatus } from '../../utils/useTransitionStatus';
+import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
+import { TransitionStatus, useTransitionStatus } from '../../utils/useTransitionStatus';
 
 export type AnimationType = 'css-transition' | 'css-animation' | 'none' | null;
 
@@ -34,6 +34,14 @@ export function useCollapsibleRoot(
     height: undefined,
     width: undefined,
   });
+  React.useEffect(() => {
+    console.log(123, {
+      open,
+      mounted,
+      visible,
+      transitionStatus,
+    });
+  }, [open, mounted, visible, transitionStatus]);
 
   const defaultPanelId = useBaseUiId();
   const [panelIdState, setPanelIdState] = React.useState<string | undefined>();
