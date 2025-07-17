@@ -8,18 +8,6 @@ import { createSignal } from 'solid-js';
 
 const PANEL_CONTENT = 'This is panel content';
 
-describe('TESTTEST', () => {
-  it('TESTTEST', () => {
-    render(() => (
-      <Collapsible.Root open={true}>
-        {/* <Collapsible.Trigger /> */}
-        <Collapsible.Panel data-testid="panel" />
-      </Collapsible.Root>
-    ));
-    // screen.debug();
-  });
-});
-
 describe('<Collapsible.Root />', () => {
   // TODO: fix this
   // describeConformance(<Collapsible.Root />, () => ({
