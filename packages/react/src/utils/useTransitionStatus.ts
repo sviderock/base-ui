@@ -21,7 +21,6 @@ export function useTransitionStatus(
   );
   const [mounted, setMounted] = React.useState(open);
 
-  console.log(222222, open, mounted);
   if (open && !mounted) {
     setMounted(true);
     setTransitionStatus('starting');

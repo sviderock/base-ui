@@ -1,7 +1,6 @@
 'use client';
 import { type Accessor, createEffect, onCleanup, Show, splitProps } from 'solid-js';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useForkRefN } from '../../utils/useForkRef';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
 import { RenderElement } from '../../utils/useRenderElement';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
@@ -25,6 +24,7 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
     'keepMounted',
     'render',
     'id',
+    'ref',
   ]);
 
   if (process.env.NODE_ENV !== 'production') {
@@ -62,9 +62,8 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
 
   const panel = useCollapsiblePanel({
     abortControllerRef: context.abortControllerRef,
-    animationTypeRef: context.animationTypeRef,
-    // TODO: fix the type
-    externalRef: elementProps.ref,
+    animationType: context.animationType,
+    setAnimationType: context.setAnimationType,
     height: context.height,
     hiddenUntilFound,
     id: context.panelId,
@@ -73,12 +72,14 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
     onOpenChange: context.onOpenChange,
     open: context.open,
     panelRef: context.panelRef,
+    setPanelRef: context.setPanelRef,
     runOnceAnimationsFinish: context.runOnceAnimationsFinish,
     setDimensions: context.setDimensions,
     setMounted: context.setMounted,
     setOpen: context.setOpen,
     setVisible: context.setVisible,
-    transitionDimensionRef: context.transitionDimensionRef,
+    transitionDimension: context.transitionDimension,
+    setTransitionDimension: context.setTransitionDimension,
     visible: context.visible,
     width: context.width,
   });
@@ -109,11 +110,9 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
         element="div"
         componentProps={componentProps}
         params={{
-          state: panelState,
-          ref: useForkRefN(elementProps.ref, (el) => {
-            panel.ref = el as HTMLDivElement;
-          }),
-          props: [
+          state: () => panelState,
+          ref: [local.ref, context.setPanelRef, panel.ref],
+          props: () => [
             panel.props(),
             {
               style: {

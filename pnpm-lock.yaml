@@ -592,6 +592,9 @@ importers:
       '@floating-ui/utils':
         specifier: ^0.2.10
         version: 0.2.10
+      '@solid-primitives/refs':
+        specifier: ^1.1.2
+        version: 1.1.2(solid-js@1.9.7)
       reselect:
         specifier: ^5.1.1
         version: 5.1.1
@@ -4034,6 +4037,16 @@ packages:
   '@smithy/util-waiter@4.0.3':
     resolution: {integrity: sha512-JtaY3FxmD+te+KSI2FJuEcfNC9T/DGGVf551babM7fAaXhjJUt7oSYurH1Devxd2+BOSUACCgt3buinx4UnmEA==}
     engines: {node: '>=18.0.0'}
+
+  '@solid-primitives/refs@1.1.2':
+    resolution: {integrity: sha512-K7tf2thy7L+YJjdqXspXOg5xvNEOH8tgEWsp0+1mQk3obHBRD6hEjYZk7p7FlJphSZImS35je3UfmWuD7MhDfg==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
+  '@solid-primitives/utils@6.3.2':
+    resolution: {integrity: sha512-hZ/M/qr25QOCcwDPOHtGjxTD8w2mNyVAYvcfgwzBHq2RwNqHNdDNsMZYap20+ruRwW4A3Cdkczyoz0TSxLCAPQ==}
+    peerDependencies:
+      solid-js: ^1.6.12
 
   '@solidjs/testing-library@0.8.10':
     resolution: {integrity: sha512-qdeuIerwyq7oQTIrrKvV0aL9aFeuwTd86VYD3afdq5HYEwoox1OBTJy4y8A3TFZr8oAR0nujYgCzY/8wgHGfeQ==}
@@ -15373,6 +15386,15 @@ snapshots:
       '@smithy/abort-controller': 4.0.2
       '@smithy/types': 4.2.0
       tslib: 2.8.1
+
+  '@solid-primitives/refs@1.1.2(solid-js@1.9.7)':
+    dependencies:
+      '@solid-primitives/utils': 6.3.2(solid-js@1.9.7)
+      solid-js: 1.9.7
+
+  '@solid-primitives/utils@6.3.2(solid-js@1.9.7)':
+    dependencies:
+      solid-js: 1.9.7
 
   '@solidjs/testing-library@0.8.10(solid-js@1.9.7)':
     dependencies:

@@ -4,6 +4,7 @@ import {
   createMemo,
   onCleanup,
   onMount,
+  Setter,
   type Accessor,
   type JSX,
   type Ref,
@@ -11,14 +12,13 @@ import {
 import { AccordionRootDataAttributes } from '../../accordion/root/AccordionRootDataAttributes';
 import { HTMLProps } from '../../utils/types';
 import { AnimationFrame } from '../../utils/useAnimationFrame';
-import { useForkRef } from '../../utils/useForkRef';
 import { warn } from '../../utils/warn';
 import type { AnimationType, Dimensions } from '../root/useCollapsibleRoot';
 import { CollapsiblePanelDataAttributes } from './CollapsiblePanelDataAttributes';
 
-export function useCollapsiblePanel<T extends HTMLElement>(
+export function useCollapsiblePanel(
   parameters: useCollapsiblePanel.Parameters,
-): useCollapsiblePanel.ReturnValue<T> {
+): useCollapsiblePanel.ReturnValue {
   let isBeforeMatchRef = false;
   let latestAnimationNameRef = null as string | null;
   let shouldCancelInitialOpenAnimationRef = parameters.open();
@@ -29,7 +29,7 @@ export function useCollapsiblePanel<T extends HTMLElement>(
    * When closing, the `hidden` attribute is set after any exit animations runs.
    */
   const hidden = createMemo(() => {
-    if (parameters.animationTypeRef === 'css-animation') {
+    if (parameters.animationType() === 'css-animation') {
       return !parameters.visible();
     }
 
@@ -44,12 +44,11 @@ export function useCollapsiblePanel<T extends HTMLElement>(
    * time it opens. If the panel is in the middle of a close transition that is
    * interrupted and re-opens, this won't run as the panel was not unmounted.
    */
-  function handlePanelRef<T extends HTMLElement | null | undefined>(element: T) {
-    console.log('handlePanelRef', { element });
+  function handlePanelRef(element: HTMLElement | null | undefined) {
     if (!element) {
       return undefined;
     }
-    if (parameters.animationTypeRef == null || parameters.transitionDimensionRef == null) {
+    if (parameters.animationType() == null || parameters.transitionDimension() == null) {
       const panelStyles = getComputedStyle(element);
 
       const hasAnimation = panelStyles.animationName !== 'none' && panelStyles.animationName !== '';
@@ -57,7 +56,7 @@ export function useCollapsiblePanel<T extends HTMLElement>(
         panelStyles.transitionDuration !== '0s' && panelStyles.transitionDuration !== '';
 
       /**
-       * animationTypeRef is safe to read in render because it's only ever set
+       * animationType is safe to read in render because it's only ever set
        * once here during the first render and never again.
        * https://react.dev/learn/referencing-values-with-refs#best-practices-for-refs
        */
@@ -69,11 +68,11 @@ export function useCollapsiblePanel<T extends HTMLElement>(
           );
         }
       } else if (panelStyles.animationName === 'none' && panelStyles.transitionDuration !== '0s') {
-        parameters.animationTypeRef = 'css-transition';
+        parameters.setAnimationType('css-transition');
       } else if (panelStyles.animationName !== 'none' && panelStyles.transitionDuration === '0s') {
-        parameters.animationTypeRef = 'css-animation';
+        parameters.setAnimationType('css-animation');
       } else {
-        parameters.animationTypeRef = 'none';
+        parameters.setAnimationType('none');
       }
 
       /**
@@ -85,13 +84,13 @@ export function useCollapsiblePanel<T extends HTMLElement>(
         element.getAttribute(AccordionRootDataAttributes.orientation) === 'horizontal' ||
         panelStyles.transitionProperty.indexOf('width') > -1
       ) {
-        parameters.transitionDimensionRef = 'width';
+        parameters.setTransitionDimension('width');
       } else {
-        parameters.transitionDimensionRef = 'height';
+        parameters.setTransitionDimension('height');
       }
     }
 
-    if (parameters.animationTypeRef !== 'css-transition') {
+    if (parameters.animationType() !== 'css-transition') {
       return undefined;
     }
 
@@ -137,11 +136,11 @@ export function useCollapsiblePanel<T extends HTMLElement>(
   }
 
   createEffect(() => {
-    if (parameters.animationTypeRef !== 'css-transition') {
+    if (parameters.animationType() !== 'css-transition') {
       return undefined;
     }
 
-    const panel = parameters.panelRef;
+    const panel = parameters.panelRef();
 
     if (!panel) {
       return undefined;
@@ -208,11 +207,11 @@ export function useCollapsiblePanel<T extends HTMLElement>(
   });
 
   createEffect(() => {
-    if (parameters.animationTypeRef !== 'css-animation') {
+    if (parameters.animationType() !== 'css-animation') {
       return;
     }
 
-    const panel = parameters.panelRef;
+    const panel = parameters.panelRef();
     if (!panel) {
       return;
     }
@@ -256,7 +255,7 @@ export function useCollapsiblePanel<T extends HTMLElement>(
       return undefined;
     }
 
-    const panel = parameters.panelRef;
+    const panel = parameters.panelRef();
     if (!panel) {
       return undefined;
     }
@@ -284,7 +283,7 @@ export function useCollapsiblePanel<T extends HTMLElement>(
   });
 
   createEffect(() => {
-    const panel = parameters.panelRef;
+    const panel = parameters.panelRef();
 
     if (panel && parameters.hiddenUntilFound() && hidden()) {
       /**
@@ -299,14 +298,14 @@ export function useCollapsiblePanel<T extends HTMLElement>(
        * to `'until-found'` as they could have different `display` properties:
        * https://github.com/tailwindlabs/tailwindcss/pull/14625
        */
-      if (parameters.animationTypeRef === 'css-transition') {
+      if (parameters.animationType() === 'css-transition') {
         panel.setAttribute(CollapsiblePanelDataAttributes.startingStyle, '');
       }
     }
   });
 
   createEffect(function registerBeforeMatchListener() {
-    const panel = parameters.panelRef;
+    const panel = parameters.panelRef();
     if (!panel) {
       return undefined;
     }
@@ -325,14 +324,7 @@ export function useCollapsiblePanel<T extends HTMLElement>(
   });
 
   return {
-    ref: useForkRef(
-      parameters.externalRef as Ref<HTMLElement | null | undefined>,
-      parameters.panelRef,
-      (el) => {
-        console.log('handlePanelRef', { el });
-        handlePanelRef(el);
-      },
-    ),
+    ref: handlePanelRef,
     props: () => ({
       hidden: hidden(),
       id: parameters.id(),
@@ -343,8 +335,8 @@ export function useCollapsiblePanel<T extends HTMLElement>(
 export namespace useCollapsiblePanel {
   export interface Parameters {
     abortControllerRef: AbortController | null;
-    animationTypeRef: AnimationType;
-    externalRef: Ref<HTMLDivElement | null | undefined>;
+    animationType: Accessor<AnimationType>;
+    setAnimationType: Setter<AnimationType>;
     /**
      * The height of the panel.
      */
@@ -374,13 +366,15 @@ export namespace useCollapsiblePanel {
      * Whether the collapsible panel is currently open.
      */
     open: Accessor<boolean>;
-    panelRef: HTMLElement | null;
+    panelRef: Accessor<HTMLElement | null>;
+    setPanelRef: Setter<HTMLElement | null>;
     runOnceAnimationsFinish: (fnToExecute: () => void, signal?: AbortSignal | null) => void;
     setDimensions: (nextDimensions: Dimensions) => void;
     setMounted: (nextMounted: boolean) => void;
     setOpen: (nextOpen: boolean) => void;
     setVisible: (nextVisible: boolean) => void;
-    transitionDimensionRef: 'height' | 'width' | null;
+    transitionDimension: Accessor<'height' | 'width' | null>;
+    setTransitionDimension: Setter<'height' | 'width' | null>;
     /**
      * The visible state of the panel used to determine the `[hidden]` attribute
      * only when CSS keyframe animations are used.
@@ -392,8 +386,8 @@ export namespace useCollapsiblePanel {
     width: Accessor<number | undefined>;
   }
 
-  export interface ReturnValue<T extends HTMLElement> {
-    ref: Ref<T | null | undefined>;
+  export interface ReturnValue {
+    ref: Ref<HTMLDivElement | null | undefined>;
     props: Accessor<HTMLProps>;
   }
 }

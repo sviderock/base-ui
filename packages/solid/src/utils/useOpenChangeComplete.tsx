@@ -1,6 +1,6 @@
 'use client';
 
-import { Accessor, createEffect } from 'solid-js';
+import { Accessor, createEffect, type Ref } from 'solid-js';
 import { useAnimationsFinished } from './useAnimationsFinished';
 
 /**
@@ -38,7 +38,7 @@ export namespace useOpenChangeComplete {
     /**
      * Ref to the element being closed.
      */
-    ref: HTMLElement | null;
+    ref: Ref<HTMLElement | null>;
     /**
      * Function to call when the animation completes (or there is no animation).
      */

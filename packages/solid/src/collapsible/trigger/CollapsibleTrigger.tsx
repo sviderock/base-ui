@@ -5,7 +5,6 @@ import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useForkRefN } from '../../utils/useForkRef';
 import { RenderElement } from '../../utils/useRenderElement';
 import { CollapsibleRoot } from '../root/CollapsibleRoot';
 import { useCollapsibleRootContext } from '../root/CollapsibleRootContext';
@@ -61,9 +60,9 @@ export function CollapsibleTrigger(componentProps: CollapsibleTrigger.Props): JS
       element="button"
       componentProps={componentProps}
       params={{
-        state,
-        ref: useForkRefN(componentProps.ref, button.buttonRef as HTMLButtonElement),
-        props: [props(), elementProps, button.getButtonProps()],
+        state: () => state,
+        ref: [componentProps.ref, button.buttonRef],
+        props: () => [props(), elementProps, button.getButtonProps()],
         customStyleHookMapping: styleHookMapping,
       }}
     />

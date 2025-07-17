@@ -1,4 +1,4 @@
-import { createMemo, Match, Show, Switch, type JSX } from 'solid-js';
+import { createMemo, Match, Show, Switch, type Accessor, type JSX, type Ref } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { mergeClasses, mergePropsN } from '../merge-props';
 import { EMPTY_OBJECT } from './constants';
@@ -6,6 +6,7 @@ import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
 import { mergeObjects } from './mergeObjects';
 import { resolveClassName } from './resolveClassName';
 import type { ComponentRenderFn, HTMLProps } from './types';
+import { useForkRefN } from './useForkRef';
 
 type IntrinsicTagName = keyof JSX.IntrinsicElements;
 
@@ -19,8 +20,8 @@ export function RenderElement<
   componentProps: RenderElement.ComponentProps<State>;
   params: RenderElement.Parameters<State, RenderedElementType, TagName, Enabled>;
 }): JSX.Element {
-  const state = () => props.params.state ?? (EMPTY_OBJECT as State);
-  const enabled = () => props.params.enabled ?? true;
+  const state = () => props.params.state?.() ?? (EMPTY_OBJECT as State);
+  const enabled = () => props.params.enabled?.() ?? true;
   const className = () =>
     enabled() ? resolveClassName(props.componentProps.class, state()) : undefined;
 
@@ -33,17 +34,25 @@ export function RenderElement<
     return undefined;
   });
 
+  const propsParams = createMemo(() =>
+    Array.isArray(props.params.props?.())
+      ? mergePropsN(props.params.props!() as any[])
+      : props.params.props?.(),
+  );
+
   const outProps = createMemo((): JSX.HTMLAttributes<any> => {
     if (enabled()) {
       const mergedProps: JSX.HTMLAttributes<any> =
-        mergeObjects(
-          styleHooks(),
-          Array.isArray(props.params.props) ? mergePropsN(props.params.props) : props.params.props,
-        ) ?? EMPTY_OBJECT;
+        mergeObjects(styleHooks(), propsParams()) ?? EMPTY_OBJECT;
 
       if (className() !== undefined) {
         mergedProps.class = mergeClasses(mergedProps.class, className());
       }
+
+      mergedProps.ref = useForkRefN([
+        mergedProps.ref,
+        ...(Array.isArray(props.params.ref) ? props.params.ref : [props.params.ref]),
+      ]);
 
       return mergedProps;
     }
@@ -73,6 +82,12 @@ export function RenderElement<
           {...(props.element === 'button' ? { type: 'button' } : {})}
           {...(props.element === 'img' ? { alt: '' } : {})}
           {...outProps()}
+          ref={(el) => {
+            outProps().ref = useForkRefN([
+              outProps().ref,
+              ...(Array.isArray(props.params.ref) ? props.params.ref : [props.params.ref]),
+            ])(el);
+          }}
         />
       </Match>
     </Switch>
@@ -95,7 +110,7 @@ export namespace RenderElement {
      * This is useful for rendering a component conditionally.
      * @default true
      */
-    enabled?: Enabled;
+    enabled?: Accessor<Enabled>;
     /**
      * @deprecated
      */
@@ -103,22 +118,25 @@ export namespace RenderElement {
     /**
      * The ref to apply to the rendered element.
      */
-    ref?: JSX.HTMLAttributes<RenderedElementType>['ref'];
+    ref?:
+      | Ref<RenderedElementType | null | undefined>
+      | Ref<RenderedElementType | null | undefined>[];
     /**
      * The state of the component.
      */
-    state?: State;
+    state?: Accessor<State>;
 
     /**
      * Intrinsic props to be spread on the rendered element.
      */
-    props?:
+    props?: Accessor<
       | RenderFunctionProps<TagName>
       | Array<
           | RenderFunctionProps<TagName>
           | undefined
           | ((props: RenderFunctionProps<TagName>) => RenderFunctionProps<TagName>)
-        >;
+        >
+    >;
     /**
      * A mapping of state to style hooks.
      */

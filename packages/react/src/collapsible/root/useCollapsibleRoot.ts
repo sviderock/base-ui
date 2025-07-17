@@ -34,14 +34,6 @@ export function useCollapsibleRoot(
     height: undefined,
     width: undefined,
   });
-  React.useEffect(() => {
-    console.log(123, {
-      open,
-      mounted,
-      visible,
-      transitionStatus,
-    });
-  }, [open, mounted, visible, transitionStatus]);
 
   const defaultPanelId = useBaseUiId();
   const [panelIdState, setPanelIdState] = React.useState<string | undefined>();
@@ -94,11 +86,19 @@ export function useCollapsibleRoot(
   });
 
   useModernLayoutEffect(() => {
+    console.log('useModernLayoutEffect', {
+      isControlled,
+      animationTypeRef: animationTypeRef.current,
+      keepMounted,
+      open,
+      openParam,
+    });
     /**
      * Unmount immediately when closing in controlled mode and keepMounted={false}
      * and no CSS animations or transitions are applied
      */
     if (isControlled && animationTypeRef.current === 'none' && !keepMounted && !open) {
+      console.log('unmounting');
       setMounted(false);
     }
   }, [isControlled, keepMounted, open, openParam, setMounted]);

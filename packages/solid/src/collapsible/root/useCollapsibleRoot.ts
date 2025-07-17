@@ -39,28 +39,30 @@ export function useCollapsibleRoot(
   const [keepMounted, setKeepMounted] = createSignal(false);
 
   let abortControllerRef = null as AbortController | null;
-  const animationTypeRef: AnimationType = null;
-  const transitionDimensionRef: 'width' | 'height' | null = null;
 
-  let panelRef = null as HTMLElement | null;
+  const [panelRef, setPanelRef] = createSignal<HTMLElement | null>(null);
+  const [animationType, setAnimationType] = createSignal<AnimationType>(null);
+  const [transitionDimension, setTransitionDimension] = createSignal<'width' | 'height' | null>(
+    null,
+  );
 
   const runOnceAnimationsFinish = useAnimationsFinished(panelRef, () => false);
 
   function handleTrigger() {
     const nextOpen = !open();
 
-    if (animationTypeRef === 'css-animation' && panelRef != null) {
-      panelRef.style.removeProperty('animation-name');
+    if (animationType() === 'css-animation' && panelRef() != null) {
+      panelRef()!.style.removeProperty('animation-name');
     }
 
     if (!hiddenUntilFound() && !keepMounted()) {
-      if (animationTypeRef != null && animationTypeRef !== 'css-animation') {
+      if (animationType() != null && animationType() !== 'css-animation') {
         if (!state.mounted && nextOpen) {
           setState('mounted', true);
         }
       }
 
-      if (animationTypeRef === 'css-animation') {
+      if (animationType() === 'css-animation') {
         if (!visible() && nextOpen) {
           setVisible(true);
         }
@@ -73,7 +75,7 @@ export function useCollapsibleRoot(
     setOpen(nextOpen);
     parameters.onOpenChange(nextOpen);
 
-    if (animationTypeRef === 'none') {
+    if (animationType() === 'none') {
       if (state.mounted && !nextOpen) {
         setState('mounted', false);
       }
@@ -81,12 +83,12 @@ export function useCollapsibleRoot(
   }
 
   createEffect(
-    on([open, keepMounted, () => parameters.open?.(), isControlled], () => {
+    on([open, keepMounted, () => parameters.open?.(), isControlled, animationType], () => {
       /**
        * Unmount immediately when closing in controlled mode and keepMounted={false}
        * and no CSS animations or transitions are applied
        */
-      if (isControlled() && animationTypeRef === 'none' && !keepMounted() && !open()) {
+      if (isControlled() && animationType() === 'none' && !keepMounted() && !open()) {
         setState('mounted', false);
       }
     }),
@@ -94,7 +96,8 @@ export function useCollapsibleRoot(
 
   return {
     abortControllerRef,
-    animationTypeRef,
+    animationType,
+    setAnimationType,
     disabled: parameters.disabled,
     handleTrigger,
     height: () => dimensions().height,
@@ -102,6 +105,7 @@ export function useCollapsibleRoot(
     open,
     panelId,
     panelRef,
+    setPanelRef,
     runOnceAnimationsFinish,
     setDimensions,
     setHiddenUntilFound,
@@ -110,7 +114,8 @@ export function useCollapsibleRoot(
     setOpen,
     setPanelIdState,
     setVisible,
-    transitionDimensionRef,
+    transitionDimension,
+    setTransitionDimension,
     transitionStatus: () => state.transitionStatus,
     visible,
     width: () => dimensions().width,
@@ -145,7 +150,8 @@ export namespace useCollapsibleRoot {
 
   export interface ReturnValue {
     abortControllerRef: AbortController | null;
-    animationTypeRef: AnimationType;
+    animationType: Accessor<AnimationType>;
+    setAnimationType: Setter<AnimationType>;
     /**
      * Whether the component should ignore user interaction.
      */
@@ -164,7 +170,8 @@ export namespace useCollapsibleRoot {
      */
     open: Accessor<boolean>;
     panelId: Accessor<JSX.HTMLAttributes<Element>['id']>;
-    panelRef: HTMLElement | null;
+    panelRef: Accessor<HTMLElement | null>;
+    setPanelRef: Setter<HTMLElement | null>;
     runOnceAnimationsFinish: (fnToExecute: () => void, signal?: AbortSignal | null) => void;
     setDimensions: Setter<Dimensions>;
     setHiddenUntilFound: Setter<boolean>;
@@ -173,7 +180,8 @@ export namespace useCollapsibleRoot {
     setOpen: (open: boolean) => void;
     setPanelIdState: (id: string | undefined) => void;
     setVisible: Setter<boolean>;
-    transitionDimensionRef: 'height' | 'width' | null;
+    transitionDimension: Accessor<'height' | 'width' | null>;
+    setTransitionDimension: Setter<'height' | 'width' | null>;
     transitionStatus: Accessor<TransitionStatus>;
     /**
      * The visible state of the panel used to determine the `[hidden]` attribute

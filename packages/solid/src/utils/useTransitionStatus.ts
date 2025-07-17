@@ -21,10 +21,6 @@ export function useTransitionStatus(
   });
 
   createEffect(() => {
-    console.log('transition status', { state, open: open() });
-  });
-
-  createEffect(() => {
     setState((prev) => {
       if (open() && !prev.mounted) {
         return { mounted: true, transitionStatus: 'starting' };

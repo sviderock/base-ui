@@ -1,7 +1,6 @@
 'use client';
-import { mergeProps, Show, splitProps } from 'solid-js';
+import { Show, splitProps } from 'solid-js';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useForkRefN } from '../../utils/useForkRef';
 import { RenderElement } from '../../utils/useRenderElement';
 import { CollapsibleRootContext } from './CollapsibleRootContext';
 import { collapsibleStyleHookMapping } from './styleHooks';
@@ -14,17 +13,12 @@ import { useCollapsibleRoot } from './useCollapsibleRoot';
  * Documentation: [Base UI Collapsible](https://base-ui.com/solid/components/collapsible)
  */
 export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
-  const merged = mergeProps(
-    { defaultOpen: false, disabled: false } satisfies CollapsibleRoot.Props,
-    componentProps,
-  );
-  const [local, elementProps] = splitProps(merged, [
+  const [local, elementProps] = splitProps(componentProps, [
     'class',
     'defaultOpen',
     'disabled',
     'onOpenChange',
     'open',
-    'ref',
   ]);
 
   const onOpenChange = (open: boolean) => {
@@ -33,9 +27,9 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
 
   const collapsible = useCollapsibleRoot({
     open: () => local.open,
-    defaultOpen: () => local.defaultOpen,
+    defaultOpen: () => local.defaultOpen ?? false,
     onOpenChange,
-    disabled: () => local.disabled,
+    disabled: () => local.disabled ?? false,
   });
 
   const state: CollapsibleRoot.State = {
@@ -52,17 +46,26 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
 
   return (
     <CollapsibleRootContext.Provider value={contextValue}>
-      <Show when={merged.render !== null} fallback={elementProps.children}>
-        <RenderElement
-          element="div"
-          componentProps={merged as any}
-          params={{
-            state,
-            ref: useForkRefN(merged.ref, local.ref),
-            props: elementProps as any,
-            customStyleHookMapping: collapsibleStyleHookMapping,
+      <Show
+        when={componentProps.render !== null && componentProps.render !== undefined}
+        fallback={elementProps.children}
+      >
+        <>
+          {() => {
+            return (
+              <RenderElement
+                element="div"
+                componentProps={componentProps}
+                params={{
+                  state: () => state,
+                  ref: componentProps.ref,
+                  props: () => elementProps,
+                  customStyleHookMapping: collapsibleStyleHookMapping,
+                }}
+              />
+            );
           }}
-        />
+        </>
       </Show>
     </CollapsibleRootContext.Provider>
   );

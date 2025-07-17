@@ -1,7 +1,7 @@
 'use client';
 import { isJSDOM } from '#test-utils';
 import { Collapsible } from '@base-ui-components/solid/collapsible';
-import { render, screen } from '@solidjs/testing-library';
+import { render } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';
@@ -12,11 +12,11 @@ describe('TESTTEST', () => {
   it('TESTTEST', () => {
     render(() => (
       <Collapsible.Root open={true}>
-        <Collapsible.Trigger />
+        {/* <Collapsible.Trigger /> */}
         <Collapsible.Panel data-testid="panel" />
       </Collapsible.Root>
     ));
-    screen.debug();
+    // screen.debug();
   });
 });
 
@@ -85,13 +85,7 @@ describe('<Collapsible.Root />', () => {
               <Collapsible.Trigger>trigger</Collapsible.Trigger>
               <Collapsible.Panel>This is panel content</Collapsible.Panel>
             </Collapsible.Root>
-            <button
-              type="button"
-              onClick={() => {
-                console.log('clicked');
-                setOpen(!open());
-              }}
-            >
+            <button type="button" onClick={() => setOpen(!open())}>
               toggle
             </button>
           </>
