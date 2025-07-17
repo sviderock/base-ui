@@ -1,13 +1,14 @@
-import * as React from 'react';
 import { expect } from 'chai';
+import type { Component } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import type {
-  ConformantComponentProps,
   BaseUiConformanceTestsOptions,
+  ConformantComponentProps,
 } from '../describeConformance';
 import { throwMissingPropError } from './utils';
 
 async function verifyRef(
-  element: React.ReactElement<ConformantComponentProps>,
+  element: Component<ConformantComponentProps>,
   render: BaseUiConformanceTestsOptions['render'],
   onRef: (instance: unknown, element: HTMLElement | null) => void,
 ) {
@@ -15,17 +16,15 @@ async function verifyRef(
     throwMissingPropError('render');
   }
 
-  const ref = React.createRef();
+  let ref;
 
-  const { container } = await render(
-    <React.Fragment>{React.cloneElement(element, { ref })}</React.Fragment>,
-  );
+  const { container } = await render(() => <Dynamic component={element} ref={ref} />);
 
-  onRef(ref.current, container);
+  onRef(ref, container);
 }
 
 export function testRefForwarding(
-  element: React.ReactElement<ConformantComponentProps>,
+  element: Component<ConformantComponentProps>,
   getOptions: () => BaseUiConformanceTestsOptions,
 ) {
   describe('ref', () => {

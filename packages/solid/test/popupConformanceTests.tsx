@@ -1,8 +1,10 @@
-import * as React from 'react';
-import { spy } from 'sinon';
-import { expect } from 'chai';
+import { isJSDOM } from '#test-utils';
 import { randomStringValue, screen, waitFor } from '@mui/internal-test-utils';
-import { createRenderer, isJSDOM } from '#test-utils';
+import type { render as testingLibraryRender } from '@solidjs/testing-library';
+import userEvent from '@testing-library/user-event';
+import { expect } from 'chai';
+import { spy } from 'sinon';
+import { createSignal, type Accessor, type Component } from 'solid-js';
 
 export function popupConformanceTests(config: PopupTestConfig) {
   const {
@@ -16,31 +18,28 @@ export function popupConformanceTests(config: PopupTestConfig) {
 
   const alwaysMounted = alwaysMountedParam === 'only-after-open' ? false : alwaysMountedParam;
 
-  const prepareComponent = (props: TestedComponentProps) => {
+  const prepareComponent: Component<TestedComponentProps> = (props) => {
+    const triggerProps = () => ({ 'data-testid': 'trigger', ...props.trigger });
+    const popupProps = () => ({ 'data-testid': 'popup', ...props.popup });
     return createComponent({
       ...props,
-      trigger: {
-        'data-testid': 'trigger',
-        ...props.trigger,
-      },
-      popup: {
-        'data-testid': 'popup',
-        ...props.popup,
-      },
+      trigger: triggerProps(),
+      popup: popupProps(),
     });
   };
 
   describe('Popup conformance', () => {
     describe('controlled mode', () => {
-      it('opens the popup with the `open` prop', async () => {
-        const { rerender } = await render(prepareComponent({ root: { open: false } }));
+      it('opens the popup with the `open` prop', () => {
+        const [open, setOpen] = createSignal(false);
+        render(() => prepareComponent({ root: { open } }));
         if (!alwaysMounted) {
           expect(getPopup()).to.equal(null);
         } else {
           expect(getPopup()).toBeInaccessible();
         }
 
-        await rerender(prepareComponent({ root: { open: true } }));
+        setOpen(true);
         expect(getPopup()).not.to.equal(null);
       });
     });
@@ -48,7 +47,7 @@ export function popupConformanceTests(config: PopupTestConfig) {
     if (triggerMouseAction === 'click') {
       describe('uncontrolled mode', () => {
         it('opens the popup when clicking on the trigger', async () => {
-          const { user } = await render(prepareComponent({}));
+          render(() => prepareComponent({}));
 
           const trigger = getTrigger();
           if (!alwaysMounted) {
@@ -57,7 +56,7 @@ export function popupConformanceTests(config: PopupTestConfig) {
             expect(getPopup()).toBeInaccessible();
           }
 
-          await user.click(trigger);
+          await userEvent.click(trigger);
           await waitFor(() => {
             expect(getPopup()).not.to.equal(null);
           });
@@ -69,7 +68,7 @@ export function popupConformanceTests(config: PopupTestConfig) {
       describe('ARIA attributes', () => {
         if (expectedPopupRole) {
           it(`has the ${expectedPopupRole} role on the popup`, async () => {
-            await render(prepareComponent({ root: { open: true } }));
+            render(() => prepareComponent({ root: { open: () => true } }));
             const popup = getPopup();
             expect(popup).not.to.equal(null);
             expect(popup).to.have.attribute('role', expectedPopupRole);
@@ -78,14 +77,14 @@ export function popupConformanceTests(config: PopupTestConfig) {
 
         if (triggerMouseAction === 'click') {
           it('has the `aria-controls` attribute on the trigger', async () => {
-            await render(prepareComponent({ root: { open: true } }));
+            render(() => prepareComponent({ root: { open: () => true } }));
             const trigger = getTrigger();
             const popup = getPopup();
             expect(trigger).to.have.attribute('aria-controls', popup?.id);
           });
 
           it('has the `aria-expanded` attribute on the trigger when open', async () => {
-            const { user } = await render(prepareComponent({}));
+            render(() => prepareComponent({}));
             const trigger = getTrigger();
             if (!alwaysMounted) {
               expect(getPopup()).to.equal(null);
@@ -93,7 +92,7 @@ export function popupConformanceTests(config: PopupTestConfig) {
               expect(getPopup()).toBeInaccessible();
             }
             expect(trigger).to.have.attribute('aria-expanded', 'false');
-            await user.click(trigger);
+            await userEvent.click(trigger);
             await waitFor(() => {
               expect(getPopup()).to.have.attribute('data-open');
             });
@@ -102,14 +101,14 @@ export function popupConformanceTests(config: PopupTestConfig) {
 
           if (expectedAriaHasPopupValue) {
             it('has the `aria-haspopup` attribute on the trigger', async () => {
-              await render(prepareComponent({ root: { open: true } }));
+              render(() => prepareComponent({ root: { open: () => true } }));
               const trigger = getTrigger();
               expect(trigger).to.have.attribute('aria-haspopup', expectedAriaHasPopupValue);
             });
           }
 
           it('allows a custom `id` prop', async () => {
-            await render(prepareComponent({ root: { open: true }, popup: { id: 'TestId' } }));
+            render(() => prepareComponent({ root: { open: () => true }, popup: { id: 'TestId' } }));
             const trigger = getTrigger();
             const popup = getPopup();
             expect(trigger.getAttribute('aria-controls')).to.equal(popup?.getAttribute('id'));
@@ -132,13 +131,14 @@ export function popupConformanceTests(config: PopupTestConfig) {
           skip();
         }
 
-        const { rerender } = await render(prepareComponent({ root: { open: true } }));
+        const [open, setOpen] = createSignal(true);
+        render(() => prepareComponent({ root: { open } }));
 
         await waitFor(() => {
           expect(getPopup()).not.to.equal(null);
         });
 
-        await rerender(prepareComponent({ root: { open: false } }));
+        setOpen(false);
         await waitFor(() => {
           if (!alwaysMounted && alwaysMountedParam !== 'only-after-open') {
             expect(getPopup()).to.equal(null);
@@ -178,10 +178,10 @@ export function popupConformanceTests(config: PopupTestConfig) {
 
           return (
             <div>
-              {/* eslint-disable-next-line react/no-danger */}
-              <style dangerouslySetInnerHTML={{ __html: style }} />
+              {}
+              <style innerHTML={style} />
               {prepareComponent({
-                root: { open: props.open },
+                root: { open: () => props.open },
                 portal: { keepMounted: true },
                 popup: {
                   className: `animation-test-popup-${animationName}`,
@@ -192,8 +192,9 @@ export function popupConformanceTests(config: PopupTestConfig) {
           );
         }
 
-        const { setProps } = await render(<Test open />);
-        await setProps({ open: false });
+        const [open, setOpen] = createSignal(true);
+        render(() => <Test open={open()} />);
+        setOpen(false);
 
         await waitFor(() => {
           const popup = getPopup();
@@ -222,7 +223,7 @@ export interface PopupTestConfig {
    * A function that returns a JSX tree with a component to test.
    * Its parameters contain props to be spread on the component's parts.
    */
-  createComponent: (props: TestedComponentProps) => React.JSX.Element;
+  createComponent: Component<TestedComponentProps>;
   /**
    * How the popup is triggered.
    */
@@ -230,7 +231,7 @@ export interface PopupTestConfig {
   /**
    * Render function returned from `createRenderer`.
    */
-  render: ReturnType<typeof createRenderer>['render'];
+  render: typeof testingLibraryRender;
   /**
    * Expected `role` attribute of the popup element.
    */
@@ -246,7 +247,7 @@ export interface PopupTestConfig {
 }
 
 interface RootProps {
-  open?: boolean;
+  open?: Accessor<boolean>;
   onOpenChange?: (open: boolean) => void;
 }
 

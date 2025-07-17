@@ -1,13 +1,14 @@
-import * as React from 'react';
 import { expect } from 'chai';
+import type { Component } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import type {
-  ConformantComponentProps,
   BaseUiConformanceTestsOptions,
+  ConformantComponentProps,
 } from '../describeConformance';
 import { throwMissingPropError } from './utils';
 
 export function testClassName(
-  element: React.ReactElement<ConformantComponentProps>,
+  element: Component<ConformantComponentProps>,
   getOptions: () => BaseUiConformanceTestsOptions,
 ) {
   describe('prop: className', () => {
@@ -18,7 +19,7 @@ export function testClassName(
     }
 
     it('should apply the className when passed as a string', async () => {
-      await render(React.cloneElement(element, { className: 'test-class' }));
+      await render(() => <Dynamic component={element} class="test-class" />);
       expect(document.querySelector('.test-class')).not.to.equal(null);
     });
   });

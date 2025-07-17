@@ -1,14 +1,15 @@
-import * as React from 'react';
-import { expect } from 'chai';
 import { randomStringValue } from '@mui/internal-test-utils';
+import { expect } from 'chai';
+import type { Component, ParentComponent } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import type {
-  ConformantComponentProps,
   BaseUiConformanceTestsOptions,
+  ConformantComponentProps,
 } from '../describeConformance';
 import { throwMissingPropError } from './utils';
 
 export function testRenderProp(
-  element: React.ReactElement<ConformantComponentProps>,
+  element: Component<ConformantComponentProps>,
   getOptions: () => BaseUiConformanceTestsOptions,
 ) {
   const { render, testRenderPropWith: Element = 'div' } = getOptions();
@@ -17,25 +18,23 @@ export function testRenderProp(
     throwMissingPropError('render');
   }
 
-  const Wrapper = React.forwardRef<any, { children?: React.ReactNode }>(
-    function Wrapper(props, forwardedRef) {
-      return (
-        <div data-testid="base-ui-wrapper">
-          {/* @ts-ignore */}
-          <Element ref={forwardedRef} {...props} data-testid="wrapped" />
-        </div>
-      );
-    },
-  );
+  const Wrapper: ParentComponent = (props) => {
+    return (
+      <div data-testid="base-ui-wrapper">
+        <Element {...props} data-testid="wrapped" />
+      </div>
+    );
+  };
 
   describe('prop: render', () => {
     it('renders a customized root element with a function', async () => {
       const testValue = randomStringValue();
-      const { queryByTestId } = await render(
-        React.cloneElement(element, {
-          render: (props: {}) => <Wrapper {...props} data-test-value={testValue} />,
-        }),
-      );
+      const { queryByTestId } = await render(() => (
+        <Dynamic
+          component={element}
+          render={(props) => <Wrapper {...props} data-test-value={testValue} />}
+        />
+      ));
 
       expect(queryByTestId('base-ui-wrapper')).not.to.equal(null);
       expect(queryByTestId('wrapped')).not.to.equal(null);
@@ -44,11 +43,9 @@ export function testRenderProp(
 
     it('renders a customized root element with an element', async () => {
       const testValue = randomStringValue();
-      const { queryByTestId } = await render(
-        React.cloneElement(element, {
-          render: <Wrapper data-test-value={testValue} />,
-        }),
-      );
+      const { queryByTestId } = await render(() => (
+        <Dynamic component={element} render={<Wrapper data-test-value={testValue} />} />
+      ));
 
       expect(queryByTestId('base-ui-wrapper')).not.to.equal(null);
       expect(queryByTestId('wrapped')).not.to.equal(null);
@@ -56,11 +53,7 @@ export function testRenderProp(
     });
 
     it('renders a customized root element with an element', async () => {
-      await render(
-        React.cloneElement(element, {
-          render: <Wrapper />,
-        }),
-      );
+      await render(() => <Dynamic component={element} render={<Wrapper />} />);
 
       expect(document.querySelector('[data-testid="base-ui-wrapper"]')).not.to.equal(null);
     });
@@ -69,16 +62,19 @@ export function testRenderProp(
       let instanceFromRef = null;
 
       function Test() {
-        return React.cloneElement(element, {
-          ref: (el: HTMLElement | null) => {
-            instanceFromRef = el;
-          },
-          render: (props: {}) => <Wrapper {...props} />,
-          'data-testid': 'wrapped',
-        });
+        return (
+          <Dynamic
+            component={element}
+            ref={(el: HTMLElement | null) => {
+              instanceFromRef = el;
+            }}
+            render={(props) => <Wrapper {...props} />}
+            data-testid="wrapped"
+          />
+        );
       }
 
-      await render(<Test />);
+      await render(() => <Test />);
       expect(instanceFromRef!.tagName).to.equal(Element.toUpperCase());
       expect(instanceFromRef!).to.have.attribute('data-testid', 'wrapped');
     });
@@ -88,22 +84,25 @@ export function testRenderProp(
       let refB = null;
 
       function Test() {
-        return React.cloneElement(element, {
-          ref: (el: HTMLElement | null) => {
-            refA = el;
-          },
-          render: (
-            <Wrapper
-              ref={(el: HTMLElement | null) => {
-                refB = el;
-              }}
-            />
-          ),
-          'data-testid': 'wrapped',
-        });
+        return (
+          <Dynamic
+            component={element}
+            ref={(el: HTMLElement | null) => {
+              refA = el;
+            }}
+            render={
+              <Wrapper
+                ref={(el: HTMLElement | null) => {
+                  refB = el;
+                }}
+              />
+            }
+            data-testid="wrapped"
+          />
+        );
       }
 
-      await render(<Test />);
+      await render(() => <Test />);
 
       expect(refA).not.to.equal(null);
       expect(refA!.tagName).to.equal(Element.toUpperCase());
@@ -115,14 +114,17 @@ export function testRenderProp(
 
     it('should merge the rendering element className with the custom component className', async () => {
       function Test() {
-        return React.cloneElement(element, {
-          className: 'component-classname',
-          render: <Element className="render-prop-classname" />,
-          'data-testid': 'test-component',
-        });
+        return (
+          <Dynamic
+            component={element}
+            class="component-classname"
+            render={<Element class="render-prop-classname" />}
+            data-testid="test-component"
+          />
+        );
       }
 
-      const { getByTestId } = await render(<Test />);
+      const { getByTestId } = await render(() => <Test />);
 
       const component = getByTestId('test-component');
       expect(component.classList.contains('component-classname')).to.equal(true);
@@ -131,14 +133,17 @@ export function testRenderProp(
 
     it('should merge the rendering element resolved className with the custom component className', async () => {
       function Test() {
-        return React.cloneElement(element, {
-          className: () => 'conditional-component-classname',
-          render: <Element className="render-prop-classname" />,
-          'data-testid': 'test-component',
-        });
+        return (
+          <Dynamic
+            component={element}
+            class={() => 'conditional-component-classname'}
+            render={<Element class="render-prop-classname" />}
+            data-testid="test-component"
+          />
+        );
       }
 
-      const { getByTestId } = await render(<Test />);
+      const { getByTestId } = await render(() => <Test />);
 
       const component = getByTestId('test-component');
       expect(component.classList.contains('conditional-component-classname')).to.equal(true);

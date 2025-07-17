@@ -1,14 +1,15 @@
-import * as React from 'react';
-import { expect } from 'chai';
 import { flushMicrotasks, randomStringValue } from '@mui/internal-test-utils';
-import { throwMissingPropError } from './utils';
+import { expect } from 'chai';
+import type { Component } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import type {
-  ConformantComponentProps,
   BaseUiConformanceTestsOptions,
+  ConformantComponentProps,
 } from '../describeConformance';
+import { throwMissingPropError } from './utils';
 
 export function testPropForwarding(
-  element: React.ReactElement<ConformantComponentProps>,
+  element: Component<ConformantComponentProps>,
   getOptions: () => BaseUiConformanceTestsOptions,
 ) {
   const { render, testRenderPropWith: Element = 'div' } = getOptions();
@@ -24,9 +25,9 @@ export function testPropForwarding(
         'data-foobar': randomStringValue(),
       };
 
-      const { getByTestId } = await render(
-        React.cloneElement(element, { 'data-testid': 'root', ...otherProps }),
-      );
+      const { getByTestId } = await render(() => (
+        <Dynamic component={element} data-testid="root" {...otherProps} />
+      ));
 
       await flushMicrotasks();
 
@@ -41,12 +42,13 @@ export function testPropForwarding(
         'data-foobar': randomStringValue(),
       };
 
-      const { getByTestId } = await render(
-        React.cloneElement(element, {
-          render: (props: any) => <Element {...props} data-testid="custom-root" />,
-          ...otherProps,
-        }),
-      );
+      const { getByTestId } = await render(() => (
+        <Dynamic
+          component={element}
+          render={(props) => <Element {...props} data-testid="custom-root" />}
+          {...otherProps}
+        />
+      ));
 
       await flushMicrotasks();
 
@@ -61,12 +63,13 @@ export function testPropForwarding(
         'data-foobar': randomStringValue(),
       };
 
-      const { getByTestId } = await render(
-        React.cloneElement(element, {
-          render: <Element data-testid="custom-root" />,
-          ...otherProps,
-        }),
-      );
+      const { getByTestId } = await render(() => (
+        <Dynamic
+          component={element}
+          render={<Element data-testid="custom-root" />}
+          {...otherProps}
+        />
+      ));
 
       await flushMicrotasks();
 
@@ -76,12 +79,9 @@ export function testPropForwarding(
     });
 
     it('forwards the custom `style` attribute defined on the component', async () => {
-      const { getByTestId } = await render(
-        React.cloneElement(element, {
-          style: { color: 'green' },
-          'data-testid': 'custom-root',
-        }),
-      );
+      const { getByTestId } = await render(() => (
+        <Dynamic component={element} style={{ color: 'green' }} data-testid="custom-root" />
+      ));
 
       await flushMicrotasks();
 
@@ -91,13 +91,14 @@ export function testPropForwarding(
     });
 
     it('forwards the custom `style` attribute defined on the render function', async () => {
-      const { getByTestId } = await render(
-        React.cloneElement(element, {
-          render: (props: any) => (
+      const { getByTestId } = await render(() => (
+        <Dynamic
+          component={element}
+          render={(props) => (
             <Element {...props} style={{ color: 'green' }} data-testid="custom-root" />
-          ),
-        }),
-      );
+          )}
+        />
+      ));
 
       await flushMicrotasks();
 
@@ -107,11 +108,12 @@ export function testPropForwarding(
     });
 
     it('forwards the custom `style` attribute defined on the render function', async () => {
-      const { getByTestId } = await render(
-        React.cloneElement(element, {
-          render: <Element style={{ color: 'green' }} data-testid="custom-root" />,
-        }),
-      );
+      const { getByTestId } = await render(() => (
+        <Dynamic
+          component={element}
+          render={<Element style={{ color: 'green' }} data-testid="custom-root" />}
+        />
+      ));
 
       await flushMicrotasks();
 
