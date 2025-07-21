@@ -1,34 +1,11 @@
 'use client';
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { Collapsible } from '@base-ui-components/solid/collapsible';
-import { screen } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';
 
 const PANEL_CONTENT = 'This is panel content';
-
-describe('test', () => {
-  const { render } = createRenderer();
-  it('test', async () => {
-    const { user } = render(() => (
-      <Collapsible.Root>
-        <Collapsible.Trigger />
-      </Collapsible.Root>
-    ));
-
-    screen.debug();
-    const key = 'Enter';
-    const trigger = screen.getByRole('button');
-    await user.keyboard('[Tab]');
-    expect(trigger).toHaveFocus();
-    console.log('pressing', key);
-    await user.keyboard(`[${key}]`);
-    console.log('pressed', key);
-
-    await user.keyboard(`[${key}]`);
-  });
-});
 
 describe('<Collapsible.Root />', () => {
   const { render } = createRenderer();
