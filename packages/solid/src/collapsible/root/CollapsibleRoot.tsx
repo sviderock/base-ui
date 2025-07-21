@@ -28,7 +28,7 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
 
   const collapsible = useCollapsibleRoot({
     open: () => local.open,
-    defaultOpen: () => local.defaultOpen ?? false,
+    defaultOpen: local.defaultOpen,
     onOpenChange,
     disabled: () => local.disabled ?? false,
   });
@@ -53,8 +53,9 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
           componentProps={componentProps}
           ref={componentProps.ref}
           params={{
-            state: () => state,
-            props: () => elementProps,
+            state,
+            // TODO: fix typing
+            props: elementProps as any,
             customStyleHookMapping: collapsibleStyleHookMapping,
           }}
         />

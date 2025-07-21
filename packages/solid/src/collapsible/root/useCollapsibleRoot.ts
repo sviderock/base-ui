@@ -19,7 +19,7 @@ export function useCollapsibleRoot(
 
   const [open, setOpen] = useControlled({
     controlled: () => parameters.open?.(),
-    default: () => parameters.defaultOpen?.(),
+    default: parameters.defaultOpen,
     name: 'Collapsible',
     state: 'open',
   });
@@ -135,7 +135,7 @@ export namespace useCollapsibleRoot {
      * To render a controlled collapsible, use the `open` prop instead.
      * @default false
      */
-    defaultOpen?: Accessor<boolean | undefined>;
+    defaultOpen?: boolean | undefined;
     /**
      * Event handler called when the panel is opened or closed.
      */

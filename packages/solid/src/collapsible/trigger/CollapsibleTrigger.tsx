@@ -56,8 +56,8 @@ export function CollapsibleTrigger(componentProps: CollapsibleTrigger.Props): JS
       componentProps={componentProps}
       ref={useForkRef(componentProps.ref, button.buttonRef as HTMLButtonElement)}
       params={{
-        state: () => context.state,
-        props: () => [props(), elementProps, button.getButtonProps()],
+        state: context.state,
+        props: [props(), elementProps, button.getButtonProps()],
         customStyleHookMapping: styleHookMapping,
       }}
     />

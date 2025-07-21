@@ -11,7 +11,7 @@ export interface UseControlledProps<T = unknown> {
   /**
    * The default value when uncontrolled.
    */
-  default: Accessor<T | undefined>;
+  default: T | undefined;
   /**
    * The component name displayed in warnings.
    */
@@ -25,7 +25,7 @@ export interface UseControlledProps<T = unknown> {
 export function useControlled<T = unknown>(props: UseControlledProps<T>): Signal<T> {
   // isControlled is ignored in the hook dependency lists as it should never change.
   const isControlled = () => props.controlled() !== undefined;
-  const [valueState, setValue] = createSignal(props.default());
+  const [valueState, setValue] = createSignal(props.default);
   const value = () => (isControlled() ? props.controlled() : valueState());
   const state = () => props.state ?? 'value';
 
@@ -47,12 +47,12 @@ export function useControlled<T = unknown>(props: UseControlledProps<T>): Signal
       }
     });
 
-    const defaultValue = props.default();
+    const defaultValue = props.default;
 
     createEffect(() => {
       // Object.is() is not equivalent to the === operator.
       // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is for more details.
-      if (!isControlled() && !Object.is(defaultValue, props.default())) {
+      if (!isControlled() && !Object.is(defaultValue, props.default)) {
         console.error(
           [
             `Base UI: A component is changing the default ${state()} state of an uncontrolled ${props.name} after being initialized. ` +

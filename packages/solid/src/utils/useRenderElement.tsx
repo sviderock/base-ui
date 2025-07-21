@@ -6,7 +6,6 @@ import {
   Show,
   splitProps,
   Switch,
-  type Accessor,
   type JSX,
   type Ref,
 } from 'solid-js';
@@ -31,8 +30,8 @@ export function RenderElement<
   componentProps: RenderElement.ComponentProps<State>;
   params: RenderElement.Parameters<State, TagName, Enabled>;
 }): JSX.Element {
-  const state = () => props.params.state?.() ?? (EMPTY_OBJECT as State);
-  const enabled = () => props.params.enabled?.() ?? true;
+  const state = () => props.params.state ?? (EMPTY_OBJECT as State);
+  const enabled = () => props.params.enabled ?? true;
 
   const styleHooks = createMemo((): Record<string, string> | undefined => {
     if (props.params.disableStyleHooks !== true) {
@@ -43,11 +42,9 @@ export function RenderElement<
     return undefined;
   });
 
-  const flattenedPropsParams = createMemo(() => {
-    return Array.isArray(props.params.props?.())
-      ? mergePropsN(props.params.props!() as any[])
-      : props.params.props?.();
-  });
+  const flattenedPropsParams = createMemo(() =>
+    Array.isArray(props.params.props) ? mergePropsN(props.params.props) : props.params.props,
+  );
 
   const propsParams = createMemo(() => {
     const mergedParams = flattenedPropsParams();
@@ -95,7 +92,7 @@ export function RenderElement<
       <Match when={props.componentProps.render}>
         <Show
           when={typeof props.componentProps.render === 'function' && props.componentProps.render}
-          fallback={<Dynamic component={() => props.componentProps.render as JSX.Element} />}
+          fallback={props.componentProps.render as JSX.Element}
         >
           {(renderer) => {
             const render = renderer();
@@ -129,7 +126,7 @@ export namespace RenderElement {
      * This is useful for rendering a component conditionally.
      * @default true
      */
-    enabled?: Accessor<Enabled>;
+    enabled?: Enabled;
     /**
      * @deprecated
      */
@@ -137,19 +134,19 @@ export namespace RenderElement {
     /**
      * The state of the component.
      */
-    state?: Accessor<State>;
+    state?: State;
 
     /**
      * Intrinsic props to be spread on the rendered element.
      */
-    props?: Accessor<
+    props?:
       | RenderFunctionProps<TagName>
       | Array<
           | RenderFunctionProps<TagName>
           | undefined
           | ((props: RenderFunctionProps<TagName>) => RenderFunctionProps<TagName>)
-        >
-    >;
+        >;
+
     /**
      * A mapping of state to style hooks.
      */

@@ -252,12 +252,12 @@ export function useCollapsiblePanel<T extends HTMLElement>(
 
   createEffect(() => {
     if (!parameters.hiddenUntilFound()) {
-      return undefined;
+      return;
     }
 
     const panel = parameters.panelRef;
     if (!panel) {
-      return undefined;
+      return;
     }
 
     let frame = -1;
@@ -387,6 +387,10 @@ export namespace useCollapsiblePanel {
 
   export interface ReturnValue<T extends HTMLElement> {
     ref: Ref<T | null | undefined>;
-    props: Accessor<HTMLProps>;
+    /**
+     * TODO: provide better explanation
+     * Ref should be ommited as Solid handles refs differently than React.
+     */
+    props: Accessor<Omit<HTMLProps, 'ref'>>;
   }
 }

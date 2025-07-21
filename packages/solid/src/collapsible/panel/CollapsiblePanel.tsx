@@ -39,7 +39,6 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
   }
 
   const context = useCollapsibleRootContext();
-
   const hiddenUntilFound = () => local.hiddenUntilFound ?? false;
   const keepMounted = () => local.keepMounted ?? false;
 
@@ -111,8 +110,8 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
         componentProps={componentProps}
         ref={useForkRef(componentProps.ref as HTMLDivElement, context.panelRef, panel.ref)}
         params={{
-          state: () => panelState,
-          props: () => [
+          state: panelState,
+          props: [
             panel.props(),
             {
               style: {
@@ -122,6 +121,7 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
                   context.width() === undefined ? 'auto' : `${context.width()}px`,
               },
             },
+            // TODO: fix typing
             elementProps as any,
           ],
           customStyleHookMapping: collapsibleStyleHookMapping,
