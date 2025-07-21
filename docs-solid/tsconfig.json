@@ -1,4 +1,6 @@
 {
+  "extends": "../tsconfig.base.json",
+  "include": ["data", "scripts/*.mts", "src", "src/global.d.ts"],
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
@@ -12,8 +14,18 @@
     "noEmit": true,
     "types": ["vinxi/types/client"],
     "isolatedModules": true,
-    "paths": {
-      "~/*": ["./src/*"]
+    "noUnusedLocals": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "incremental": true,
+    "composite": true,
+    "allowImportingTsExtensions": true,
+    "strictNullChecks": true
+  },
+  "exclude": ["node_modules"],
+  "references": [
+    {
+      "path": "../packages/solid/tsconfig.build.json"
     }
-  }
+  ]
 }

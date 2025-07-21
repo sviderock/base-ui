@@ -1,6 +1,7 @@
 // @refresh reload
-import { createHandler, StartServer } from "@solidjs/start/server";
+import { createHandler, StartServer } from '@solidjs/start/server';
 
+// TODO: add metadata
 export default createHandler(() => (
   <StartServer
     document={({ assets, children, scripts }) => (
@@ -12,7 +13,7 @@ export default createHandler(() => (
           {assets}
         </head>
         <body>
-          <div id="app">{children}</div>
+          {children}
           {scripts}
         </body>
       </html>

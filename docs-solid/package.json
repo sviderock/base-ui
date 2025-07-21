@@ -1,20 +1,31 @@
 {
-  "name": "example-basic",
+  "name": "example-with-mdx",
   "type": "module",
   "scripts": {
-    "dev": "vinxi dev",
+    "dev": "vinxi dev --port 3005",
     "build": "vinxi build",
-    "start": "vinxi start",
-    "version": "vinxi version"
+    "start": "vinxi start"
   },
   "dependencies": {
+    "@mdx-js/mdx": "^2.3.0",
     "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.15.0",
     "@solidjs/start": "^1.1.0",
+    "@vinxi/plugin-mdx": "^3.7.1",
+    "postcss": "^8.5.6",
+    "postcss-custom-media": "^11.0.6",
+    "postcss-import": "^16.1.1",
     "solid-js": "^1.9.5",
+    "solid-mdx": "^0.0.7",
     "vinxi": "^0.5.7"
   },
   "engines": {
     "node": ">=22"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.1.11",
+    "eslint-plugin-solid": "^0.14.5",
+    "tailwindcss": "4.1.11",
+    "vite-tsconfig-paths": "^5.1.4"
   }
 }

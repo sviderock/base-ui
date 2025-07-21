@@ -19,7 +19,8 @@
       "@base-ui-components/react/*": ["./packages/react/src/*"],
       "@base-ui-components/solid": ["./packages/solid/src"],
       "@base-ui-components/solid/*": ["./packages/solid/src/*"],
-      "docs/*": ["./docs/*"]
+      "docs/*": ["./docs/*"],
+      "docs-solid/*": ["./docs-solid/*"]
     }
   },
   "exclude": ["**/.*/", "**/build", "**/build-tests", "**/node_modules", "docs/export"]
