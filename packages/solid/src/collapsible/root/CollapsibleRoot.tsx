@@ -1,8 +1,8 @@
 'use client';
-import { Show, splitProps } from 'solid-js';
+import { onCleanup, onMount, Show, splitProps } from 'solid-js';
 import { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
-import { CollapsibleRootContext } from './CollapsibleRootContext';
+import { CollapsibleRootContext, CollapsibleRootContextProvider } from './CollapsibleRootContext';
 import { collapsibleStyleHookMapping } from './styleHooks';
 import { useCollapsibleRoot } from './useCollapsibleRoot';
 
@@ -19,6 +19,7 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
     'disabled',
     'onOpenChange',
     'open',
+    'ref',
   ]);
 
   const onOpenChange = (open: boolean) => {
@@ -44,30 +45,29 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
     state,
   };
 
+  onMount(() => {
+    console.log('mounted ROOT');
+
+    onCleanup(() => {
+      console.log('unmounted ROOT');
+    });
+  });
+
   return (
-    <CollapsibleRootContext.Provider value={contextValue}>
-      <Show
-        when={componentProps.render !== null && componentProps.render !== undefined}
-        fallback={elementProps.children}
-      >
-        <>
-          {() => {
-            return (
-              <RenderElement
-                element="div"
-                componentProps={componentProps}
-                params={{
-                  state: () => state,
-                  ref: componentProps.ref,
-                  props: () => elementProps,
-                  customStyleHookMapping: collapsibleStyleHookMapping,
-                }}
-              />
-            );
+    <CollapsibleRootContextProvider value={contextValue}>
+      <Show when={componentProps.render !== null} fallback={elementProps.children}>
+        <RenderElement
+          element="div"
+          componentProps={componentProps}
+          ref={componentProps.ref}
+          params={{
+            state: () => state,
+            props: () => elementProps,
+            customStyleHookMapping: collapsibleStyleHookMapping,
           }}
-        </>
+        />
       </Show>
-    </CollapsibleRootContext.Provider>
+    </CollapsibleRootContextProvider>
   );
 }
 

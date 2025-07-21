@@ -1,12 +1,23 @@
-import { createMemo, Match, Show, Switch, type Accessor, type JSX, type Ref } from 'solid-js';
+import {
+  children,
+  createMemo,
+  Match,
+  mergeProps,
+  onCleanup,
+  onMount,
+  Show,
+  splitProps,
+  Switch,
+  type Accessor,
+  type JSX,
+  type Ref,
+} from 'solid-js';
 import { Dynamic } from 'solid-js/web';
-import { mergeClasses, mergePropsN } from '../merge-props';
+import { mergePropsN } from '../merge-props';
 import { EMPTY_OBJECT } from './constants';
 import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
-import { mergeObjects } from './mergeObjects';
 import { resolveClassName } from './resolveClassName';
 import type { ComponentRenderFn, HTMLProps } from './types';
-import { useForkRefN } from './useForkRef';
 
 type IntrinsicTagName = keyof JSX.IntrinsicElements;
 
@@ -17,13 +28,13 @@ export function RenderElement<
   Enabled extends boolean | undefined = undefined,
 >(props: {
   element: TagName;
+  // TODO: needed as a separate prop to properly reassign refs https://stackoverflow.com/a/71137252
+  ref: Ref<RenderedElementType | null | undefined>;
   componentProps: RenderElement.ComponentProps<State>;
-  params: RenderElement.Parameters<State, RenderedElementType, TagName, Enabled>;
+  params: RenderElement.Parameters<State, TagName, Enabled>;
 }): JSX.Element {
   const state = () => props.params.state?.() ?? (EMPTY_OBJECT as State);
   const enabled = () => props.params.enabled?.() ?? true;
-  const className = () =>
-    enabled() ? resolveClassName(props.componentProps.class, state()) : undefined;
 
   const styleHooks = createMemo((): Record<string, string> | undefined => {
     if (props.params.disableStyleHooks !== true) {
@@ -34,34 +45,66 @@ export function RenderElement<
     return undefined;
   });
 
-  const propsParams = createMemo(() =>
-    Array.isArray(props.params.props?.())
+  const flattenedPropsParams = createMemo(() => {
+    console.log(2);
+    return Array.isArray(props.params.props?.())
       ? mergePropsN(props.params.props!() as any[])
-      : props.params.props?.(),
-  );
+      : props.params.props?.();
+  });
+
+  const propsParams = createMemo(() => {
+    console.log(1);
+    const mergedParams = flattenedPropsParams();
+    if (mergedParams === undefined) {
+      return undefined;
+    }
+
+    if ('render' in mergedParams) {
+      const { render, ...rest } = mergedParams;
+      return rest;
+    }
+
+    const [local, rest] = splitProps(mergedParams, ['children']);
+    const safeChildren = children(() => {
+      if (typeof props.element === 'string') {
+        return local.children;
+      }
+
+      return false;
+    });
+
+    return {
+      ...rest,
+      children: safeChildren,
+    };
+  });
 
   const outProps = createMemo((): JSX.HTMLAttributes<any> => {
     if (enabled()) {
-      const mergedProps: JSX.HTMLAttributes<any> =
-        mergeObjects(styleHooks(), propsParams()) ?? EMPTY_OBJECT;
+      const mergedProps = mergeProps(styleHooks(), propsParams(), {
+        class: resolveClassName(props.componentProps.class, state()),
+        ref: props.ref,
+      });
 
-      if (className() !== undefined) {
-        mergedProps.class = mergeClasses(mergedProps.class, className());
-      }
-
-      mergedProps.ref = useForkRefN([
-        mergedProps.ref,
-        ...(Array.isArray(props.params.ref) ? props.params.ref : [props.params.ref]),
-      ]);
-
-      return mergedProps;
+      console.log('mergedProps', mergedProps);
+      return mergedProps as JSX.HTMLAttributes<any>;
     }
 
     return EMPTY_OBJECT;
   });
 
+  onMount(() => {
+    if (props.element === 'button') {
+      console.log('mounted RENDER ELEMENT', props.element);
+
+      onCleanup(() => {
+        console.log('unmounted RENDER ELEMENT', outProps());
+      });
+    }
+  });
+
   return (
-    <Switch fallback={null}>
+    <Switch>
       <Match when={enabled() === false}>{null}</Match>
 
       <Match when={props.componentProps.render}>
@@ -70,25 +113,35 @@ export function RenderElement<
           fallback={<Dynamic component={() => props.componentProps.render as JSX.Element} />}
         >
           {(renderer) => {
-            const element = renderer()(outProps() as any, state());
+            const render = renderer();
+            outProps().ref = props.ref;
+            const element = render(outProps() as any, state());
             return element;
           }}
         </Show>
       </Match>
 
       <Match when={props.element && typeof props.element === 'string'}>
-        <Dynamic
-          component={props.element}
-          {...(props.element === 'button' ? { type: 'button' } : {})}
-          {...(props.element === 'img' ? { alt: '' } : {})}
-          {...outProps()}
-          ref={(el) => {
-            outProps().ref = useForkRefN([
-              outProps().ref,
-              ...(Array.isArray(props.params.ref) ? props.params.ref : [props.params.ref]),
-            ])(el);
-          }}
-        />
+        {() => {
+          if (props.element === 'button') {
+            onMount(() => {
+              console.log('mounted Dynamic', props.element);
+
+              onCleanup(() => {
+                console.log('unmounted DYNAMIC', outProps());
+              });
+            });
+          }
+
+          return (
+            <Dynamic
+              component={props.element as keyof JSX.IntrinsicElements}
+              {...(props.element === 'button' ? { type: 'button' } : {})}
+              {...(props.element === 'img' ? { alt: '' } : {})}
+              {...outProps()}
+            />
+          );
+        }}
       </Match>
     </Switch>
   );
@@ -99,12 +152,7 @@ type RenderFunctionProps<TagName> = TagName extends keyof JSX.IntrinsicElements
   : JSX.HTMLAttributes<any>;
 
 export namespace RenderElement {
-  export type Parameters<
-    State,
-    RenderedElementType extends HTMLElement,
-    TagName,
-    Enabled extends boolean | undefined,
-  > = {
+  export type Parameters<State, TagName, Enabled extends boolean | undefined> = {
     /**
      * If `false`, the hook will skip most of its internal logic and return `null`.
      * This is useful for rendering a component conditionally.
@@ -115,12 +163,6 @@ export namespace RenderElement {
      * @deprecated
      */
     propGetter?: (externalProps: HTMLProps) => HTMLProps;
-    /**
-     * The ref to apply to the rendered element.
-     */
-    ref?:
-      | Ref<RenderedElementType | null | undefined>
-      | Ref<RenderedElementType | null | undefined>[];
     /**
      * The state of the component.
      */

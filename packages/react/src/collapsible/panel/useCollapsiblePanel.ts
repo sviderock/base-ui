@@ -62,14 +62,6 @@ export function useCollapsiblePanel(
    * interrupted and re-opens, this won't run as the panel was not unmounted.
    */
   const handlePanelRef = useEventCallback((element: HTMLElement) => {
-    console.log('handlePanelRef', {
-      open,
-      mounted,
-      visible,
-      element,
-      animationTypeRef: animationTypeRef.current,
-      transitionDimensionRef: transitionDimensionRef.current,
-    });
     if (!element) {
       return undefined;
     }

@@ -1,6 +1,7 @@
 'use client';
 import { type Accessor, createEffect, onCleanup, Show, splitProps } from 'solid-js';
 import { BaseUIComponentProps } from '../../utils/types';
+import { useForkRef } from '../../utils/useForkRef';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
 import { RenderElement } from '../../utils/useRenderElement';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
@@ -72,7 +73,6 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
     onOpenChange: context.onOpenChange,
     open: context.open,
     panelRef: context.panelRef,
-    setPanelRef: context.setPanelRef,
     runOnceAnimationsFinish: context.runOnceAnimationsFinish,
     setDimensions: context.setDimensions,
     setMounted: context.setMounted,
@@ -109,9 +109,9 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
       <RenderElement
         element="div"
         componentProps={componentProps}
+        ref={useForkRef(componentProps.ref as HTMLDivElement, context.panelRef, panel.ref)}
         params={{
           state: () => panelState,
-          ref: [local.ref, context.setPanelRef, panel.ref],
           props: () => [
             panel.props(),
             {

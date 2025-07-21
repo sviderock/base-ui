@@ -1,11 +1,12 @@
-import * as React from 'react';
-import { expect } from 'chai';
 import { flushMicrotasks, randomStringValue } from '@mui/internal-test-utils';
-import { throwMissingPropError } from './utils';
+import { screen } from '@testing-library/react';
+import { expect } from 'chai';
+import * as React from 'react';
 import type {
-  ConformantComponentProps,
   BaseUiConformanceTestsOptions,
+  ConformantComponentProps,
 } from '../describeConformance';
+import { throwMissingPropError } from './utils';
 
 export function testPropForwarding(
   element: React.ReactElement<ConformantComponentProps>,
@@ -28,6 +29,7 @@ export function testPropForwarding(
         React.cloneElement(element, { 'data-testid': 'root', ...otherProps }),
       );
 
+      screen.debug();
       await flushMicrotasks();
 
       const customRoot = getByTestId('root');

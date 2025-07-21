@@ -15,6 +15,7 @@ export default mergeConfig(
     // },
     plugins: [solidPlugin()],
     test: {
+      retry: 0,
       // testTransformMode: {
       //   web: ['/\.[jt]sx?$/'],
       // },
@@ -24,6 +25,7 @@ export default mergeConfig(
         headless: true,
         provider: 'playwright',
         instances: [{ browser: 'chromium', name: 'chromium-solid' }],
+        screenshotFailures: false,
       },
       // deps: {
       //   optimizer: {

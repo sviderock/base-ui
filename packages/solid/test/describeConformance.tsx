@@ -6,27 +6,19 @@ import {
   type Queries,
 } from '@solidjs/testing-library';
 import type { userEvent } from '@testing-library/user-event';
-import { type Component, type JSX, type ParentComponent, type Ref } from 'solid-js';
+import { type Component, type JSX, type Ref, type ValidComponent } from 'solid-js';
 import { testClassName } from './conformanceTests/className';
 import { testPropForwarding } from './conformanceTests/propForwarding';
 import { testRefForwarding } from './conformanceTests/refForwarding';
 import { testRenderProp } from './conformanceTests/renderProp';
 import createDescribe from './createDescribe';
 
-interface RenderConfiguration {
-  /**
-   * https://testing-library.com/docs/react-testing-library/api#container
-   */
-  container?: HTMLElement;
-  /**
-   * if true does not cleanup before mount
-   */
-  disableUnmount?: boolean;
-  wrapper: ParentComponent;
-}
-
 type RenderResult<Q extends Queries = typeof queries> = ReturnType<typeof render> & {
   [P in keyof Q]: BoundFunction<Q[P]>;
+};
+
+type DataAttributes = {
+  [key: `data-${string}`]: string;
 };
 
 function queryAllDescriptionsOf(baseElement: HTMLElement, element: Element): HTMLElement[] {
@@ -60,7 +52,7 @@ const [
   },
 );
 
-const customQueries = {
+export const customQueries = {
   queryDescriptionOf,
   queryAllDescriptionsOf,
   getDescriptionOf,
@@ -139,22 +131,25 @@ export interface ConformanceOptions {
   createTheme?: (arg: any) => any;
 }
 
-export type ConformantComponentProps = {
-  render?: Component | JSX.Element;
-  ref?: Ref<unknown>;
+export type ConformantComponentProps<T> = {
+  render?: ValidComponent;
+  ref?: Ref<T>;
   'data-testid'?: string;
   class?: string | ((state: unknown) => string);
   style?: JSX.CSSProperties;
 };
 
-export type RenderOptions = Partial<RenderConfiguration>;
+export type RenderOptions = Parameters<typeof render>[1];
 
-export interface BaseUiConformanceTestsOptions
-  extends Omit<Partial<ConformanceOptions>, 'render' | 'mount' | 'skip' | 'classes'> {
+export interface BaseUiConformanceTestsOptions<
+  T,
+  Props extends Record<string, any> = ConformantComponentProps<T>,
+> extends Omit<Partial<ConformanceOptions>, 'render' | 'mount' | 'skip' | 'classes'> {
   render: (
-    element: Component<ConformantComponentProps>,
+    element: Component<Props>,
+    elementProps?: Props,
     options?: RenderOptions | undefined,
-  ) => Promise<MuiRenderResult> | MuiRenderResult;
+  ) => MuiRenderResult;
   skip?: (keyof typeof fullSuite)[];
   testRenderPropWith?: keyof JSX.IntrinsicElements;
 }
@@ -166,9 +161,9 @@ const fullSuite = {
   className: testClassName,
 };
 
-function describeConformanceFn(
-  minimalElement: Component<ConformantComponentProps>,
-  getOptions: () => BaseUiConformanceTestsOptions,
+function describeConformanceFn<T>(
+  minimalElement: Component<ConformantComponentProps<T>>,
+  getOptions: () => BaseUiConformanceTestsOptions<T>,
 ) {
   const { after: runAfterHook = () => {}, only = Object.keys(fullSuite), skip = [] } = getOptions();
 

@@ -1,12 +1,12 @@
 import * as React from 'react';
-import type { BaseUIComponentProps, ComponentRenderFn, HTMLProps } from './types';
-import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
-import { useForkRef, useForkRefN } from './useForkRef';
-import { resolveClassName } from './resolveClassName';
-import { isReactVersionAtLeast } from './reactVersion';
-import { mergeProps, mergePropsN, mergeClassNames } from '../merge-props';
-import { mergeObjects } from './mergeObjects';
+import { mergeClassNames, mergeProps, mergePropsN } from '../merge-props';
 import { EMPTY_OBJECT } from './constants';
+import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
+import { mergeObjects } from './mergeObjects';
+import { isReactVersionAtLeast } from './reactVersion';
+import { resolveClassName } from './resolveClassName';
+import type { BaseUIComponentProps, ComponentRenderFn, HTMLProps } from './types';
+import { useForkRef, useForkRefN } from './useForkRef';
 
 type IntrinsicTagName = keyof React.JSX.IntrinsicElements;
 
@@ -68,7 +68,7 @@ function useRenderElementProps<
   if (disableStyleHooks !== true) {
     // SAFETY: We use typings to ensure `disableStyleHooks` is either always set or
     // always unset, so this `if` block is stable across renders.
-    /* eslint-disable-next-line react-hooks/rules-of-hooks */
+
     styleHooks = React.useMemo(
       () => (enabled ? getStyleHookProps(state, customStyleHookMapping) : EMPTY_OBJECT),
       [state, customStyleHookMapping, enabled],
@@ -84,7 +84,7 @@ function useRenderElementProps<
   // throw at runtime anyway.
   // This also skips the `useForkRef` call on the server, which is fine because
   // refs are not used on the server side.
-  /* eslint-disable react-hooks/rules-of-hooks */
+
   if (typeof document !== 'undefined') {
     if (!enabled) {
       useForkRef(null, null);

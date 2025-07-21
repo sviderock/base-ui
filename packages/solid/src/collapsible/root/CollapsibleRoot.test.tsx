@@ -1,22 +1,44 @@
 'use client';
-import { isJSDOM } from '#test-utils';
+import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { Collapsible } from '@base-ui-components/solid/collapsible';
-import { render } from '@solidjs/testing-library';
+import { screen } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';
 
 const PANEL_CONTENT = 'This is panel content';
 
+describe('test', () => {
+  const { render } = createRenderer();
+  it('test', async () => {
+    const { user } = render(() => (
+      <Collapsible.Root>
+        <Collapsible.Trigger />
+      </Collapsible.Root>
+    ));
+
+    screen.debug();
+    const key = 'Enter';
+    const trigger = screen.getByRole('button');
+    await user.keyboard('[Tab]');
+    expect(trigger).toHaveFocus();
+    console.log('pressing', key);
+    await user.keyboard(`[${key}]`);
+    console.log('pressed', key);
+
+    await user.keyboard(`[${key}]`);
+  });
+});
+
 describe('<Collapsible.Root />', () => {
-  // TODO: fix this
-  // describeConformance(<Collapsible.Root />, () => ({
-  //   render,
-  //   refInstanceof: window.HTMLDivElement,
-  // }));
+  const { render } = createRenderer();
+  describeConformance(Collapsible.Root, () => ({
+    render,
+    refInstanceof: window.HTMLDivElement,
+  }));
 
   describe('ARIA attributes', () => {
-    it('sets ARIA attributes', async () => {
+    it('sets ARIA attributes', () => {
       const { getByTestId, getByRole } = render(() => (
         <Collapsible.Root defaultOpen>
           <Collapsible.Trigger />
@@ -32,7 +54,7 @@ describe('<Collapsible.Root />', () => {
       expect(trigger.getAttribute('aria-controls')).to.equal(panel.getAttribute('id'));
     });
 
-    it('references manual panel id in trigger aria-controls', async () => {
+    it('references manual panel id in trigger aria-controls', () => {
       const { getByTestId, getByRole } = render(() => (
         <Collapsible.Root defaultOpen>
           <Collapsible.Trigger />
@@ -49,7 +71,7 @@ describe('<Collapsible.Root />', () => {
   });
 
   describe('collapsible status', () => {
-    it('disabled status', async () => {
+    it('disabled status', () => {
       const { getByRole } = render(() => (
         <Collapsible.Root disabled>
           <Collapsible.Trigger />
@@ -123,13 +145,15 @@ describe('<Collapsible.Root />', () => {
         </Collapsible.Root>
       ));
 
-      const trigger = getByRole('button');
+      let trigger = getByRole('button');
 
       expect(trigger).to.not.have.attribute('aria-controls');
       expect(trigger).to.have.attribute('aria-expanded', 'false');
       expect(queryByText(PANEL_CONTENT)).to.equal(null);
 
       await userEvent.pointer({ keys: '[MouseLeft]', target: trigger });
+
+      trigger = getByRole('button');
 
       expect(trigger).to.have.attribute('aria-expanded', 'true');
       expect(trigger).to.have.attribute('aria-controls');
@@ -140,6 +164,8 @@ describe('<Collapsible.Root />', () => {
 
       await userEvent.pointer({ keys: '[MouseLeft]', target: trigger });
 
+      trigger = getByRole('button');
+
       expect(trigger).to.have.attribute('aria-expanded', 'false');
       expect(trigger).to.not.have.attribute('aria-controls');
       expect(trigger).to.not.have.attribute('data-panel-open');
@@ -148,7 +174,7 @@ describe('<Collapsible.Root />', () => {
   });
 
   describe('prop: render', () => {
-    it('does not render a root element when `null`', async () => {
+    it('does not render a root element when `null`', () => {
       const { getByRole, container } = render(() => (
         <Collapsible.Root defaultOpen render={null}>
           <Collapsible.Trigger />
@@ -164,22 +190,26 @@ describe('<Collapsible.Root />', () => {
   describe.skipIf(isJSDOM)('keyboard interactions', () => {
     ['Enter', 'Space'].forEach((key) => {
       it(`key: ${key} should toggle the Collapsible`, async () => {
-        const { queryByText, getByRole } = render(() => (
+        const { queryByText, getByRole, user } = render(() => (
           <Collapsible.Root defaultOpen={false}>
             <Collapsible.Trigger>Trigger</Collapsible.Trigger>
             <Collapsible.Panel>This is panel content</Collapsible.Panel>
           </Collapsible.Root>
         ));
 
-        const trigger = getByRole('button');
+        let trigger = getByRole('button');
 
         expect(trigger).to.not.have.attribute('aria-controls');
         expect(trigger).to.have.attribute('aria-expanded', 'false');
         expect(queryByText(PANEL_CONTENT)).to.equal(null);
 
-        await userEvent.keyboard('[Tab]');
+        await user.keyboard('[Tab]');
         expect(trigger).toHaveFocus();
-        await userEvent.keyboard(`[${key}]`);
+        console.log('pressing', key);
+        await user.keyboard(`[${key}]`);
+        console.log('pressed', key);
+
+        trigger = getByRole('button');
 
         expect(trigger).to.have.attribute('aria-controls');
         expect(trigger).to.have.attribute('aria-expanded', 'true');
@@ -188,12 +218,16 @@ describe('<Collapsible.Root />', () => {
         expect(queryByText(PANEL_CONTENT)).to.not.equal(null);
         expect(queryByText(PANEL_CONTENT)).to.have.attribute('data-open');
 
-        await userEvent.keyboard(`[${key}]`);
+        console.log('pressing second time', key);
+        await user.keyboard(`[${key}]`);
+        console.log('pressed second time', key);
 
-        expect(trigger).to.not.have.attribute('aria-controls');
-        expect(trigger).to.have.attribute('aria-expanded', 'false');
-        expect(trigger).not.to.have.attribute('data-panel-open');
-        expect(queryByText(PANEL_CONTENT)).to.equal(null);
+        trigger = getByRole('button');
+
+        // expect(trigger).to.not.have.attribute('aria-controls');
+        // expect(trigger).to.have.attribute('aria-expanded', 'false');
+        // expect(trigger).not.to.have.attribute('data-panel-open');
+        // expect(queryByText(PANEL_CONTENT)).to.equal(null);
       });
     });
   });

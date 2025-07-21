@@ -1,37 +1,30 @@
 import { expectType } from '#test-utils';
-import type { Accessor, Component } from 'solid-js';
-import { useRenderElement } from './useRenderElement';
+import type { JSX } from 'solid-js';
+import { RenderElement } from './useRenderElement';
 
-const element1 = useRenderElement('div', {}, {});
+const element1 = <RenderElement element="div" componentProps={{}} params={{}} ref={null} />;
 
-expectType<Accessor<Component<Record<string, unknown>>>, typeof element1>(element1);
+expectType<JSX.Element, typeof element1>(element1);
 
-const element2 = useRenderElement(
-  'div',
-  {},
-  {
-    enabled: true,
-  },
+const element2 = (
+  <RenderElement element="div" componentProps={{}} params={{ enabled: () => true }} ref={null} />
 );
 
-expectType<Accessor<Component<Record<string, unknown>>>, typeof element2>(element2);
+expectType<JSX.Element, typeof element2>(element2);
 
-const element3 = useRenderElement(
-  'div',
-  {},
-  {
-    enabled: false,
-  },
+const element3 = (
+  <RenderElement element="div" componentProps={{}} params={{ enabled: () => false }} ref={null} />
 );
 
-expectType<Accessor<null>, typeof element3>(element3);
+expectType<JSX.Element, typeof element3>(element3);
 
-const element4 = useRenderElement(
-  'div',
-  {},
-  {
-    enabled: Math.random() > 0.5,
-  },
+const element4 = (
+  <RenderElement
+    element="div"
+    componentProps={{}}
+    params={{ enabled: () => Math.random() > 0.5 }}
+    ref={null}
+  />
 );
 
-expectType<Accessor<Component<Record<string, unknown>> | null>, typeof element4>(element4);
+expectType<JSX.Element, typeof element4>(element4);

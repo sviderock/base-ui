@@ -1,6 +1,7 @@
 'use client';
-import { createMemo, mergeProps, splitProps, type JSX } from 'solid-js';
+import { createMemo, mergeProps, onCleanup, onMount, splitProps, type JSX } from 'solid-js';
 import { useButton } from '../../use-button';
+import { useForkRef } from '../../utils';
 import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
@@ -21,16 +22,10 @@ const styleHookMapping: CustomStyleHookMapping<CollapsibleRoot.State> = {
  * Documentation: [Base UI Collapsible](https://base-ui.com/react/components/collapsible)
  */
 export function CollapsibleTrigger(componentProps: CollapsibleTrigger.Props): JSX.Element {
-  const {
-    panelId,
-    open,
-    handleTrigger,
-    state,
-    disabled: contextDisabled,
-  } = useCollapsibleRootContext();
+  const context = useCollapsibleRootContext();
 
   const merged = mergeProps(
-    { nativeButton: true, disabled: contextDisabled() } satisfies CollapsibleTrigger.Props,
+    { nativeButton: true, disabled: context.disabled() } satisfies CollapsibleTrigger.Props,
     componentProps,
   );
   const [local, elementProps] = splitProps(merged, [
@@ -43,25 +38,33 @@ export function CollapsibleTrigger(componentProps: CollapsibleTrigger.Props): JS
   ]);
 
   const button = useButton({
-    disabled: local.disabled,
-    focusableWhenDisabled: true,
-    native: local.nativeButton,
+    disabled: () => local.disabled,
+    focusableWhenDisabled: () => true,
+    native: () => local.nativeButton,
   });
 
   const props = createMemo(() => ({
-    'aria-controls': open() ? panelId() : undefined,
-    'aria-expanded': open(),
+    'aria-controls': context.open() ? context.panelId() : undefined,
+    'aria-expanded': context.open(),
     disabled: local.disabled,
-    onClick: handleTrigger,
+    onClick: context.handleTrigger,
   }));
+
+  onMount(() => {
+    console.log('mounted TRIGGER');
+
+    onCleanup(() => {
+      console.log('unmounted TRIGGER');
+    });
+  });
 
   return (
     <RenderElement
       element="button"
       componentProps={componentProps}
+      ref={useForkRef(componentProps.ref, button.buttonRef as HTMLButtonElement)}
       params={{
-        state: () => state,
-        ref: [componentProps.ref, button.buttonRef],
+        state: () => context.state,
         props: () => [props(), elementProps, button.getButtonProps()],
         customStyleHookMapping: styleHookMapping,
       }}

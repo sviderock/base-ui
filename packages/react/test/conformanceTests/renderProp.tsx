@@ -1,9 +1,10 @@
-import * as React from 'react';
-import { expect } from 'chai';
 import { randomStringValue } from '@mui/internal-test-utils';
+import { screen } from '@testing-library/react';
+import { expect } from 'chai';
+import * as React from 'react';
 import type {
-  ConformantComponentProps,
   BaseUiConformanceTestsOptions,
+  ConformantComponentProps,
 } from '../describeConformance';
 import { throwMissingPropError } from './utils';
 
@@ -79,6 +80,7 @@ export function testRenderProp(
       }
 
       await render(<Test />);
+      screen.debug();
       expect(instanceFromRef!.tagName).to.equal(Element.toUpperCase());
       expect(instanceFromRef!).to.have.attribute('data-testid', 'wrapped');
     });

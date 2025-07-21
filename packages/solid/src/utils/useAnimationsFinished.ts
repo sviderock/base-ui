@@ -1,5 +1,5 @@
 'use client';
-import { type Accessor, type Ref } from 'solid-js';
+import { type Accessor } from 'solid-js';
 import { useAnimationFrame } from './useAnimationFrame';
 import { useTimeout } from './useTimeout';
 
@@ -8,8 +8,8 @@ import { useTimeout } from './useTimeout';
  * @param ref - The element to watch for animations.
  * @param waitForNextTick - Whether to wait for the next tick before checking for animations.
  */
-export function useAnimationsFinished(
-  ref: Ref<HTMLElement | null>,
+export function useAnimationsFinished<T extends HTMLElement>(
+  ref: T | null | undefined,
   waitForNextTick?: Accessor<boolean | undefined>,
 ) {
   const frame = useAnimationFrame();
@@ -30,11 +30,11 @@ export function useAnimationsFinished(
     frame.cancel();
     timeout.clear();
 
-    if (!ref()) {
+    if (!ref) {
       return;
     }
 
-    if (typeof ref()!.getAnimations !== 'function' || globalThis.BASE_UI_ANIMATIONS_DISABLED) {
+    if (typeof ref!.getAnimations !== 'function' || globalThis.BASE_UI_ANIMATIONS_DISABLED) {
       fnToExecute();
     } else {
       frame.request(() => {
@@ -43,11 +43,7 @@ export function useAnimationsFinished(
             return;
           }
 
-          Promise.allSettled(
-            ref()!
-              .getAnimations()
-              .map((anim) => anim.finished),
-          ).then(() => {
+          Promise.allSettled(ref!.getAnimations().map((anim) => anim.finished)).then(() => {
             if (signal != null && signal.aborted) {
               return;
             }

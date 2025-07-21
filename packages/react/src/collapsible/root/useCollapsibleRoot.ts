@@ -86,19 +86,11 @@ export function useCollapsibleRoot(
   });
 
   useModernLayoutEffect(() => {
-    console.log('useModernLayoutEffect', {
-      isControlled,
-      animationTypeRef: animationTypeRef.current,
-      keepMounted,
-      open,
-      openParam,
-    });
     /**
      * Unmount immediately when closing in controlled mode and keepMounted={false}
      * and no CSS animations or transitions are applied
      */
     if (isControlled && animationTypeRef.current === 'none' && !keepMounted && !open) {
-      console.log('unmounting');
       setMounted(false);
     }
   }, [isControlled, keepMounted, open, openParam, setMounted]);

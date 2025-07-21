@@ -1,31 +1,30 @@
 import { expect } from 'chai';
-import type { Component } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
+import type { Component, Ref } from 'solid-js';
 import type {
   BaseUiConformanceTestsOptions,
   ConformantComponentProps,
 } from '../describeConformance';
 import { throwMissingPropError } from './utils';
 
-async function verifyRef(
-  element: Component<ConformantComponentProps>,
-  render: BaseUiConformanceTestsOptions['render'],
+async function verifyRef<T>(
+  element: Component<ConformantComponentProps<T>>,
+  render: BaseUiConformanceTestsOptions<T>['render'],
   onRef: (instance: unknown, element: HTMLElement | null) => void,
 ) {
   if (!render) {
     throwMissingPropError('render');
   }
 
-  let ref;
+  const props = { ref: undefined as Ref<T> | undefined };
 
-  const { container } = await render(() => <Dynamic component={element} ref={ref} />);
+  const { container } = render(element, props);
 
-  onRef(ref, container);
+  onRef(props.ref, container);
 }
 
-export function testRefForwarding(
-  element: Component<ConformantComponentProps>,
-  getOptions: () => BaseUiConformanceTestsOptions,
+export function testRefForwarding<T>(
+  element: Component<ConformantComponentProps<T>>,
+  getOptions: () => BaseUiConformanceTestsOptions<T>,
 ) {
   describe('ref', () => {
     it(`attaches the ref`, async () => {

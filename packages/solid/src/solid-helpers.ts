@@ -1,4 +1,4 @@
-import { type Accessor, type JSX } from 'solid-js';
+import { children, getOwner, type Accessor, type JSX, type ParentProps } from 'solid-js';
 
 export function callEventHandler<T, E extends Event>(
   eventHandler: JSX.EventHandlerUnion<T, E> | undefined,
@@ -34,4 +34,29 @@ export function withResolvers<T>(): {
   });
 
   return { resolve: resolve!, reject: reject!, promise: promise as Promise<T> };
+}
+
+/**
+ * Simple implementation of a lazy and memoaized version of the
+ * children() function.
+ *
+ */
+export function childrenLazy<T extends Record<string, any>>(
+  props: ParentProps<T>,
+  onReady: ((v: any) => any) | null = null,
+): any {
+  let s = Symbol('LAZY_CHILDREN');
+  let x: any = s;
+  let o = getOwner();
+  return function resolvedChildren() {
+    if (x === s) {
+      if (o === getOwner()) {
+        console.warn('childrenLazy same owner');
+      }
+
+      x = children(() => props.children);
+      onReady?.(x);
+    }
+    return x;
+  };
 }

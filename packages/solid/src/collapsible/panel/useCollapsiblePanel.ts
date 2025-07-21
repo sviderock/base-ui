@@ -16,9 +16,9 @@ import { warn } from '../../utils/warn';
 import type { AnimationType, Dimensions } from '../root/useCollapsibleRoot';
 import { CollapsiblePanelDataAttributes } from './CollapsiblePanelDataAttributes';
 
-export function useCollapsiblePanel(
-  parameters: useCollapsiblePanel.Parameters,
-): useCollapsiblePanel.ReturnValue {
+export function useCollapsiblePanel<T extends HTMLElement>(
+  parameters: useCollapsiblePanel.Parameters<T>,
+): useCollapsiblePanel.ReturnValue<T> {
   let isBeforeMatchRef = false;
   let latestAnimationNameRef = null as string | null;
   let shouldCancelInitialOpenAnimationRef = parameters.open();
@@ -44,7 +44,7 @@ export function useCollapsiblePanel(
    * time it opens. If the panel is in the middle of a close transition that is
    * interrupted and re-opens, this won't run as the panel was not unmounted.
    */
-  function handlePanelRef(element: HTMLElement | null | undefined) {
+  function handlePanelRef(element: T | null | undefined) {
     if (!element) {
       return undefined;
     }
@@ -140,7 +140,7 @@ export function useCollapsiblePanel(
       return undefined;
     }
 
-    const panel = parameters.panelRef();
+    const panel = parameters.panelRef;
 
     if (!panel) {
       return undefined;
@@ -211,7 +211,7 @@ export function useCollapsiblePanel(
       return;
     }
 
-    const panel = parameters.panelRef();
+    const panel = parameters.panelRef;
     if (!panel) {
       return;
     }
@@ -255,7 +255,7 @@ export function useCollapsiblePanel(
       return undefined;
     }
 
-    const panel = parameters.panelRef();
+    const panel = parameters.panelRef;
     if (!panel) {
       return undefined;
     }
@@ -283,7 +283,7 @@ export function useCollapsiblePanel(
   });
 
   createEffect(() => {
-    const panel = parameters.panelRef();
+    const panel = parameters.panelRef;
 
     if (panel && parameters.hiddenUntilFound() && hidden()) {
       /**
@@ -305,7 +305,7 @@ export function useCollapsiblePanel(
   });
 
   createEffect(function registerBeforeMatchListener() {
-    const panel = parameters.panelRef();
+    const panel = parameters.panelRef;
     if (!panel) {
       return undefined;
     }
@@ -333,7 +333,7 @@ export function useCollapsiblePanel(
 }
 
 export namespace useCollapsiblePanel {
-  export interface Parameters {
+  export interface Parameters<T extends HTMLElement> {
     abortControllerRef: AbortController | null;
     animationType: Accessor<AnimationType>;
     setAnimationType: Setter<AnimationType>;
@@ -366,8 +366,7 @@ export namespace useCollapsiblePanel {
      * Whether the collapsible panel is currently open.
      */
     open: Accessor<boolean>;
-    panelRef: Accessor<HTMLElement | null>;
-    setPanelRef: Setter<HTMLElement | null>;
+    panelRef: T | null | undefined;
     runOnceAnimationsFinish: (fnToExecute: () => void, signal?: AbortSignal | null) => void;
     setDimensions: (nextDimensions: Dimensions) => void;
     setMounted: (nextMounted: boolean) => void;
@@ -386,8 +385,8 @@ export namespace useCollapsiblePanel {
     width: Accessor<number | undefined>;
   }
 
-  export interface ReturnValue {
-    ref: Ref<HTMLDivElement | null | undefined>;
+  export interface ReturnValue<T extends HTMLElement> {
+    ref: Ref<T | null | undefined>;
     props: Accessor<HTMLProps>;
   }
 }

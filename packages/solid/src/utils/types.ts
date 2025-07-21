@@ -1,7 +1,7 @@
 import type { ComponentProps, JSX, Ref, ValidComponent } from 'solid-js';
 
 export type HTMLProps<T = any> = JSX.HTMLAttributes<T> & {
-  ref?: Ref<T>;
+  ref?: Ref<T | null | undefined>;
 };
 
 export type BaseUIEvent<E extends Event> = E & {
