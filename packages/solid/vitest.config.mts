@@ -9,16 +9,9 @@ export default mergeConfig(
     define: {
       'process.env.NODE_ENV': JSON.stringify('test'),
     },
-    // resolve: {
-    //   dedupe: ['solid-js'],
-    //   conditions: ['development', 'browser'],
-    // },
     plugins: [solidPlugin()],
     test: {
       retry: 0,
-      // testTransformMode: {
-      //   web: ['/\.[jt]sx?$/'],
-      // },
       browser: {
         // Enable browser-based testing for UI components
         enabled: true,
@@ -27,11 +20,6 @@ export default mergeConfig(
         instances: [{ browser: 'chromium', name: 'chromium-solid' }],
         screenshotFailures: false,
       },
-      // deps: {
-      //   optimizer: {
-      //     web: { enabled: true },
-      //   },
-      // },
     },
   }),
 );
