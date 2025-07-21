@@ -6,9 +6,9 @@ import type {
 } from '../describeConformance';
 import { throwMissingPropError } from './utils';
 
-export function testClassName<T>(
-  element: Component<ConformantComponentProps<T>>,
-  getOptions: () => BaseUiConformanceTestsOptions<T>,
+export function testClassName(
+  element: Component<ConformantComponentProps>,
+  getOptions: () => BaseUiConformanceTestsOptions,
 ) {
   describe('prop: class', () => {
     const { render } = getOptions();

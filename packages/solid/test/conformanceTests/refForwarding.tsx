@@ -6,25 +6,25 @@ import type {
 } from '../describeConformance';
 import { throwMissingPropError } from './utils';
 
-async function verifyRef<T>(
-  element: Component<ConformantComponentProps<T>>,
-  render: BaseUiConformanceTestsOptions<T>['render'],
+async function verifyRef(
+  element: Component<ConformantComponentProps>,
+  render: BaseUiConformanceTestsOptions['render'],
   onRef: (instance: unknown, element: HTMLElement | null) => void,
 ) {
   if (!render) {
     throwMissingPropError('render');
   }
 
-  const props = { ref: undefined as Ref<T> | undefined };
+  const props = { ref: null as Ref<any> | undefined };
 
   const { container } = render(element, props);
 
   onRef(props.ref, container);
 }
 
-export function testRefForwarding<T>(
-  element: Component<ConformantComponentProps<T>>,
-  getOptions: () => BaseUiConformanceTestsOptions<T>,
+export function testRefForwarding(
+  element: Component<ConformantComponentProps>,
+  getOptions: () => BaseUiConformanceTestsOptions,
 ) {
   describe('ref', () => {
     it(`attaches the ref`, async () => {

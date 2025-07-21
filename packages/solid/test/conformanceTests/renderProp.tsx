@@ -8,9 +8,9 @@ import type {
 } from '../describeConformance';
 import { throwMissingPropError } from './utils';
 
-export function testRenderProp<T>(
-  element: Component<ConformantComponentProps<T>>,
-  getOptions: () => BaseUiConformanceTestsOptions<T>,
+export function testRenderProp(
+  element: Component<ConformantComponentProps>,
+  getOptions: () => BaseUiConformanceTestsOptions,
 ) {
   const { render, testRenderPropWith: Element = 'div' } = getOptions();
 
@@ -98,8 +98,8 @@ export function testRenderProp<T>(
         return (
           <Dynamic
             component={element}
-            ref={(el) => {
-              refA = el as HTMLElement;
+            ref={(el: HTMLElement | null) => {
+              refA = el;
             }}
             // @ts-expect-error
             render={

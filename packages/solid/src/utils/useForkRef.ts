@@ -37,7 +37,6 @@ export function useForkRefN<I>(refs: InputRef<I>[]): Result<I> {
  */
 export function createForkRef<I>(refs: InputRef<I>[]): Result<I> {
   return function forkRef(instance: I | null | undefined) {
-    // eslint-disable-next-line no-plusplus
     for (let i = 0; i < refs.length; i++) {
       if (typeof refs[i] === 'function') {
         (refs[i] as (val: I | null | undefined) => void)(instance);

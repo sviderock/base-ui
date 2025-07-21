@@ -17,10 +17,6 @@ type RenderResult<Q extends Queries = typeof queries> = ReturnType<typeof render
   [P in keyof Q]: BoundFunction<Q[P]>;
 };
 
-type DataAttributes = {
-  [key: `data-${string}`]: string;
-};
-
 function queryAllDescriptionsOf(baseElement: HTMLElement, element: Element): HTMLElement[] {
   const ariaDescribedBy = element.getAttribute('aria-describedby');
   if (ariaDescribedBy === null) {
@@ -101,7 +97,7 @@ export interface ConformanceOptions {
   classes: { root: string };
   refInstanceof: any;
   after?: () => void;
-  inheritComponent?: Component;
+  inheritComponent?: ValidComponent;
   render: (node: Component<DataProps>) => MuiRenderResult | Promise<MuiRenderResult>;
   only?: Array<keyof typeof fullSuite>;
   skip?: Array<keyof typeof fullSuite | 'classesRoot'>;
@@ -131,9 +127,9 @@ export interface ConformanceOptions {
   createTheme?: (arg: any) => any;
 }
 
-export type ConformantComponentProps<T> = {
+export type ConformantComponentProps = {
   render?: ValidComponent;
-  ref?: Ref<T>;
+  ref?: Ref<any>;
   'data-testid'?: string;
   class?: string | ((state: unknown) => string);
   style?: JSX.CSSProperties;
@@ -142,8 +138,7 @@ export type ConformantComponentProps<T> = {
 export type RenderOptions = Parameters<typeof render>[1];
 
 export interface BaseUiConformanceTestsOptions<
-  T,
-  Props extends Record<string, any> = ConformantComponentProps<T>,
+  Props extends Record<string, any> = ConformantComponentProps,
 > extends Omit<Partial<ConformanceOptions>, 'render' | 'mount' | 'skip' | 'classes'> {
   render: (
     element: Component<Props>,
@@ -161,9 +156,9 @@ const fullSuite = {
   className: testClassName,
 };
 
-function describeConformanceFn<T>(
-  minimalElement: Component<ConformantComponentProps<T>>,
-  getOptions: () => BaseUiConformanceTestsOptions<T>,
+function describeConformanceFn(
+  minimalElement: Component<ConformantComponentProps>,
+  getOptions: () => BaseUiConformanceTestsOptions,
 ) {
   const { after: runAfterHook = () => {}, only = Object.keys(fullSuite), skip = [] } = getOptions();
 

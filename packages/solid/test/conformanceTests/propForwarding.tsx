@@ -8,9 +8,9 @@ import type {
 } from '../describeConformance';
 import { throwMissingPropError } from './utils';
 
-export function testPropForwarding<T>(
-  element: Component<ConformantComponentProps<T>>,
-  getOptions: () => BaseUiConformanceTestsOptions<T>,
+export function testPropForwarding(
+  element: Component<ConformantComponentProps>,
+  getOptions: () => BaseUiConformanceTestsOptions,
 ) {
   const { render, testRenderPropWith: Element = 'div' } = getOptions();
 
