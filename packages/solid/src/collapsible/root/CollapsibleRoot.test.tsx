@@ -197,10 +197,10 @@ describe('<Collapsible.Root />', () => {
 
         trigger = getByRole('button');
 
-        // expect(trigger).to.not.have.attribute('aria-controls');
-        // expect(trigger).to.have.attribute('aria-expanded', 'false');
-        // expect(trigger).not.to.have.attribute('data-panel-open');
-        // expect(queryByText(PANEL_CONTENT)).to.equal(null);
+        expect(trigger).to.not.have.attribute('aria-controls');
+        expect(trigger).to.have.attribute('aria-expanded', 'false');
+        expect(trigger).not.to.have.attribute('data-panel-open');
+        expect(queryByText(PANEL_CONTENT)).to.equal(null);
       });
     });
   });
