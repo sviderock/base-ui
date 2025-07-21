@@ -83,7 +83,6 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
           }
         },
         onKeyDown(event) {
-          console.log('onKeyDown');
           if (!merged.disabled?.()) {
             makeEventPreventable(event);
             callEventHandler(externalOnKeyDown, event);

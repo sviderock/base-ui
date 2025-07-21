@@ -50,7 +50,6 @@ export function useCollapsibleRoot(
 
   function handleTrigger() {
     const nextOpen = !open();
-    console.log('handleTrigger', { open: open(), nextOpen });
 
     if (animationType() === 'css-animation' && panelRef != null) {
       panelRef!.style.removeProperty('animation-name');

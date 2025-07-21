@@ -1,5 +1,5 @@
 'use client';
-import { onCleanup, onMount, Show, splitProps } from 'solid-js';
+import { Show, splitProps } from 'solid-js';
 import { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { CollapsibleRootContext, CollapsibleRootContextProvider } from './CollapsibleRootContext';
@@ -44,14 +44,6 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
     onOpenChange,
     state,
   };
-
-  onMount(() => {
-    console.log('mounted ROOT');
-
-    onCleanup(() => {
-      console.log('unmounted ROOT');
-    });
-  });
 
   return (
     <CollapsibleRootContextProvider value={contextValue}>

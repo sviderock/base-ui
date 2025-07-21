@@ -182,9 +182,7 @@ describe('<Collapsible.Root />', () => {
 
         await user.keyboard('[Tab]');
         expect(trigger).toHaveFocus();
-        console.log('pressing', key);
         await user.keyboard(`[${key}]`);
-        console.log('pressed', key);
 
         trigger = getByRole('button');
 
@@ -195,9 +193,7 @@ describe('<Collapsible.Root />', () => {
         expect(queryByText(PANEL_CONTENT)).to.not.equal(null);
         expect(queryByText(PANEL_CONTENT)).to.have.attribute('data-open');
 
-        console.log('pressing second time', key);
         await user.keyboard(`[${key}]`);
-        console.log('pressed second time', key);
 
         trigger = getByRole('button');
 

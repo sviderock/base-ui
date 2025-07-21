@@ -3,8 +3,6 @@ import {
   createMemo,
   Match,
   mergeProps,
-  onCleanup,
-  onMount,
   Show,
   splitProps,
   Switch,
@@ -46,14 +44,12 @@ export function RenderElement<
   });
 
   const flattenedPropsParams = createMemo(() => {
-    console.log(2);
     return Array.isArray(props.params.props?.())
       ? mergePropsN(props.params.props!() as any[])
       : props.params.props?.();
   });
 
   const propsParams = createMemo(() => {
-    console.log(1);
     const mergedParams = flattenedPropsParams();
     if (mergedParams === undefined) {
       return undefined;
@@ -86,21 +82,10 @@ export function RenderElement<
         ref: props.ref,
       });
 
-      console.log('mergedProps', mergedProps);
       return mergedProps as JSX.HTMLAttributes<any>;
     }
 
     return EMPTY_OBJECT;
-  });
-
-  onMount(() => {
-    if (props.element === 'button') {
-      console.log('mounted RENDER ELEMENT', props.element);
-
-      onCleanup(() => {
-        console.log('unmounted RENDER ELEMENT', outProps());
-      });
-    }
   });
 
   return (
@@ -122,26 +107,12 @@ export function RenderElement<
       </Match>
 
       <Match when={props.element && typeof props.element === 'string'}>
-        {() => {
-          if (props.element === 'button') {
-            onMount(() => {
-              console.log('mounted Dynamic', props.element);
-
-              onCleanup(() => {
-                console.log('unmounted DYNAMIC', outProps());
-              });
-            });
-          }
-
-          return (
-            <Dynamic
-              component={props.element as keyof JSX.IntrinsicElements}
-              {...(props.element === 'button' ? { type: 'button' } : {})}
-              {...(props.element === 'img' ? { alt: '' } : {})}
-              {...outProps()}
-            />
-          );
-        }}
+        <Dynamic
+          component={props.element as keyof JSX.IntrinsicElements}
+          {...(props.element === 'button' ? { type: 'button' } : {})}
+          {...(props.element === 'img' ? { alt: '' } : {})}
+          {...outProps()}
+        />
       </Match>
     </Switch>
   );

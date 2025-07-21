@@ -1,12 +1,5 @@
 'use client';
-import {
-  createContext,
-  onCleanup,
-  onMount,
-  useContext,
-  type Accessor,
-  type ParentProps,
-} from 'solid-js';
+import { createContext, useContext, type Accessor, type ParentProps } from 'solid-js';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import type { CollapsibleRoot } from './CollapsibleRoot';
 import type { useCollapsibleRoot } from './useCollapsibleRoot';
@@ -33,14 +26,6 @@ export function useCollapsibleRootContext() {
 export function CollapsibleRootContextProvider(
   props: ParentProps<{ value: CollapsibleRootContext }>,
 ) {
-  onMount(() => {
-    console.log('mounted ROOT CONTEXT');
-  });
-
-  onCleanup(() => {
-    console.log('unmounted ROOT CONTEXT');
-  });
-
   return (
     <CollapsibleRootContext.Provider value={props.value}>
       {props.children}

@@ -1,5 +1,5 @@
 'use client';
-import { createMemo, mergeProps, onCleanup, onMount, splitProps, type JSX } from 'solid-js';
+import { createMemo, mergeProps, splitProps, type JSX } from 'solid-js';
 import { useButton } from '../../use-button';
 import { useForkRef } from '../../utils';
 import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping';
@@ -49,14 +49,6 @@ export function CollapsibleTrigger(componentProps: CollapsibleTrigger.Props): JS
     disabled: local.disabled,
     onClick: context.handleTrigger,
   }));
-
-  onMount(() => {
-    console.log('mounted TRIGGER');
-
-    onCleanup(() => {
-      console.log('unmounted TRIGGER');
-    });
-  });
 
   return (
     <RenderElement
