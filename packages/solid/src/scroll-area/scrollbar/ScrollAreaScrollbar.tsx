@@ -25,33 +25,21 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
   const orientation = () => local.orientation ?? 'vertical';
   const keepMounted = () => local.keepMounted ?? false;
 
-  const {
-    hovering,
-    scrollingX,
-    scrollingY,
-    hiddenState,
-    scrollbarYRef,
-    scrollbarXRef,
-    viewportRef,
-    thumbYRef,
-    thumbXRef,
-    handlePointerDown,
-    handlePointerUp,
-    rootId,
-    thumbSize,
-  } = useScrollAreaRootContext();
+  const context = useScrollAreaRootContext();
 
   const state: ScrollAreaScrollbar.State = {
-    hovering,
-    scrolling: () => ({ horizontal: scrollingX(), vertical: scrollingY() })[orientation()],
+    hovering: context.hovering,
+    scrolling: () =>
+      ({ horizontal: context.scrollingX(), vertical: context.scrollingY() })[orientation()],
     orientation,
   };
 
   const direction = useDirection();
 
   createEffect(() => {
-    const viewportEl = viewportRef;
-    const scrollbarEl = orientation() === 'vertical' ? scrollbarYRef : scrollbarXRef;
+    const viewportEl = context.viewportRef();
+    const scrollbarEl =
+      orientation() === 'vertical' ? context.scrollbarYRef() : context.scrollbarXRef();
 
     if (!scrollbarEl) {
       return;
@@ -103,7 +91,9 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
   const contextValue: ScrollAreaScrollbarContext = { orientation };
 
   const isHidden = () =>
-    orientation() === 'vertical' ? hiddenState.scrollbarYHidden : hiddenState.scrollbarXHidden;
+    orientation() === 'vertical'
+      ? context.hiddenState.scrollbarYHidden
+      : context.hiddenState.scrollbarXHidden;
 
   const shouldRender = () => keepMounted() || !isHidden();
 
@@ -115,29 +105,35 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
           componentProps={componentProps}
           ref={useForkRef(
             componentProps.ref,
-            orientation() === 'vertical' ? scrollbarYRef : scrollbarXRef,
+            orientation() === 'vertical' ? context.setScrollbarYRef : context.setScrollbarXRef,
           )}
           params={{
             state,
             props: [
               {
-                ...(rootId() && { 'data-id': `${rootId()}-scrollbar` }),
+                ...(context.rootId() && { 'data-id': `${context.rootId()}-scrollbar` }),
                 onPointerDown(event) {
                   // Ignore clicks on thumb
                   if (event.currentTarget !== event.target) {
                     return;
                   }
 
-                  if (!viewportRef) {
+                  const viewportEl = context.viewportRef();
+                  const thumbYEl = context.thumbYRef();
+                  const scrollbarYEl = context.scrollbarYRef();
+                  const thumbXEl = context.thumbXRef();
+                  const scrollbarXEl = context.scrollbarXRef();
+
+                  if (!viewportEl) {
                     return;
                   }
 
                   // Handle Y-axis (vertical) scroll
-                  if (thumbYRef && scrollbarYRef && orientation() === 'vertical') {
-                    const thumbYOffset = getOffset(thumbYRef, 'margin', 'y');
-                    const scrollbarYOffset = getOffset(scrollbarYRef, 'padding', 'y');
-                    const thumbHeight = thumbYRef.offsetHeight;
-                    const trackRectY = scrollbarYRef.getBoundingClientRect();
+                  if (thumbYEl && scrollbarYEl && orientation() === 'vertical') {
+                    const thumbYOffset = getOffset(thumbYEl, 'margin', 'y');
+                    const scrollbarYOffset = getOffset(scrollbarYEl, 'padding', 'y');
+                    const thumbHeight = thumbYEl.offsetHeight;
+                    const trackRectY = scrollbarYEl.getBoundingClientRect();
                     const clickY =
                       event.clientY -
                       trackRectY.top -
@@ -145,22 +141,22 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
                       scrollbarYOffset +
                       thumbYOffset / 2;
 
-                    const scrollableContentHeight = viewportRef.scrollHeight;
-                    const viewportHeight = viewportRef.clientHeight;
+                    const scrollableContentHeight = viewportEl.scrollHeight;
+                    const viewportHeight = viewportEl.clientHeight;
 
                     const maxThumbOffsetY =
-                      scrollbarYRef.offsetHeight - thumbHeight - scrollbarYOffset - thumbYOffset;
+                      scrollbarYEl.offsetHeight - thumbHeight - scrollbarYOffset - thumbYOffset;
                     const scrollRatioY = clickY / maxThumbOffsetY;
                     const newScrollTop = scrollRatioY * (scrollableContentHeight - viewportHeight);
 
-                    viewportRef.scrollTop = newScrollTop;
+                    viewportEl.scrollTop = newScrollTop;
                   }
 
-                  if (thumbXRef && scrollbarXRef && orientation() === 'horizontal') {
-                    const thumbXOffset = getOffset(thumbXRef, 'margin', 'x');
-                    const scrollbarXOffset = getOffset(scrollbarXRef, 'padding', 'x');
-                    const thumbWidth = thumbXRef.offsetWidth;
-                    const trackRectX = scrollbarXRef.getBoundingClientRect();
+                  if (thumbXEl && scrollbarXEl && orientation() === 'horizontal') {
+                    const thumbXOffset = getOffset(thumbXEl, 'margin', 'x');
+                    const scrollbarXOffset = getOffset(scrollbarXEl, 'padding', 'x');
+                    const thumbWidth = thumbXEl.offsetWidth;
+                    const trackRectX = scrollbarXEl.getBoundingClientRect();
                     const clickX =
                       event.clientX -
                       trackRectX.left -
@@ -168,11 +164,11 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
                       scrollbarXOffset +
                       thumbXOffset / 2;
 
-                    const scrollableContentWidth = viewportRef.scrollWidth;
-                    const viewportWidth = viewportRef.clientWidth;
+                    const scrollableContentWidth = viewportEl.scrollWidth;
+                    const viewportWidth = viewportEl.clientWidth;
 
                     const maxThumbOffsetX =
-                      scrollbarXRef.offsetWidth - thumbWidth - scrollbarXOffset - thumbXOffset;
+                      scrollbarXEl.offsetWidth - thumbWidth - scrollbarXOffset - thumbXOffset;
                     const scrollRatioX = clickX / maxThumbOffsetX;
 
                     let newScrollLeft: number;
@@ -181,33 +177,33 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
                       newScrollLeft = (1 - scrollRatioX) * (scrollableContentWidth - viewportWidth);
 
                       // Adjust for browsers that use negative scrollLeft in RTL
-                      if (viewportRef.scrollLeft <= 0) {
+                      if (viewportEl.scrollLeft <= 0) {
                         newScrollLeft = -newScrollLeft;
                       }
                     } else {
                       newScrollLeft = scrollRatioX * (scrollableContentWidth - viewportWidth);
                     }
 
-                    viewportRef.scrollLeft = newScrollLeft;
+                    viewportEl.scrollLeft = newScrollLeft;
                   }
 
-                  handlePointerDown(event);
+                  context.handlePointerDown(event);
                 },
-                onPointerUp: handlePointerUp,
+                onPointerUp: context.handlePointerUp,
                 style: {
                   position: 'absolute',
                   'touch-action': 'none',
                   ...(orientation() === 'vertical' && {
                     top: 0,
                     bottom: `var(${ScrollAreaRootCssVars.scrollAreaCornerHeight})`,
-                    insetInlineEnd: 0,
-                    [ScrollAreaScrollbarCssVars.scrollAreaThumbHeight as string]: `${thumbSize.height}px`,
+                    'inset-inline-end': 0,
+                    [ScrollAreaScrollbarCssVars.scrollAreaThumbHeight as string]: `${context.thumbSize.height}px`,
                   }),
                   ...(orientation() === 'horizontal' && {
-                    insetInlineStart: 0,
-                    insetInlineEnd: `var(${ScrollAreaRootCssVars.scrollAreaCornerWidth})`,
+                    'inset-inline-start': 0,
+                    'inset-inline-end': `var(${ScrollAreaRootCssVars.scrollAreaCornerWidth})`,
                     bottom: 0,
-                    [ScrollAreaScrollbarCssVars.scrollAreaThumbWidth as string]: `${thumbSize.width}px`,
+                    [ScrollAreaScrollbarCssVars.scrollAreaThumbWidth as string]: `${context.thumbSize.width}px`,
                   }),
                 },
               },

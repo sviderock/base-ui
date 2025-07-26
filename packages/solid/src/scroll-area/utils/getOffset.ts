@@ -1,5 +1,5 @@
 export function getOffset(
-  element: Element | null,
+  element: Element | null | undefined,
   prop: 'margin' | 'padding',
   axis: 'x' | 'y',
 ): number {

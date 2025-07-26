@@ -1,9 +1,7 @@
-import * as React from 'react';
-import { ScrollArea } from '@base-ui-components/react/scroll-area';
-import { screen, fireEvent } from '@mui/internal-test-utils';
-import { createRenderer } from '#test-utils';
-import { expect } from 'chai';
-import { describeConformance } from '../../../test/describeConformance';
+import { createRenderer, describeConformance } from '#test-utils';
+import { ScrollArea } from '@base-ui-components/solid/scroll-area';
+import { fireEvent, screen } from '@solidjs/testing-library';
+import { Dynamic } from 'solid-js/web';
 import { SCROLL_TIMEOUT } from '../constants';
 
 describe('<ScrollArea.Scrollbar />', () => {
@@ -11,24 +9,34 @@ describe('<ScrollArea.Scrollbar />', () => {
 
   clock.withFakeTimers();
 
-  describeConformance(<ScrollArea.Scrollbar keepMounted />, () => ({
-    refInstanceof: window.HTMLDivElement,
-    render(node) {
-      return render(<ScrollArea.Root>{node}</ScrollArea.Root>);
-    },
-  }));
+  describeConformance(
+    (props) => <ScrollArea.Scrollbar keepMounted {...props} />,
+    () => ({
+      refInstanceof: window.HTMLDivElement,
+      render(node, elementProps = {}) {
+        return render(
+          () => (
+            <ScrollArea.Root>
+              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+            </ScrollArea.Root>
+          ),
+          elementProps,
+        );
+      },
+    }),
+  );
 
-  it('adds [data-scrolling] attribute when viewport is scrolled in the correct direction', async () => {
-    await render(
-      <ScrollArea.Root style={{ width: 200, height: 200 }}>
+  it('adds [data-scrolling] attribute when viewport is scrolled in the correct direction', () => {
+    render(() => (
+      <ScrollArea.Root style={{ width: '200px', height: '200px' }}>
         <ScrollArea.Viewport data-testid="viewport" style={{ width: '100%', height: '100%' }}>
-          <div style={{ width: 1000, height: 1000 }} />
+          <div style={{ width: '1000px', height: '1000px' }} />
         </ScrollArea.Viewport>
         <ScrollArea.Scrollbar orientation="vertical" data-testid="vertical" keepMounted />
         <ScrollArea.Scrollbar orientation="horizontal" data-testid="horizontal" keepMounted />
         <ScrollArea.Corner />
-      </ScrollArea.Root>,
-    );
+      </ScrollArea.Root>
+    ));
 
     const verticalScrollbar = screen.getByTestId('vertical');
     const horizontalScrollbar = screen.getByTestId('horizontal');

@@ -1,18 +1,22 @@
-import * as React from 'react';
-import { createRenderer } from '#test-utils';
-import { ScrollArea } from '@base-ui-components/react/scroll-area';
-import { describeConformance } from '../../../test/describeConformance';
+import { createRenderer, describeConformance } from '#test-utils';
+import { ScrollArea } from '@base-ui-components/solid/scroll-area';
+import { Dynamic } from 'solid-js/web';
 
 describe('<ScrollArea.Thumb />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<ScrollArea.Thumb />, () => ({
+  describeConformance(ScrollArea.Thumb, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node) {
+    render(node, elementProps = {}) {
       return render(
-        <ScrollArea.Root>
-          <ScrollArea.Scrollbar>{node}</ScrollArea.Scrollbar>
-        </ScrollArea.Root>,
+        () => (
+          <ScrollArea.Root>
+            <ScrollArea.Scrollbar>
+              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+            </ScrollArea.Scrollbar>
+          </ScrollArea.Root>
+        ),
+        elementProps,
       );
     },
   }));

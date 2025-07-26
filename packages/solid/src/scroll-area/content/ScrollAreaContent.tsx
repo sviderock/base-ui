@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, onCleanup, splitProps } from 'solid-js';
+import { onCleanup, onMount, splitProps } from 'solid-js';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useForkRef } from '../../utils/useForkRef';
 import { RenderElement } from '../../utils/useRenderElement';
@@ -14,16 +14,16 @@ import { useScrollAreaViewportContext } from '../viewport/ScrollAreaViewportCont
 export function ScrollAreaContent(componentProps: ScrollAreaContent.Props) {
   const [, elementProps] = splitProps(componentProps, ['render', 'class']);
 
-  let contentWrapperRef = null as HTMLDivElement | null;
+  let contentWrapperRef!: HTMLDivElement;
 
-  const { computeThumbPosition } = useScrollAreaViewportContext();
+  const context = useScrollAreaViewportContext();
 
-  createEffect(() => {
+  onMount(() => {
     if (typeof ResizeObserver === 'undefined') {
       return;
     }
 
-    const ro = new ResizeObserver(computeThumbPosition);
+    const ro = new ResizeObserver(context.computeThumbPosition);
 
     if (contentWrapperRef) {
       ro.observe(contentWrapperRef);

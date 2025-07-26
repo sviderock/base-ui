@@ -1,5 +1,5 @@
 'use client';
-import { Show, splitProps } from 'solid-js';
+import { createEffect, createMemo, onCleanup, onMount, Show, splitProps } from 'solid-js';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useForkRef } from '../../utils/useForkRef';
 import { RenderElement } from '../../utils/useRenderElement';
@@ -13,23 +13,23 @@ import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
  */
 export function ScrollAreaCorner(componentProps: ScrollAreaCorner.Props) {
   const [, elementProps] = splitProps(componentProps, ['render', 'class']);
-  const { cornerRef, cornerSize, hiddenState } = useScrollAreaRootContext();
+  const context = useScrollAreaRootContext();
 
   return (
-    <Show when={!hiddenState.cornerHidden} fallback={null}>
+    <Show when={!context.hiddenState.cornerHidden} fallback={null}>
       <RenderElement
         element="div"
         componentProps={componentProps}
-        ref={useForkRef(componentProps.ref, cornerRef)}
+        ref={useForkRef(componentProps.ref, context.setCornerRef)}
         params={{
           props: [
             {
               style: {
                 position: 'absolute',
                 bottom: 0,
-                insetInlineEnd: 0,
-                width: cornerSize.width,
-                height: cornerSize.height,
+                'inset-inline-end': 0,
+                width: `${context.cornerSize.width}px`,
+                height: `${context.cornerSize.height}px`,
               },
             },
             // TODO: fix typing

@@ -1,5 +1,5 @@
 'use client';
-import { createSignal, splitProps } from 'solid-js';
+import { createEffect, createSignal, onMount, splitProps } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -35,12 +35,14 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
 
   const rootId = useBaseUiId();
 
-  let viewportRef = null as HTMLDivElement | null;
-  let scrollbarYRef = null as HTMLDivElement | null;
-  let scrollbarXRef = null as HTMLDivElement | null;
-  let thumbYRef = null as HTMLDivElement | null;
-  let thumbXRef = null as HTMLDivElement | null;
-  let cornerRef = null as HTMLDivElement | null;
+  const [viewportRef, setViewportRef] = createSignal<HTMLDivElement>();
+  const [scrollbarYRef, setScrollbarYRef] = createSignal<HTMLDivElement>();
+  const [scrollbarXRef, setScrollbarXRef] = createSignal<HTMLDivElement>();
+  const [thumbYRef, setThumbYRef] = createSignal<HTMLDivElement>();
+  const [thumbXRef, setThumbXRef] = createSignal<HTMLDivElement>();
+  const [cornerRef, setCornerRef] = createSignal<HTMLDivElement>();
+
+  const [scrollPositionRef, setScrollPositionRef] = createSignal({ x: 0, y: 0 });
 
   let thumbDraggingRef = false;
   let startYRef = 0;
@@ -50,7 +52,6 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
   let currentOrientationRef: 'vertical' | 'horizontal' = 'vertical';
   const scrollYTimeout = useTimeout();
   const scrollXTimeout = useTimeout();
-  let scrollPositionRef = { x: 0, y: 0 };
 
   const [hiddenState, setHiddenState] = createStore({
     scrollbarYHidden: false,
@@ -59,9 +60,9 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
   });
 
   function handleScroll(scrollPosition: { x: number; y: number }) {
-    const offsetX = scrollPosition.x - scrollPositionRef.x;
-    const offsetY = scrollPosition.y - scrollPositionRef.y;
-    scrollPositionRef = scrollPosition;
+    const offsetX = scrollPosition.x - scrollPositionRef().x;
+    const offsetY = scrollPosition.y - scrollPositionRef().y;
+    setScrollPositionRef(scrollPosition);
 
     if (offsetY !== 0) {
       setScrollingY(true);
@@ -88,15 +89,20 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
       ScrollAreaScrollbarDataAttributes.orientation,
     ) as 'vertical' | 'horizontal';
 
-    if (viewportRef) {
-      startScrollTopRef = viewportRef.scrollTop;
-      startScrollLeftRef = viewportRef.scrollLeft;
+    const viewportEl = viewportRef();
+    const thumbYEl = thumbYRef();
+    const thumbXEl = thumbXRef();
+
+    if (viewportEl) {
+      startScrollTopRef = viewportEl!.scrollTop;
+      startScrollLeftRef = viewportEl!.scrollLeft;
     }
-    if (thumbYRef && currentOrientationRef === 'vertical') {
-      thumbYRef.setPointerCapture(event.pointerId);
+
+    if (thumbYEl && currentOrientationRef === 'vertical') {
+      thumbYEl.setPointerCapture(event.pointerId);
     }
-    if (thumbXRef && currentOrientationRef === 'horizontal') {
-      thumbXRef.setPointerCapture(event.pointerId);
+    if (thumbXEl && currentOrientationRef === 'horizontal') {
+      thumbXEl.setPointerCapture(event.pointerId);
     }
   }
 
@@ -108,20 +114,26 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
     const deltaY = event.clientY - startYRef;
     const deltaX = event.clientX - startXRef;
 
-    if (viewportRef) {
-      const scrollableContentHeight = viewportRef.scrollHeight;
-      const viewportHeight = viewportRef.clientHeight;
-      const scrollableContentWidth = viewportRef.scrollWidth;
-      const viewportWidth = viewportRef.clientWidth;
+    const viewportEl = viewportRef();
+    const scrollbarYEl = scrollbarYRef();
+    const scrollbarXEl = scrollbarXRef();
+    const thumbYEl = thumbYRef();
+    const thumbXEl = thumbXRef();
 
-      if (thumbYRef && scrollbarYRef && currentOrientationRef === 'vertical') {
-        const scrollbarYOffset = getOffset(scrollbarYRef, 'padding', 'y');
-        const thumbYOffset = getOffset(thumbYRef, 'margin', 'y');
-        const thumbHeight = thumbYRef.offsetHeight;
+    if (viewportEl) {
+      const scrollableContentHeight = viewportEl.scrollHeight;
+      const viewportHeight = viewportEl.clientHeight;
+      const scrollableContentWidth = viewportEl.scrollWidth;
+      const viewportWidth = viewportEl.clientWidth;
+
+      if (thumbYEl && scrollbarYEl && currentOrientationRef === 'vertical') {
+        const scrollbarYOffset = getOffset(scrollbarYEl, 'padding', 'y');
+        const thumbYOffset = getOffset(thumbYEl, 'margin', 'y');
+        const thumbHeight = thumbYEl.offsetHeight;
         const maxThumbOffsetY =
-          scrollbarYRef.offsetHeight - thumbHeight - scrollbarYOffset - thumbYOffset;
+          scrollbarYEl.offsetHeight - thumbHeight - scrollbarYOffset - thumbYOffset;
         const scrollRatioY = deltaY / maxThumbOffsetY;
-        viewportRef.scrollTop =
+        viewportEl.scrollTop =
           startScrollTopRef + scrollRatioY * (scrollableContentHeight - viewportHeight);
         event.preventDefault();
 
@@ -132,14 +144,14 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
         });
       }
 
-      if (thumbXRef && scrollbarXRef && currentOrientationRef === 'horizontal') {
-        const scrollbarXOffset = getOffset(scrollbarXRef, 'padding', 'x');
-        const thumbXOffset = getOffset(thumbXRef, 'margin', 'x');
-        const thumbWidth = thumbXRef.offsetWidth;
+      if (thumbXEl && scrollbarXEl && currentOrientationRef === 'horizontal') {
+        const scrollbarXOffset = getOffset(scrollbarXEl, 'padding', 'x');
+        const thumbXOffset = getOffset(thumbXEl, 'margin', 'x');
+        const thumbWidth = thumbXEl.offsetWidth;
         const maxThumbOffsetX =
-          scrollbarXRef.offsetWidth - thumbWidth - scrollbarXOffset - thumbXOffset;
+          scrollbarXEl.offsetWidth - thumbWidth - scrollbarXOffset - thumbXOffset;
         const scrollRatioX = deltaX / maxThumbOffsetX;
-        viewportRef.scrollLeft =
+        viewportEl.scrollLeft =
           startScrollLeftRef + scrollRatioX * (scrollableContentWidth - viewportWidth);
         event.preventDefault();
 
@@ -155,11 +167,14 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
   function handlePointerUp(event: PointerEvent) {
     thumbDraggingRef = false;
 
-    if (thumbYRef && currentOrientationRef === 'vertical') {
-      thumbYRef.releasePointerCapture(event.pointerId);
+    const thumbYEl = thumbYRef();
+    const thumbXEl = thumbXRef();
+
+    if (thumbYEl && currentOrientationRef === 'vertical') {
+      thumbYEl.releasePointerCapture(event.pointerId);
     }
-    if (thumbXRef && currentOrientationRef === 'horizontal') {
-      thumbXRef.releasePointerCapture(event.pointerId);
+    if (thumbXEl && currentOrientationRef === 'horizontal') {
+      thumbXEl.releasePointerCapture(event.pointerId);
     }
   }
 
@@ -184,6 +199,7 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
     setThumbSize,
     touchModality,
     cornerRef,
+    setCornerRef,
     scrollingX,
     setScrollingX,
     scrollingY,
@@ -191,10 +207,15 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
     hovering,
     setHovering,
     viewportRef,
+    setViewportRef,
     scrollbarYRef,
+    setScrollbarYRef,
     scrollbarXRef,
+    setScrollbarXRef,
     thumbYRef,
+    setThumbYRef,
     thumbXRef,
+    setThumbXRef,
     rootId,
     hiddenState,
     setHiddenState,
@@ -208,7 +229,6 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
         componentProps={componentProps}
         ref={componentProps.ref}
         params={{
-          // TODO: fix typing
           props: [
             {
               role: 'presentation',
@@ -226,6 +246,7 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
                 [ScrollAreaRootCssVars.scrollAreaCornerWidth as string]: `${cornerSize.width}px`,
               },
             },
+            // TODO: fix typing
             elementProps as any,
           ],
         }}

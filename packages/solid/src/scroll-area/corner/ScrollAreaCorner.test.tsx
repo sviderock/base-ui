@@ -1,38 +1,45 @@
-import * as React from 'react';
-import { ScrollArea } from '@base-ui-components/react/scroll-area';
-import { expect } from 'chai';
-import { screen } from '@mui/internal-test-utils';
-import { createRenderer, isJSDOM } from '#test-utils';
-import { describeConformance } from '../../../test/describeConformance';
+import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+import { ScrollArea } from '@base-ui-components/solid/scroll-area';
+import { screen, waitFor } from '@solidjs/testing-library';
+import { Dynamic } from 'solid-js/web';
 
 describe('<ScrollArea.Corner />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<ScrollArea.Corner />, () => ({
+  describeConformance(ScrollArea.Corner, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node) {
-      return render(<ScrollArea.Root>{node}</ScrollArea.Root>);
+    render(node, elementProps = {}) {
+      return render(
+        () => (
+          <ScrollArea.Root>
+            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+          </ScrollArea.Root>
+        ),
+        elementProps,
+      );
     },
   }));
 
   describe.skipIf(isJSDOM)('interactions', () => {
     it('should apply correct corner size when both scrollbars are present', async () => {
-      await render(
-        <ScrollArea.Root style={{ width: 200, height: 200 }}>
+      render(() => (
+        <ScrollArea.Root style={{ width: '200px', height: '200px' }}>
           <ScrollArea.Viewport data-testid="viewport" style={{ width: '100%', height: '100%' }}>
-            <div style={{ width: 1000, height: 1000 }} />
+            <div style={{ width: '1000px', height: '1000px' }} />
           </ScrollArea.Viewport>
-          <ScrollArea.Scrollbar orientation="vertical" style={{ width: 10 }} />
-          <ScrollArea.Scrollbar orientation="horizontal" style={{ height: 10 }} />
+          <ScrollArea.Scrollbar orientation="vertical" style={{ width: '10px' }} />
+          <ScrollArea.Scrollbar orientation="horizontal" style={{ height: '10px' }} />
           <ScrollArea.Corner data-testid="corner" />
-        </ScrollArea.Root>,
-      );
+        </ScrollArea.Root>
+      ));
 
-      const corner = screen.getByTestId('corner');
-      const style = getComputedStyle(corner);
-
-      expect(style.getPropertyValue('--scroll-area-corner-width')).to.equal('10px');
-      expect(style.getPropertyValue('--scroll-area-corner-height')).to.equal('10px');
+      await waitFor(() => {
+        const corner = screen.getByTestId('corner');
+        const style = getComputedStyle(corner);
+        expect(style.getPropertyValue('--scroll-area-corner-width')).to.equal('10px');
+        // eslint-disable-next-line testing-library/no-wait-for-multiple-assertions
+        expect(style.getPropertyValue('--scroll-area-corner-height')).to.equal('10px');
+      });
     });
   });
 });

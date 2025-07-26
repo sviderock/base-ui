@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, onCleanup, splitProps } from 'solid-js';
+import { createEffect, on, onCleanup, onMount, splitProps } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { clamp } from '../../utils/clamp';
 import { styleDisableScrollbar } from '../../utils/styles';
@@ -22,21 +22,7 @@ import { ScrollAreaViewportContext } from './ScrollAreaViewportContext';
 export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
   const [, elementProps] = splitProps(componentProps, ['render', 'class']);
 
-  const {
-    viewportRef,
-    scrollbarYRef,
-    scrollbarXRef,
-    thumbYRef,
-    thumbXRef,
-    cornerRef,
-    setCornerSize,
-    setThumbSize,
-    rootId,
-    setHiddenState,
-    hiddenState,
-    handleScroll,
-    setHovering,
-  } = useScrollAreaRootContext();
+  const context = useScrollAreaRootContext();
 
   const direction = useDirection();
 
@@ -44,12 +30,12 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
   const scrollEndTimeout = useTimeout();
 
   function computeThumbPosition() {
-    const viewportEl = viewportRef;
-    const scrollbarYEl = scrollbarYRef;
-    const scrollbarXEl = scrollbarXRef;
-    const thumbYEl = thumbYRef;
-    const thumbXEl = thumbXRef;
-    const cornerEl = cornerRef;
+    const viewportEl = context.viewportRef();
+    const scrollbarXEl = context.scrollbarXRef();
+    const scrollbarYEl = context.scrollbarYRef();
+    const thumbXEl = context.thumbXRef();
+    const thumbYEl = context.thumbYRef();
+    const cornerEl = context.cornerRef();
 
     if (!viewportEl) {
       return;
@@ -73,10 +59,10 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
     const nextWidth = scrollbarXHidden ? 0 : viewportWidth;
     const nextHeight = scrollbarYHidden ? 0 : viewportHeight;
 
-    const scrollbarXOffset = getOffset(scrollbarXEl!, 'padding', 'x');
-    const scrollbarYOffset = getOffset(scrollbarYEl!, 'padding', 'y');
-    const thumbXOffset = getOffset(thumbXEl!, 'margin', 'x');
-    const thumbYOffset = getOffset(thumbYEl!, 'margin', 'y');
+    const scrollbarXOffset = getOffset(scrollbarXEl, 'padding', 'x');
+    const scrollbarYOffset = getOffset(scrollbarYEl, 'padding', 'y');
+    const thumbXOffset = getOffset(thumbXEl, 'margin', 'x');
+    const thumbYOffset = getOffset(thumbYEl, 'margin', 'y');
 
     const idealNextWidth = nextWidth - scrollbarXOffset - thumbXOffset;
     const idealNextHeight = nextHeight - scrollbarYOffset - thumbYOffset;
@@ -91,7 +77,7 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
     const clampedNextWidth = Math.max(MIN_THUMB_SIZE, maxNextWidth * ratioX);
     const clampedNextHeight = Math.max(MIN_THUMB_SIZE, maxNextHeight * ratioY);
 
-    setThumbSize((prevSize) => {
+    context.setThumbSize((prevSize) => {
       if (prevSize.height === clampedNextHeight && prevSize.width === clampedNextWidth) {
         return prevSize;
       }
@@ -133,15 +119,15 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
 
     if (cornerEl) {
       if (scrollbarXHidden || scrollbarYHidden) {
-        setCornerSize({ width: 0, height: 0 });
+        context.setCornerSize({ width: 0, height: 0 });
       } else if (!scrollbarXHidden && !scrollbarYHidden) {
         const width = scrollbarYEl?.offsetWidth || 0;
         const height = scrollbarXEl?.offsetHeight || 0;
-        setCornerSize({ width, height });
+        context.setCornerSize({ width, height });
       }
     }
 
-    setHiddenState((prevState) => {
+    context.setHiddenState((prevState) => {
       const cornerHidden = scrollbarYHidden || scrollbarXHidden;
 
       if (
@@ -161,25 +147,27 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
   }
 
   createEffect(() => {
-    if (!viewportRef) {
-      return;
+    const viewportEl = context.viewportRef();
+    if (viewportEl) {
+      onCleanup(() => {
+        onVisible(viewportEl, computeThumbPosition)();
+      });
     }
-
-    onCleanup(() => {
-      onVisible(viewportRef, computeThumbPosition);
-    });
   });
 
-  createEffect(() => {
-    // Wait for scrollbar-related refs to be set
-    queueMicrotask(computeThumbPosition);
-  });
+  createEffect(
+    on([() => context.hiddenState, direction], () => {
+      // Wait for scrollbar-related refs to be set
+      queueMicrotask(computeThumbPosition);
+    }),
+  );
 
   createEffect(() => {
     // `onMouseEnter` doesn't fire upon load, so we need to check if the viewport is already
     // being hovered.
-    if (viewportRef?.matches(':hover')) {
-      setHovering(true);
+    const viewportEl = context.viewportRef();
+    if (viewportEl?.matches(':hover')) {
+      context.setHovering(true);
     }
   });
 
@@ -188,10 +176,11 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
       return;
     }
 
+    const viewportEl = context.viewportRef();
     const ro = new ResizeObserver(computeThumbPosition);
 
-    if (viewportRef) {
-      ro.observe(viewportRef);
+    if (viewportEl) {
+      ro.observe(viewportEl);
     }
 
     onCleanup(() => {
@@ -212,31 +201,34 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
       <RenderElement
         element="div"
         componentProps={componentProps}
-        ref={useForkRef(componentProps.ref, viewportRef)}
+        ref={useForkRef(componentProps.ref, context.setViewportRef)}
         params={{
           props: [
             {
               role: 'presentation',
-              ...(rootId() && { 'data-id': `${rootId()}-viewport` }),
+              ...(context.rootId() && { 'data-id': `${context.rootId()}-viewport` }),
               // https://accessibilityinsights.io/info-examples/web/scrollable-region-focusable/
-              ...((!hiddenState.scrollbarXHidden || !hiddenState.scrollbarYHidden) && {
+              ...((!context.hiddenState.scrollbarXHidden ||
+                !context.hiddenState.scrollbarYHidden) && {
                 tabIndex: 0,
               }),
               class: styleDisableScrollbar.class,
               style: {
                 overflow: 'scroll',
               },
-              onScroll() {
-                if (!viewportRef) {
+
+              onScroll: () => {
+                const viewportEl = context.viewportRef();
+                if (!viewportEl) {
                   return;
                 }
 
                 computeThumbPosition();
 
                 if (!programmaticScrollRef) {
-                  handleScroll({
-                    x: viewportRef.scrollLeft,
-                    y: viewportRef.scrollTop,
+                  context.handleScroll({
+                    x: viewportEl.scrollLeft,
+                    y: viewportEl.scrollTop,
                   });
                 }
 

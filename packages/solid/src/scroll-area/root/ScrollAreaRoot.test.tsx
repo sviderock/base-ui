@@ -1,9 +1,7 @@
-import * as React from 'react';
-import { ScrollArea } from '@base-ui-components/react/scroll-area';
-import { screen } from '@mui/internal-test-utils';
-import { createRenderer, isJSDOM } from '#test-utils';
+import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+import { ScrollArea } from '@base-ui-components/solid/scroll-area';
+import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { describeConformance } from '../../../test/describeConformance';
 
 const VIEWPORT_SIZE = 200;
 const SCROLLABLE_CONTENT_SIZE = 1000;
@@ -13,17 +11,22 @@ const SCROLLBAR_HEIGHT = 10;
 describe('<ScrollArea.Root />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<ScrollArea.Root />, () => ({
+  describeConformance(ScrollArea.Root, () => ({
     refInstanceof: window.HTMLDivElement,
     render,
   }));
 
   describe.skipIf(isJSDOM)('sizing', () => {
     it('should correctly set thumb height and width based on scrollable content', async () => {
-      await render(
-        <ScrollArea.Root style={{ width: VIEWPORT_SIZE, height: VIEWPORT_SIZE }}>
+      render(() => (
+        <ScrollArea.Root style={{ width: `${VIEWPORT_SIZE}px`, height: `${VIEWPORT_SIZE}px` }}>
           <ScrollArea.Viewport data-testid="viewport" style={{ width: '100%', height: '100%' }}>
-            <div style={{ width: SCROLLABLE_CONTENT_SIZE, height: SCROLLABLE_CONTENT_SIZE }} />
+            <div
+              style={{
+                width: `${SCROLLABLE_CONTENT_SIZE}px`,
+                height: `${SCROLLABLE_CONTENT_SIZE}px`,
+              }}
+            />
           </ScrollArea.Viewport>
           <ScrollArea.Scrollbar orientation="vertical" data-testid="vertical-scrollbar">
             <ScrollArea.Thumb data-testid="vertical-thumb" />
@@ -31,144 +34,188 @@ describe('<ScrollArea.Root />', () => {
           <ScrollArea.Scrollbar orientation="horizontal" data-testid="horizontal-scrollbar">
             <ScrollArea.Thumb data-testid="horizontal-thumb" />
           </ScrollArea.Scrollbar>
-        </ScrollArea.Root>,
-      );
+        </ScrollArea.Root>
+      ));
 
-      const verticalThumb = screen.getByTestId('vertical-thumb');
-      const horizontalThumb = screen.getByTestId('horizontal-thumb');
+      await waitFor(() => {
+        const verticalThumb = screen.getByTestId('vertical-thumb');
+        const horizontalThumb = screen.getByTestId('horizontal-thumb');
 
-      expect(
-        getComputedStyle(verticalThumb).getPropertyValue('--scroll-area-thumb-height'),
-      ).to.equal(`${(VIEWPORT_SIZE / SCROLLABLE_CONTENT_SIZE) * VIEWPORT_SIZE}px`);
-      expect(
-        getComputedStyle(horizontalThumb).getPropertyValue('--scroll-area-thumb-width'),
-      ).to.equal(`${(VIEWPORT_SIZE / SCROLLABLE_CONTENT_SIZE) * VIEWPORT_SIZE}px`);
+        expect(
+          getComputedStyle(verticalThumb).getPropertyValue('--scroll-area-thumb-height'),
+        ).to.equal(`${(VIEWPORT_SIZE / SCROLLABLE_CONTENT_SIZE) * VIEWPORT_SIZE}px`);
+        // eslint-disable-next-line testing-library/no-wait-for-multiple-assertions
+        expect(
+          getComputedStyle(horizontalThumb).getPropertyValue('--scroll-area-thumb-width'),
+        ).to.equal(`${(VIEWPORT_SIZE / SCROLLABLE_CONTENT_SIZE) * VIEWPORT_SIZE}px`);
+      });
     });
 
     it('should not add padding for overlay scrollbars', async () => {
-      await render(
-        <ScrollArea.Root style={{ width: VIEWPORT_SIZE, height: VIEWPORT_SIZE }}>
+      render(() => (
+        <ScrollArea.Root style={{ width: `${VIEWPORT_SIZE}px`, height: `${VIEWPORT_SIZE}px` }}>
           <ScrollArea.Viewport data-testid="viewport" style={{ width: '100%', height: '100%' }}>
-            <div style={{ width: SCROLLABLE_CONTENT_SIZE, height: SCROLLABLE_CONTENT_SIZE }} />
+            <div
+              style={{
+                width: `${SCROLLABLE_CONTENT_SIZE}px`,
+                height: `${SCROLLABLE_CONTENT_SIZE}px`,
+              }}
+            />
           </ScrollArea.Viewport>
           <ScrollArea.Scrollbar
             orientation="vertical"
-            style={{ width: SCROLLBAR_WIDTH, height: '100%' }}
+            style={{ width: `${SCROLLBAR_WIDTH}px`, height: '100%' }}
           />
           <ScrollArea.Scrollbar
             orientation="horizontal"
-            style={{ height: SCROLLBAR_HEIGHT, width: '100%' }}
+            style={{ height: `${SCROLLBAR_HEIGHT}px`, width: '100%' }}
           />
-        </ScrollArea.Root>,
-      );
+        </ScrollArea.Root>
+      ));
 
-      const contentWrapper = screen.getByTestId('viewport').firstElementChild!;
-      const style = getComputedStyle(contentWrapper);
+      await waitFor(() => {
+        const contentWrapper = screen.getByTestId('viewport').firstElementChild!;
+        const style = getComputedStyle(contentWrapper);
 
-      expect(style.paddingLeft).to.equal('0px');
-      expect(style.paddingRight).to.equal('0px');
-      expect(style.paddingBottom).to.equal('0px');
+        expect(style.paddingLeft).to.equal('0px');
+        expect(style.paddingRight).to.equal('0px');
+        expect(style.paddingBottom).to.equal('0px');
+      });
     });
 
     it('accounts for scrollbar padding', async () => {
       const PADDING = 8;
 
-      await render(
-        <ScrollArea.Root style={{ width: VIEWPORT_SIZE, height: VIEWPORT_SIZE }}>
+      render(() => (
+        <ScrollArea.Root style={{ width: `${VIEWPORT_SIZE}px`, height: `${VIEWPORT_SIZE}px` }}>
           <ScrollArea.Viewport data-testid="viewport" style={{ width: '100%', height: '100%' }}>
-            <div style={{ width: SCROLLABLE_CONTENT_SIZE, height: SCROLLABLE_CONTENT_SIZE }} />
+            <div
+              style={{
+                width: `${SCROLLABLE_CONTENT_SIZE}px`,
+                height: `${SCROLLABLE_CONTENT_SIZE}px`,
+              }}
+            />
           </ScrollArea.Viewport>
           <ScrollArea.Scrollbar
             orientation="vertical"
             data-testid="vertical-scrollbar"
-            style={{ paddingBlock: PADDING }}
+            style={{ 'padding-block': `${PADDING}px` }}
           >
             <ScrollArea.Thumb data-testid="vertical-thumb" />
           </ScrollArea.Scrollbar>
           <ScrollArea.Scrollbar
             orientation="horizontal"
             data-testid="horizontal-scrollbar"
-            style={{ paddingInline: PADDING }}
+            style={{ 'padding-inline': `${PADDING}px` }}
           >
             <ScrollArea.Thumb data-testid="horizontal-thumb" />
           </ScrollArea.Scrollbar>
-        </ScrollArea.Root>,
-      );
+        </ScrollArea.Root>
+      ));
 
-      const verticalThumb = screen.getByTestId('vertical-thumb');
-      const horizontalThumb = screen.getByTestId('horizontal-thumb');
+      await waitFor(() => {
+        const verticalThumb = screen.getByTestId('vertical-thumb');
+        const horizontalThumb = screen.getByTestId('horizontal-thumb');
 
-      expect(
-        getComputedStyle(verticalThumb).getPropertyValue('--scroll-area-thumb-height'),
-      ).to.equal(`${(VIEWPORT_SIZE - PADDING * 2) * (VIEWPORT_SIZE / SCROLLABLE_CONTENT_SIZE)}px`);
-      expect(
-        getComputedStyle(horizontalThumb).getPropertyValue('--scroll-area-thumb-width'),
-      ).to.equal(`${(VIEWPORT_SIZE - PADDING * 2) * (VIEWPORT_SIZE / SCROLLABLE_CONTENT_SIZE)}px`);
+        expect(
+          getComputedStyle(verticalThumb).getPropertyValue('--scroll-area-thumb-height'),
+        ).to.equal(
+          `${(VIEWPORT_SIZE - PADDING * 2) * (VIEWPORT_SIZE / SCROLLABLE_CONTENT_SIZE)}px`,
+        );
+        // eslint-disable-next-line testing-library/no-wait-for-multiple-assertions
+        expect(
+          getComputedStyle(horizontalThumb).getPropertyValue('--scroll-area-thumb-width'),
+        ).to.equal(
+          `${(VIEWPORT_SIZE - PADDING * 2) * (VIEWPORT_SIZE / SCROLLABLE_CONTENT_SIZE)}px`,
+        );
+      });
     });
 
     it('accounts for scrollbar margin', async () => {
       const margin = 11;
       const viewportSize = 390;
 
-      await render(
-        <ScrollArea.Root style={{ width: viewportSize, height: viewportSize }}>
+      render(() => (
+        <ScrollArea.Root style={{ width: `${viewportSize}px`, height: `${viewportSize}px` }}>
           <ScrollArea.Viewport data-testid="viewport" style={{ width: '100%', height: '100%' }}>
-            <div style={{ width: SCROLLABLE_CONTENT_SIZE, height: SCROLLABLE_CONTENT_SIZE }} />
+            <div
+              style={{
+                width: `${SCROLLABLE_CONTENT_SIZE}px`,
+                height: `${SCROLLABLE_CONTENT_SIZE}px`,
+              }}
+            />
           </ScrollArea.Viewport>
           <ScrollArea.Scrollbar
             orientation="vertical"
             data-testid="vertical-scrollbar"
-            style={{ marginInline: margin }}
+            style={{ 'margin-inline': `${margin}px` }}
           >
             <ScrollArea.Thumb data-testid="vertical-thumb" />
           </ScrollArea.Scrollbar>
           <ScrollArea.Scrollbar
             orientation="horizontal"
             data-testid="horizontal-scrollbar"
-            style={{ marginBlock: margin }}
+            style={{ 'margin-block': `${margin}px` }}
           >
             <ScrollArea.Thumb data-testid="horizontal-thumb" />
           </ScrollArea.Scrollbar>
-        </ScrollArea.Root>,
-      );
+        </ScrollArea.Root>
+      ));
 
-      const verticalThumb = screen.getByTestId('vertical-thumb');
-      const horizontalThumb = screen.getByTestId('horizontal-thumb');
+      await waitFor(() => {
+        const verticalThumb = screen.getByTestId('vertical-thumb');
+        const horizontalThumb = screen.getByTestId('horizontal-thumb');
 
-      expect(
-        getComputedStyle(verticalThumb).getPropertyValue('--scroll-area-thumb-height'),
-      ).to.equal(`${viewportSize * (viewportSize / SCROLLABLE_CONTENT_SIZE)}px`);
-      expect(
-        getComputedStyle(horizontalThumb).getPropertyValue('--scroll-area-thumb-width'),
-      ).to.equal(`${viewportSize * (viewportSize / SCROLLABLE_CONTENT_SIZE)}px`);
+        expect(
+          getComputedStyle(verticalThumb).getPropertyValue('--scroll-area-thumb-height'),
+        ).to.equal(`${viewportSize * (viewportSize / SCROLLABLE_CONTENT_SIZE)}px`);
+        // eslint-disable-next-line testing-library/no-wait-for-multiple-assertions
+        expect(
+          getComputedStyle(horizontalThumb).getPropertyValue('--scroll-area-thumb-width'),
+        ).to.equal(`${viewportSize * (viewportSize / SCROLLABLE_CONTENT_SIZE)}px`);
+      });
     });
 
     it('accounts for thumb margin', async () => {
       const MARGIN = 8;
 
-      await render(
-        <ScrollArea.Root style={{ width: VIEWPORT_SIZE, height: VIEWPORT_SIZE }}>
+      render(() => (
+        <ScrollArea.Root style={{ width: `${VIEWPORT_SIZE}px`, height: `${VIEWPORT_SIZE}px` }}>
           <ScrollArea.Viewport data-testid="viewport" style={{ width: '100%', height: '100%' }}>
-            <div style={{ width: SCROLLABLE_CONTENT_SIZE, height: SCROLLABLE_CONTENT_SIZE }} />
+            <div
+              style={{
+                width: `${SCROLLABLE_CONTENT_SIZE}px`,
+                height: `${SCROLLABLE_CONTENT_SIZE}px`,
+              }}
+            />
           </ScrollArea.Viewport>
           <ScrollArea.Scrollbar orientation="vertical" data-testid="vertical-scrollbar">
-            <ScrollArea.Thumb data-testid="vertical-thumb" style={{ marginBlock: MARGIN }} />
+            <ScrollArea.Thumb
+              data-testid="vertical-thumb"
+              style={{ 'margin-block': `${MARGIN}px` }}
+            />
           </ScrollArea.Scrollbar>
           <ScrollArea.Scrollbar orientation="horizontal" data-testid="horizontal-scrollbar">
-            <ScrollArea.Thumb data-testid="horizontal-thumb" style={{ marginInline: MARGIN }} />
+            <ScrollArea.Thumb
+              data-testid="horizontal-thumb"
+              style={{ 'margin-inline': `${MARGIN}px` }}
+            />
           </ScrollArea.Scrollbar>
-        </ScrollArea.Root>,
-      );
+        </ScrollArea.Root>
+      ));
 
-      const verticalThumb = screen.getByTestId('vertical-thumb');
-      const horizontalThumb = screen.getByTestId('horizontal-thumb');
+      await waitFor(() => {
+        const verticalThumb = screen.getByTestId('vertical-thumb');
+        const horizontalThumb = screen.getByTestId('horizontal-thumb');
 
-      expect(
-        getComputedStyle(verticalThumb).getPropertyValue('--scroll-area-thumb-height'),
-      ).to.equal(`${(VIEWPORT_SIZE - MARGIN * 2) * (VIEWPORT_SIZE / SCROLLABLE_CONTENT_SIZE)}px`);
-      expect(
-        getComputedStyle(horizontalThumb).getPropertyValue('--scroll-area-thumb-width'),
-      ).to.equal(`${(VIEWPORT_SIZE - MARGIN * 2) * (VIEWPORT_SIZE / SCROLLABLE_CONTENT_SIZE)}px`);
+        expect(
+          getComputedStyle(verticalThumb).getPropertyValue('--scroll-area-thumb-height'),
+        ).to.equal(`${(VIEWPORT_SIZE - MARGIN * 2) * (VIEWPORT_SIZE / SCROLLABLE_CONTENT_SIZE)}px`);
+        // eslint-disable-next-line testing-library/no-wait-for-multiple-assertions
+        expect(
+          getComputedStyle(horizontalThumb).getPropertyValue('--scroll-area-thumb-width'),
+        ).to.equal(`${(VIEWPORT_SIZE - MARGIN * 2) * (VIEWPORT_SIZE / SCROLLABLE_CONTENT_SIZE)}px`);
+      });
     });
   });
 });

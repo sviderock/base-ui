@@ -13,12 +13,18 @@ export interface ScrollAreaRootContext {
   setScrollingX: Setter<boolean>;
   scrollingY: Accessor<boolean>;
   setScrollingY: Setter<boolean>;
-  viewportRef: HTMLDivElement | null | undefined;
-  scrollbarYRef: HTMLDivElement | null | undefined;
-  thumbYRef: HTMLDivElement | null | undefined;
-  scrollbarXRef: HTMLDivElement | null | undefined;
-  thumbXRef: HTMLDivElement | null | undefined;
-  cornerRef: HTMLDivElement | null | undefined;
+  viewportRef: Accessor<HTMLDivElement | undefined>;
+  setViewportRef: (ref: HTMLDivElement | undefined) => void;
+  scrollbarYRef: Accessor<HTMLDivElement | undefined>;
+  setScrollbarYRef: (ref: HTMLDivElement | undefined) => void;
+  scrollbarXRef: Accessor<HTMLDivElement | undefined>;
+  setScrollbarXRef: (ref: HTMLDivElement | undefined) => void;
+  thumbYRef: Accessor<HTMLDivElement | undefined>;
+  setThumbYRef: (ref: HTMLDivElement | undefined) => void;
+  thumbXRef: Accessor<HTMLDivElement | undefined>;
+  setThumbXRef: (ref: HTMLDivElement | undefined) => void;
+  cornerRef: Accessor<HTMLDivElement | undefined>;
+  setCornerRef: (ref: HTMLDivElement | undefined) => void;
   handlePointerDown: (event: PointerEvent) => void;
   handlePointerMove: (event: PointerEvent) => void;
   handlePointerUp: (event: PointerEvent) => void;
@@ -36,7 +42,7 @@ export interface ScrollAreaRootContext {
   }>;
 }
 
-export const ScrollAreaRootContext = createContext<ScrollAreaRootContext | undefined>(undefined);
+export const ScrollAreaRootContext = createContext<ScrollAreaRootContext>();
 
 export function useScrollAreaRootContext() {
   const context = useContext(ScrollAreaRootContext);
