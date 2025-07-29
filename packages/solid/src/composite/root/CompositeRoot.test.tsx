@@ -1,7 +1,7 @@
-import * as React from 'react';
+import { createRenderer, isJSDOM } from '#test-utils';
+import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { act, createRenderer, fireEvent, flushMicrotasks } from '@mui/internal-test-utils';
-import { isJSDOM } from '#test-utils';
+import { createSignal, Index } from 'solid-js';
 import { DirectionProvider } from '../../direction-provider';
 import { CompositeItem } from '../item/CompositeItem';
 import { CompositeRoot } from './CompositeRoot';
@@ -12,10 +12,10 @@ describe('Composite', () => {
   describe('list', () => {
     it('controlled mode', async () => {
       function App() {
-        const [highlightedIndex, setHighlightedIndex] = React.useState(0);
+        const [highlightedIndex, setHighlightedIndex] = createSignal(0);
         return (
           <CompositeRoot
-            highlightedIndex={highlightedIndex}
+            highlightedIndex={highlightedIndex()}
             onHighlightedIndexChange={setHighlightedIndex}
           >
             <CompositeItem data-testid="1">1</CompositeItem>
@@ -25,128 +25,124 @@ describe('Composite', () => {
         );
       }
 
-      const { getByTestId } = render(<App />);
+      const { getByTestId } = render(() => <App />);
 
-      const item1 = getByTestId('1');
-      const item2 = getByTestId('2');
-      const item3 = getByTestId('3');
+      getByTestId('1').focus();
 
-      act(() => item1.focus());
+      expect(getByTestId('1')).to.have.attribute('tabindex', '0');
 
-      expect(item1).to.have.attribute('tabindex', '0');
+      fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown' });
 
-      fireEvent.keyDown(item1, { key: 'ArrowDown' });
-      await flushMicrotasks();
+      await waitFor(() => {
+        expect(getByTestId('2')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('2')).toHaveFocus();
+      });
 
-      expect(item2).to.have.attribute('tabindex', '0');
-      expect(item2).toHaveFocus();
+      fireEvent.keyDown(getByTestId('2'), { key: 'ArrowDown' });
 
-      fireEvent.keyDown(item2, { key: 'ArrowDown' });
-      await flushMicrotasks();
+      await waitFor(() => {
+        expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('3')).toHaveFocus();
+      });
 
-      expect(item3).to.have.attribute('tabindex', '0');
-      expect(item3).toHaveFocus();
+      fireEvent.keyDown(getByTestId('3'), { key: 'ArrowUp' });
 
-      fireEvent.keyDown(item3, { key: 'ArrowUp' });
-      await flushMicrotasks();
+      await waitFor(() => {
+        expect(getByTestId('2')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('2')).toHaveFocus();
+      });
 
-      expect(item2).to.have.attribute('tabindex', '0');
-      expect(item2).toHaveFocus();
+      fireEvent.keyDown(getByTestId('2'), { key: 'ArrowUp' });
 
-      fireEvent.keyDown(item2, { key: 'ArrowUp' });
-      await flushMicrotasks();
-
-      expect(item1).to.have.attribute('tabindex', '0');
-      expect(item1).toHaveFocus();
+      await waitFor(() => {
+        expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('1')).toHaveFocus();
+      });
     });
 
     it('uncontrolled mode', async () => {
-      const { getByTestId } = render(
+      const { getByTestId } = render(() => (
         <CompositeRoot>
           <CompositeItem data-testid="1">1</CompositeItem>
           <CompositeItem data-testid="2">2</CompositeItem>
           <CompositeItem data-testid="3">3</CompositeItem>
-        </CompositeRoot>,
-      );
+        </CompositeRoot>
+      ));
 
-      const item1 = getByTestId('1');
-      const item2 = getByTestId('2');
-      const item3 = getByTestId('3');
+      getByTestId('1').focus();
 
-      act(() => item1.focus());
+      fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown' });
 
-      fireEvent.keyDown(item1, { key: 'ArrowDown' });
-      await flushMicrotasks();
+      await waitFor(() => {
+        expect(getByTestId('2')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('2')).toHaveFocus();
+      });
 
-      expect(item2).to.have.attribute('tabindex', '0');
-      expect(item2).toHaveFocus();
+      fireEvent.keyDown(getByTestId('2'), { key: 'ArrowDown' });
 
-      fireEvent.keyDown(item2, { key: 'ArrowDown' });
-      await flushMicrotasks();
+      await waitFor(() => {
+        expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('3')).toHaveFocus();
+      });
 
-      expect(item3).to.have.attribute('tabindex', '0');
-      expect(item3).toHaveFocus();
+      fireEvent.keyDown(getByTestId('3'), { key: 'ArrowUp' });
 
-      fireEvent.keyDown(item3, { key: 'ArrowUp' });
-      await flushMicrotasks();
+      await waitFor(() => {
+        expect(getByTestId('2')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('2')).toHaveFocus();
+      });
 
-      expect(item2).to.have.attribute('tabindex', '0');
-      expect(item2).toHaveFocus();
+      fireEvent.keyDown(getByTestId('2'), { key: 'ArrowUp' });
 
-      fireEvent.keyDown(item2, { key: 'ArrowUp' });
-      await flushMicrotasks();
-
-      expect(item1).to.have.attribute('tabindex', '0');
-      expect(item1).toHaveFocus();
+      await waitFor(() => {
+        expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('1')).toHaveFocus();
+      });
     });
 
     describe('Home and End keys', () => {
       it('Home key moves focus to the first item', async () => {
-        const { getByTestId } = render(
+        const { getByTestId } = render(() => (
           <CompositeRoot enableHomeAndEndKeys>
             <CompositeItem data-testid="1">1</CompositeItem>
             <CompositeItem data-testid="2">2</CompositeItem>
             <CompositeItem data-testid="3">3</CompositeItem>
-          </CompositeRoot>,
-        );
+          </CompositeRoot>
+        ));
 
-        const item1 = getByTestId('1');
-        const item3 = getByTestId('3');
+        getByTestId('3').focus();
 
-        act(() => item3.focus());
+        fireEvent.keyDown(getByTestId('3'), { key: 'Home' });
 
-        fireEvent.keyDown(item3, { key: 'Home' });
-        await flushMicrotasks();
-
-        expect(item1).to.have.attribute('tabindex', '0');
-        expect(item1).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('1')).toHaveFocus();
+        });
       });
 
       it('End key moves focus to the last item', async () => {
-        const { getByTestId } = render(
+        const { getByTestId } = render(() => (
           <CompositeRoot enableHomeAndEndKeys>
             <CompositeItem data-testid="1">1</CompositeItem>
             <CompositeItem data-testid="2">2</CompositeItem>
             <CompositeItem data-testid="3">3</CompositeItem>
-          </CompositeRoot>,
-        );
+          </CompositeRoot>
+        ));
 
-        const item1 = getByTestId('1');
-        const item3 = getByTestId('3');
+        getByTestId('1').focus();
 
-        act(() => item1.focus());
+        fireEvent.keyDown(getByTestId('1'), { key: 'End' });
 
-        fireEvent.keyDown(item1, { key: 'End' });
-        await flushMicrotasks();
-
-        expect(item3).to.have.attribute('tabindex', '0');
-        expect(item3).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('3')).toHaveFocus();
+        });
       });
     });
 
     describe.skipIf(isJSDOM)('rtl', () => {
       it('horizontal orientation', async () => {
-        const { getByTestId } = render(
+        const { getByTestId } = render(() => (
           <div dir="rtl">
             <DirectionProvider direction="rtl">
               <CompositeRoot orientation="horizontal">
@@ -155,52 +151,52 @@ describe('Composite', () => {
                 <CompositeItem data-testid="3">3</CompositeItem>
               </CompositeRoot>
             </DirectionProvider>
-          </div>,
-        );
+          </div>
+        ));
 
-        const item1 = getByTestId('1');
-        const item2 = getByTestId('2');
-        const item3 = getByTestId('3');
+        getByTestId('1').focus();
 
-        act(() => item1.focus());
+        fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown' });
 
-        fireEvent.keyDown(item1, { key: 'ArrowDown' });
-        await flushMicrotasks();
+        fireEvent.keyDown(getByTestId('1'), { key: 'ArrowLeft' });
 
-        fireEvent.keyDown(item1, { key: 'ArrowLeft' });
-        await flushMicrotasks();
+        await waitFor(() => {
+          expect(getByTestId('2')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('2')).toHaveFocus();
+        });
 
-        expect(item2).to.have.attribute('tabindex', '0');
-        expect(item2).toHaveFocus();
+        fireEvent.keyDown(getByTestId('2'), { key: 'ArrowLeft' });
 
-        fireEvent.keyDown(item2, { key: 'ArrowLeft' });
-        await flushMicrotasks();
+        await waitFor(() => {
+          expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('3')).toHaveFocus();
+        });
 
-        expect(item3).to.have.attribute('tabindex', '0');
-        expect(item3).toHaveFocus();
+        fireEvent.keyDown(getByTestId('3'), { key: 'ArrowRight' });
 
-        fireEvent.keyDown(item3, { key: 'ArrowRight' });
-        await flushMicrotasks();
+        await waitFor(() => {
+          expect(getByTestId('2')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('2')).toHaveFocus();
+        });
 
-        expect(item2).to.have.attribute('tabindex', '0');
-        expect(item2).toHaveFocus();
+        fireEvent.keyDown(getByTestId('2'), { key: 'ArrowRight' });
 
-        fireEvent.keyDown(item2, { key: 'ArrowRight' });
-        await flushMicrotasks();
-
-        expect(item1).to.have.attribute('tabindex', '0');
-        expect(item1).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('1')).toHaveFocus();
+        });
 
         // loop backward
-        fireEvent.keyDown(item1, { key: 'ArrowRight' });
-        await flushMicrotasks();
+        fireEvent.keyDown(getByTestId('1'), { key: 'ArrowRight' });
 
-        expect(item3).to.have.attribute('tabindex', '0');
-        expect(item3).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('3')).toHaveFocus();
+        });
       });
 
       it('both horizontal and vertical orientation', async () => {
-        const { getByTestId } = render(
+        const { getByTestId } = render(() => (
           <div dir="rtl">
             <DirectionProvider direction="rtl">
               <CompositeRoot orientation="both">
@@ -209,50 +205,52 @@ describe('Composite', () => {
                 <CompositeItem data-testid="3">3</CompositeItem>
               </CompositeRoot>
             </DirectionProvider>
-          </div>,
-        );
+          </div>
+        ));
 
-        const item1 = getByTestId('1');
-        const item2 = getByTestId('2');
-        const item3 = getByTestId('3');
+        getByTestId('1').focus();
 
-        act(() => item1.focus());
+        fireEvent.keyDown(getByTestId('1'), { key: 'ArrowLeft' });
 
-        fireEvent.keyDown(item1, { key: 'ArrowLeft' });
-        await flushMicrotasks();
+        await waitFor(() => {
+          expect(getByTestId('2')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('2')).toHaveFocus();
+        });
 
-        expect(item2).to.have.attribute('tabindex', '0');
-        expect(item2).toHaveFocus();
+        fireEvent.keyDown(getByTestId('2'), { key: 'ArrowLeft' });
 
-        fireEvent.keyDown(item2, { key: 'ArrowLeft' });
-        await flushMicrotasks();
+        await waitFor(() => {
+          expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('3')).toHaveFocus();
+        });
 
-        expect(item3).to.have.attribute('tabindex', '0');
-        expect(item3).toHaveFocus();
+        fireEvent.keyDown(getByTestId('3'), { key: 'ArrowRight' });
 
-        fireEvent.keyDown(item3, { key: 'ArrowRight' });
-        await flushMicrotasks();
+        await waitFor(() => {
+          expect(getByTestId('2')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('2')).toHaveFocus();
+        });
 
-        expect(item2).to.have.attribute('tabindex', '0');
-        expect(item2).toHaveFocus();
+        fireEvent.keyDown(getByTestId('2'), { key: 'ArrowRight' });
 
-        fireEvent.keyDown(item2, { key: 'ArrowRight' });
-        await flushMicrotasks();
+        await waitFor(() => {
+          expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('1')).toHaveFocus();
+        });
 
-        expect(item1).to.have.attribute('tabindex', '0');
-        expect(item1).toHaveFocus();
+        fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown' });
 
-        fireEvent.keyDown(item1, { key: 'ArrowDown' });
-        await flushMicrotasks();
+        await waitFor(() => {
+          expect(getByTestId('2')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('2')).toHaveFocus();
+        });
 
-        expect(item2).to.have.attribute('tabindex', '0');
-        expect(item2).toHaveFocus();
+        fireEvent.keyDown(getByTestId('2'), { key: 'ArrowDown' });
 
-        fireEvent.keyDown(item2, { key: 'ArrowDown' });
-        await flushMicrotasks();
-
-        expect(item3).to.have.attribute('tabindex', '0');
-        expect(item3).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('3')).toHaveFocus();
+        });
       });
     });
   });
@@ -263,184 +261,199 @@ describe('Composite', () => {
         return (
           // 1 to 9 numpad
           <CompositeRoot cols={3} enableHomeAndEndKeys>
-            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((i) => (
-              <CompositeItem key={i} data-testid={i}>
-                {i}
-              </CompositeItem>
-            ))}
+            <Index each={['1', '2', '3', '4', '5', '6', '7', '8', '9']}>
+              {(i) => <CompositeItem data-testid={i()}>{i()}</CompositeItem>}
+            </Index>
           </CompositeRoot>
         );
       }
 
-      const { getByTestId } = await render(<App />);
+      const { getByTestId } = render(() => <App />);
 
-      act(() => getByTestId('1').focus());
+      getByTestId('1').focus();
 
       fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown' });
-      await flushMicrotasks();
 
-      expect(getByTestId('4')).to.have.attribute('tabindex', '0');
-      expect(getByTestId('4')).toHaveFocus();
+      await waitFor(() => {
+        expect(getByTestId('4')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('4')).toHaveFocus();
+      });
 
       fireEvent.keyDown(getByTestId('4'), { key: 'ArrowRight' });
-      await flushMicrotasks();
 
-      expect(getByTestId('5')).to.have.attribute('tabindex', '0');
-      expect(getByTestId('5')).toHaveFocus();
+      await waitFor(() => {
+        expect(getByTestId('5')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('5')).toHaveFocus();
+      });
 
       fireEvent.keyDown(getByTestId('5'), { key: 'ArrowDown' });
-      await flushMicrotasks();
 
-      expect(getByTestId('8')).to.have.attribute('tabindex', '0');
-      expect(getByTestId('8')).toHaveFocus();
+      await waitFor(() => {
+        expect(getByTestId('8')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('8')).toHaveFocus();
+      });
 
       fireEvent.keyDown(getByTestId('8'), { key: 'ArrowLeft' });
-      await flushMicrotasks();
 
-      expect(getByTestId('7')).to.have.attribute('tabindex', '0');
-      expect(getByTestId('7')).toHaveFocus();
+      await waitFor(() => {
+        expect(getByTestId('7')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('7')).toHaveFocus();
+      });
 
       fireEvent.keyDown(getByTestId('7'), { key: 'ArrowUp' });
-      await flushMicrotasks();
 
-      expect(getByTestId('4')).to.have.attribute('tabindex', '0');
-      expect(getByTestId('4')).toHaveFocus();
+      await waitFor(() => {
+        expect(getByTestId('4')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('4')).toHaveFocus();
+      });
 
-      act(() => getByTestId('9').focus());
-      await flushMicrotasks();
+      getByTestId('9').focus();
 
-      expect(getByTestId('9')).to.have.attribute('tabindex', '0');
+      await waitFor(() => {
+        expect(getByTestId('9')).to.have.attribute('tabindex', '0');
+      });
 
       fireEvent.keyDown(getByTestId('9'), { key: 'Home' });
-      await flushMicrotasks();
 
-      expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+      await waitFor(() => {
+        expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+      });
 
       fireEvent.keyDown(getByTestId('1'), { key: 'End' });
-      await flushMicrotasks();
 
-      expect(getByTestId('9')).to.have.attribute('tabindex', '0');
+      await waitFor(() => {
+        expect(getByTestId('9')).to.have.attribute('tabindex', '0');
+      });
     });
 
     describe.skipIf(isJSDOM)('rtl', () => {
       it('horizontal orientation', async () => {
-        const { getByTestId } = render(
+        const { getByTestId } = render(() => (
           <div dir="rtl">
             <DirectionProvider direction="rtl">
               <CompositeRoot cols={3} orientation="horizontal" enableHomeAndEndKeys>
-                {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((i) => (
-                  <CompositeItem key={i} data-testid={i}>
-                    {i}
-                  </CompositeItem>
-                ))}
+                <Index each={['1', '2', '3', '4', '5', '6', '7', '8', '9']}>
+                  {(i) => <CompositeItem data-testid={i()}>{i()}</CompositeItem>}
+                </Index>
               </CompositeRoot>
             </DirectionProvider>
-          </div>,
-        );
+          </div>
+        ));
 
-        act(() => getByTestId('1').focus());
+        getByTestId('1').focus();
 
         fireEvent.keyDown(getByTestId('1'), { key: 'ArrowLeft' });
-        await flushMicrotasks();
 
-        expect(getByTestId('2')).to.have.attribute('tabindex', '0');
-        expect(getByTestId('2')).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('2')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('2')).toHaveFocus();
+        });
 
         fireEvent.keyDown(getByTestId('2'), { key: 'ArrowLeft' });
-        await flushMicrotasks();
 
-        expect(getByTestId('3')).to.have.attribute('tabindex', '0');
-        expect(getByTestId('3')).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('3')).toHaveFocus();
+        });
 
         fireEvent.keyDown(getByTestId('3'), { key: 'ArrowLeft' });
-        await flushMicrotasks();
 
-        expect(getByTestId('4')).to.have.attribute('tabindex', '0');
-        expect(getByTestId('4')).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('4')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('4')).toHaveFocus();
+        });
 
         fireEvent.keyDown(getByTestId('4'), { key: 'ArrowLeft' });
-        await flushMicrotasks();
 
-        expect(getByTestId('5')).to.have.attribute('tabindex', '0');
-        expect(getByTestId('5')).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('5')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('5')).toHaveFocus();
+        });
 
         fireEvent.keyDown(getByTestId('5'), { key: 'Home' });
-        await flushMicrotasks();
 
-        expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+        await waitFor(() => {
+          expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+        });
 
         fireEvent.keyDown(getByTestId('1'), { key: 'End' });
-        await flushMicrotasks();
 
-        expect(getByTestId('9')).to.have.attribute('tabindex', '0');
+        await waitFor(() => {
+          expect(getByTestId('9')).to.have.attribute('tabindex', '0');
+        });
       });
 
       it('both horizontal and vertical orientation', async () => {
-        const { getByTestId } = await render(
+        const { getByTestId } = render(() => (
           <div dir="rtl">
             <DirectionProvider direction="rtl">
               <CompositeRoot cols={3} orientation="both" enableHomeAndEndKeys>
-                {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((i) => (
-                  <CompositeItem key={i} data-testid={i}>
-                    {i}
-                  </CompositeItem>
-                ))}
+                <Index each={['1', '2', '3', '4', '5', '6', '7', '8', '9']}>
+                  {(i) => <CompositeItem data-testid={i()}>{i()}</CompositeItem>}
+                </Index>
               </CompositeRoot>
             </DirectionProvider>
-          </div>,
-        );
+          </div>
+        ));
 
-        act(() => getByTestId('1').focus());
+        getByTestId('1').focus();
 
         fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown' });
-        await flushMicrotasks();
 
-        expect(getByTestId('4')).to.have.attribute('tabindex', '0');
-        expect(getByTestId('4')).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('4')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('4')).toHaveFocus();
+        });
 
         fireEvent.keyDown(getByTestId('4'), { key: 'ArrowLeft' });
-        await flushMicrotasks();
 
-        expect(getByTestId('5')).to.have.attribute('tabindex', '0');
-        expect(getByTestId('5')).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('5')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('5')).toHaveFocus();
+        });
 
         fireEvent.keyDown(getByTestId('5'), { key: 'ArrowDown' });
-        await flushMicrotasks();
 
-        expect(getByTestId('8')).to.have.attribute('tabindex', '0');
-        expect(getByTestId('8')).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('8')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('8')).toHaveFocus();
+        });
 
         fireEvent.keyDown(getByTestId('8'), { key: 'ArrowRight' });
-        await flushMicrotasks();
 
-        expect(getByTestId('7')).to.have.attribute('tabindex', '0');
-        expect(getByTestId('7')).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('7')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('7')).toHaveFocus();
+        });
 
         fireEvent.keyDown(getByTestId('7'), { key: 'ArrowUp' });
-        await flushMicrotasks();
 
-        expect(getByTestId('4')).to.have.attribute('tabindex', '0');
-        expect(getByTestId('4')).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('4')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('4')).toHaveFocus();
+        });
 
         fireEvent.keyDown(getByTestId('4'), { key: 'End' });
-        await flushMicrotasks();
 
-        expect(getByTestId('9')).to.have.attribute('tabindex', '0');
+        await waitFor(() => {
+          expect(getByTestId('9')).to.have.attribute('tabindex', '0');
+        });
 
         fireEvent.keyDown(getByTestId('9'), { key: 'Home' });
-        await flushMicrotasks();
 
-        expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+        await waitFor(() => {
+          expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+        });
       });
     });
 
     describe('prop: disabledIndices', () => {
       it('disables navigating item when their index is included', async () => {
         function App() {
-          const [highlightedIndex, setHighlightedIndex] = React.useState(0);
+          const [highlightedIndex, setHighlightedIndex] = createSignal(0);
           return (
             <CompositeRoot
-              highlightedIndex={highlightedIndex}
+              highlightedIndex={highlightedIndex()}
               onHighlightedIndexChange={setHighlightedIndex}
               disabledIndices={[1]}
             >
@@ -451,32 +464,31 @@ describe('Composite', () => {
           );
         }
 
-        const { getByTestId } = render(<App />);
+        const { getByTestId } = render(() => <App />);
 
-        const item1 = getByTestId('1');
-        const item3 = getByTestId('3');
+        getByTestId('1').focus();
 
-        act(() => item1.focus());
+        fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown' });
 
-        fireEvent.keyDown(item1, { key: 'ArrowDown' });
-        await flushMicrotasks();
+        await waitFor(() => {
+          expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('3')).toHaveFocus();
+        });
 
-        expect(item3).to.have.attribute('tabindex', '0');
-        expect(item3).toHaveFocus();
+        fireEvent.keyDown(getByTestId('3'), { key: 'ArrowUp' });
 
-        fireEvent.keyDown(item3, { key: 'ArrowUp' });
-        await flushMicrotasks();
-
-        expect(item1).to.have.attribute('tabindex', '0');
-        expect(item1).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('1')).toHaveFocus();
+        });
       });
 
       it('allows navigating items disabled in the DOM when their index is excluded', async () => {
         function App() {
-          const [highlightedIndex, setHighlightedIndex] = React.useState(0);
+          const [highlightedIndex, setHighlightedIndex] = createSignal(0);
           return (
             <CompositeRoot
-              highlightedIndex={highlightedIndex}
+              highlightedIndex={highlightedIndex()}
               onHighlightedIndexChange={setHighlightedIndex}
               disabledIndices={[]}
             >
@@ -485,53 +497,57 @@ describe('Composite', () => {
                 // TS doesn't like the disabled attribute on non-interactive elements
                 // but testing library refuses to focus disabled interactive elements
                 // @ts-ignore
-                render={<span data-disabled aria-disabled="true" disabled />}
+                render={(props) => <span data-disabled aria-disabled="true" disabled {...props} />}
               />
               <CompositeItem
                 data-testid="2"
                 // @ts-ignore
-                render={<span data-disabled aria-disabled="true" disabled />}
+                render={(props) => <span data-disabled aria-disabled="true" disabled {...props} />}
               />
               <CompositeItem
                 data-testid="3"
                 // @ts-ignore
-                render={<span data-disabled aria-disabled="true" disabled />}
+                render={(props) => <span data-disabled aria-disabled="true" disabled {...props} />}
               />
             </CompositeRoot>
           );
         }
 
-        const { getByTestId } = await render(<App />);
+        const { getByTestId } = render(() => <App />);
 
-        const item1 = getByTestId('1');
-        const item2 = getByTestId('2');
-        const item3 = getByTestId('3');
+        getByTestId('1').focus();
 
-        act(() => item1.focus());
+        await waitFor(() => {
+          expect(getByTestId('1')).toHaveFocus();
+        });
 
-        fireEvent.keyDown(item1, { key: 'ArrowDown' });
-        await flushMicrotasks();
+        fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown' });
 
-        expect(item2).to.have.attribute('tabindex', '0');
-        expect(item2).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('2')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('2')).toHaveFocus();
+        });
 
-        fireEvent.keyDown(item2, { key: 'ArrowDown' });
-        await flushMicrotasks();
+        fireEvent.keyDown(getByTestId('2'), { key: 'ArrowDown' });
 
-        expect(item3).to.have.attribute('tabindex', '0');
-        expect(item3).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('3')).toHaveFocus();
+        });
 
-        fireEvent.keyDown(item3, { key: 'ArrowDown' });
-        await flushMicrotasks();
+        fireEvent.keyDown(getByTestId('3'), { key: 'ArrowDown' });
 
-        expect(item1).to.have.attribute('tabindex', '0');
-        expect(item1).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('1')).toHaveFocus();
+        });
 
-        fireEvent.keyDown(item1, { key: 'ArrowUp' });
-        await flushMicrotasks();
+        fireEvent.keyDown(getByTestId('1'), { key: 'ArrowUp' });
 
-        expect(item3).to.have.attribute('tabindex', '0');
-        expect(item3).toHaveFocus();
+        await waitFor(() => {
+          expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+          expect(getByTestId('3')).toHaveFocus();
+        });
       });
     });
   });
@@ -539,10 +555,10 @@ describe('Composite', () => {
   describe('prop: disabledIndices', () => {
     it('disables navigating item when their index is included', async () => {
       function App() {
-        const [highlightedIndex, setHighlightedIndex] = React.useState(0);
+        const [highlightedIndex, setHighlightedIndex] = createSignal(0);
         return (
           <CompositeRoot
-            highlightedIndex={highlightedIndex}
+            highlightedIndex={highlightedIndex()}
             onHighlightedIndexChange={setHighlightedIndex}
             disabledIndices={[1]}
           >
@@ -553,32 +569,31 @@ describe('Composite', () => {
         );
       }
 
-      const { getByTestId } = render(<App />);
+      const { getByTestId } = render(() => <App />);
 
-      const item1 = getByTestId('1');
-      const item3 = getByTestId('3');
+      getByTestId('1').focus();
 
-      act(() => item1.focus());
+      fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown' });
 
-      fireEvent.keyDown(item1, { key: 'ArrowDown' });
-      await flushMicrotasks();
+      await waitFor(() => {
+        expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('3')).toHaveFocus();
+      });
 
-      expect(item3).to.have.attribute('tabindex', '0');
-      expect(item3).toHaveFocus();
+      fireEvent.keyDown(getByTestId('3'), { key: 'ArrowUp' });
 
-      fireEvent.keyDown(item3, { key: 'ArrowUp' });
-      await flushMicrotasks();
-
-      expect(item1).to.have.attribute('tabindex', '0');
-      expect(item1).toHaveFocus();
+      await waitFor(() => {
+        expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('1')).toHaveFocus();
+      });
     });
 
     it('allows navigating items disabled in the DOM when their index is excluded', async () => {
       function App() {
-        const [highlightedIndex, setHighlightedIndex] = React.useState(0);
+        const [highlightedIndex, setHighlightedIndex] = createSignal(0);
         return (
           <CompositeRoot
-            highlightedIndex={highlightedIndex}
+            highlightedIndex={highlightedIndex()}
             onHighlightedIndexChange={setHighlightedIndex}
             disabledIndices={[]}
           >
@@ -587,120 +602,122 @@ describe('Composite', () => {
               // TS doesn't like the disabled attribute on non-interactive elements
               // but testing library refuses to focus disabled interactive elements
               // @ts-ignore
-              render={<span data-disabled aria-disabled="true" disabled />}
+              render={(props) => <span data-disabled aria-disabled="true" disabled {...props} />}
             />
             <CompositeItem
               data-testid="2"
               // @ts-ignore
-              render={<span data-disabled aria-disabled="true" disabled />}
+              render={(props) => <span data-disabled aria-disabled="true" disabled {...props} />}
             />
             <CompositeItem
               data-testid="3"
               // @ts-ignore
-              render={<span data-disabled aria-disabled="true" disabled />}
+              render={(props) => <span data-disabled aria-disabled="true" disabled {...props} />}
             />
           </CompositeRoot>
         );
       }
 
-      const { getByTestId } = await render(<App />);
+      const { getByTestId } = render(() => <App />);
 
-      const item1 = getByTestId('1');
-      const item2 = getByTestId('2');
-      const item3 = getByTestId('3');
+      getByTestId('1').focus();
 
-      act(() => item1.focus());
+      fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown' });
 
-      fireEvent.keyDown(item1, { key: 'ArrowDown' });
-      await flushMicrotasks();
+      await waitFor(() => {
+        expect(getByTestId('2')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('2')).toHaveFocus();
+      });
 
-      expect(item2).to.have.attribute('tabindex', '0');
-      expect(item2).toHaveFocus();
+      fireEvent.keyDown(getByTestId('2'), { key: 'ArrowDown' });
 
-      fireEvent.keyDown(item2, { key: 'ArrowDown' });
-      await flushMicrotasks();
+      await waitFor(() => {
+        expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('3')).toHaveFocus();
+      });
 
-      expect(item3).to.have.attribute('tabindex', '0');
-      expect(item3).toHaveFocus();
+      fireEvent.keyDown(getByTestId('3'), { key: 'ArrowDown' });
 
-      fireEvent.keyDown(item3, { key: 'ArrowDown' });
-      await flushMicrotasks();
+      await waitFor(() => {
+        expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('1')).toHaveFocus();
+      });
 
-      expect(item1).to.have.attribute('tabindex', '0');
-      expect(item1).toHaveFocus();
+      fireEvent.keyDown(getByTestId('1'), { key: 'ArrowUp' });
 
-      fireEvent.keyDown(item1, { key: 'ArrowUp' });
-      await flushMicrotasks();
-
-      expect(item3).to.have.attribute('tabindex', '0');
-      expect(item3).toHaveFocus();
+      await waitFor(() => {
+        expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+        expect(getByTestId('3')).toHaveFocus();
+      });
     });
   });
 
   describe('prop: modifierKeys', () => {
     it('prevents arrow key navigation when any modifier key is pressed by default', async () => {
-      const { getByTestId } = render(
+      const { getByTestId } = render(() => (
         <CompositeRoot>
           <CompositeItem data-testid="1">1</CompositeItem>
           <CompositeItem data-testid="2">2</CompositeItem>
-        </CompositeRoot>,
-      );
+        </CompositeRoot>
+      ));
 
-      const item1 = getByTestId('1');
+      getByTestId('1').focus();
 
-      act(() => item1.focus());
+      expect(getByTestId('1')).toHaveFocus();
 
-      expect(item1).toHaveFocus();
+      fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown', shiftKey: true });
+      await waitFor(() => {
+        expect(getByTestId('1')).toHaveFocus();
+      });
 
-      fireEvent.keyDown(item1, { key: 'ArrowDown', shiftKey: true });
-      await flushMicrotasks();
-      expect(item1).toHaveFocus();
+      fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown', ctrlKey: true });
+      await waitFor(() => {
+        expect(getByTestId('1')).toHaveFocus();
+      });
 
-      fireEvent.keyDown(item1, { key: 'ArrowDown', ctrlKey: true });
-      await flushMicrotasks();
-      expect(item1).toHaveFocus();
+      fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown', altKey: true });
+      await waitFor(() => {
+        expect(getByTestId('1')).toHaveFocus();
+      });
 
-      fireEvent.keyDown(item1, { key: 'ArrowDown', altKey: true });
-      await flushMicrotasks();
-      expect(item1).toHaveFocus();
-
-      fireEvent.keyDown(item1, { key: 'ArrowDown', metaKey: true });
-      await flushMicrotasks();
-      expect(item1).toHaveFocus();
+      fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown', metaKey: true });
+      await waitFor(() => {
+        expect(getByTestId('1')).toHaveFocus();
+      });
     });
 
     it('specifies allowed modifier keys that do not prevent arrow key navigation when pressed', async () => {
-      const { getByTestId } = render(
+      const { getByTestId } = render(() => (
         <CompositeRoot modifierKeys={['Alt', 'Meta']}>
           <CompositeItem data-testid="1">1</CompositeItem>
           <CompositeItem data-testid="2">2</CompositeItem>
           <CompositeItem data-testid="3">3</CompositeItem>
-        </CompositeRoot>,
-      );
+        </CompositeRoot>
+      ));
 
-      const item1 = getByTestId('1');
-      const item2 = getByTestId('2');
-      const item3 = getByTestId('3');
+      getByTestId('1').focus();
 
-      act(() => item1.focus());
+      expect(getByTestId('1')).toHaveFocus();
 
-      expect(item1).toHaveFocus();
+      fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown', shiftKey: true });
+      await waitFor(() => {
+        expect(getByTestId('1')).toHaveFocus();
+      });
 
-      fireEvent.keyDown(item1, { key: 'ArrowDown', shiftKey: true });
-      await flushMicrotasks();
-      expect(item1).toHaveFocus();
+      fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown', ctrlKey: true });
+      await waitFor(() => {
+        expect(getByTestId('1')).toHaveFocus();
+      });
 
-      fireEvent.keyDown(item1, { key: 'ArrowDown', ctrlKey: true });
-      await flushMicrotasks();
-      expect(item1).toHaveFocus();
+      fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown', altKey: true });
+      await waitFor(() => {
+        expect(getByTestId('2')).toHaveFocus();
+      });
 
-      fireEvent.keyDown(item1, { key: 'ArrowDown', altKey: true });
-      await flushMicrotasks();
-      expect(item2).toHaveFocus();
-
-      fireEvent.keyDown(item2, { key: 'ArrowDown', metaKey: true });
-      await flushMicrotasks();
-      expect(item3).toHaveFocus();
+      fireEvent.keyDown(getByTestId('2'), { key: 'ArrowDown', metaKey: true });
+      await waitFor(() => {
+        expect(getByTestId('3')).toHaveFocus();
+      });
     });
   });
 });

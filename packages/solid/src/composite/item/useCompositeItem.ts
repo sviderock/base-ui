@@ -1,43 +1,45 @@
 'use client';
-import { type Accessor, createMemo } from 'solid-js';
-import { useForkRef } from '../../utils';
-import { HTMLProps } from '../../utils/types';
+import { createMemo, createSignal, type Accessor } from 'solid-js';
+import type { HTMLProps } from '../../utils/types';
 import { useCompositeListItem } from '../list/useCompositeListItem';
 import { useCompositeRootContext } from '../root/CompositeRootContext';
 
-export interface UseCompositeItemParameters<Metadata> {
-  metadata?: Accessor<Metadata>;
+export interface UseCompositeItemParameters<Metadata extends Accessor<unknown>> {
+  metadata?: Metadata;
 }
 
-export function useCompositeItem<Metadata>(params: UseCompositeItemParameters<Metadata>) {
-  const { highlightedIndex, onHighlightedIndexChange, highlightItemOnHover } =
-    useCompositeRootContext();
-  const { ref, index } = useCompositeListItem(params);
-  const isHighlighted = () => highlightedIndex() === index();
-
-  let itemRef = null as HTMLElement | null;
-  const mergedRef = useForkRef(ref, itemRef);
+export function useCompositeItem<Metadata extends Accessor<unknown>>(
+  params: UseCompositeItemParameters<Metadata>,
+) {
+  const context = useCompositeRootContext();
+  const listItem = useCompositeListItem(params);
+  const isHighlighted = () => context.highlightedIndex() === listItem.index();
+  const [itemRef, setItemRef] = createSignal<HTMLElement>();
 
   const props = createMemo<HTMLProps>(() => ({
     tabIndex: isHighlighted() ? 0 : -1,
     onFocus() {
-      onHighlightedIndexChange(index());
+      context.onHighlightedIndexChange(listItem.index());
     },
     onMouseMove() {
-      if (!highlightItemOnHover() || !itemRef) {
+      if (!context.highlightItemOnHover() || !itemRef()) {
         return;
       }
 
-      const disabled = itemRef.hasAttribute('disabled') || itemRef.ariaDisabled === 'true';
+      const disabled = itemRef()?.hasAttribute('disabled') || itemRef()?.ariaDisabled === 'true';
       if (!isHighlighted() && !disabled) {
-        itemRef.focus();
+        itemRef()?.focus();
       }
     },
   }));
 
   return {
     props,
-    ref: mergedRef as HTMLElement | null,
-    index,
+    ref: itemRef,
+    setRef: (el: HTMLElement | undefined) => {
+      setItemRef(el);
+      listItem.ref(el);
+    },
+    index: listItem.index,
   };
 }

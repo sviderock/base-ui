@@ -1,46 +1,31 @@
 'use client';
-import { createEffect, createMemo, createSignal, onCleanup, type JSX } from 'solid-js';
-import { useEventCallback } from '../../utils/useEventCallback';
+import { createEffect, createMemo, createSignal, createUniqueId, type JSX } from 'solid-js';
+import { createStore, produce, type SetStoreFunction, type Store } from 'solid-js/store';
 import { CompositeListContext } from './CompositeListContext';
 
 export type CompositeMetadata<CustomMetadata> = { index?: number | null } & CustomMetadata;
+type NodeId = string;
 
 /**
  * Provides context for a list of items in a composite component.
  * @internal
  */
 export function CompositeList<Metadata>(props: CompositeList.Props<Metadata>) {
-  let nextIndexRef = 0;
-  const listeners = createListeners();
-
-  // We use a stable `map` to avoid O(n^2) re-allocation costs for large lists.
-  // `mapTick` is our re-render trigger mechanism. We also need to update the
-  // elements and label refs, but there's a lot of async work going on and sometimes
-  // the effect that handles `onMapChange` gets called after those refs have been
-  // filled, and we don't want to lose those values by setting their lengths to `0`.
-  // We also need to have them at the proper length because floating-ui uses that
-  // information for list navigation.
-
-  const map = createMap<Metadata>;
-  const [mapTick, setMapTick] = createSignal(0);
-  let lastTickRef = mapTick();
-
-  const register = useEventCallback((node: Element, metadata: Metadata) => {
-    map().set(node, metadata ?? null);
-    lastTickRef += 1;
-    setMapTick(lastTickRef);
+  const [nextIndex, setNextIndex] = createSignal(0);
+  const [store, setStore] = createStore({
+    internalMap: new Map<Element, { uid: NodeId; metadata: CompositeMetadata<Metadata> | null }>(),
+    internalNodeIdMap: {} as Record<NodeId, Element>,
+    listeners: [] as Function[],
   });
 
-  const unregister = useEventCallback((node: Element) => {
-    map().delete(node);
-    lastTickRef += 1;
-    setMapTick(lastTickRef);
+  const map = createMemo(() => {
+    const entries = Object.values(store.internalNodeIdMap).map(
+      (node) => [node, store.internalMap.get(node)?.metadata ?? null] as const,
+    );
+    return new Map<Element, CompositeMetadata<Metadata> | null>(entries);
   });
 
   const sortedMap = createMemo(() => {
-    // `mapTick` is the `useMemo` trigger as `map` is stable.
-    disableEslintWarning(mapTick());
-
     const newMap = new Map<Element, CompositeMetadata<Metadata>>();
     const sortedNodes = Array.from(map().keys()).sort(sortByDocumentPosition);
 
@@ -52,53 +37,75 @@ export function CompositeList<Metadata>(props: CompositeList.Props<Metadata>) {
     return newMap;
   });
 
-  createEffect(() => {
-    const shouldUpdateLengths = lastTickRef === mapTick();
-    if (shouldUpdateLengths) {
-      if (props.elementsRef.length !== sortedMap().size) {
-        props.elementsRef.length = sortedMap().size;
-      }
-      if (props.labelsRef && props.labelsRef.length !== sortedMap().size) {
-        props.labelsRef.length = sortedMap().size;
-      }
-    }
+  function register(node: Element, metadata: Metadata) {
+    const uid = store.internalMap.get(node)?.uid ?? createUniqueId();
+    setStore(
+      produce((currentState) => {
+        currentState.internalMap.set(node, { uid, metadata: metadata ?? null });
+        currentState.internalNodeIdMap[uid] = node;
+      }),
+    );
+  }
 
+  function unregister(node: Element) {
+    const uid = store.internalMap.get(node)?.uid;
+    if (uid) {
+      setStore(
+        produce((currentState) => {
+          currentState.internalMap.delete(node);
+          delete currentState.internalNodeIdMap[uid];
+        }),
+      );
+    }
+  }
+
+  createEffect(() => {
     props.onMapChange?.(sortedMap());
   });
 
-  const subscribeMapChange = useEventCallback((fn) => {
-    listeners.add(fn);
-    onCleanup(() => {
-      listeners.delete(fn);
-    });
-  });
+  function subscribeMapChange(fn: Function) {
+    setStore(
+      produce((currentState) => {
+        if (currentState.listeners.includes(fn) === false) {
+          currentState.listeners.push(fn);
+        }
+      }),
+    );
+  }
+
+  function unsubscribeMapChange(fn: Function) {
+    setStore(
+      produce((currentState) => {
+        const index = currentState.listeners.indexOf(fn);
+        if (index !== -1) {
+          currentState.listeners.splice(index, 1);
+        }
+      }),
+    );
+  }
 
   createEffect(() => {
-    listeners.forEach((l) => l(sortedMap()));
+    store.listeners.forEach((l) => l(sortedMap()));
   });
 
-  const contextValue = {
-    register,
-    unregister,
-    subscribeMapChange,
-    elementsRef: props.elementsRef,
-    labelsRef: props.labelsRef,
-    nextIndexRef,
-  };
-
   return (
-    <CompositeListContext.Provider value={contextValue}>
+    <CompositeListContext.Provider
+      value={{
+        register,
+        unregister,
+        subscribeMapChange,
+        unsubscribeMapChange,
+        elements: props.elements,
+        setElements: props.setElements,
+        labels: props.labels,
+        setLabels: props.setLabels,
+        nextIndex,
+        setNextIndex,
+      }}
+    >
       {props.children}
     </CompositeListContext.Provider>
   );
-}
-
-function createMap<Metadata>() {
-  return new Map<Element, CompositeMetadata<Metadata> | null>();
-}
-
-function createListeners() {
-  return new Set<Function>();
 }
 
 function sortByDocumentPosition(a: Element, b: Element) {
@@ -118,8 +125,6 @@ function sortByDocumentPosition(a: Element, b: Element) {
   return 0;
 }
 
-function disableEslintWarning(_: any) {}
-
 export namespace CompositeList {
   export interface Props<Metadata> {
     children: JSX.Element;
@@ -127,12 +132,14 @@ export namespace CompositeList {
      * A ref to the list of HTML elements, ordered by their index.
      * `useListNavigation`'s `listRef` prop.
      */
-    elementsRef: Array<HTMLElement | null>;
+    elements: Store<Array<HTMLElement | undefined>>;
+    setElements: SetStoreFunction<Array<HTMLElement | undefined>>;
     /**
      * A ref to the list of element labels, ordered by their index.
      * `useTypeahead`'s `listRef` prop.
      */
-    labelsRef?: Array<string | null>;
+    labels?: Store<Array<string | null> | undefined>;
+    setLabels: SetStoreFunction<Array<string | null> | undefined>;
     onMapChange?: (newMap: Map<Element, CompositeMetadata<Metadata> | null>) => void;
   }
 }
