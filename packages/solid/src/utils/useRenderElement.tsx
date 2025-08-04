@@ -1,8 +1,11 @@
 import {
   children,
+  createEffect,
   createMemo,
   Match,
   mergeProps,
+  onCleanup,
+  onMount,
   Show,
   splitProps,
   Switch,
@@ -26,7 +29,7 @@ export function RenderElement<
 >(props: {
   element: TagName;
   // TODO: needed as a separate prop to properly reassign refs https://stackoverflow.com/a/71137252
-  ref: Ref<RenderedElementType | null | undefined>;
+  ref: Ref<RenderedElementType | undefined>;
   componentProps: RenderElement.ComponentProps<State>;
   params: RenderElement.Parameters<State, TagName, Enabled>;
 }): JSX.Element {
@@ -50,11 +53,6 @@ export function RenderElement<
     const mergedParams = flattenedPropsParams();
     if (mergedParams === undefined) {
       return undefined;
-    }
-
-    if ('render' in mergedParams) {
-      const { render, ...rest } = mergedParams;
-      return rest;
     }
 
     const [local, rest] = splitProps(mergedParams, ['children']);
@@ -91,15 +89,10 @@ export function RenderElement<
 
       <Match when={props.componentProps.render}>
         <Show
-          when={typeof props.componentProps.render === 'function' && props.componentProps.render}
+          when={typeof props.componentProps.render === 'function'}
           fallback={props.componentProps.render as JSX.Element}
         >
-          {(renderer) => {
-            const render = renderer();
-            outProps().ref = props.ref;
-            const element = render(outProps() as any, state());
-            return element;
-          }}
+          {(props.componentProps.render as Function)(outProps() as any, state())}
         </Show>
       </Match>
 

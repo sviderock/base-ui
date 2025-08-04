@@ -28,19 +28,23 @@ function getTabbableIn(container: HTMLElement, dir: 1 | -1): FocusableElement | 
   return list[nextIndex];
 }
 
-export function getNextTabbable(referenceElement: Element | null): FocusableElement | null {
+export function getNextTabbable(
+  referenceElement: Element | undefined,
+): FocusableElement | undefined {
   return (
     getTabbableIn(getDocument(referenceElement).body, 1) || (referenceElement as FocusableElement)
   );
 }
 
-export function getPreviousTabbable(referenceElement: Element | null): FocusableElement | null {
+export function getPreviousTabbable(
+  referenceElement: Element | undefined,
+): FocusableElement | undefined {
   return (
     getTabbableIn(getDocument(referenceElement).body, -1) || (referenceElement as FocusableElement)
   );
 }
 
-export function isOutsideEvent(event: FocusEvent | React.FocusEvent, container?: Element) {
+export function isOutsideEvent(event: FocusEvent, container?: Element) {
   const containerElement = container || (event.currentTarget as Element);
   const relatedTarget = event.relatedTarget as HTMLElement | null;
   return !relatedTarget || !contains(containerElement, relatedTarget);

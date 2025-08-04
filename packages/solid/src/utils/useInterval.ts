@@ -1,41 +1,41 @@
 'use client';
-import { onCleanup } from 'solid-js';
-import { Timeout } from './useTimeout';
+import { createSignal, onCleanup } from 'solid-js';
 
 type IntervalId = number;
+export type Interval = ReturnType<typeof useInterval>;
 
 const EMPTY = 0 as IntervalId;
 
-export class Interval extends Timeout {
-  static create() {
-    return new Interval();
-  }
-
-  /**
-   * Executes `fn` at `delay` interval, clearing any previously scheduled call.
-   */
-  start(delay: number, fn: Function) {
-    this.clear();
-    this.currentId = setInterval(() => {
-      fn();
-    }, delay) as unknown as number;
-  }
-
-  clear = () => {
-    if (this.currentId !== EMPTY) {
-      clearInterval(this.currentId as IntervalId);
-      this.currentId = EMPTY;
-    }
-  };
-}
-
 /**
- * A `setInterval` with automatic cleanup and guard.
+ * A `setTimeout` with automatic cleanup and guard.
  */
 export function useInterval() {
-  const timeout = Interval.create();
+  const [currentId, setCurrentId] = createSignal<IntervalId>(EMPTY);
 
-  onCleanup(timeout.disposeEffect);
+  function start(delay: number, fn: Function) {
+    clear();
+    setCurrentId(
+      setTimeout(() => {
+        setCurrentId(EMPTY);
+        fn();
+      }, delay) as unknown as IntervalId,
+    );
+  }
 
-  return timeout;
+  function clear() {
+    if (currentId() !== EMPTY) {
+      clearInterval(currentId() as IntervalId);
+      setCurrentId(EMPTY);
+    }
+  }
+
+  function isStarted() {
+    return currentId() !== EMPTY;
+  }
+
+  onCleanup(() => {
+    clear();
+  });
+
+  return { start, clear, isStarted };
 }

@@ -1,7 +1,7 @@
 import { isElement } from '@floating-ui/utils/dom';
-import type { Rect, Side } from './types';
+import { useTimeout } from '../utils/useTimeout';
 import type { HandleClose } from './hooks/useHover';
-import { Timeout } from '../utils/useTimeout';
+import type { Rect, Side } from './types';
 import { contains, getTarget } from './utils/element';
 import { getNodeChildren } from './utils/nodes';
 
@@ -49,7 +49,7 @@ export interface SafePolygonOptions {
 export function safePolygon(options: SafePolygonOptions = {}) {
   const { buffer = 0.5, blockPointerEvents = false, requireIntent = true } = options;
 
-  const timeout = new Timeout();
+  const timeout = useTimeout();
 
   let hasLanded = false;
   let lastX: number | null = null;
@@ -88,13 +88,9 @@ export function safePolygon(options: SafePolygonOptions = {}) {
 
       timeout.clear();
 
-      if (
-        !elements.domReference ||
-        !elements.floating ||
-        placement == null ||
-        x == null ||
-        y == null
-      ) {
+      const domReference = elements.domReference();
+      const floating = elements.floating();
+      if (!domReference || !floating || placement == null || x == null || y == null) {
         return undefined;
       }
 
@@ -102,10 +98,10 @@ export function safePolygon(options: SafePolygonOptions = {}) {
       const clientPoint: Point = [clientX, clientY];
       const target = getTarget(event) as Element | null;
       const isLeave = event.type === 'mouseleave';
-      const isOverFloatingEl = contains(elements.floating, target);
-      const isOverReferenceEl = contains(elements.domReference, target);
-      const refRect = elements.domReference.getBoundingClientRect();
-      const rect = elements.floating.getBoundingClientRect();
+      const isOverFloatingEl = contains(floating, target);
+      const isOverReferenceEl = contains(domReference, target);
+      const refRect = domReference.getBoundingClientRect();
+      const rect = floating.getBoundingClientRect();
       const side = placement.split('-')[0] as Side;
       const cursorLeaveFromRight = x > rect.right - rect.width / 2;
       const cursorLeaveFromBottom = y > rect.bottom - rect.height / 2;
@@ -139,16 +135,13 @@ export function safePolygon(options: SafePolygonOptions = {}) {
       if (
         isLeave &&
         isElement(event.relatedTarget) &&
-        contains(elements.floating, event.relatedTarget)
+        contains(elements.floating(), event.relatedTarget)
       ) {
         return undefined;
       }
 
       // If any nested child is open, abort.
-      if (
-        tree &&
-        getNodeChildren(tree.nodesRef.current, nodeId).some(({ context }) => context?.open)
-      ) {
+      if (tree && getNodeChildren(tree.nodesRef, nodeId()).some(({ context }) => context?.open())) {
         return undefined;
       }
 

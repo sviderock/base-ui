@@ -1,33 +1,25 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import {
-  act,
-  cleanup,
-  fireEvent,
-  flushMicrotasks,
-  render,
-  screen,
-  waitFor,
-} from '@mui/internal-test-utils';
+import { cleanup, fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import * as React from 'react';
+import { createEffect, createSignal, Show, splitProps, type JSX } from 'solid-js';
 import { vi } from 'vitest';
 
+import { isJSDOM } from '../../utils/detectBrowser';
 import {
   FloatingFocusManager,
   FloatingNode,
   FloatingPortal,
   FloatingTree,
+  useClick,
   useDismiss,
   useFloating,
   useFloatingNodeId,
   useFloatingParentNodeId,
   useFocus,
   useInteractions,
-  useClick,
 } from '../index';
 import type { UseDismissProps } from './useDismiss';
 import { normalizeProp } from './useDismiss';
-import { isJSDOM } from '../../utils/detectBrowser';
 
 beforeAll(() => {
   vi.spyOn(window, 'requestAnimationFrame').mockImplementation(
@@ -43,43 +35,46 @@ function App(
     onClose?: () => void;
   },
 ) {
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = createSignal(true);
   const { refs, context } = useFloating({
     open,
     onOpenChange(open, _, reason) {
       setOpen(open);
       if (props.outsidePress) {
         expect(reason).toBe('outside-press');
-      } else if (props.escapeKey) {
+      } else if (props.escapeKey?.()) {
         expect(reason).toBe('escape-key');
         if (!open) {
           props.onClose?.();
         }
-      } else if (props.referencePress) {
+      } else if (props.referencePress?.()) {
         expect(reason).toBe('reference-press');
-      } else if (props.ancestorScroll) {
+      } else if (props.ancestorScroll?.()) {
         expect(reason).toBe('ancestor-scroll');
       }
     },
   });
-  const { getReferenceProps, getFloatingProps } = useInteractions([useDismiss(context, props)]);
+  const { getReferenceProps, getFloatingProps } = useInteractions([
+    () => useDismiss(context, props),
+  ]);
 
   return (
-    <React.Fragment>
+    <>
       <button {...getReferenceProps({ ref: refs.setReference })} />
-      {open && (
+      {open() && (
         <div role="tooltip" {...getFloatingProps({ ref: refs.setFloating })}>
           <input />
         </div>
       )}
-    </React.Fragment>
+    </>
   );
 }
 
-describe.skipIf(!isJSDOM)('useDismiss', () => {
+// describe.skipIf(!isJSDOM)('useDismiss', () => {
+describe('useDismiss', () => {
   describe('true', () => {
     test('dismisses with escape key', () => {
-      render(<App />);
+      render(() => <App />);
       fireEvent.keyDown(document.body, { key: 'Escape' });
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
       cleanup();
@@ -88,15 +83,11 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     test('does not dismiss with escape key if IME is active', async () => {
       const onClose = vi.fn();
 
-      render(<App onClose={onClose} escapeKey />);
+      render(() => <App onClose={onClose} escapeKey={() => true} />);
 
       const textbox = screen.getByRole('textbox');
 
-      await act(async () => {
-        textbox.focus();
-      });
-
-      await flushMicrotasks();
+      textbox.focus();
 
       // Simulate behavior when "あ" (Japanese) is entered and Esc is pressed for IME
       // cancellation.
@@ -118,35 +109,35 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     });
 
     test('dismisses with outside pointer press', async () => {
-      render(<App />);
+      render(() => <App />);
       await userEvent.click(document.body);
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
       cleanup();
     });
 
     test('dismisses with reference press', async () => {
-      render(<App referencePress />);
+      render(() => <App referencePress={() => true} />);
       await userEvent.click(screen.getByRole('button'));
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
       cleanup();
     });
 
     test('dismisses with native click', async () => {
-      render(<App referencePress />);
+      render(() => <App referencePress={() => true} />);
       fireEvent.click(screen.getByRole('button'));
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
       cleanup();
     });
 
     test('dismisses with ancestor scroll', async () => {
-      render(<App ancestorScroll />);
+      render(() => <App ancestorScroll={() => true} />);
       fireEvent.scroll(window);
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
       cleanup();
     });
 
     test('outsidePress function guard', async () => {
-      render(<App outsidePress={() => false} />);
+      render(() => <App outsidePress={() => false} />);
       await userEvent.click(document.body);
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
       cleanup();
@@ -154,7 +145,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
     test('outsidePress ignored for third party elements', async () => {
       function App() {
-        const [isOpen, setIsOpen] = React.useState(true);
+        const [isOpen, setIsOpen] = createSignal(true);
 
         const { context, refs } = useFloating({
           open: isOpen,
@@ -163,23 +154,23 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
         const dismiss = useDismiss(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions([dismiss]);
+        const { getReferenceProps, getFloatingProps } = useInteractions([() => dismiss]);
 
         return (
-          <React.Fragment>
+          <>
             <button {...getReferenceProps({ ref: refs.setReference })} />
-            {isOpen && (
+            {isOpen() && (
               <FloatingFocusManager context={context}>
                 <div role="dialog" {...getFloatingProps({ ref: refs.setFloating })} />
               </FloatingFocusManager>
             )}
-          </React.Fragment>
+          </>
         );
       }
 
-      render(<App />);
-      await flushMicrotasks();
+      render(() => <App />);
 
+      screen.debug();
       const thirdParty = document.createElement('div');
       thirdParty.setAttribute('data-testid', 'third-party');
       document.body.append(thirdParty);
@@ -189,16 +180,8 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     });
 
     test('outsidePress not ignored for nested floating elements', async () => {
-      function Popover({
-        children,
-        id,
-        modal,
-      }: {
-        children?: React.ReactNode;
-        id: string;
-        modal?: boolean | null;
-      }) {
-        const [isOpen, setIsOpen] = React.useState(true);
+      function Popover(props: { children?: JSX.Element; id: string; modal?: boolean | null }) {
+        const [isOpen, setIsOpen] = createSignal(true);
 
         const { context, refs } = useFloating({
           open: isOpen,
@@ -207,42 +190,45 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
         const dismiss = useDismiss(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions([dismiss]);
+        const { getReferenceProps, getFloatingProps } = useInteractions([() => dismiss]);
 
         const dialogJsx = (
-          <div role="dialog" data-testid={id} {...getFloatingProps({ ref: refs.setFloating })}>
-            {children}
+          <div
+            role="dialog"
+            data-testid={props.id}
+            {...getFloatingProps({ ref: refs.setFloating })}
+          >
+            {props.children}
           </div>
         );
 
         return (
-          <React.Fragment>
+          <>
             <button {...getReferenceProps({ ref: refs.setReference })} />
-            {isOpen && (
-              <React.Fragment>
-                {modal == null ? (
+            {isOpen() && (
+              <>
+                {props.modal == null ? (
                   dialogJsx
                 ) : (
-                  <FloatingFocusManager context={context} modal={modal}>
+                  <FloatingFocusManager context={context} modal={props.modal}>
                     {dialogJsx}
                   </FloatingFocusManager>
                 )}
-              </React.Fragment>
+              </>
             )}
-          </React.Fragment>
+          </>
         );
       }
 
-      function App({ modal }: { modal: [boolean, boolean] | null }) {
+      function App(props: { modal: [boolean, boolean] | null }) {
         return (
-          <Popover id="popover-1" modal={modal ? modal[0] : true}>
-            <Popover id="popover-2" modal={modal ? modal[1] : null} />
+          <Popover id="popover-1" modal={props.modal ? props.modal[0] : true}>
+            <Popover id="popover-2" modal={props.modal ? props.modal[1] : null} />
           </Popover>
         );
       }
 
-      const { unmount } = render(<App modal={[true, true]} />);
-      await flushMicrotasks();
+      const { unmount } = render(() => <App modal={[true, true]} />);
 
       let popover1 = screen.getByTestId('popover-1');
       let popover2 = screen.getByTestId('popover-2');
@@ -254,8 +240,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
       unmount();
 
-      const { unmount: unmount2 } = render(<App modal={[true, false]} />);
-      await flushMicrotasks();
+      const { unmount: unmount2 } = render(() => <App modal={[true, false]} />);
 
       popover1 = screen.getByTestId('popover-1');
       popover2 = screen.getByTestId('popover-2');
@@ -268,8 +253,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
       unmount2();
 
-      const { unmount: unmount3 } = render(<App modal={[false, true]} />);
-      await flushMicrotasks();
+      const { unmount: unmount3 } = render(() => <App modal={[false, true]} />);
 
       popover1 = screen.getByTestId('popover-1');
       popover2 = screen.getByTestId('popover-2');
@@ -282,8 +266,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
       unmount3();
 
-      render(<App modal={null} />);
-      await flushMicrotasks();
+      render(() => <App modal={null} />);
 
       popover1 = screen.getByTestId('popover-1');
       popover2 = screen.getByTestId('popover-2');
@@ -298,28 +281,28 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
   describe('false', () => {
     test('dismisses with escape key', () => {
-      render(<App escapeKey={false} />);
+      render(() => <App escapeKey={() => false} />);
       fireEvent.keyDown(document.body, { key: 'Escape' });
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
       cleanup();
     });
 
     test('dismisses with outside press', async () => {
-      render(<App outsidePress={false} />);
+      render(() => <App outsidePress={() => false} />);
       await userEvent.click(document.body);
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
       cleanup();
     });
 
     test('dismisses with reference pointer down', async () => {
-      render(<App referencePress={false} />);
+      render(() => <App referencePress={() => false} />);
       await userEvent.click(screen.getByRole('button'));
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
       cleanup();
     });
 
     test('dismisses with ancestor scroll', async () => {
-      render(<App ancestorScroll={false} />);
+      render(() => <App ancestorScroll={() => false} />);
       fireEvent.scroll(window);
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
       cleanup();
@@ -327,29 +310,31 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
     test('does not dismiss when clicking portaled children', async () => {
       function App() {
-        const [open, setOpen] = React.useState(true);
+        const [open, setOpen] = createSignal(true);
         const { refs, context } = useFloating({
           open,
           onOpenChange: setOpen,
         });
 
-        const { getReferenceProps, getFloatingProps } = useInteractions([useDismiss(context)]);
+        const { getReferenceProps, getFloatingProps } = useInteractions([
+          () => useDismiss(context),
+        ]);
 
         return (
-          <React.Fragment>
+          <>
             <button ref={refs.setReference} {...getReferenceProps()} />
-            {open && (
+            {open() && (
               <div ref={refs.setFloating} {...getFloatingProps()}>
                 <FloatingPortal>
                   <button data-testid="portaled-button" />
                 </FloatingPortal>
               </div>
             )}
-          </React.Fragment>
+          </>
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       fireEvent.pointerDown(screen.getByTestId('portaled-button'), {
         bubbles: true,
@@ -361,7 +346,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     });
 
     test('outsidePress function guard', async () => {
-      render(<App outsidePress={() => true} />);
+      render(() => <App outsidePress={() => true} />);
       await userEvent.click(document.body);
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
       cleanup();
@@ -369,12 +354,9 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
   });
 
   describe('bubbles', () => {
-    function Dialog({
-      testId,
-      children,
-      ...props
-    }: UseDismissProps & { testId: string; children: React.ReactNode }) {
-      const [open, setOpen] = React.useState(true);
+    function Dialog(props: UseDismissProps & { testId: string; children: JSX.Element }) {
+      const [local, others] = splitProps(props, ['testId', 'children']);
+      const [open, setOpen] = createSignal(true);
       const nodeId = useFloatingNodeId();
 
       const { refs, context } = useFloating({
@@ -383,15 +365,17 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
         nodeId,
       });
 
-      const { getReferenceProps, getFloatingProps } = useInteractions([useDismiss(context, props)]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([
+        () => useDismiss(context, others),
+      ]);
 
       return (
-        <FloatingNode id={nodeId}>
+        <FloatingNode id={nodeId()}>
           <button {...getReferenceProps({ ref: refs.setReference })} />
-          {open && (
+          {open() && (
             <FloatingFocusManager context={context}>
-              <div {...getFloatingProps({ ref: refs.setFloating })} data-testid={testId}>
-                {children}
+              <div {...getFloatingProps({ ref: refs.setFloating })} data-testid={local.testId}>
+                {local.children}
               </div>
             </FloatingFocusManager>
           )}
@@ -399,18 +383,16 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       );
     }
 
-    function NestedDialog(props: UseDismissProps & { testId: string; children: React.ReactNode }) {
+    function NestedDialog(props: UseDismissProps & { testId: string; children: JSX.Element }) {
       const parentId = useFloatingParentNodeId();
 
-      if (parentId == null) {
-        return (
+      return (
+        <Show when={parentId() == null} fallback={<Dialog {...props} />}>
           <FloatingTree>
             <Dialog {...props} />
           </FloatingTree>
-        );
-      }
-
-      return <Dialog {...props} />;
+        </Show>
+      );
     }
 
     describe('prop resolution', () => {
@@ -459,13 +441,13 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
     describe('outsidePress', () => {
       test('true', async () => {
-        render(
+        render(() => (
           <NestedDialog testId="outer">
             <NestedDialog testId="inner">
               <button>test button</button>
             </NestedDialog>
-          </NestedDialog>,
-        );
+          </NestedDialog>
+        ));
 
         expect(screen.getByTestId('outer')).toBeInTheDocument();
         expect(screen.getByTestId('inner')).toBeInTheDocument();
@@ -478,13 +460,13 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       });
 
       test('false', async () => {
-        render(
-          <NestedDialog testId="outer" bubbles={{ outsidePress: false }}>
-            <NestedDialog testId="inner" bubbles={{ outsidePress: false }}>
+        render(() => (
+          <NestedDialog testId="outer" bubbles={() => ({ outsidePress: false })}>
+            <NestedDialog testId="inner" bubbles={() => ({ outsidePress: false })}>
               <button>test button</button>
             </NestedDialog>
-          </NestedDialog>,
-        );
+          </NestedDialog>
+        ));
 
         expect(screen.getByTestId('outer')).toBeInTheDocument();
         expect(screen.getByTestId('inner')).toBeInTheDocument();
@@ -502,13 +484,13 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       });
 
       test('mixed', async () => {
-        render(
-          <NestedDialog testId="outer" bubbles={{ outsidePress: true }}>
-            <NestedDialog testId="inner" bubbles={{ outsidePress: false }}>
+        render(() => (
+          <NestedDialog testId="outer" bubbles={() => ({ outsidePress: true })}>
+            <NestedDialog testId="inner" bubbles={() => ({ outsidePress: false })}>
               <button>test button</button>
             </NestedDialog>
-          </NestedDialog>,
-        );
+          </NestedDialog>
+        ));
 
         expect(screen.getByTestId('outer')).toBeInTheDocument();
         expect(screen.getByTestId('inner')).toBeInTheDocument();
@@ -529,8 +511,8 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     describe('escapeKey', () => {
       test('without FloatingTree', async () => {
         function App() {
-          const [popoverOpen, setPopoverOpen] = React.useState(true);
-          const [tooltipOpen, setTooltipOpen] = React.useState(false);
+          const [popoverOpen, setPopoverOpen] = createSignal(true);
+          const [tooltipOpen, setTooltipOpen] = createSignal(false);
 
           const popover = useFloating({
             open: popoverOpen,
@@ -541,19 +523,19 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
             onOpenChange: setTooltipOpen,
           });
 
-          const popoverInteractions = useInteractions([useDismiss(popover.context)]);
+          const popoverInteractions = useInteractions([() => useDismiss(popover.context)]);
           const tooltipInteractions = useInteractions([
-            useFocus(tooltip.context, { visibleOnly: false }),
-            useDismiss(tooltip.context),
+            () => useFocus(tooltip.context, { visibleOnly: false }),
+            () => useDismiss(tooltip.context),
           ]);
 
           return (
-            <React.Fragment>
+            <>
               <button
                 ref={popover.refs.setReference}
                 {...popoverInteractions.getReferenceProps()}
               />
-              {popoverOpen && (
+              <Show when={popoverOpen()}>
                 <div
                   role="dialog"
                   ref={popover.refs.setFloating}
@@ -565,24 +547,21 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
                     {...tooltipInteractions.getReferenceProps()}
                   />
                 </div>
-              )}
-              {tooltipOpen && (
+              </Show>
+              <Show when={tooltipOpen()}>
                 <div
                   role="tooltip"
                   ref={tooltip.refs.setFloating}
                   {...tooltipInteractions.getFloatingProps()}
                 />
-              )}
-            </React.Fragment>
+              </Show>
+            </>
           );
         }
 
-        render(<App />);
+        render(() => <App />);
 
-        await flushMicrotasks();
-        await act(async () => {
-          screen.getByTestId('focus-button').focus();
-        });
+        screen.getByTestId('focus-button').focus();
 
         await waitFor(() => {
           expect(screen.getByRole('tooltip')).toBeInTheDocument();
@@ -597,13 +576,13 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       });
 
       test('true', async () => {
-        render(
-          <NestedDialog testId="outer" bubbles>
-            <NestedDialog testId="inner" bubbles>
+        render(() => (
+          <NestedDialog testId="outer" bubbles={() => true}>
+            <NestedDialog testId="inner" bubbles={() => true}>
               <button>test button</button>
             </NestedDialog>
-          </NestedDialog>,
-        );
+          </NestedDialog>
+        ));
 
         expect(screen.getByTestId('outer')).toBeInTheDocument();
         expect(screen.getByTestId('inner')).toBeInTheDocument();
@@ -615,13 +594,13 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
         cleanup();
       });
       test('false', async () => {
-        render(
-          <NestedDialog testId="outer" bubbles={{ escapeKey: false }}>
-            <NestedDialog testId="inner" bubbles={{ escapeKey: false }}>
+        render(() => (
+          <NestedDialog testId="outer" bubbles={() => ({ escapeKey: false })}>
+            <NestedDialog testId="inner" bubbles={() => ({ escapeKey: false })}>
               <button>test button</button>
             </NestedDialog>
-          </NestedDialog>,
-        );
+          </NestedDialog>
+        ));
 
         expect(screen.getByTestId('outer')).toBeInTheDocument();
         expect(screen.getByTestId('inner')).toBeInTheDocument();
@@ -639,13 +618,13 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       });
 
       test('mixed', async () => {
-        render(
-          <NestedDialog testId="outer" bubbles={{ escapeKey: true }}>
-            <NestedDialog testId="inner" bubbles={{ escapeKey: false }}>
+        render(() => (
+          <NestedDialog testId="outer" bubbles={() => ({ escapeKey: true })}>
+            <NestedDialog testId="inner" bubbles={() => ({ escapeKey: false })}>
               <button>test button</button>
             </NestedDialog>
-          </NestedDialog>,
-        );
+          </NestedDialog>
+        ));
 
         expect(screen.getByTestId('outer')).toBeInTheDocument();
         expect(screen.getByTestId('inner')).toBeInTheDocument();
@@ -717,7 +696,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       });
     });
 
-    function Overlay({ children }: { children: React.ReactNode }) {
+    function Overlay(props: { children: JSX.Element }) {
       return (
         <div
           style={{ width: '100vw', height: '100vh' }}
@@ -729,17 +708,14 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
           }}
         >
           <span>outside</span>
-          {children}
+          {props.children}
         </div>
       );
     }
 
-    function Dialog({
-      id,
-      children,
-      ...props
-    }: UseDismissProps & { id: string; children: React.ReactNode }) {
-      const [open, setOpen] = React.useState(true);
+    function Dialog(props: UseDismissProps & { id: string; children: JSX.Element }) {
+      const [local, others] = splitProps(props, ['id', 'children']);
+      const [open, setOpen] = createSignal(true);
       const nodeId = useFloatingNodeId();
 
       const { refs, context } = useFloating({
@@ -748,17 +724,19 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
         nodeId,
       });
 
-      const { getReferenceProps, getFloatingProps } = useInteractions([useDismiss(context, props)]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([
+        () => useDismiss(context, others),
+      ]);
 
       return (
-        <FloatingNode id={nodeId}>
+        <FloatingNode id={nodeId()}>
           <button {...getReferenceProps({ ref: refs.setReference })} />
-          {open && (
+          {open() && (
             <FloatingPortal>
               <FloatingFocusManager context={context}>
                 <div {...getFloatingProps({ ref: refs.setFloating })}>
-                  <span>{id}</span>
-                  {children}
+                  <span>{local.id}</span>
+                  {local.children}
                 </div>
               </FloatingFocusManager>
             </FloatingPortal>
@@ -767,33 +745,31 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       );
     }
 
-    function NestedDialog(props: UseDismissProps & { id: string; children: React.ReactNode }) {
+    function NestedDialog(props: UseDismissProps & { id: string; children: JSX.Element }) {
       const parentId = useFloatingParentNodeId();
 
-      if (parentId == null) {
-        return (
+      return (
+        <Show when={parentId() == null} fallback={<Dialog {...props} />}>
           <FloatingTree>
             <Dialog {...props} />
           </FloatingTree>
-        );
-      }
-
-      return <Dialog {...props} />;
+        </Show>
+      );
     }
 
     describe('outsidePress', () => {
       test('false', async () => {
         const user = userEvent.setup();
 
-        render(
+        render(() => (
           <Overlay>
-            <NestedDialog id="outer" capture={{ outsidePress: false }}>
-              <NestedDialog id="inner" capture={{ outsidePress: false }}>
+            <NestedDialog id="outer" capture={() => ({ outsidePress: false })}>
+              <NestedDialog id="inner" capture={() => ({ outsidePress: false })}>
                 {null}
               </NestedDialog>
             </NestedDialog>
-          </Overlay>,
-        );
+          </Overlay>
+        ));
 
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
@@ -813,15 +789,15 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       test('true', async () => {
         const user = userEvent.setup();
 
-        render(
+        render(() => (
           <Overlay>
-            <NestedDialog id="outer" capture={{ outsidePress: true }}>
-              <NestedDialog id="inner" capture={{ outsidePress: true }}>
+            <NestedDialog id="outer" capture={() => ({ outsidePress: true })}>
+              <NestedDialog id="inner" capture={() => ({ outsidePress: true })}>
                 {null}
               </NestedDialog>
             </NestedDialog>
-          </Overlay>,
-        );
+          </Overlay>
+        ));
 
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
@@ -843,15 +819,15 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       test('false', async () => {
         const user = userEvent.setup();
 
-        render(
+        render(() => (
           <Overlay>
-            <NestedDialog id="outer" capture={{ escapeKey: false }}>
-              <NestedDialog id="inner" capture={{ escapeKey: false }}>
+            <NestedDialog id="outer" capture={() => ({ escapeKey: false })}>
+              <NestedDialog id="inner" capture={() => ({ escapeKey: false })}>
                 {null}
               </NestedDialog>
             </NestedDialog>
-          </Overlay>,
-        );
+          </Overlay>
+        ));
 
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
@@ -871,15 +847,15 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       test('true', async () => {
         const user = userEvent.setup();
 
-        render(
+        render(() => (
           <Overlay>
-            <NestedDialog id="outer" capture={{ escapeKey: true }}>
-              <NestedDialog id="inner" capture={{ escapeKey: true }}>
+            <NestedDialog id="outer" capture={() => ({ escapeKey: true })}>
+              <NestedDialog id="inner" capture={() => ({ escapeKey: true })}>
                 {null}
               </NestedDialog>
             </NestedDialog>
-          </Overlay>,
-        );
+          </Overlay>
+        ));
 
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
@@ -900,7 +876,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
   describe('outsidePressEvent click', () => {
     test('dragging outside the floating element does not close', () => {
-      render(<App outsidePressEvent="click" />);
+      render(() => <App outsidePressEvent={() => 'click'} />);
       const floatingEl = screen.getByRole('tooltip');
       fireEvent.mouseDown(floatingEl);
       fireEvent.mouseUp(document.body);
@@ -909,7 +885,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     });
 
     test('dragging inside the floating element does not close', () => {
-      render(<App outsidePressEvent="click" />);
+      render(() => <App outsidePressEvent={() => 'click'} />);
       const floatingEl = screen.getByRole('tooltip');
       fireEvent.mouseDown(document.body);
       fireEvent.mouseUp(floatingEl);
@@ -918,7 +894,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     });
 
     test('dragging outside the floating element then clicking outside closes', async () => {
-      render(<App outsidePressEvent="click" />);
+      render(() => <App outsidePressEvent={() => 'click'} />);
       const floatingEl = screen.getByRole('tooltip');
       fireEvent.mouseDown(floatingEl);
       fireEvent.mouseUp(document.body);
@@ -931,16 +907,12 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
   });
 
   test('nested floating elements with different portal roots', async () => {
-    function ButtonWithFloating({
-      children,
-      portalRoot,
-      triggerText,
-    }: {
-      children?: React.ReactNode;
+    function ButtonWithFloating(props: {
+      children?: JSX.Element;
       portalRoot?: HTMLElement | null;
       triggerText: string;
     }) {
-      const [open, setOpen] = React.useState(false);
+      const [open, setOpen] = createSignal(false);
       const { refs, floatingStyles, context } = useFloating({
         open,
         onOpenChange: setOpen,
@@ -949,51 +921,51 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       const click = useClick(context);
       const dismiss = useDismiss(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([() => click, () => dismiss]);
 
       return (
-        <React.Fragment>
+        <>
           <button ref={refs.setReference} {...getReferenceProps()}>
-            {triggerText}
+            {props.triggerText}
           </button>
-          {open && (
-            <FloatingPortal root={portalRoot}>
+          {open() && (
+            <FloatingPortal root={() => props.portalRoot}>
               <FloatingFocusManager context={context} modal={false}>
-                <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>
-                  {children}
+                <div ref={refs.setFloating} style={floatingStyles()} {...getFloatingProps()}>
+                  {props.children}
                 </div>
               </FloatingFocusManager>
             </FloatingPortal>
           )}
-        </React.Fragment>
+        </>
       );
     }
 
     function App() {
-      const [otherContainer, setOtherContainer] = React.useState<HTMLDivElement | null>();
+      const [otherContainer, setOtherContainer] = createSignal<HTMLDivElement | null>();
 
       const portal1 = undefined;
       const portal2 = otherContainer;
 
       return (
-        <React.Fragment>
+        <>
           <ButtonWithFloating portalRoot={portal1} triggerText="open 1">
-            <ButtonWithFloating portalRoot={portal2} triggerText="open 2">
+            <ButtonWithFloating portalRoot={portal2()} triggerText="open 2">
               <button>nested</button>
             </ButtonWithFloating>
           </ButtonWithFloating>
           <div ref={setOtherContainer} />
-        </React.Fragment>
+        </>
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     await userEvent.click(screen.getByText('open 1'));
+
     expect(screen.getByText('open 2')).toBeInTheDocument();
 
     await userEvent.click(screen.getByText('open 2'));
-    await flushMicrotasks();
 
     expect(screen.getByText('open 1')).toBeInTheDocument();
     expect(screen.getByText('open 2')).toBeInTheDocument();

@@ -1,18 +1,18 @@
 'use client';
 import * as React from 'react';
-import type { BaseUIComponentProps } from '../../utils/types';
-import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
-import { ScrollAreaViewportContext } from './ScrollAreaViewportContext';
-import { useRenderElement } from '../../utils/useRenderElement';
-import { useEventCallback } from '../../utils/useEventCallback';
 import { useDirection } from '../../direction-provider/DirectionContext';
-import { getOffset } from '../utils/getOffset';
-import { MIN_THUMB_SIZE } from '../constants';
 import { clamp } from '../../utils/clamp';
 import { styleDisableScrollbar } from '../../utils/styles';
+import type { BaseUIComponentProps } from '../../utils/types';
+import { useEventCallback } from '../../utils/useEventCallback';
 import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
-import { onVisible } from '../utils/onVisible';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useTimeout } from '../../utils/useTimeout';
+import { MIN_THUMB_SIZE } from '../constants';
+import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
+import { getOffset } from '../utils/getOffset';
+import { onVisible } from '../utils/onVisible';
+import { ScrollAreaViewportContext } from './ScrollAreaViewportContext';
 
 /**
  * The actual scrollable container of the scroll area.

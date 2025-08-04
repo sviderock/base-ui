@@ -12,7 +12,7 @@ export function activeElement(doc: Document) {
   return element;
 }
 
-export function contains(parent?: Element | null, child?: Element | null) {
+export function contains(parent?: Element | null | undefined, child?: Element | null | undefined) {
   if (!parent || !child) {
     return false;
   }
@@ -68,7 +68,7 @@ export function isRootElement(element: Element): boolean {
   return element.matches('html,body');
 }
 
-export function getDocument(node: Element | null) {
+export function getDocument(node: Element | undefined) {
   return node?.ownerDocument || document;
 }
 
@@ -76,14 +76,14 @@ export function isTypeableElement(element: unknown): boolean {
   return isHTMLElement(element) && element.matches(TYPEABLE_SELECTOR);
 }
 
-export function isTypeableCombobox(element: Element | null) {
+export function isTypeableCombobox(element: Element | undefined) {
   if (!element) {
     return false;
   }
   return element.getAttribute('role') === 'combobox' && isTypeableElement(element);
 }
 
-export function matchesFocusVisible(element: Element | null) {
+export function matchesFocusVisible(element: Element | undefined) {
   // We don't want to block focus from working with `visibleOnly`
   // (JSDOM doesn't match `:focus-visible` when the element has `:focus`)
   if (!element || isJSDOM) {
@@ -97,10 +97,10 @@ export function matchesFocusVisible(element: Element | null) {
 }
 
 export function getFloatingFocusElement(
-  floatingElement: HTMLElement | null | undefined,
-): HTMLElement | null {
+  floatingElement: HTMLElement | undefined,
+): HTMLElement | undefined {
   if (!floatingElement) {
-    return null;
+    return undefined;
   }
   // Try to find the element that has `{...getFloatingProps()}` spread on it.
   // This indicates the floating element is acting as a positioning wrapper, and
@@ -108,5 +108,7 @@ export function getFloatingFocusElement(
   // aria props.
   return floatingElement.hasAttribute(FOCUSABLE_ATTRIBUTE)
     ? floatingElement
-    : floatingElement.querySelector(`[${FOCUSABLE_ATTRIBUTE}]`) || floatingElement;
+    : ((floatingElement.querySelector(`[${FOCUSABLE_ATTRIBUTE}]`) ?? undefined) as
+        | HTMLElement
+        | undefined) || floatingElement;
 }

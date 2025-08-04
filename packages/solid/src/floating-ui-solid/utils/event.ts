@@ -1,12 +1,8 @@
 import { isAndroid, isJSDOM } from '../../utils/detectBrowser';
 
-export function stopEvent(event: Event | React.SyntheticEvent) {
+export function stopEvent(event: Event) {
   event.preventDefault();
   event.stopPropagation();
-}
-
-export function isReactEvent(event: any): event is React.SyntheticEvent {
-  return 'nativeEvent' in event;
 }
 
 // License: https://github.com/adobe/react-spectrum/blob/b35d5c02fe900badccd0cf1a8f23bb593419f238/packages/@react-aria/utils/src/isVirtualEvent.ts

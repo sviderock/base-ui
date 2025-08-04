@@ -1,10 +1,13 @@
 'use client';
 import * as React from 'react';
-import { activeElement } from '../../floating-ui-react/utils';
 import type { TextDirection } from '../../direction-provider/DirectionContext';
+import { activeElement } from '../../floating-ui-react/utils';
 import { isElementDisabled } from '../../utils/isElementDisabled';
+import { ownerDocument } from '../../utils/owner';
+import { HTMLProps } from '../../utils/types';
 import { useEventCallback } from '../../utils/useEventCallback';
 import { useForkRef } from '../../utils/useForkRef';
+import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
 import {
   ALL_KEYS,
   ARROW_DOWN,
@@ -26,8 +29,8 @@ import {
   getGridNavigatedIndex,
   getMaxListIndex,
   getMinListIndex,
-  isListIndexDisabled,
   isIndexOutOfListBounds,
+  isListIndexDisabled,
   isNativeInput,
   scrollIntoViewIfNeeded,
   type Dimensions,
@@ -35,9 +38,6 @@ import {
 } from '../composite';
 import { ACTIVE_COMPOSITE_ITEM } from '../constants';
 import { CompositeMetadata } from '../list/CompositeList';
-import { HTMLProps } from '../../utils/types';
-import { ownerDocument } from '../../utils/owner';
-import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
 
 export interface UseCompositeRootParameters {
   orientation?: 'horizontal' | 'vertical' | 'both';
@@ -120,6 +120,7 @@ export function useCompositeRoot(params: UseCompositeRootParameters) {
     if (elementsRef.current.includes(activeEl)) {
       const focusedItem = elementsRef.current[highlightedIndex];
       if (focusedItem && focusedItem !== activeEl) {
+        console.log('focusing in useModernLayoutEffect', { focusedItem, activeEl });
         focusedItem.focus();
       }
     }
@@ -150,9 +151,20 @@ export function useCompositeRoot(params: UseCompositeRootParameters) {
       ref: mergedRef,
       onFocus(event) {
         const element = rootRef.current;
+        console.log('onFocus useCompositeRoot', {
+          element,
+          event,
+          isNativeInput: isNativeInput(event.target),
+        });
         if (!element || !isNativeInput(event.target)) {
           return;
         }
+
+        console.log('focusing in onFocus', {
+          target: event.target,
+          value: event.target.value,
+          length: event.target.value.length,
+        });
         event.target.setSelectionRange(0, event.target.value.length ?? 0);
       },
       onKeyDown(event) {

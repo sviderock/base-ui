@@ -20,7 +20,7 @@ export default function NotFound() {
           <div class="flex flex-col items-start gap-2">
             <Link
               class="-m-1 inline-flex items-center gap-1 p-1"
-              href="/react/overview/quick-start"
+              href="/solid/overview/quick-start"
             >
               Documentation <ArrowRightIcon />
             </Link>

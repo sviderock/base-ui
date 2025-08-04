@@ -1,16 +1,16 @@
 'use client';
 import * as React from 'react';
-import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
-import { ScrollAreaRootContext } from './ScrollAreaRootContext';
-import { useRenderElement } from '../../utils/useRenderElement';
-import { ScrollAreaRootCssVars } from './ScrollAreaRootCssVars';
-import { useEventCallback } from '../../utils/useEventCallback';
-import { SCROLL_TIMEOUT } from '../constants';
-import { getOffset } from '../utils/getOffset';
-import { ScrollAreaScrollbarDataAttributes } from '../scrollbar/ScrollAreaScrollbarDataAttributes';
 import { styleDisableScrollbar } from '../../utils/styles';
+import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
+import { useEventCallback } from '../../utils/useEventCallback';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useTimeout } from '../../utils/useTimeout';
+import { SCROLL_TIMEOUT } from '../constants';
+import { ScrollAreaScrollbarDataAttributes } from '../scrollbar/ScrollAreaScrollbarDataAttributes';
+import { getOffset } from '../utils/getOffset';
+import { ScrollAreaRootContext } from './ScrollAreaRootContext';
+import { ScrollAreaRootCssVars } from './ScrollAreaRootCssVars';
 
 interface Size {
   width: number;
@@ -62,6 +62,7 @@ export const ScrollAreaRoot = React.forwardRef(function ScrollAreaRoot(
   });
 
   const handleScroll = useEventCallback((scrollPosition: { x: number; y: number }) => {
+    console.log('handleScroll', { scrollPosition });
     const offsetX = scrollPosition.x - scrollPositionRef.current.x;
     const offsetY = scrollPosition.y - scrollPositionRef.current.y;
     scrollPositionRef.current = scrollPosition;
@@ -175,6 +176,7 @@ export const ScrollAreaRoot = React.forwardRef(function ScrollAreaRoot(
   });
 
   function handlePointerEnterOrMove({ pointerType }: React.PointerEvent) {
+    console.log('handlePointerEnterOrMove', { pointerType });
     const isTouch = pointerType === 'touch';
 
     setTouchModality(isTouch);

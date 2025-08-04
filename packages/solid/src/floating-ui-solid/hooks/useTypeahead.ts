@@ -1,7 +1,4 @@
-import * as React from 'react';
-import { useLatestRef } from '../../utils/useLatestRef';
-import { useEventCallback } from '../../utils/useEventCallback';
-import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
+import { createEffect, createMemo, type Accessor } from 'solid-js';
 import { useTimeout } from '../../utils/useTimeout';
 import { stopEvent } from '../utils';
 
@@ -13,12 +10,12 @@ export interface UseTypeaheadProps {
    * elements of the list.
    * @default empty list
    */
-  listRef: React.MutableRefObject<Array<string | null>>;
+  listRef: Accessor<Array<string | null>>;
   /**
    * The index of the active (focused or highlighted) item in the list.
    * @default null
    */
-  activeIndex: number | null;
+  activeIndex: Accessor<number | null>;
   /**
    * Callback invoked with the matching index if found as the user types.
    */
@@ -32,29 +29,27 @@ export interface UseTypeaheadProps {
    * handlers.
    * @default true
    */
-  enabled?: boolean;
+  enabled?: Accessor<boolean>;
   /**
    * A function that returns the matching string from the list.
    * @default lowercase-finder
    */
-  findMatch?:
-    | null
-    | ((list: Array<string | null>, typedString: string) => string | null | undefined);
+  findMatch?: (list: Array<string | null>, typedString: string) => string | null | undefined;
   /**
    * The number of milliseconds to wait before resetting the typed string.
    * @default 750
    */
-  resetMs?: number;
+  resetMs?: Accessor<number>;
   /**
    * An array of keys to ignore when typing.
    * @default []
    */
-  ignoreKeys?: Array<string>;
+  ignoreKeys?: Accessor<Array<string>>;
   /**
    * The index of the selected item in the list, if available.
    * @default null
    */
-  selectedIndex?: number | null;
+  selectedIndex?: Accessor<number | null>;
 }
 
 /**
@@ -62,66 +57,55 @@ export interface UseTypeaheadProps {
  * types, often used in tandem with `useListNavigation()`.
  * @see https://floating-ui.com/docs/useTypeahead
  */
-export function useTypeahead(context: FloatingRootContext, props: UseTypeaheadProps): ElementProps {
-  const { open, dataRef } = context;
-  const {
-    listRef,
-    activeIndex,
-    onMatch: onMatchProp,
-    onTypingChange: onTypingChangeProp,
-    enabled = true,
-    findMatch = null,
-    resetMs = 750,
-    ignoreKeys = [],
-    selectedIndex = null,
-  } = props;
+export function useTypeahead(
+  context: FloatingRootContext,
+  props: UseTypeaheadProps,
+): Accessor<ElementProps> {
+  const enabled = () => props.enabled?.() ?? true;
+  const resetMs = () => props.resetMs?.() ?? 750;
+  const ignoreKeys = () => props.ignoreKeys?.() ?? [];
+  const selectedIndex = () => props.selectedIndex?.() ?? null;
 
   const timeout = useTimeout();
-  const stringRef = React.useRef('');
-  const prevIndexRef = React.useRef<number | null>(selectedIndex ?? activeIndex ?? -1);
-  const matchIndexRef = React.useRef<number | null>(null);
+  let stringRef = '';
+  let prevIndexRef: number | null = selectedIndex() ?? props.activeIndex() ?? -1;
+  let matchIndexRef: number | null = null;
 
-  const onMatch = useEventCallback(onMatchProp);
-  const onTypingChange = useEventCallback(onTypingChangeProp);
-
-  const findMatchRef = useLatestRef(findMatch);
-  const ignoreKeysRef = useLatestRef(ignoreKeys);
-
-  useModernLayoutEffect(() => {
-    if (open) {
+  createEffect(() => {
+    if (context.open()) {
       timeout.clear();
-      matchIndexRef.current = null;
-      stringRef.current = '';
-    }
-  }, [open, timeout]);
-
-  useModernLayoutEffect(() => {
-    // Sync arrow key navigation but not typeahead navigation.
-    if (open && stringRef.current === '') {
-      prevIndexRef.current = selectedIndex ?? activeIndex ?? -1;
-    }
-  }, [open, selectedIndex, activeIndex]);
-
-  const setTypingChange = useEventCallback((value: boolean) => {
-    if (value) {
-      if (!dataRef.current.typing) {
-        dataRef.current.typing = value;
-        onTypingChange(value);
-      }
-    } else if (dataRef.current.typing) {
-      dataRef.current.typing = value;
-      onTypingChange(value);
+      matchIndexRef = null;
+      stringRef = '';
     }
   });
 
-  const onKeyDown = useEventCallback((event: React.KeyboardEvent) => {
+  createEffect(() => {
+    // Sync arrow key navigation but not typeahead navigation.
+    if (context.open() && stringRef === '') {
+      prevIndexRef = selectedIndex() ?? props.activeIndex() ?? -1;
+    }
+  });
+
+  const setTypingChange = (value: boolean) => {
+    if (value) {
+      if (!context.dataRef.typing) {
+        context.dataRef.typing = value;
+        props.onTypingChange?.(value);
+      }
+    } else if (context.dataRef.typing) {
+      context.dataRef.typing = value;
+      props.onTypingChange?.(value);
+    }
+  };
+
+  const onKeyDown = (event: KeyboardEvent) => {
     function getMatchingIndex(
       list: Array<string | null>,
       orderedList: Array<string | null>,
       string: string,
     ) {
-      const str = findMatchRef.current
-        ? findMatchRef.current(orderedList, string)
+      const str = props.findMatch
+        ? props.findMatch(orderedList, string)
         : orderedList.find(
             (text) => text?.toLocaleLowerCase().indexOf(string.toLocaleLowerCase()) === 0,
           );
@@ -129,10 +113,10 @@ export function useTypeahead(context: FloatingRootContext, props: UseTypeaheadPr
       return str ? list.indexOf(str) : -1;
     }
 
-    const listContent = listRef.current;
+    const listContent = props.listRef();
 
-    if (stringRef.current.length > 0 && stringRef.current[0] !== ' ') {
-      if (getMatchingIndex(listContent, listContent, stringRef.current) === -1) {
+    if (stringRef.length > 0 && stringRef[0] !== ' ') {
+      if (getMatchingIndex(listContent, listContent, stringRef) === -1) {
         setTypingChange(false);
       } else if (event.key === ' ') {
         stopEvent(event);
@@ -141,7 +125,7 @@ export function useTypeahead(context: FloatingRootContext, props: UseTypeaheadPr
 
     if (
       listContent == null ||
-      ignoreKeysRef.current.includes(event.key) ||
+      ignoreKeys().includes(event.key) ||
       // Character key.
       event.key.length !== 1 ||
       // Modifier key.
@@ -152,7 +136,7 @@ export function useTypeahead(context: FloatingRootContext, props: UseTypeaheadPr
       return;
     }
 
-    if (open && event.key !== ' ') {
+    if (context.open() && event.key !== ' ') {
       stopEvent(event);
       setTypingChange(true);
     }
@@ -165,50 +149,54 @@ export function useTypeahead(context: FloatingRootContext, props: UseTypeaheadPr
 
     // Allows the user to cycle through items that start with the same letter
     // in rapid succession.
-    if (allowRapidSuccessionOfFirstLetter && stringRef.current === event.key) {
-      stringRef.current = '';
-      prevIndexRef.current = matchIndexRef.current;
+    if (allowRapidSuccessionOfFirstLetter && stringRef === event.key) {
+      stringRef = '';
+      prevIndexRef = matchIndexRef;
     }
 
-    stringRef.current += event.key;
-    timeout.start(resetMs, () => {
-      stringRef.current = '';
-      prevIndexRef.current = matchIndexRef.current;
+    stringRef += event.key;
+    timeout.start(resetMs(), () => {
+      stringRef = '';
+      prevIndexRef = matchIndexRef;
       setTypingChange(false);
     });
 
-    const prevIndex = prevIndexRef.current;
-
     const index = getMatchingIndex(
       listContent,
-      [...listContent.slice((prevIndex || 0) + 1), ...listContent.slice(0, (prevIndex || 0) + 1)],
-      stringRef.current,
+      [
+        ...listContent.slice((prevIndexRef || 0) + 1),
+        ...listContent.slice(0, (prevIndexRef || 0) + 1),
+      ],
+      stringRef,
     );
 
     if (index !== -1) {
-      onMatch(index);
-      matchIndexRef.current = index;
+      props.onMatch?.(index);
+      matchIndexRef = index;
     } else if (event.key !== ' ') {
-      stringRef.current = '';
+      stringRef = '';
       setTypingChange(false);
     }
+  };
+
+  const reference = createMemo<ElementProps['reference']>(() => ({ onKeyDown }));
+
+  const floating = createMemo<ElementProps['floating']>(() => ({
+    onKeyDown,
+    onKeyUp(event) {
+      if (event.key === ' ') {
+        setTypingChange(false);
+      }
+    },
+  }));
+
+  const returnValue = createMemo<ElementProps>(() => {
+    if (!enabled()) {
+      return {};
+    }
+
+    return { reference: reference(), floating: floating() };
   });
 
-  const reference: ElementProps['reference'] = React.useMemo(() => ({ onKeyDown }), [onKeyDown]);
-
-  const floating: ElementProps['floating'] = React.useMemo(() => {
-    return {
-      onKeyDown,
-      onKeyUp(event) {
-        if (event.key === ' ') {
-          setTypingChange(false);
-        }
-      },
-    };
-  }, [onKeyDown, setTypingChange]);
-
-  return React.useMemo(
-    () => (enabled ? { reference, floating } : {}),
-    [enabled, reference, floating],
-  );
+  return returnValue;
 }

@@ -1,5 +1,5 @@
 import c from 'clsx';
-import * as React from 'react';
+import { type Accessor, createContext, type JSX } from 'solid-js';
 import { CompositeList } from '../../src/composite/list/CompositeList';
 import { useCompositeListItem } from '../../src/composite/list/useCompositeListItem';
 import {
@@ -25,23 +25,23 @@ import {
 import { useForkRefN } from '../../src/utils/useForkRef';
 
 type MenuContextType = {
-  getItemProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
-  activeIndex: number | null;
-  setActiveIndex: React.Dispatch<React.SetStateAction<number | null>>;
-  setHasFocusInside: React.Dispatch<React.SetStateAction<boolean>>;
-  allowHover: boolean;
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  getItemProps: (userProps?: JSX.HTMLAttributes<HTMLElement>) => Record<string, unknown>;
+  activeIndex: Accessor<number | null>;
+  setActiveIndex: (value: number | null) => void;
+  setHasFocusInside: (value: boolean) => void;
+  allowHover: Accessor<boolean>;
+  isOpen: Accessor<boolean>;
+  setIsOpen: (value: boolean) => void;
   parent: MenuContextType | null;
 };
 
-const MenuContext = React.createContext<MenuContextType>({
+const MenuContext = createContext<MenuContextType>({
   getItemProps: () => ({}),
-  activeIndex: null,
+  activeIndex: () => null,
   setActiveIndex: () => {},
   setHasFocusInside: () => {},
-  allowHover: true,
-  isOpen: false,
+  allowHover: () => true,
+  isOpen: () => false,
   setIsOpen: () => {},
   parent: null,
 });
@@ -49,8 +49,8 @@ const MenuContext = React.createContext<MenuContextType>({
 interface MenuProps {
   label: string;
   nested?: boolean;
-  children?: React.ReactNode;
-  virtualItemRef: React.RefObject<HTMLElement>;
+  children?: JSX.Element;
+  virtualItemRef: Accessor<HTMLElement | undefined>;
 }
 
 /** @internal */

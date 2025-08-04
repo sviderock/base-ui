@@ -1,3 +1,19 @@
+export {
+  arrow,
+  autoPlacement,
+  autoUpdate,
+  computePosition,
+  detectOverflow,
+  flip,
+  getOverflowAncestors,
+  hide,
+  inline,
+  limitShift,
+  offset,
+  platform,
+  shift,
+  size,
+} from '@floating-ui/dom';
 export { FloatingDelayGroup, useDelayGroup } from './components/FloatingDelayGroup';
 export { FloatingFocusManager } from './components/FloatingFocusManager';
 export { FloatingPortal, useFloatingPortalNode } from './components/FloatingPortal';
@@ -21,19 +37,3 @@ export { useRole } from './hooks/useRole';
 export { useTypeahead } from './hooks/useTypeahead';
 export { safePolygon } from './safePolygon';
 export type * from './types';
-export {
-  arrow,
-  autoPlacement,
-  autoUpdate,
-  computePosition,
-  detectOverflow,
-  flip,
-  getOverflowAncestors,
-  hide,
-  inline,
-  limitShift,
-  offset,
-  platform,
-  shift,
-  size,
-} from '@floating-ui/react-dom';

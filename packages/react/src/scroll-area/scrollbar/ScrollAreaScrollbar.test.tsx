@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { ScrollArea } from '@base-ui-components/react/scroll-area';
-import { screen, fireEvent } from '@mui/internal-test-utils';
 import { createRenderer } from '#test-utils';
+import { ScrollArea } from '@base-ui-components/react/scroll-area';
+import { fireEvent, screen } from '@mui/internal-test-utils';
 import { expect } from 'chai';
+import * as React from 'react';
 import { describeConformance } from '../../../test/describeConformance';
 import { SCROLL_TIMEOUT } from '../constants';
 
@@ -37,11 +37,51 @@ describe('<ScrollArea.Scrollbar />', () => {
     expect(verticalScrollbar).not.to.have.attribute('data-scrolling');
     expect(horizontalScrollbar).not.to.have.attribute('data-scrolling');
 
+    console.log('viewport', {
+      scrollTop: viewport.scrollTop,
+      scrollLeft: viewport.scrollLeft,
+      height: viewport.clientHeight,
+      width: viewport.clientWidth,
+      scrollHeight: viewport.scrollHeight,
+      scrollWidth: viewport.scrollWidth,
+      offsetHeight: viewport.offsetHeight,
+      offsetWidth: viewport.offsetWidth,
+      offsetTop: viewport.offsetTop,
+      offsetLeft: viewport.offsetLeft,
+      offsetParent: viewport.offsetParent,
+    });
     fireEvent.pointerEnter(viewport);
+    console.log('viewport', {
+      scrollTop: viewport.scrollTop,
+      scrollLeft: viewport.scrollLeft,
+      height: viewport.clientHeight,
+      width: viewport.clientWidth,
+      scrollHeight: viewport.scrollHeight,
+      scrollWidth: viewport.scrollWidth,
+      offsetHeight: viewport.offsetHeight,
+      offsetWidth: viewport.offsetWidth,
+      offsetTop: viewport.offsetTop,
+      offsetLeft: viewport.offsetLeft,
+      offsetParent: viewport.offsetParent,
+    });
     fireEvent.scroll(viewport, {
       target: {
         scrollTop: 1,
       },
+    });
+
+    console.log('viewport', {
+      scrollTop: viewport.scrollTop,
+      scrollLeft: viewport.scrollLeft,
+      height: viewport.clientHeight,
+      width: viewport.clientWidth,
+      scrollHeight: viewport.scrollHeight,
+      scrollWidth: viewport.scrollWidth,
+      offsetHeight: viewport.offsetHeight,
+      offsetWidth: viewport.offsetWidth,
+      offsetTop: viewport.offsetTop,
+      offsetLeft: viewport.offsetLeft,
+      offsetParent: viewport.offsetParent,
     });
 
     expect(verticalScrollbar).to.have.attribute('data-scrolling', '');

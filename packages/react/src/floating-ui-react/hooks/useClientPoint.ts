@@ -1,8 +1,10 @@
-import * as React from 'react';
 import { getWindow } from '@floating-ui/utils/dom';
+import * as React from 'react';
 import { useEventCallback } from '../../utils/useEventCallback';
 import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
 import { contains, getTarget, isMouseLikePointerType } from '../utils';
+
+let count = 0;
 
 import type { ContextData, ElementProps, FloatingRootContext } from '../types';
 
@@ -157,6 +159,7 @@ export function useClientPoint(
   });
 
   const handleReferenceEnterOrMove = useEventCallback((event: React.MouseEvent<Element>) => {
+    console.log('handleReferenceEnterOrMove', count, !!cleanupListenerRef.current);
     if (x != null || y != null) {
       return;
     }
@@ -164,6 +167,7 @@ export function useClientPoint(
     if (!open) {
       setReference(event.clientX, event.clientY);
     } else if (!cleanupListenerRef.current) {
+      console.log('here');
       // If there's no cleanup, there's no listener, but we want to ensure
       // we add the listener if the cursor landed on the floating element and
       // then back on the reference (i.e. it's interactive).
@@ -175,42 +179,66 @@ export function useClientPoint(
   // mouse even if the floating element is transitioning out. On touch
   // devices, this is undesirable because the floating element will move to
   // the dismissal touch point.
-  const openCheck = isMouseLikePointerType(pointerType) ? floating : open;
+  const openCheck = React.useMemo(() => {
+    console.log('openCheck', {
+      pointerType,
+      floating,
+      open,
+      isMouseLikePointerType: isMouseLikePointerType(pointerType),
+    });
+    return isMouseLikePointerType(pointerType) ? floating : open;
+  }, [pointerType, floating, open]);
 
   const addListener = React.useCallback(() => {
     // Explicitly specified `x`/`y` coordinates shouldn't add a listener.
     if (!openCheck || !enabled || x != null || y != null) {
+      console.log('RUNNING CLEANUP, RETURNING UNDEFINED INITIALLY', {
+        openCheck,
+        enabled,
+        x,
+        y,
+      });
       return undefined;
     }
 
     const win = getWindow(floating);
 
     function handleMouseMove(event: MouseEvent) {
+      console.log('handleMouseMove', {
+        clientX: event.clientX,
+        clientY: event.clientY,
+      });
       const target = getTarget(event) as Element | null;
 
       if (!contains(floating, target)) {
         setReference(event.clientX, event.clientY);
       } else {
+        console.log('removing here');
         win.removeEventListener('mousemove', handleMouseMove);
         cleanupListenerRef.current = null;
       }
     }
 
     if (!dataRef.current.openEvent || isMouseBasedEvent(dataRef.current.openEvent)) {
+      console.log('ADDING LISTENER', count);
       win.addEventListener('mousemove', handleMouseMove);
       const cleanup = () => {
+        console.log('cleanup', count);
         win.removeEventListener('mousemove', handleMouseMove);
         cleanupListenerRef.current = null;
       };
       cleanupListenerRef.current = cleanup;
+      console.log('RUNNING CLEANUP,RETURNING CLEANUP');
       return cleanup;
     }
 
     refs.setPositionReference(domReference);
+    console.log('RUNNING CLEANUP, RETURNING UNDEFINED');
     return undefined;
   }, [openCheck, enabled, x, y, floating, dataRef, refs, domReference, setReference]);
 
   React.useEffect(() => {
+    console.log('deps changed', ++count);
     return addListener();
   }, [addListener, reactive]);
 

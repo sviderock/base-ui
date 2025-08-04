@@ -1,6 +1,6 @@
 import { isElement } from '@floating-ui/utils/dom';
 import { createSignal, type Accessor } from 'solid-js';
-import { useEventCallback } from '../../utils/useEventCallback';
+import { createStore } from 'solid-js/store';
 import { useId } from '../../utils/useId';
 import { useFloatingParentNodeId } from '../components/FloatingTree';
 import type {
@@ -12,26 +12,26 @@ import type {
 import { createEventEmitter } from '../utils/createEventEmitter';
 
 export interface UseFloatingRootContextOptions {
-  open?: Accessor<boolean>;
+  open?: Accessor<boolean | undefined>;
   onOpenChange?: (open: boolean, event?: Event, reason?: OpenChangeReason) => void;
   elements: {
-    reference: Accessor<Element | null>;
-    floating: Accessor<HTMLElement | null>;
+    reference: Accessor<Element | undefined>;
+    floating: Accessor<HTMLElement | undefined>;
+    domReference: Accessor<Element | undefined>;
   };
 }
 
 export function useFloatingRootContext(
   options: UseFloatingRootContextOptions,
 ): FloatingRootContext {
-  const { open = false, onOpenChange: onOpenChangeProp, elements: elementsProp } = options;
-
+  const open = () => options.open?.() ?? false;
   const floatingId = useId();
-  let dataRef: ContextData = {};
-  const [events] = createSignal(createEventEmitter());
-  const nested = useFloatingParentNodeId() != null;
+  const events = createEventEmitter();
+  const nested = () => useFloatingParentNodeId() != null;
+  const dataRef: ContextData = {};
 
   if (process.env.NODE_ENV !== 'production') {
-    const optionDomReference = elementsProp.reference;
+    const optionDomReference = options.elements.reference();
     if (optionDomReference && !isElement(optionDomReference)) {
       console.error(
         'Cannot pass a virtual element to the `elements.reference` option,',
@@ -41,44 +41,37 @@ export function useFloatingRootContext(
     }
   }
 
-  const [positionReference, setPositionReference] = React.useState<ReferenceElement | null>(
-    elementsProp.reference,
+  const [positionReference, setPositionReference] = createSignal<ReferenceElement | undefined>(
+    options.elements.reference(),
   );
+  const [floating, setFloating] = createSignal(options.elements.floating());
+  const [domReference, setDomReference] = createSignal(options.elements.domReference());
 
-  const onOpenChange = useEventCallback(
-    (newOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
-      dataRef.current.openEvent = newOpen ? event : undefined;
-      events.emit('openchange', { open: newOpen, event, reason, nested });
-      onOpenChangeProp?.(newOpen, event, reason);
-    },
-  );
+  const onOpenChange = (newOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
+    dataRef.openEvent = newOpen ? event : undefined;
+    events.emit('openchange', { open: newOpen, event, reason, nested });
+    options.onOpenChange?.(newOpen, event, reason);
+  };
 
-  const refs = React.useMemo(
-    () => ({
-      setPositionReference,
-    }),
-    [],
-  );
+  const refs = {
+    setPositionReference,
+    setFloating,
+    setDomReference,
+  };
 
-  const elements = React.useMemo(
-    () => ({
-      reference: positionReference || elementsProp.reference || null,
-      floating: elementsProp.floating || null,
-      domReference: elementsProp.reference as Element | null,
-    }),
-    [positionReference, elementsProp.reference, elementsProp.floating],
-  );
+  const elements = {
+    reference: () => positionReference() || options.elements.reference(),
+    floating: () => floating() || options.elements.floating(),
+    domReference: () => domReference() || options.elements.domReference(),
+  };
 
-  return React.useMemo<FloatingRootContext>(
-    () => ({
-      dataRef,
-      open,
-      onOpenChange,
-      elements,
-      events,
-      floatingId,
-      refs,
-    }),
-    [open, onOpenChange, elements, events, floatingId, refs],
-  );
+  return {
+    dataRef,
+    open,
+    onOpenChange,
+    elements,
+    events,
+    floatingId,
+    refs,
+  };
 }

@@ -8,11 +8,13 @@ export function getStyleHookProps<State extends Record<string, any>>(
 ) {
   const props: Record<string, string> = {};
 
+  /* eslint-disable-next-line guard-for-in */
   for (const key in state) {
     const value = state[key];
+    const resolvedValue = typeof value === 'function' ? value() : value;
 
     if (customMapping?.hasOwnProperty(key)) {
-      const customProps = customMapping[key]!(value);
+      const customProps = customMapping[key]!(resolvedValue);
       if (customProps != null) {
         Object.assign(props, customProps);
       }
@@ -20,11 +22,10 @@ export function getStyleHookProps<State extends Record<string, any>>(
       continue;
     }
 
-    if (value === true) {
+    if (resolvedValue === true) {
       props[`data-${key.toLowerCase()}`] = '';
-    } else if (value) {
-      // TODO: This is a hack to get the value of the Accessor
-      props[`data-${key.toLowerCase()}`] = typeof value === 'function' ? value() : value.toString();
+    } else if (resolvedValue) {
+      props[`data-${key.toLowerCase()}`] = resolvedValue.toString();
     }
   }
 

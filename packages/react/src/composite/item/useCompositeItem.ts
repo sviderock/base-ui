@@ -1,9 +1,9 @@
 'use client';
 import * as React from 'react';
-import { useCompositeRootContext } from '../root/CompositeRootContext';
-import { useCompositeListItem } from '../list/useCompositeListItem';
-import { HTMLProps } from '../../utils/types';
 import { useForkRef } from '../../utils';
+import { HTMLProps } from '../../utils/types';
+import { useCompositeListItem } from '../list/useCompositeListItem';
+import { useCompositeRootContext } from '../root/CompositeRootContext';
 
 export interface UseCompositeItemParameters<Metadata> {
   metadata?: Metadata;
@@ -22,6 +22,7 @@ export function useCompositeItem<Metadata>(params: UseCompositeItemParameters<Me
     () => ({
       tabIndex: isHighlighted ? 0 : -1,
       onFocus() {
+        console.log('onFocus useCompositeItem');
         onHighlightedIndexChange(index);
       },
       onMouseMove() {

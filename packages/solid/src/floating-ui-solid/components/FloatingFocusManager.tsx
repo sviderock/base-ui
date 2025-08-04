@@ -1,28 +1,25 @@
-import * as React from 'react';
-import { tabbable, isTabbable, focusable, type FocusableElement } from 'tabbable';
 import { getNodeName, isHTMLElement } from '@floating-ui/utils/dom';
-import { useForkRef } from '../../utils/useForkRef';
-import { useLatestRef } from '../../utils/useLatestRef';
-import { useEventCallback } from '../../utils/useEventCallback';
-import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
+import { createEffect, on, onCleanup, Show, type JSX } from 'solid-js';
+import { focusable, isTabbable, tabbable, type FocusableElement } from 'tabbable';
 import { FocusGuard } from '../../utils/FocusGuard';
+import { useForkRef } from '../../utils/useForkRef';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import {
   activeElement,
   contains,
   getDocument,
+  getFloatingFocusElement,
+  getNextTabbable,
+  getNodeAncestors,
+  getNodeChildren,
+  getPreviousTabbable,
+  getTabbableOptions,
   getTarget,
+  isOutsideEvent,
   isTypeableCombobox,
   isVirtualClick,
   isVirtualPointerEvent,
   stopEvent,
-  getNodeAncestors,
-  getNodeChildren,
-  getFloatingFocusElement,
-  getTabbableOptions,
-  isOutsideEvent,
-  getNextTabbable,
-  getPreviousTabbable,
 } from '../utils';
 
 import type { FloatingRootContext, OpenChangeReason } from '../types';
@@ -64,10 +61,10 @@ function getFirstTabbableElement(container: Element) {
 
 function handleTabIndex(
   floatingFocusElement: HTMLElement,
-  orderRef: React.MutableRefObject<Array<'reference' | 'floating' | 'content'>>,
+  orderRef: Array<'reference' | 'floating' | 'content'>,
 ) {
   if (
-    !orderRef.current.includes('floating') &&
+    !orderRef.includes('floating') &&
     !floatingFocusElement.getAttribute('role')?.includes('dialog')
   ) {
     return;
@@ -84,7 +81,7 @@ function handleTabIndex(
   });
   const tabIndex = floatingFocusElement.getAttribute('tabindex');
 
-  if (orderRef.current.includes('floating') || tabbableContent.length === 0) {
+  if (orderRef.includes('floating') || tabbableContent.length === 0) {
     if (tabIndex !== '0') {
       floatingFocusElement.setAttribute('tabindex', '0');
     }
@@ -98,15 +95,12 @@ function handleTabIndex(
   }
 }
 
-const VisuallyHiddenDismiss = React.forwardRef(function VisuallyHiddenDismiss(
-  props: React.ButtonHTMLAttributes<HTMLButtonElement>,
-  ref: React.ForwardedRef<HTMLButtonElement>,
-) {
-  return <button {...props} type="button" ref={ref} tabIndex={-1} style={visuallyHidden} />;
-});
+function VisuallyHiddenDismiss(props: JSX.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return <button {...props} type="button" tabIndex={-1} style={visuallyHidden} />;
+}
 
 export interface FloatingFocusManagerProps {
-  children: React.JSX.Element;
+  children: JSX.Element;
   /**
    * The floating context returned from `useFloatingRootContext`.
    */
@@ -128,7 +122,7 @@ export interface FloatingFocusManagerProps {
    * specified by the `order`) or a ref.
    * @default 0
    */
-  initialFocus?: number | React.MutableRefObject<HTMLElement | null>;
+  initialFocus?: number | HTMLElement | undefined;
   /**
    * Determines if the focus guards are rendered. If not, focus can escape into
    * the address bar/console/browser UI, like in native dialogs.
@@ -143,7 +137,7 @@ export interface FloatingFocusManagerProps {
    * It can be also set to a ref to explicitly control the element to return focus to.
    * @default true
    */
-  returnFocus?: boolean | React.MutableRefObject<HTMLElement | null>;
+  returnFocus?: boolean | HTMLElement | undefined;
   /**
    * Determines if focus should be restored to the nearest tabbable element if
    * focus inside the floating element is lost (such as due to the removal of
@@ -193,102 +187,98 @@ export interface FloatingFocusManagerProps {
  * @see https://floating-ui.com/docs/FloatingFocusManager
  * @internal
  */
-export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JSX.Element {
-  const {
-    context,
-    children,
-    disabled = false,
-    order = ['content'],
-    guards: guardsProp = true,
-    initialFocus = 0,
-    returnFocus = true,
-    restoreFocus = false,
-    modal = true,
-    visuallyHiddenDismiss = false,
-    closeOnFocusOut = true,
-    outsideElementsInert = false,
-    getInsideElements: getInsideElementsProp = () => [],
-  } = props;
-  const {
-    open,
-    onOpenChange,
-    events,
-    dataRef,
-    elements: { domReference, floating },
-  } = context;
+export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Element {
+  const disabled = () => props.disabled ?? false;
+  const order = () => props.order ?? ['content'];
+  const guardsProp = () => props.guards ?? true;
+  const initialFocus = () => props.initialFocus ?? 0;
+  const returnFocus = () => props.returnFocus ?? true;
+  const restoreFocus = () => props.restoreFocus ?? false;
+  const modal = () => props.modal ?? true;
+  const visuallyHiddenDismiss = () => props.visuallyHiddenDismiss ?? false;
+  const closeOnFocusOut = () => props.closeOnFocusOut ?? true;
+  const outsideElementsInert = () => props.outsideElementsInert ?? false;
+  const getInsideElements = () => props.getInsideElements?.() ?? [];
 
-  const getNodeId = useEventCallback(() => dataRef.current.floatingContext?.nodeId);
-  const getInsideElements = useEventCallback(getInsideElementsProp);
+  // const {
+  //   open,
+  //   onOpenChange,
+  //   events,
+  //   dataRef,
+  //   elements: { domReference, floating },
+  // } = context;
 
-  const ignoreInitialFocus = typeof initialFocus === 'number' && initialFocus < 0;
+  const getNodeId = () => props.context.dataRef.floatingContext?.nodeId();
+
+  const ignoreInitialFocus = () =>
+    typeof initialFocus() === 'number' && (initialFocus() as number) < 0;
   // If the reference is a combobox and is typeable (e.g. input/textarea),
   // there are different focus semantics. The guards should not be rendered, but
   // aria-hidden should be applied to all nodes still. Further, the visually
   // hidden dismiss button should only appear at the end of the list, not the
   // start.
-  const isUntrappedTypeableCombobox = isTypeableCombobox(domReference) && ignoreInitialFocus;
+  const isUntrappedTypeableCombobox = () =>
+    isTypeableCombobox(props.context.elements.domReference()) && ignoreInitialFocus();
 
   // Force the guards to be rendered if the `inert` attribute is not supported.
-  const inertSupported = supportsInert();
-  const guards = inertSupported ? guardsProp : true;
-  const useInert = !guards || (inertSupported && outsideElementsInert);
-
-  const orderRef = useLatestRef(order);
-  const initialFocusRef = useLatestRef(initialFocus);
-  const returnFocusRef = useLatestRef(returnFocus);
+  const inertSupported = () => supportsInert();
+  const guards = () => (inertSupported() ? guardsProp() : true);
+  const useInert = () => !guards() || (inertSupported() && outsideElementsInert());
 
   const tree = useFloatingTree();
   const portalContext = usePortalContext();
 
-  const startDismissButtonRef = React.useRef<HTMLButtonElement>(null);
-  const endDismissButtonRef = React.useRef<HTMLButtonElement>(null);
-  const preventReturnFocusRef = React.useRef(false);
-  const isPointerDownRef = React.useRef(false);
-  const tabbableIndexRef = React.useRef(-1);
+  let startDismissButtonRef: HTMLButtonElement | undefined;
+  let endDismissButtonRef: HTMLButtonElement | undefined;
+  let preventReturnFocusRef = false;
+  let isPointerDownRef = false;
+  let tabbableIndexRef = -1;
 
-  const isInsidePortal = portalContext != null;
-  const floatingFocusElement = getFloatingFocusElement(floating);
+  const isInsidePortal = () => portalContext !== undefined;
+  const floatingFocusElement = () => getFloatingFocusElement(props.context.elements.floating());
 
-  const getTabbableContent = useEventCallback(
-    (container: Element | null = floatingFocusElement) => {
-      return container ? tabbable(container, getTabbableOptions()) : [];
-    },
-  );
+  const getTabbableContent = (containerProp?: Element) => {
+    const container = containerProp ?? floatingFocusElement();
+    return container ? tabbable(container, getTabbableOptions()) : [];
+  };
 
-  const getTabbableElements = useEventCallback((container?: Element) => {
+  const getTabbableElements = (container?: Element) => {
     const content = getTabbableContent(container);
 
-    return orderRef.current
-      .map((type) => {
+    return order()
+      ?.map((type) => {
+        const domReference = props.context.elements.domReference();
         if (domReference && type === 'reference') {
           return domReference;
         }
 
-        if (floatingFocusElement && type === 'floating') {
-          return floatingFocusElement;
+        const floatingElement = floatingFocusElement();
+        if (floatingElement && type === 'floating') {
+          return floatingElement;
         }
 
         return content;
       })
       .filter(Boolean)
       .flat() as Array<FocusableElement>;
-  });
+  };
 
-  React.useEffect(() => {
-    if (disabled) {
-      return undefined;
+  createEffect(() => {
+    if (disabled()) {
+      return;
     }
-    if (!modal) {
-      return undefined;
+    if (!modal()) {
+      return;
     }
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Tab') {
         // The focus guards have nothing to focus, so we need to stop the event.
+        const floatingElement = floatingFocusElement();
         if (
-          contains(floatingFocusElement, activeElement(getDocument(floatingFocusElement))) &&
+          contains(floatingElement, activeElement(getDocument(floatingElement))) &&
           getTabbableContent().length === 0 &&
-          !isUntrappedTypeableCombobox
+          !isUntrappedTypeableCombobox()
         ) {
           stopEvent(event);
         }
@@ -296,7 +286,8 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
         const els = getTabbableElements();
         const target = getTarget(event);
 
-        if (orderRef.current[0] === 'reference' && target === domReference) {
+        const domReference = props.context.elements.domReference();
+        if (order()[0] === 'reference' && target === domReference) {
           stopEvent(event);
           if (event.shiftKey) {
             enqueueFocus(els[els.length - 1]);
@@ -305,39 +296,27 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
           }
         }
 
-        if (
-          orderRef.current[1] === 'floating' &&
-          target === floatingFocusElement &&
-          event.shiftKey
-        ) {
+        if (order()[1] === 'floating' && target === floatingElement && event.shiftKey) {
           stopEvent(event);
           enqueueFocus(els[0]);
         }
       }
     }
 
-    const doc = getDocument(floatingFocusElement);
+    const doc = getDocument(floatingFocusElement());
     doc.addEventListener('keydown', onKeyDown);
-    return () => {
-      doc.removeEventListener('keydown', onKeyDown);
-    };
-  }, [
-    disabled,
-    domReference,
-    floatingFocusElement,
-    modal,
-    orderRef,
-    isUntrappedTypeableCombobox,
-    getTabbableContent,
-    getTabbableElements,
-  ]);
 
-  React.useEffect(() => {
-    if (disabled) {
-      return undefined;
+    onCleanup(() => {
+      doc.removeEventListener('keydown', onKeyDown);
+    });
+  });
+
+  createEffect(() => {
+    if (disabled()) {
+      return;
     }
-    if (!floating) {
-      return undefined;
+    if (!modal()) {
+      return;
     }
 
     function handleFocusIn(event: FocusEvent) {
@@ -345,87 +324,91 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
       const tabbableContent = getTabbableContent() as Array<Element | null>;
       const tabbableIndex = tabbableContent.indexOf(target);
       if (tabbableIndex !== -1) {
-        tabbableIndexRef.current = tabbableIndex;
+        tabbableIndexRef = tabbableIndex;
       }
     }
 
-    floating.addEventListener('focusin', handleFocusIn);
+    const floating = props.context.elements.floating();
+    floating?.addEventListener('focusin', handleFocusIn);
 
-    return () => {
-      floating.removeEventListener('focusin', handleFocusIn);
-    };
-  }, [disabled, floating, getTabbableContent]);
+    onCleanup(() => {
+      floating?.removeEventListener('focusin', handleFocusIn);
+    });
+  });
 
-  React.useEffect(() => {
-    if (disabled) {
-      return undefined;
+  createEffect(() => {
+    if (disabled()) {
+      return;
     }
-    if (!closeOnFocusOut) {
-      return undefined;
+    if (!closeOnFocusOut()) {
+      return;
     }
 
     // In Safari, buttons lose focus when pressing them.
     function handlePointerDown() {
-      isPointerDownRef.current = true;
+      isPointerDownRef = true;
       setTimeout(() => {
-        isPointerDownRef.current = false;
+        isPointerDownRef = false;
       });
     }
 
     function handleFocusOutside(event: FocusEvent) {
-      const relatedTarget = event.relatedTarget as HTMLElement | null;
-      const currentTarget = event.currentTarget;
-      const target = getTarget(event) as HTMLElement | null;
+      const relatedTarget = event.relatedTarget as HTMLElement | undefined;
+      const currentTarget = event.currentTarget as HTMLElement | undefined;
+      const target = getTarget(event) as HTMLElement | undefined;
 
       queueMicrotask(() => {
         const nodeId = getNodeId();
+        const domReference = props.context.elements.domReference();
+        const floating = props.context.elements.floating();
+        const portalNode = portalContext?.portalNode();
         const movedToUnrelatedNode = !(
           contains(domReference, relatedTarget) ||
           contains(floating, relatedTarget) ||
           contains(relatedTarget, floating) ||
-          contains(portalContext?.portalNode, relatedTarget) ||
+          contains(portalNode, relatedTarget) ||
           relatedTarget?.hasAttribute(createAttribute('focus-guard')) ||
           (tree &&
-            (getNodeChildren(tree.nodesRef.current, nodeId).find(
+            (getNodeChildren(tree.nodesRef, nodeId).find(
               (node) =>
-                contains(node.context?.elements.floating, relatedTarget) ||
-                contains(node.context?.elements.domReference, relatedTarget),
+                contains(node.context?.elements.floating(), relatedTarget) ||
+                contains(node.context?.elements.domReference(), relatedTarget),
             ) ||
-              getNodeAncestors(tree.nodesRef.current, nodeId).find(
+              getNodeAncestors(tree.nodesRef, nodeId).find(
                 (node) =>
                   [
-                    node.context?.elements.floating,
-                    getFloatingFocusElement(node.context?.elements.floating),
+                    node.context?.elements.floating(),
+                    getFloatingFocusElement(node.context?.elements.floating()),
                   ].includes(relatedTarget) ||
-                  node.context?.elements.domReference === relatedTarget,
+                  node.context?.elements.domReference() === relatedTarget,
               )))
         );
 
-        if (currentTarget === domReference && floatingFocusElement) {
-          handleTabIndex(floatingFocusElement, orderRef);
+        const floatingElement = floatingFocusElement();
+        if (currentTarget === domReference && floatingElement) {
+          handleTabIndex(floatingElement, order());
         }
 
         // Restore focus to the previous tabbable element index to prevent
         // focus from being lost outside the floating tree.
         if (
-          restoreFocus &&
+          restoreFocus() &&
           currentTarget !== domReference &&
           !target?.isConnected &&
-          activeElement(getDocument(floatingFocusElement)) ===
-            getDocument(floatingFocusElement).body
+          activeElement(getDocument(floatingElement)) === getDocument(floatingElement).body
         ) {
           // Let `FloatingPortal` effect knows that focus is still inside the
           // floating tree.
-          if (isHTMLElement(floatingFocusElement)) {
-            floatingFocusElement.focus();
+          if (isHTMLElement(floatingElement)) {
+            floatingElement.focus();
           }
 
-          const prevTabbableIndex = tabbableIndexRef.current;
+          const prevTabbableIndex = tabbableIndexRef;
           const tabbableContent = getTabbableContent() as Array<Element | null>;
           const nodeToFocus =
             tabbableContent[prevTabbableIndex] ||
             tabbableContent[tabbableContent.length - 1] ||
-            floatingFocusElement;
+            floatingElement;
 
           if (isHTMLElement(nodeToFocus)) {
             nodeToFocus.focus();
@@ -433,160 +416,124 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
         }
 
         // https://github.com/floating-ui/floating-ui/issues/3060
-        if (dataRef.current.insideReactTree) {
-          dataRef.current.insideReactTree = false;
+        if (props.context.dataRef.insideReactTree) {
+          props.context.dataRef.insideReactTree = false;
           return;
         }
 
         // Focus did not move inside the floating tree, and there are no tabbable
         // portal guards to handle closing.
         if (
-          (isUntrappedTypeableCombobox ? true : !modal) &&
+          (isUntrappedTypeableCombobox() ? true : !modal()) &&
           relatedTarget &&
           movedToUnrelatedNode &&
-          !isPointerDownRef.current &&
+          !isPointerDownRef &&
           // Fix React 18 Strict Mode returnFocus due to double rendering.
           relatedTarget !== getPreviouslyFocusedElement()
         ) {
-          preventReturnFocusRef.current = true;
-          onOpenChange(false, event, 'focus-out');
+          preventReturnFocusRef = true;
+          props.context.onOpenChange(false, event, 'focus-out');
         }
       });
     }
 
+    const domReference = props.context.elements.domReference();
+    const floating = props.context.elements.floating();
     if (floating && isHTMLElement(domReference)) {
       domReference.addEventListener('focusout', handleFocusOutside);
       domReference.addEventListener('pointerdown', handlePointerDown);
       floating.addEventListener('focusout', handleFocusOutside);
 
-      return () => {
+      onCleanup(() => {
         domReference.removeEventListener('focusout', handleFocusOutside);
         domReference.removeEventListener('pointerdown', handlePointerDown);
         floating.removeEventListener('focusout', handleFocusOutside);
-      };
+      });
     }
-    return undefined;
-  }, [
-    disabled,
-    domReference,
-    floating,
-    floatingFocusElement,
-    modal,
-    tree,
-    portalContext,
-    onOpenChange,
-    closeOnFocusOut,
-    restoreFocus,
-    getTabbableContent,
-    isUntrappedTypeableCombobox,
-    getNodeId,
-    orderRef,
-    dataRef,
-  ]);
+  });
 
-  const beforeGuardRef = React.useRef<HTMLSpanElement | null>(null);
-  const afterGuardRef = React.useRef<HTMLSpanElement | null>(null);
+  let beforeGuardRef: HTMLSpanElement | undefined;
+  let afterGuardRef: HTMLSpanElement | undefined;
 
-  const mergedBeforeGuardRef = useForkRef(beforeGuardRef, portalContext?.beforeInsideRef);
-  const mergedAfterGuardRef = useForkRef(afterGuardRef, portalContext?.afterInsideRef);
-
-  React.useEffect(() => {
-    if (disabled) {
-      return undefined;
+  createEffect(() => {
+    if (disabled()) {
+      return;
     }
-    if (!floating) {
-      return undefined;
+    if (!modal()) {
+      return;
     }
 
     // Don't hide portals nested within the parent portal.
     const portalNodes = Array.from(
-      portalContext?.portalNode?.querySelectorAll(`[${createAttribute('portal')}]`) || [],
+      portalContext?.portalNode()?.querySelectorAll(`[${createAttribute('portal')}]`) || [],
     );
 
-    const ancestors = tree ? getNodeAncestors(tree.nodesRef.current, getNodeId()) : [];
+    const ancestors = tree ? getNodeAncestors(tree.nodesRef, getNodeId()) : [];
     const ancestorFloatingNodes =
-      tree && !modal ? ancestors.map((node) => node.context?.elements.floating) : [];
-    const rootAncestorComboboxDomReference = ancestors.find((node) =>
-      isTypeableCombobox(node.context?.elements.domReference || null),
-    )?.context?.elements.domReference;
+      tree && !modal() ? ancestors.map((node) => node.context?.elements.floating()) : [];
+    const rootAncestorComboboxDomReference = ancestors
+      .find((node) => isTypeableCombobox(node.context?.elements.domReference()))
+      ?.context?.elements.domReference();
 
+    const domReference = props.context.elements.domReference();
     const insideElements = [
-      floating,
+      floatingFocusElement(),
       rootAncestorComboboxDomReference,
       ...portalNodes,
       ...ancestorFloatingNodes,
       ...getInsideElements(),
-      startDismissButtonRef.current,
-      endDismissButtonRef.current,
-      beforeGuardRef.current,
-      afterGuardRef.current,
-      portalContext?.beforeOutsideRef.current,
-      portalContext?.afterOutsideRef.current,
-      orderRef.current.includes('reference') || isUntrappedTypeableCombobox ? domReference : null,
+      startDismissButtonRef,
+      endDismissButtonRef,
+      beforeGuardRef,
+      afterGuardRef,
+      portalContext?.beforeOutsideRef(),
+      portalContext?.afterOutsideRef(),
+      order().includes('reference') || isUntrappedTypeableCombobox() ? domReference : null,
     ].filter((x): x is Element => x != null);
 
-    const cleanup =
-      modal || isUntrappedTypeableCombobox
-        ? markOthers(insideElements, !useInert, useInert)
-        : markOthers(insideElements);
+    onCleanup(() => {
+      if (modal() || isUntrappedTypeableCombobox()) {
+        markOthers(insideElements, !useInert(), useInert());
+      } else {
+        markOthers(insideElements);
+      }
+    });
+  });
 
-    return () => {
-      cleanup();
-    };
-  }, [
-    disabled,
-    domReference,
-    floating,
-    modal,
-    orderRef,
-    portalContext,
-    isUntrappedTypeableCombobox,
-    guards,
-    useInert,
-    tree,
-    getNodeId,
-    getInsideElements,
-  ]);
-
-  useModernLayoutEffect(() => {
-    if (disabled || !isHTMLElement(floatingFocusElement)) {
+  createEffect(() => {
+    if (disabled() || !isHTMLElement(floatingFocusElement())) {
       return;
     }
 
-    const doc = getDocument(floatingFocusElement);
+    const floatingElement = floatingFocusElement();
+    const doc = getDocument(floatingElement);
     const previouslyFocusedElement = activeElement(doc);
 
     // Wait for any layout effect state setters to execute to set `tabIndex`.
     queueMicrotask(() => {
-      const focusableElements = getTabbableElements(floatingFocusElement);
-      const initialFocusValue = initialFocusRef.current;
+      const focusableElements = getTabbableElements(floatingElement);
+      const initialFocusValue = initialFocus();
       const elToFocus =
         (typeof initialFocusValue === 'number'
           ? focusableElements[initialFocusValue]
-          : initialFocusValue.current) || floatingFocusElement;
-      const focusAlreadyInsideFloatingEl = contains(floatingFocusElement, previouslyFocusedElement);
+          : initialFocusValue) || floatingElement;
+      const focusAlreadyInsideFloatingEl = contains(floatingElement, previouslyFocusedElement);
 
-      if (!ignoreInitialFocus && !focusAlreadyInsideFloatingEl && open) {
+      if (!ignoreInitialFocus() && !focusAlreadyInsideFloatingEl && props.context.open()) {
         enqueueFocus(elToFocus, {
-          preventScroll: elToFocus === floatingFocusElement,
+          preventScroll: elToFocus === floatingElement,
         });
       }
     });
-  }, [
-    disabled,
-    open,
-    floatingFocusElement,
-    ignoreInitialFocus,
-    getTabbableElements,
-    initialFocusRef,
-  ]);
+  });
 
-  useModernLayoutEffect(() => {
-    if (disabled || !floatingFocusElement) {
-      return undefined;
+  createEffect(() => {
+    const floatingElement = floatingFocusElement();
+    if (disabled() || !isHTMLElement(floatingElement)) {
+      return;
     }
 
-    const doc = getDocument(floatingFocusElement);
+    const doc = getDocument(floatingElement);
     const previouslyFocusedElement = activeElement(doc);
 
     addPreviouslyFocusedElement(previouslyFocusedElement);
@@ -604,7 +551,7 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
       nested: boolean;
     }) {
       if (['hover', 'safe-polygon'].includes(reason) && event.type === 'mouseleave') {
-        preventReturnFocusRef.current = true;
+        preventReturnFocusRef = true;
       }
 
       if (reason !== 'outside-press') {
@@ -612,12 +559,12 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
       }
 
       if (nested) {
-        preventReturnFocusRef.current = false;
+        preventReturnFocusRef = false;
       } else if (
         isVirtualClick(event as MouseEvent) ||
         isVirtualPointerEvent(event as PointerEvent)
       ) {
-        preventReturnFocusRef.current = false;
+        preventReturnFocusRef = false;
       } else {
         let isPreventScrollSupported = false;
         document.createElement('div').focus({
@@ -628,42 +575,45 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
         });
 
         if (isPreventScrollSupported) {
-          preventReturnFocusRef.current = false;
+          preventReturnFocusRef = false;
         } else {
-          preventReturnFocusRef.current = true;
+          preventReturnFocusRef = true;
         }
       }
     }
 
-    events.on('openchange', onOpenChangeLocal);
+    props.context.events.on('openchange', onOpenChangeLocal);
 
     const fallbackEl = doc.createElement('span');
     fallbackEl.setAttribute('tabindex', '-1');
     fallbackEl.setAttribute('aria-hidden', 'true');
     Object.assign(fallbackEl.style, visuallyHidden);
 
-    if (isInsidePortal && domReference) {
+    const domReference = props.context.elements.domReference();
+    if (isInsidePortal() && domReference) {
       domReference.insertAdjacentElement('afterend', fallbackEl);
     }
 
     function getReturnElement() {
-      if (typeof returnFocusRef.current === 'boolean') {
+      const returnFocusValue = returnFocus();
+      if (typeof returnFocusValue === 'boolean') {
         const el = domReference || getPreviouslyFocusedElement();
         return el && el.isConnected ? el : fallbackEl;
       }
 
-      return returnFocusRef.current.current || fallbackEl;
+      return returnFocusValue || fallbackEl;
     }
 
-    return () => {
-      events.off('openchange', onOpenChangeLocal);
+    onCleanup(() => {
+      props.context.events.off('openchange', onOpenChangeLocal);
 
       const activeEl = activeElement(doc);
+      const floating = props.context.elements.floating();
       const isFocusInsideFloatingTree =
         contains(floating, activeEl) ||
         (tree &&
-          getNodeChildren(tree.nodesRef.current, getNodeId(), false).some((node) =>
-            contains(node.context?.elements.floating, activeEl),
+          getNodeChildren(tree.nodesRef, getNodeId(), false).some((node) =>
+            contains(node.context?.elements.floating(), activeEl),
           ));
 
       const returnElement = getReturnElement();
@@ -673,8 +623,8 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
         const tabbableReturnElement = getFirstTabbableElement(returnElement);
         if (
           // eslint-disable-next-line react-hooks/exhaustive-deps
-          returnFocusRef.current &&
-          !preventReturnFocusRef.current &&
+          returnFocus() &&
+          !preventReturnFocusRef &&
           isHTMLElement(tabbableReturnElement) &&
           // If the focus moved somewhere else after mount, avoid returning focus
           // since it likely entered a different element which should be
@@ -688,133 +638,134 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
 
         fallbackEl.remove();
       });
-    };
-  }, [
-    disabled,
-    floating,
-    floatingFocusElement,
-    returnFocusRef,
-    dataRef,
-    events,
-    tree,
-    isInsidePortal,
-    domReference,
-    getNodeId,
-  ]);
-
-  React.useEffect(() => {
-    // The `returnFocus` cleanup behavior is inside a microtask; ensure we
-    // wait for it to complete before resetting the flag.
-    queueMicrotask(() => {
-      preventReturnFocusRef.current = false;
     });
-  }, [disabled]);
+  });
+
+  createEffect(
+    on(disabled, () => {
+      // The `returnFocus` cleanup behavior is inside a microtask; ensure we
+      // wait for it to complete before resetting the flag.
+      queueMicrotask(() => {
+        preventReturnFocusRef = false;
+      });
+    }),
+  );
 
   // Synchronize the `context` & `modal` value to the FloatingPortal context.
   // It will decide whether or not it needs to render its own guards.
-  useModernLayoutEffect(() => {
-    if (disabled) {
-      return undefined;
+  createEffect(() => {
+    if (disabled()) {
+      return;
     }
     if (!portalContext) {
-      return undefined;
+      return;
     }
 
     portalContext.setFocusManagerState({
-      modal,
-      closeOnFocusOut,
-      open,
-      onOpenChange,
-      domReference,
+      modal: modal(),
+      closeOnFocusOut: closeOnFocusOut(),
+      open: props.context.open(),
+      onOpenChange: props.context.onOpenChange,
+      domReference: props.context.elements.domReference(),
     });
 
-    return () => {
+    onCleanup(() => {
       portalContext.setFocusManagerState(null);
-    };
-  }, [disabled, portalContext, modal, open, onOpenChange, closeOnFocusOut, domReference]);
+    });
+  });
 
-  useModernLayoutEffect(() => {
-    if (disabled) {
+  createEffect(() => {
+    if (disabled()) {
       return;
     }
-    if (!floatingFocusElement) {
+
+    const floatingElement = floatingFocusElement();
+    if (!floatingElement) {
       return;
     }
-    handleTabIndex(floatingFocusElement, orderRef);
-  }, [disabled, floatingFocusElement, orderRef]);
+    handleTabIndex(floatingElement, order());
+  });
 
   function renderDismissButton(location: 'start' | 'end') {
-    if (disabled || !visuallyHiddenDismiss || !modal) {
+    if (disabled() || !visuallyHiddenDismiss() || !modal()) {
       return null;
     }
 
     return (
       <VisuallyHiddenDismiss
-        ref={location === 'start' ? startDismissButtonRef : endDismissButtonRef}
-        onClick={(event) => onOpenChange(false, event.nativeEvent)}
+        ref={(el) => {
+          if (location === 'start') {
+            startDismissButtonRef = el;
+          } else {
+            endDismissButtonRef = el;
+          }
+        }}
+        onClick={(event) => props.context.onOpenChange(false, event)}
       >
-        {typeof visuallyHiddenDismiss === 'string' ? visuallyHiddenDismiss : 'Dismiss'}
+        {typeof visuallyHiddenDismiss() === 'string' ? visuallyHiddenDismiss() : 'Dismiss'}
       </VisuallyHiddenDismiss>
     );
   }
 
-  const shouldRenderGuards =
-    !disabled &&
-    guards &&
-    (modal ? !isUntrappedTypeableCombobox : true) &&
-    (isInsidePortal || modal);
+  const shouldRenderGuards = () =>
+    !disabled() &&
+    guards() &&
+    (modal() ? !isUntrappedTypeableCombobox() : true) &&
+    (isInsidePortal() || modal());
 
   return (
-    <React.Fragment>
-      {shouldRenderGuards && (
+    <>
+      <Show when={shouldRenderGuards()}>
         <FocusGuard
           data-type="inside"
-          ref={mergedBeforeGuardRef}
+          ref={useForkRef(beforeGuardRef, portalContext?.setBeforeInsideRef)}
           onFocus={(event) => {
-            if (modal) {
+            if (modal()) {
               const els = getTabbableElements();
-              enqueueFocus(order[0] === 'reference' ? els[0] : els[els.length - 1]);
-            } else if (portalContext?.preserveTabOrder && portalContext.portalNode) {
-              preventReturnFocusRef.current = false;
-              if (isOutsideEvent(event, portalContext.portalNode)) {
+              enqueueFocus(order()[0] === 'reference' ? els[0] : els[els.length - 1]);
+            } else if (portalContext?.preserveTabOrder() && portalContext.portalNode()) {
+              preventReturnFocusRef = false;
+              if (isOutsideEvent(event, portalContext.portalNode())) {
+                const domReference = props.context.elements.domReference();
                 const nextTabbable = getNextTabbable(domReference);
                 nextTabbable?.focus();
               } else {
-                portalContext.beforeOutsideRef.current?.focus();
+                portalContext.beforeOutsideRef()?.focus();
               }
             }
           }}
         />
-      )}
+      </Show>
       {/*
         Ensure the first swipe is the list item. The end of the listbox popup
         will have a dismiss button.
       */}
-      {!isUntrappedTypeableCombobox && renderDismissButton('start')}
-      {children}
+      <Show when={!isUntrappedTypeableCombobox()}>{renderDismissButton('start')}</Show>
+      {props.children}
       {renderDismissButton('end')}
-      {shouldRenderGuards && (
+      <Show when={shouldRenderGuards()}>
         <FocusGuard
           data-type="inside"
-          ref={mergedAfterGuardRef}
+          ref={useForkRef(afterGuardRef, portalContext?.afterInsideRef)}
           onFocus={(event) => {
-            if (modal) {
+            if (modal()) {
               enqueueFocus(getTabbableElements()[0]);
-            } else if (portalContext?.preserveTabOrder && portalContext.portalNode) {
-              if (closeOnFocusOut) {
-                preventReturnFocusRef.current = true;
+            } else if (portalContext?.preserveTabOrder() && portalContext.portalNode()) {
+              if (closeOnFocusOut()) {
+                preventReturnFocusRef = true;
               }
 
-              if (isOutsideEvent(event, portalContext.portalNode)) {
+              if (isOutsideEvent(event, portalContext.portalNode())) {
+                const domReference = props.context.elements.domReference();
                 const prevTabbable = getPreviousTabbable(domReference);
                 prevTabbable?.focus();
               } else {
-                portalContext.afterOutsideRef.current?.focus();
+                portalContext.afterOutsideRef()?.focus();
               }
             }
           }}
         />
-      )}
-    </React.Fragment>
+      </Show>
+    </>
   );
 }

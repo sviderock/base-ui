@@ -1,4 +1,5 @@
-import * as React from 'react';
+import { createSignal } from 'solid-js';
+import { createStore } from 'solid-js/store';
 import {
   FloatingFocusManager,
   useClick,
@@ -29,11 +30,15 @@ interface Props {
  */
 
 /** @internal */
-export function Main({ orientation = 'horizontal', loop = false, rtl = false }: Props) {
-  const [open, setOpen] = React.useState(false);
-  const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
+export function Main(props: Props) {
+  const orientation = () => props.orientation ?? 'horizontal';
+  const loop = () => props.loop ?? false;
+  const rtl = () => props.rtl ?? false;
 
-  const listRef = React.useRef<Array<HTMLElement | null>>([]);
+  const [open, setOpen] = createSignal(false);
+  const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
+
+  const [listRef, setListRef] = createStore<Array<HTMLElement | undefined>>([]);
 
   const { floatingStyles, refs, context } = useFloating({
     open,

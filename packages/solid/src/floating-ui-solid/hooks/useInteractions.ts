@@ -1,5 +1,4 @@
-import * as React from 'react';
-
+import { createMemo, type Accessor, type JSX } from 'solid-js';
 import type { ElementProps } from '../types';
 import { ACTIVE_KEY, FOCUSABLE_ATTRIBUTE, SELECTED_KEY } from '../utils/constants';
 
@@ -9,10 +8,10 @@ export type ExtendedUserProps = {
 };
 
 export interface UseInteractionsReturn {
-  getReferenceProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>;
-  getFloatingProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
+  getReferenceProps: (userProps?: JSX.HTMLAttributes<Element>) => Record<string, unknown>;
+  getFloatingProps: (userProps?: JSX.HTMLAttributes<HTMLElement>) => Record<string, unknown>;
   getItemProps: (
-    userProps?: Omit<React.HTMLProps<HTMLElement>, 'selected' | 'active'> & ExtendedUserProps,
+    userProps?: Omit<JSX.HTMLAttributes<HTMLElement>, 'selected' | 'active'> & ExtendedUserProps,
   ) => Record<string, unknown>;
 }
 
@@ -22,40 +21,30 @@ export interface UseInteractionsReturn {
  * another.
  * @see https://floating-ui.com/docs/useInteractions
  */
-export function useInteractions(propsList: Array<ElementProps | void> = []): UseInteractionsReturn {
-  const referenceDeps = propsList.map((key) => key?.reference);
-  const floatingDeps = propsList.map((key) => key?.floating);
-  const itemDeps = propsList.map((key) => key?.item);
+export function useInteractions(
+  propsList: Accessor<Array<ElementProps | void>> = () => [],
+): Accessor<UseInteractionsReturn> {
+  const returnValue = createMemo<UseInteractionsReturn>(() => ({
+    getReferenceProps(userProps) {
+      return mergeProps(userProps, propsList(), 'reference');
+    },
+    getFloatingProps(userProps) {
+      // @ts-expect-error TODO: fix typing
+      return mergeProps(userProps, propsList(), 'floating');
+    },
+    getItemProps(userProps) {
+      // @ts-expect-error TODO: fix typing
+      return mergeProps(userProps, propsList(), 'item');
+    },
+  }));
 
-  const getReferenceProps = React.useCallback(
-    (userProps?: React.HTMLProps<Element>) => mergeProps(userProps, propsList, 'reference'),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    referenceDeps,
-  );
-
-  const getFloatingProps = React.useCallback(
-    (userProps?: React.HTMLProps<HTMLElement>) => mergeProps(userProps, propsList, 'floating'),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    floatingDeps,
-  );
-
-  const getItemProps = React.useCallback(
-    (userProps?: Omit<React.HTMLProps<HTMLElement>, 'selected' | 'active'> & ExtendedUserProps) =>
-      mergeProps(userProps, propsList, 'item'),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    itemDeps,
-  );
-
-  return React.useMemo(
-    () => ({ getReferenceProps, getFloatingProps, getItemProps }),
-    [getReferenceProps, getFloatingProps, getItemProps],
-  );
+  return returnValue;
 }
 
 /* eslint-disable guard-for-in */
 
 function mergeProps<Key extends keyof ElementProps>(
-  userProps: (React.HTMLProps<Element> & ExtendedUserProps) | undefined,
+  userProps: (JSX.HTMLAttributes<Element> & ExtendedUserProps) | undefined,
   propsList: Array<ElementProps | void>,
   elementKey: Key,
 ): Record<string, unknown> {

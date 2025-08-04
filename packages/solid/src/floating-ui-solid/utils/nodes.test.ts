@@ -1,22 +1,28 @@
+/* eslint-disable solid/reactivity */
+import { createMemo } from 'solid-js';
 import type { FloatingContext } from '../types';
 import { getNodeAncestors, getNodeChildren } from './nodes';
 
-const contextOpen = { open: true } as FloatingContext;
-const contextClosed = { open: false } as FloatingContext;
+const contextOpen = { open: createMemo(() => true) } as FloatingContext;
+const contextClosed = { open: createMemo(() => false) } as FloatingContext;
 
 test('getNodeChildren returns an array of children, ignoring closed ones when onlyOpenChildren=true', () => {
+  const nodes = [
+    { id: createMemo(() => '0'), parentId: createMemo(() => null), context: contextOpen },
+    { id: createMemo(() => '1'), parentId: createMemo(() => '0'), context: contextOpen },
+    { id: createMemo(() => '2'), parentId: createMemo(() => '1'), context: contextOpen },
+    { id: createMemo(() => '3'), parentId: createMemo(() => '1'), context: contextOpen },
+    { id: createMemo(() => '4'), parentId: createMemo(() => '1'), context: contextClosed },
+  ];
+
+  const result = getNodeChildren(nodes, '0', true);
+
   expect(
-    getNodeChildren(
-      [
-        { id: '0', parentId: null, context: contextOpen },
-        { id: '1', parentId: '0', context: contextOpen },
-        { id: '2', parentId: '1', context: contextOpen },
-        { id: '3', parentId: '1', context: contextOpen },
-        { id: '4', parentId: '1', context: contextClosed },
-      ],
-      '0',
-      true,
-    ),
+    result.map((node) => ({
+      id: node.id(),
+      parentId: node.parentId(),
+      context: node.context,
+    })),
   ).toEqual([
     { id: '1', parentId: '0', context: contextOpen },
     { id: '2', parentId: '1', context: contextOpen },
@@ -25,18 +31,22 @@ test('getNodeChildren returns an array of children, ignoring closed ones when on
 });
 
 test('getNodeChildren returns an array of children, including closed ones when onlyOpenChildren=false', () => {
+  const nodes = [
+    { id: createMemo(() => '0'), parentId: createMemo(() => null), context: contextOpen },
+    { id: createMemo(() => '1'), parentId: createMemo(() => '0'), context: contextOpen },
+    { id: createMemo(() => '2'), parentId: createMemo(() => '1'), context: contextOpen },
+    { id: createMemo(() => '3'), parentId: createMemo(() => '1'), context: contextOpen },
+    { id: createMemo(() => '4'), parentId: createMemo(() => '1'), context: contextClosed },
+  ];
+
+  const result = getNodeChildren(nodes, '0', false);
+
   expect(
-    getNodeChildren(
-      [
-        { id: '0', parentId: null, context: contextOpen },
-        { id: '1', parentId: '0', context: contextOpen },
-        { id: '2', parentId: '1', context: contextOpen },
-        { id: '3', parentId: '1', context: contextOpen },
-        { id: '4', parentId: '1', context: contextClosed },
-      ],
-      '0',
-      false,
-    ),
+    result.map((node) => ({
+      id: node.id(),
+      parentId: node.parentId(),
+      context: node.context,
+    })),
   ).toEqual([
     { id: '1', parentId: '0', context: contextOpen },
     { id: '2', parentId: '1', context: contextOpen },
@@ -47,16 +57,24 @@ test('getNodeChildren returns an array of children, including closed ones when o
 
 test('getNodeChildren handles deep parent structures correctly (onlyOpenChildren=true)', () => {
   const nodes = [
-    { id: '0', parentId: null, context: contextOpen },
-    { id: '1', parentId: '0', context: contextOpen },
-    { id: '2', parentId: '1', context: contextClosed },
-    { id: '3', parentId: '2', context: contextOpen },
-    { id: '4', parentId: '2', context: contextClosed },
-    { id: '5', parentId: '0', context: contextOpen },
-    { id: '6', parentId: '5', context: contextOpen },
+    { id: createMemo(() => '0'), parentId: createMemo(() => null), context: contextOpen },
+    { id: createMemo(() => '1'), parentId: createMemo(() => '0'), context: contextOpen },
+    { id: createMemo(() => '2'), parentId: createMemo(() => '1'), context: contextClosed },
+    { id: createMemo(() => '3'), parentId: createMemo(() => '2'), context: contextOpen },
+    { id: createMemo(() => '4'), parentId: createMemo(() => '2'), context: contextClosed },
+    { id: createMemo(() => '5'), parentId: createMemo(() => '0'), context: contextOpen },
+    { id: createMemo(() => '6'), parentId: createMemo(() => '5'), context: contextOpen },
   ];
 
-  expect(getNodeChildren(nodes, '0', true)).toEqual([
+  const result = getNodeChildren(nodes, '0', true);
+
+  expect(
+    result.map((node) => ({
+      id: node.id(),
+      parentId: node.parentId(),
+      context: node.context,
+    })),
+  ).toEqual([
     { id: '1', parentId: '0', context: contextOpen },
     { id: '5', parentId: '0', context: contextOpen },
     { id: '6', parentId: '5', context: contextOpen },
@@ -65,16 +83,24 @@ test('getNodeChildren handles deep parent structures correctly (onlyOpenChildren
 
 test('getNodeChildren handles deep parent structures correctly (onlyOpenChildren=false)', () => {
   const nodes = [
-    { id: '0', parentId: null, context: contextOpen },
-    { id: '1', parentId: '0', context: contextOpen },
-    { id: '2', parentId: '1', context: contextClosed },
-    { id: '3', parentId: '2', context: contextOpen },
-    { id: '4', parentId: '2', context: contextClosed },
-    { id: '5', parentId: '0', context: contextOpen },
-    { id: '6', parentId: '5', context: contextOpen },
+    { id: createMemo(() => '0'), parentId: createMemo(() => null), context: contextOpen },
+    { id: createMemo(() => '1'), parentId: createMemo(() => '0'), context: contextOpen },
+    { id: createMemo(() => '2'), parentId: createMemo(() => '1'), context: contextClosed },
+    { id: createMemo(() => '3'), parentId: createMemo(() => '2'), context: contextOpen },
+    { id: createMemo(() => '4'), parentId: createMemo(() => '2'), context: contextClosed },
+    { id: createMemo(() => '5'), parentId: createMemo(() => '0'), context: contextOpen },
+    { id: createMemo(() => '6'), parentId: createMemo(() => '5'), context: contextOpen },
   ];
 
-  expect(getNodeChildren(nodes, '0', false)).toEqual([
+  const result = getNodeChildren(nodes, '0', false);
+
+  expect(
+    result.map((node) => ({
+      id: node.id(),
+      parentId: node.parentId(),
+      context: node.context,
+    })),
+  ).toEqual([
     { id: '1', parentId: '0', context: contextOpen },
     { id: '2', parentId: '1', context: contextClosed },
     { id: '3', parentId: '2', context: contextOpen },
@@ -85,16 +111,24 @@ test('getNodeChildren handles deep parent structures correctly (onlyOpenChildren
 });
 
 test('getNodeAncestors returns an array of ancestors', () => {
-  expect(
-    getNodeAncestors(
-      [
-        { id: '0', parentId: null },
-        { id: '1', parentId: '0' },
-        { id: '2', parentId: '1' },
-      ],
-      '2',
-    ),
-  ).toEqual([
+  const nodes = [
+    {
+      id: createMemo(() => '0'),
+      parentId: createMemo(() => null),
+    },
+    {
+      id: createMemo(() => '1'),
+      parentId: createMemo(() => '0'),
+    },
+    {
+      id: createMemo(() => '2'),
+      parentId: createMemo(() => '1'),
+    },
+  ];
+
+  const result = getNodeAncestors(nodes, '2');
+
+  expect(result.map((node) => ({ id: node.id(), parentId: node.parentId() }))).toEqual([
     { id: '1', parentId: '0' },
     { id: '0', parentId: null },
   ]);

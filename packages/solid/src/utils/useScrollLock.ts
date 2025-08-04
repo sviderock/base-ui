@@ -1,17 +1,15 @@
-import { createRenderEffect, onCleanup } from 'solid-js';
+import { createEffect, onCleanup } from 'solid-js';
 import { isIOS, isWebKit } from './detectBrowser';
 import { NOOP } from './noop';
 import { ownerDocument, ownerWindow } from './owner';
 import { AnimationFrame } from './useAnimationFrame';
-import { Timeout } from './useTimeout';
-
-/* eslint-disable lines-between-class-members */
+import { useTimeout } from './useTimeout';
 
 let originalHtmlStyles: Partial<CSSStyleDeclaration> = {};
 let originalBodyStyles: Partial<CSSStyleDeclaration> = {};
 let originalHtmlScrollBehavior = '';
 
-function hasInsetScrollbars(referenceElement: Element | null) {
+function hasInsetScrollbars(referenceElement: Element | undefined) {
   if (typeof document === 'undefined') {
     return false;
   }
@@ -20,7 +18,7 @@ function hasInsetScrollbars(referenceElement: Element | null) {
   return win.innerWidth - doc.documentElement.clientWidth > 0;
 }
 
-function preventScrollBasic(referenceElement: Element | null) {
+function preventScrollBasic(referenceElement: Element | undefined) {
   const doc = ownerDocument(referenceElement);
   const html = doc.documentElement;
   const originalOverflow = html.style.overflow;
@@ -30,7 +28,7 @@ function preventScrollBasic(referenceElement: Element | null) {
   };
 }
 
-function preventScrollStandard(referenceElement: Element | null) {
+function preventScrollStandard(referenceElement: Element | undefined) {
   const doc = ownerDocument(referenceElement);
   const html = doc.documentElement;
   const body = doc.body;
@@ -151,10 +149,10 @@ function preventScrollStandard(referenceElement: Element | null) {
 class ScrollLocker {
   lockCount = 0;
   restore = null as (() => void) | null;
-  timeoutLock = Timeout.create();
-  timeoutUnlock = Timeout.create();
+  timeoutLock = useTimeout();
+  timeoutUnlock = useTimeout();
 
-  acquire(referenceElement: Element | null) {
+  acquire(referenceElement: Element | undefined) {
     this.lockCount += 1;
     if (this.lockCount === 1 && this.restore === null) {
       this.timeoutLock.start(0, () => this.lock(referenceElement));
@@ -176,7 +174,7 @@ class ScrollLocker {
     }
   };
 
-  private lock(referenceElement: Element | null) {
+  private lock(referenceElement: Element | undefined) {
     if (this.lockCount === 0 || this.restore !== null) {
       return;
     }
@@ -216,35 +214,32 @@ export function useScrollLock(params: {
   enabled: boolean;
   mounted: boolean;
   open: boolean;
-  referenceElement?: Element | null;
+  referenceElement?: Element | undefined;
 }) {
-  const enabled = () => params.enabled ?? true;
-  const referenceElement = () => params.referenceElement ?? null;
+  const referenceElement = () => params.referenceElement;
 
   // https://github.com/mui/base-ui/issues/1135
-  createRenderEffect(() => {
+  createEffect(() => {
     if (isWebKit && params.mounted && !params.open) {
       const doc = ownerDocument(referenceElement());
       const originalUserSelect = doc.body.style.userSelect;
       const originalWebkitUserSelect = doc.body.style.webkitUserSelect;
       doc.body.style.userSelect = 'none';
       doc.body.style.webkitUserSelect = 'none';
-      return () => {
+
+      onCleanup(() => {
         doc.body.style.userSelect = originalUserSelect;
         doc.body.style.webkitUserSelect = originalWebkitUserSelect;
-      };
+      });
     }
-
-    return undefined;
   });
 
-  createRenderEffect(() => {
-    if (!enabled()) {
-      return undefined;
+  createEffect(() => {
+    const enabled = params.enabled ?? true;
+    if (!enabled) {
+      return;
     }
 
     onCleanup(() => SCROLL_LOCKER.acquire(referenceElement()));
-
-    return undefined;
   });
 }

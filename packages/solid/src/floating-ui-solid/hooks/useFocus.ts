@@ -1,5 +1,5 @@
-import * as React from 'react';
 import { getWindow, isElement, isHTMLElement } from '@floating-ui/utils/dom';
+import { createEffect, createMemo, onCleanup, type Accessor } from 'solid-js';
 import { isMac, isSafari } from '../../utils/detectBrowser';
 import { useTimeout } from '../../utils/useTimeout';
 import {
@@ -22,13 +22,13 @@ export interface UseFocusProps {
    * handlers.
    * @default true
    */
-  enabled?: boolean;
+  enabled?: Accessor<boolean>;
   /**
    * Whether the open state only changes if the focus event is considered
    * visible (`:focus-visible` CSS selector).
    * @default true
    */
-  visibleOnly?: boolean;
+  visibleOnly?: Accessor<boolean>;
 }
 
 /**
@@ -36,40 +36,44 @@ export interface UseFocusProps {
  * `:focus`.
  * @see https://floating-ui.com/docs/useFocus
  */
-export function useFocus(context: FloatingRootContext, props: UseFocusProps = {}): ElementProps {
-  const { open, onOpenChange, events, dataRef, elements } = context;
-  const { enabled = true, visibleOnly = true } = props;
+export function useFocus(
+  context: FloatingRootContext,
+  props: UseFocusProps = {},
+): Accessor<ElementProps> {
+  const enabled = () => props.enabled ?? true;
+  const visibleOnly = () => props.visibleOnly ?? true;
 
-  const blockFocusRef = React.useRef(false);
+  let blockFocusRef = false;
+  let keyboardModalityRef = true;
   const timeout = useTimeout();
-  const keyboardModalityRef = React.useRef(true);
 
-  React.useEffect(() => {
-    if (!enabled) {
-      return undefined;
+  createEffect(() => {
+    if (!enabled()) {
+      return;
     }
 
-    const win = getWindow(elements.domReference);
+    const win = getWindow(context.elements.domReference());
 
     // If the reference was focused and the user left the tab/window, and the
     // floating element was not open, the focus should be blocked when they
     // return to the tab/window.
     function onBlur() {
+      const domReference = context.elements.domReference();
       if (
-        !open &&
-        isHTMLElement(elements.domReference) &&
-        elements.domReference === activeElement(getDocument(elements.domReference))
+        !context.open() &&
+        isHTMLElement(domReference) &&
+        domReference === activeElement(getDocument(domReference))
       ) {
-        blockFocusRef.current = true;
+        blockFocusRef = true;
       }
     }
 
     function onKeyDown() {
-      keyboardModalityRef.current = true;
+      keyboardModalityRef = true;
     }
 
     function onPointerDown() {
-      keyboardModalityRef.current = false;
+      keyboardModalityRef = false;
     }
 
     win.addEventListener('blur', onBlur);
@@ -79,103 +83,106 @@ export function useFocus(context: FloatingRootContext, props: UseFocusProps = {}
       win.addEventListener('pointerdown', onPointerDown, true);
     }
 
-    return () => {
+    onCleanup(() => {
       win.removeEventListener('blur', onBlur);
 
       if (isMacSafari) {
         win.removeEventListener('keydown', onKeyDown, true);
         win.removeEventListener('pointerdown', onPointerDown, true);
       }
-    };
-  }, [elements.domReference, open, enabled]);
+    });
+  });
 
-  React.useEffect(() => {
-    if (!enabled) {
-      return undefined;
+  createEffect(() => {
+    if (!enabled()) {
+      return;
     }
 
     function onOpenChangeLocal({ reason }: { reason: OpenChangeReason }) {
       if (reason === 'reference-press' || reason === 'escape-key') {
-        blockFocusRef.current = true;
+        blockFocusRef = true;
       }
     }
 
-    events.on('openchange', onOpenChangeLocal);
-    return () => {
-      events.off('openchange', onOpenChangeLocal);
-    };
-  }, [events, enabled]);
+    context.events.on('openchange', onOpenChangeLocal);
+    onCleanup(() => {
+      context.events.off('openchange', onOpenChangeLocal);
+    });
+  });
 
-  const reference: ElementProps['reference'] = React.useMemo(
-    () => ({
-      onMouseLeave() {
-        blockFocusRef.current = false;
-      },
-      onFocus(event) {
-        if (blockFocusRef.current) {
+  const reference = createMemo<ElementProps['reference']>(() => ({
+    onMouseLeave() {
+      blockFocusRef = false;
+    },
+    onFocus(event) {
+      if (blockFocusRef) {
+        return;
+      }
+
+      const target = getTarget(event);
+
+      if (visibleOnly() && isElement(target)) {
+        // Safari fails to match `:focus-visible` if focus was initially
+        // outside the document.
+        if (isMacSafari && !event.relatedTarget) {
+          if (!keyboardModalityRef && !isTypeableElement(target)) {
+            return;
+          }
+        } else if (!matchesFocusVisible(target)) {
+          return;
+        }
+      }
+
+      context.onOpenChange(true, event, 'focus');
+    },
+    onBlur(event) {
+      blockFocusRef = false;
+      const relatedTarget = event.relatedTarget;
+
+      // Hit the non-modal focus management portal guard. Focus will be
+      // moved into the floating element immediately after.
+      const movedToFocusGuard =
+        isElement(relatedTarget) &&
+        relatedTarget.hasAttribute(createAttribute('focus-guard')) &&
+        relatedTarget.getAttribute('data-type') === 'outside';
+
+      // Wait for the window blur listener to fire.
+      timeout.start(0, () => {
+        const domReference = context.elements.domReference();
+        const activeEl = activeElement(domReference ? domReference.ownerDocument : document);
+
+        // Focus left the page, keep it open.
+        if (!relatedTarget && activeEl === domReference) {
           return;
         }
 
-        const target = getTarget(event.nativeEvent);
-
-        if (visibleOnly && isElement(target)) {
-          // Safari fails to match `:focus-visible` if focus was initially
-          // outside the document.
-          if (isMacSafari && !event.relatedTarget) {
-            if (!keyboardModalityRef.current && !isTypeableElement(target)) {
-              return;
-            }
-          } else if (!matchesFocusVisible(target)) {
-            return;
-          }
+        // When focusing the reference element (e.g. regular click), then
+        // clicking into the floating element, prevent it from hiding.
+        // Note: it must be focusable, e.g. `tabindex="-1"`.
+        // We can not rely on relatedTarget to point to the correct element
+        // as it will only point to the shadow host of the newly focused element
+        // and not the element that actually has received focus if it is located
+        // inside a shadow root.
+        if (
+          contains(context.dataRef.floatingContext?.refs.floating(), activeEl) ||
+          contains(domReference, activeEl) ||
+          movedToFocusGuard
+        ) {
+          return;
         }
 
-        onOpenChange(true, event.nativeEvent, 'focus');
-      },
-      onBlur(event) {
-        blockFocusRef.current = false;
-        const relatedTarget = event.relatedTarget;
-        const nativeEvent = event.nativeEvent;
+        context.onOpenChange(false, event, 'focus');
+      });
+    },
+  }));
 
-        // Hit the non-modal focus management portal guard. Focus will be
-        // moved into the floating element immediately after.
-        const movedToFocusGuard =
-          isElement(relatedTarget) &&
-          relatedTarget.hasAttribute(createAttribute('focus-guard')) &&
-          relatedTarget.getAttribute('data-type') === 'outside';
+  const returnValue = createMemo<ElementProps>(() => {
+    if (!enabled()) {
+      return {};
+    }
 
-        // Wait for the window blur listener to fire.
-        timeout.start(0, () => {
-          const activeEl = activeElement(
-            elements.domReference ? elements.domReference.ownerDocument : document,
-          );
+    return { reference: reference() };
+  });
 
-          // Focus left the page, keep it open.
-          if (!relatedTarget && activeEl === elements.domReference) {
-            return;
-          }
-
-          // When focusing the reference element (e.g. regular click), then
-          // clicking into the floating element, prevent it from hiding.
-          // Note: it must be focusable, e.g. `tabindex="-1"`.
-          // We can not rely on relatedTarget to point to the correct element
-          // as it will only point to the shadow host of the newly focused element
-          // and not the element that actually has received focus if it is located
-          // inside a shadow root.
-          if (
-            contains(dataRef.current.floatingContext?.refs.floating.current, activeEl) ||
-            contains(elements.domReference, activeEl) ||
-            movedToFocusGuard
-          ) {
-            return;
-          }
-
-          onOpenChange(false, nativeEvent, 'focus');
-        });
-      },
-    }),
-    [dataRef, elements.domReference, onOpenChange, visibleOnly, timeout],
-  );
-
-  return React.useMemo(() => (enabled ? { reference } : {}), [enabled, reference]);
+  return returnValue;
 }

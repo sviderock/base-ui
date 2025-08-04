@@ -1,30 +1,29 @@
-import * as React from 'react';
-import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
+import { createSignal } from 'solid-js';
+import { Main } from '../../../test/floating-ui-tests/Menu';
 import { useClick, useFloating, useInteractions, useTypeahead } from '../index';
 import type { UseTypeaheadProps } from './useTypeahead';
-import { Main } from '../../../test/floating-ui-tests/Menu';
 
 vi.useFakeTimers({ shouldAdvanceTime: true });
 
-const useImpl = ({
-  addUseClick = false,
-  ...props
-}: Pick<UseTypeaheadProps, 'onMatch' | 'onTypingChange'> & {
-  list?: Array<string>;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  addUseClick?: boolean;
-}) => {
-  const [open, setOpen] = React.useState(true);
-  const [activeIndex, setActiveIndex] = React.useState<null | number>(null);
+const useImpl = (
+  props: Pick<UseTypeaheadProps, 'onMatch' | 'onTypingChange'> & {
+    list?: Array<string>;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    addUseClick?: boolean;
+  },
+) => {
+  const addUseClick = () => props.addUseClick ?? false;
+  const [open, setOpen] = createSignal(true);
+  const [activeIndex, setActiveIndex] = createSignal<null | number>(null);
   const { refs, context } = useFloating({
-    open: props.open ?? open,
+    open: () => props.open ?? open(),
     onOpenChange: props.onOpenChange ?? setOpen,
   });
-  const listRef = React.useRef(props.list ?? ['one', 'two', 'three']);
+  let listRef = props.list ?? ['one', 'two', 'three'];
   const typeahead = useTypeahead(context, {
     listRef,
     activeIndex,
@@ -64,10 +63,10 @@ function Combobox(
 ) {
   const { getReferenceProps, getFloatingProps } = useImpl(props);
   return (
-    <React.Fragment>
+    <>
       <input {...getReferenceProps()} />
       <div {...getFloatingProps()} />
-    </React.Fragment>
+    </>
   );
 }
 

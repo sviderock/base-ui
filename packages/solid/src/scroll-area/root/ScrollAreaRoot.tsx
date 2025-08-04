@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createSignal, onMount, splitProps } from 'solid-js';
+import { createSignal, splitProps } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps } from '../../utils/types';

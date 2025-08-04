@@ -1,35 +1,50 @@
-import * as React from 'react';
-import { useTimeout, Timeout } from '../../utils/useTimeout';
-import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
+import {
+  createContext,
+  createEffect,
+  createSignal,
+  onCleanup,
+  useContext,
+  type Accessor,
+  type JSX,
+} from 'solid-js';
+import { useTimeout, type Timeout } from '../../utils/useTimeout';
 
 import { getDelay } from '../hooks/useHover';
-import type { FloatingRootContext, Delay } from '../types';
+import type { Delay, FloatingRootContext } from '../types';
 
 interface ContextValue {
-  hasProvider: boolean;
-  timeoutMs: number;
-  delayRef: React.MutableRefObject<Delay>;
-  initialDelayRef: React.MutableRefObject<Delay>;
+  hasProvider: Accessor<boolean>;
+  setHasProvider: (value: boolean) => void;
+  timeoutMs: Accessor<number>;
+  setTimeoutMs: (value: number) => void;
+  delayRef: Accessor<Delay>;
+  setDelayRef: (value: Delay) => void;
+  initialDelayRef: Delay;
   timeout: Timeout;
-  currentIdRef: React.MutableRefObject<any>;
-  currentContextRef: React.MutableRefObject<{
+  currentIdRef: Accessor<any>;
+  setCurrentIdRef: (value: any) => void;
+  currentContextRef: {
     onOpenChange: (open: boolean) => void;
     setIsInstantPhase: (value: boolean) => void;
-  } | null>;
+  } | null;
 }
 
-const FloatingDelayGroupContext = React.createContext<ContextValue>({
-  hasProvider: false,
-  timeoutMs: 0,
-  delayRef: { current: 0 },
-  initialDelayRef: { current: 0 },
-  timeout: new Timeout(),
-  currentIdRef: { current: null },
-  currentContextRef: { current: null },
+const FloatingDelayGroupContext = createContext<ContextValue>({
+  hasProvider: () => false,
+  setHasProvider: () => {},
+  timeoutMs: () => 0,
+  setTimeoutMs: () => {},
+  delayRef: () => 0,
+  setDelayRef: () => {},
+  currentIdRef: () => null,
+  setCurrentIdRef: () => {},
+  initialDelayRef: 0,
+  timeout: useTimeout(),
+  currentContextRef: null,
 });
 
 export interface FloatingDelayGroupProps {
-  children?: React.ReactNode;
+  children?: JSX.Element;
   /**
    * The delay to use for the group when it's not in the instant phase.
    */
@@ -53,31 +68,32 @@ export interface FloatingDelayGroupProps {
  * @see https://floating-ui.com/docs/FloatingDelayGroup
  * @internal
  */
-export function FloatingDelayGroup(props: FloatingDelayGroupProps): React.JSX.Element {
-  const { children, delay, timeoutMs = 0 } = props;
-
-  const delayRef = React.useRef(delay);
-  const initialDelayRef = React.useRef(delay);
-  const currentIdRef = React.useRef<string | null>(null);
-  const currentContextRef = React.useRef(null);
+export function FloatingDelayGroup(props: FloatingDelayGroupProps): JSX.Element {
+  let initialDelayRef = props.delay;
+  const [hasProvider, setHasProvider] = createSignal(false);
+  const [timeoutMs, setTimeoutMs] = createSignal(props.timeoutMs ?? 0);
+  const [delayRef, setDelayRef] = createSignal<Delay>(0);
+  const [currentIdRef, setCurrentIdRef] = createSignal<any>(null);
+  const currentContextRef: ContextValue['currentContextRef'] = null;
   const timeout = useTimeout();
 
   return (
     <FloatingDelayGroupContext.Provider
-      value={React.useMemo(
-        () => ({
-          hasProvider: true,
-          delayRef,
-          initialDelayRef,
-          currentIdRef,
-          timeoutMs,
-          currentContextRef,
-          timeout,
-        }),
-        [timeoutMs, timeout],
-      )}
+      value={{
+        hasProvider,
+        setHasProvider,
+        timeoutMs,
+        setTimeoutMs,
+        delayRef,
+        setDelayRef,
+        currentIdRef,
+        setCurrentIdRef,
+        initialDelayRef,
+        timeout,
+        currentContextRef,
+      }}
     >
-      {children}
+      {props.children}
     </FloatingDelayGroupContext.Provider>
   );
 }
@@ -87,22 +103,22 @@ interface UseDelayGroupOptions {
    * Whether delay grouping should be enabled.
    * @default true
    */
-  enabled?: boolean;
+  enabled?: Accessor<boolean>;
 }
 
 interface UseDelayGroupReturn {
   /**
    * The delay reference object.
    */
-  delayRef: React.MutableRefObject<Delay>;
+  delayRef: Accessor<Delay>;
   /**
    * Whether animations should be removed.
    */
-  isInstantPhase: boolean;
+  isInstantPhase: Accessor<boolean>;
   /**
    * Whether a `<FloatingDelayGroup>` provider is present.
    */
-  hasProvider: boolean;
+  hasProvider: Accessor<boolean>;
 }
 
 /**
@@ -115,83 +131,63 @@ export function useDelayGroup(
   context: FloatingRootContext,
   options: UseDelayGroupOptions = {},
 ): UseDelayGroupReturn {
-  const { open, onOpenChange, floatingId } = context;
-  const { enabled = true } = options;
+  const enabled = () => options.enabled?.() ?? true;
 
-  const groupContext = React.useContext(FloatingDelayGroupContext);
-  const {
-    currentIdRef,
-    delayRef,
-    timeoutMs,
-    initialDelayRef,
-    currentContextRef,
-    hasProvider,
-    timeout,
-  } = groupContext;
+  const groupContext = useContext(FloatingDelayGroupContext);
 
-  const [isInstantPhase, setIsInstantPhase] = React.useState(false);
+  const [isInstantPhase, setIsInstantPhase] = createSignal(false);
 
-  useModernLayoutEffect(() => {
+  createEffect(() => {
     function unset() {
       setIsInstantPhase(false);
-      currentContextRef.current?.setIsInstantPhase(false);
-      currentIdRef.current = null;
-      currentContextRef.current = null;
-      delayRef.current = initialDelayRef.current;
+      groupContext.currentContextRef?.setIsInstantPhase(false);
+      groupContext.setCurrentIdRef(null);
+      groupContext.currentContextRef = null;
+      groupContext.setDelayRef(groupContext.initialDelayRef);
     }
 
-    if (!enabled) {
-      return undefined;
+    if (!enabled()) {
+      return;
     }
-    if (!currentIdRef.current) {
-      return undefined;
+    if (!groupContext.currentIdRef()) {
+      return;
     }
 
-    if (!open && currentIdRef.current === floatingId) {
+    if (!context.open() && groupContext.currentIdRef() === context.floatingId()) {
       setIsInstantPhase(false);
 
-      if (timeoutMs) {
-        timeout.start(timeoutMs, unset);
-        return () => {
-          timeout.clear();
-        };
+      if (groupContext.timeoutMs()) {
+        groupContext.timeout.start(groupContext.timeoutMs(), unset);
+
+        onCleanup(() => {
+          groupContext.timeout.clear();
+        });
       }
 
       unset();
     }
-    return undefined;
-  }, [
-    enabled,
-    open,
-    floatingId,
-    currentIdRef,
-    delayRef,
-    timeoutMs,
-    initialDelayRef,
-    currentContextRef,
-    timeout,
-  ]);
+  });
 
-  useModernLayoutEffect(() => {
-    if (!enabled) {
+  createEffect(() => {
+    if (!enabled()) {
       return;
     }
-    if (!open) {
+    if (!context.open()) {
       return;
     }
 
-    const prevContext = currentContextRef.current;
-    const prevId = currentIdRef.current;
+    const prevContext = groupContext.currentContextRef;
+    const prevId = groupContext.currentIdRef();
 
-    currentContextRef.current = { onOpenChange, setIsInstantPhase };
-    currentIdRef.current = floatingId;
-    delayRef.current = {
+    groupContext.currentContextRef = { onOpenChange: context.onOpenChange, setIsInstantPhase };
+    groupContext.setCurrentIdRef(context.floatingId());
+    groupContext.setDelayRef({
       open: 0,
-      close: getDelay(initialDelayRef.current, 'close'),
-    };
+      close: getDelay(() => groupContext.initialDelayRef, 'close'),
+    });
 
-    if (prevId !== null && prevId !== floatingId) {
-      timeout.clear();
+    if (prevId !== null && prevId !== context.floatingId()) {
+      groupContext.timeout.clear();
       setIsInstantPhase(true);
       prevContext?.setIsInstantPhase(true);
       prevContext?.onOpenChange(false);
@@ -199,31 +195,17 @@ export function useDelayGroup(
       setIsInstantPhase(false);
       prevContext?.setIsInstantPhase(false);
     }
-  }, [
-    enabled,
-    open,
-    floatingId,
-    onOpenChange,
-    currentIdRef,
-    delayRef,
-    timeoutMs,
-    initialDelayRef,
-    currentContextRef,
-    timeout,
-  ]);
+  });
 
-  useModernLayoutEffect(() => {
-    return () => {
-      currentContextRef.current = null;
-    };
-  }, [currentContextRef]);
+  createEffect(() => {
+    onCleanup(() => {
+      groupContext.currentContextRef = null;
+    });
+  });
 
-  return React.useMemo(
-    () => ({
-      hasProvider,
-      delayRef,
-      isInstantPhase,
-    }),
-    [hasProvider, delayRef, isInstantPhase],
-  );
+  return {
+    hasProvider: groupContext.hasProvider,
+    delayRef: groupContext.delayRef,
+    isInstantPhase,
+  };
 }

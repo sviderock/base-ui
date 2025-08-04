@@ -1,4 +1,12 @@
-import { createContext, createEffect, useContext, type Accessor } from 'solid-js';
+import {
+  createContext,
+  createEffect,
+  onCleanup,
+  useContext,
+  type Accessor,
+  type JSX,
+} from 'solid-js';
+import { createStore, produce } from 'solid-js/store';
 import { useId } from '../../utils/useId';
 import type { FloatingNodeType, FloatingTreeType, ReferenceType } from '../types';
 import { createEventEmitter } from '../utils/createEventEmitter';
@@ -28,24 +36,25 @@ export function useFloatingNodeId(customParentId?: string): Accessor<string | un
   const id = useId();
   const tree = useFloatingTree();
   const reactParentId = useFloatingParentNodeId();
-  const parentId = customParentId || reactParentId;
+  const parentId = () => customParentId || reactParentId();
 
   createEffect(() => {
-    if (!id) {
-      return undefined;
+    if (!id()) {
+      return;
     }
     const node = { id, parentId };
     tree?.addNode(node);
-    return () => {
+
+    onCleanup(() => {
       tree?.removeNode(node);
-    };
+    });
   });
 
   return id;
 }
 
 export interface FloatingNodeProps {
-  children?: React.ReactNode;
+  children?: JSX.Element;
   id: string | undefined;
 }
 
@@ -54,20 +63,19 @@ export interface FloatingNodeProps {
  * @see https://floating-ui.com/docs/FloatingTree
  * @internal
  */
-export function FloatingNode(props: FloatingNodeProps): React.JSX.Element {
-  const { children, id } = props;
-
+export function FloatingNode(props: FloatingNodeProps): JSX.Element {
   const parentId = useFloatingParentNodeId();
+  const contextValue = { id: () => props.id, parentId };
 
   return (
-    <FloatingNodeContext.Provider value={React.useMemo(() => ({ id, parentId }), [id, parentId])}>
-      {children}
+    <FloatingNodeContext.Provider value={contextValue}>
+      {props.children}
     </FloatingNodeContext.Provider>
   );
 }
 
 export interface FloatingTreeProps {
-  children?: React.ReactNode;
+  children?: JSX.Element;
 }
 
 /**
@@ -81,34 +89,28 @@ export interface FloatingTreeProps {
  * @see https://floating-ui.com/docs/FloatingTree
  * @internal
  */
-export function FloatingTree(props: FloatingTreeProps): React.JSX.Element {
-  const { children } = props;
+export function FloatingTree(props: FloatingTreeProps): JSX.Element {
+  const [nodesRef, setNodesRef] = createStore<Array<FloatingNodeType>>([]);
 
-  const nodesRef = React.useRef<Array<FloatingNodeType>>([]);
+  function addNode(node: FloatingNodeType) {
+    setNodesRef(produce((nodes) => nodes.push(node)));
+  }
 
-  const addNode = React.useCallback((node: FloatingNodeType) => {
-    nodesRef.current = [...nodesRef.current, node];
-  }, []);
+  function removeNode(node: FloatingNodeType) {
+    setNodesRef(produce((nodes) => nodes.splice(nodes.indexOf(node), 1)));
+  }
 
-  const removeNode = React.useCallback((node: FloatingNodeType) => {
-    nodesRef.current = nodesRef.current.filter((n) => n !== node);
-  }, []);
-
-  const [events] = React.useState(() => createEventEmitter());
+  const events = createEventEmitter();
+  const contextValue = {
+    nodesRef,
+    addNode,
+    removeNode,
+    events,
+  };
 
   return (
-    <FloatingTreeContext.Provider
-      value={React.useMemo(
-        () => ({
-          nodesRef,
-          addNode,
-          removeNode,
-          events,
-        }),
-        [addNode, removeNode, events],
-      )}
-    >
-      {children}
+    <FloatingTreeContext.Provider value={contextValue}>
+      {props.children}
     </FloatingTreeContext.Provider>
   );
 }

@@ -25,7 +25,7 @@ export default function Homepage() {
           <p class="HomepageCaption">
             From the creators of Radix, Floating&nbsp;UI, and Material&nbsp;UI.
           </p>
-          <Link class="-m-1 inline-flex items-center gap-1 p-1" href="/react/overview/quick-start">
+          <Link class="-m-1 inline-flex items-center gap-1 p-1" href="/solid/overview/quick-start">
             Documentation <ArrowRightIcon />
           </Link>
         </div>

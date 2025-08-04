@@ -1,10 +1,7 @@
-import * as React from 'react';
-import type { Coords } from '@floating-ui/react-dom';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import type { Coords } from '@floating-ui/dom';
+import { fireEvent, render, screen } from '@solidjs/testing-library';
+import { createEffect, createSignal, mergeProps, Show } from 'solid-js';
 import { test } from 'vitest';
-
-/* eslint-disable testing-library/no-unnecessary-act */
-
 import { useClientPoint, useFloating, useInteractions } from '../index';
 
 function expectLocation({ x, y }: Coords) {
@@ -14,72 +11,67 @@ function expectLocation({ x, y }: Coords) {
   expect(Number(screen.getByTestId('height')?.textContent)).toBe(0);
 }
 
-function App({
-  enabled = true,
-  point,
-  axis,
-}: {
-  enabled?: boolean;
-  point?: Coords;
-  axis?: 'both' | 'x' | 'y';
-}) {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const { refs, elements, context } = useFloating({
+function App(props: { enabled?: boolean; point?: Coords; axis?: 'both' | 'x' | 'y' }) {
+  const merged = mergeProps({ enabled: true }, props);
+  const [isOpen, setIsOpen] = createSignal(false);
+  const floating = useFloating({
     open: isOpen,
     onOpenChange: setIsOpen,
   });
-  const clientPoint = useClientPoint(context, {
-    enabled,
-    ...point,
-    axis,
+  const clientPoint = useClientPoint(floating().context, {
+    enabled: () => merged.enabled,
+    x: () => merged.point?.x,
+    y: () => merged.point?.y,
+    axis: () => merged.axis,
   });
-  const { getReferenceProps, getFloatingProps } = useInteractions([clientPoint]);
+  const interactions = useInteractions(() => [clientPoint()]);
+  let ref: HTMLDivElement | undefined;
 
-  const rect = elements.reference?.getBoundingClientRect();
+  const rect = () => floating().elements.reference()?.getBoundingClientRect();
 
   return (
-    <React.Fragment>
+    <>
       <div
         data-testid="reference"
-        ref={refs.setReference}
-        {...getReferenceProps()}
+        ref={floating().refs.setReference}
+        {...interactions().getReferenceProps()}
         style={{ width: 0, height: 0 }}
       >
         Reference
       </div>
-      {isOpen && (
-        <div data-testid="floating" ref={refs.setFloating} {...getFloatingProps()}>
+      <Show when={isOpen()}>
+        <div
+          data-testid="floating"
+          ref={floating().refs.setFloating}
+          {...interactions().getFloatingProps()}
+        >
           Floating
         </div>
-      )}
+      </Show>
       <button onClick={() => setIsOpen((v) => !v)} />
-      <span data-testid="x">{rect?.x}</span>
-      <span data-testid="y">{rect?.y}</span>
-      <span data-testid="width">{rect?.width}</span>
-      <span data-testid="height">{rect?.height}</span>
-    </React.Fragment>
+      <span data-testid="x">{rect()?.x}</span>
+      <span data-testid="y">{rect()?.y}</span>
+      <span data-testid="width">{rect()?.width}</span>
+      <span data-testid="height">{rect()?.height}</span>
+    </>
   );
 }
 
-test('renders at explicit client point and can be updated', async () => {
-  const { rerender } = render(<App point={{ x: 0, y: 0 }} />);
+test('renders at explicit client point and can be updated', () => {
+  const [point, setPoint] = createSignal({ x: 0, y: 0 });
+  render(() => <App point={point()} />);
 
   fireEvent.click(screen.getByRole('button'));
 
-  await act(async () => {});
-
   expectLocation({ x: 0, y: 0 });
 
-  rerender(<App point={{ x: 1000, y: 1000 }} />);
-  await act(async () => {});
+  setPoint({ x: 1000, y: 1000 });
 
   expectLocation({ x: 1000, y: 1000 });
 });
 
-test('renders at mouse event coords', async () => {
-  render(<App />);
-
-  await act(async () => {});
+test('renders at mouse event coords', () => {
+  render(() => <App />);
 
   fireEvent(
     screen.getByTestId('reference'),
@@ -89,7 +81,6 @@ test('renders at mouse event coords', async () => {
       clientY: 500,
     }),
   );
-  await act(async () => {});
 
   expectLocation({ x: 500, y: 500 });
 
@@ -101,7 +92,6 @@ test('renders at mouse event coords', async () => {
       clientY: 1000,
     }),
   );
-  await act(async () => {});
 
   expectLocation({ x: 1000, y: 1000 });
 
@@ -114,12 +104,10 @@ test('renders at mouse event coords', async () => {
       clientY: 700,
     }),
   );
-  await act(async () => {});
 
   expectLocation({ x: 1000, y: 1000 });
 
   fireEvent.click(screen.getByRole('button'));
-  await act(async () => {});
 
   fireEvent(
     screen.getByTestId('reference'),
@@ -129,7 +117,6 @@ test('renders at mouse event coords', async () => {
       clientY: 700,
     }),
   );
-  await act(async () => {});
 
   expectLocation({ x: 700, y: 700 });
 
@@ -141,13 +128,12 @@ test('renders at mouse event coords', async () => {
       clientY: 0,
     }),
   );
-  await act(async () => {});
 
   expectLocation({ x: 0, y: 0 });
 });
 
-test('ignores mouse events when explicit coords are specified', async () => {
-  render(<App point={{ x: 0, y: 0 }} />);
+test('ignores mouse events when explicit coords are specified', () => {
+  render(() => <App point={{ x: 0, y: 0 }} />);
 
   fireEvent(
     screen.getByTestId('reference'),
@@ -157,16 +143,16 @@ test('ignores mouse events when explicit coords are specified', async () => {
       clientY: 500,
     }),
   );
-  await act(async () => {});
 
   expectLocation({ x: 0, y: 0 });
 });
 
-test('cleans up window listener when closing or disabling', async () => {
-  const { rerender } = render(<App />);
+test('cleans up window listener when closing or disabling', () => {
+  const [enabled, setEnabled] = createSignal<boolean | undefined>(undefined);
+  render(() => <App enabled={enabled()} />);
 
   fireEvent.click(screen.getByRole('button'));
-
+  console.log('1');
   fireEvent(
     screen.getByTestId('reference'),
     new MouseEvent('mousemove', {
@@ -175,9 +161,34 @@ test('cleans up window listener when closing or disabling', async () => {
       clientY: 500,
     }),
   );
-  await act(async () => {});
-
+  console.log('2');
   fireEvent.click(screen.getByRole('button'));
+  console.log('3');
+  fireEvent(
+    document.body,
+    new MouseEvent('mousemove', {
+      bubbles: true,
+      clientX: 0,
+      clientY: 0,
+    }),
+  );
+  console.log('4');
+  expectLocation({ x: 500, y: 500 });
+  console.log('5');
+  fireEvent.click(screen.getByRole('button'));
+
+  fireEvent(
+    document.body,
+    new MouseEvent('mousemove', {
+      bubbles: true,
+      clientX: 500,
+      clientY: 500,
+    }),
+  );
+
+  expectLocation({ x: 500, y: 500 });
+
+  setEnabled(false);
 
   fireEvent(
     document.body,
@@ -187,41 +198,12 @@ test('cleans up window listener when closing or disabling', async () => {
       clientY: 0,
     }),
   );
-  await act(async () => {});
-
-  expectLocation({ x: 500, y: 500 });
-
-  fireEvent.click(screen.getByRole('button'));
-
-  fireEvent(
-    document.body,
-    new MouseEvent('mousemove', {
-      bubbles: true,
-      clientX: 500,
-      clientY: 500,
-    }),
-  );
-  await act(async () => {});
-
-  expectLocation({ x: 500, y: 500 });
-
-  rerender(<App enabled={false} />);
-
-  fireEvent(
-    document.body,
-    new MouseEvent('mousemove', {
-      bubbles: true,
-      clientX: 0,
-      clientY: 0,
-    }),
-  );
-  await act(async () => {});
 
   expectLocation({ x: 500, y: 500 });
 });
 
-test('axis x', async () => {
-  render(<App axis="x" />);
+test('axis x', () => {
+  render(() => <App axis="x" />);
 
   fireEvent.click(screen.getByRole('button'));
 
@@ -233,13 +215,12 @@ test('axis x', async () => {
       clientY: 500,
     }),
   );
-  await act(async () => {});
 
   expectLocation({ x: 500, y: 0 });
 });
 
-test('axis y', async () => {
-  render(<App axis="y" />);
+test('axis y', () => {
+  render(() => <App axis="y" />);
 
   fireEvent.click(screen.getByRole('button'));
 
@@ -251,13 +232,12 @@ test('axis y', async () => {
       clientY: 500,
     }),
   );
-  await act(async () => {});
 
   expectLocation({ x: 0, y: 500 });
 });
 
-test('removes window listener when cursor lands on floating element', async () => {
-  render(<App />);
+test('removes window listener when cursor lands on floating element', () => {
+  render(() => <App />);
 
   fireEvent.click(screen.getByRole('button'));
 
@@ -287,7 +267,6 @@ test('removes window listener when cursor lands on floating element', async () =
       clientY: 0,
     }),
   );
-  await act(async () => {});
 
   expectLocation({ x: 500, y: 500 });
 });

@@ -1,4 +1,12 @@
-import { children, getOwner, type Accessor, type JSX, type ParentProps } from 'solid-js';
+import {
+  children,
+  createSignal,
+  getOwner,
+  type Accessor,
+  type JSX,
+  type ParentProps,
+} from 'solid-js';
+import { createStore, type SetStoreFunction, type Store } from 'solid-js/store';
 
 export function callEventHandler<T, E extends Event>(
   eventHandler: JSX.EventHandlerUnion<T, E> | undefined,
@@ -59,4 +67,24 @@ export function childrenLazy<T extends Record<string, any>>(
     }
     return x;
   };
+}
+
+export interface RefSignal<T extends Element> {
+  ref: Accessor<T | undefined>;
+  setRef: (value: T | undefined) => void;
+}
+
+export interface StoreSignal<T extends object> {
+  store: Store<T>;
+  setStore: SetStoreFunction<T>;
+}
+
+export function createRefSignal<T extends Element>(initialValue: T): RefSignal<T> {
+  const [ref, setRef] = createSignal<T>(initialValue);
+  return { ref, setRef };
+}
+
+export function createStoreSignal<T extends object>(initialValue: T): StoreSignal<T> {
+  const [store, setStore] = createStore<T>(initialValue);
+  return { store, setStore };
 }

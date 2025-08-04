@@ -30,6 +30,7 @@
     "./accordion": "./src/accordion/index.ts",
     "./collapsible": "./src/collapsible/index.ts",
     "./merge-props": "./src/merge-props/index.ts",
+    "./scroll-area": "./src/scroll-area/index.ts",
     "./solid-helpers": "./src/solid-helpers.ts"
   },
   "imports": {
