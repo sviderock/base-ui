@@ -20,7 +20,7 @@ describe('useInteractions', () => {
         },
       ]);
 
-      const { onClick, onKeyDown } = interactions().getReferenceProps({ onClick: userOnClick });
+      const { onClick, onKeyDown } = interactions.getReferenceProps({ onClick: userOnClick });
 
       // @ts-expect-error
       onClick();
@@ -43,7 +43,7 @@ describe('useInteractions', () => {
       const interactions = useInteractions(() => [{ reference: { onClick() {} } }]);
       expect(() =>
         // @ts-expect-error
-        interactions().getReferenceProps({ onClick: undefined }).onClick(),
+        interactions.getReferenceProps({ onClick: undefined }).onClick(),
       ).not.toThrowError();
       return null;
     }
@@ -55,7 +55,7 @@ describe('useInteractions', () => {
     function App() {
       const interactions = useInteractions(() => []);
 
-      const props = interactions().getReferenceProps({
+      const props = interactions.getReferenceProps({
         // @ts-expect-error
         onlyShowVotes: true,
         onyx: () => {},
@@ -74,7 +74,7 @@ describe('useInteractions', () => {
     function App() {
       const interactions = useInteractions(() => []);
 
-      const props = interactions().getReferenceProps({
+      const props = interactions.getReferenceProps({
         // @ts-expect-error
         onyx: () => 'returned value',
       });

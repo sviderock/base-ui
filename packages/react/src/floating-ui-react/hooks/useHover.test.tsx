@@ -8,13 +8,13 @@ import {
   screen,
   waitFor,
 } from '@mui/internal-test-utils';
-import * as React from 'react';
-import { vi, test } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { useFloating, useHover, useInteractions } from '../index';
-import type { UseHoverProps } from './useHover';
+import * as React from 'react';
+import { test, vi } from 'vitest';
 import { Popover } from '../../../test/floating-ui-tests/Popover';
 import { isJSDOM } from '../../utils/detectBrowser';
+import { useFloating, useHover, useInteractions } from '../index';
+import type { UseHoverProps } from './useHover';
 
 vi.useFakeTimers();
 
@@ -24,6 +24,12 @@ function App({ showReference = true, ...props }: UseHoverProps & { showReference
     open,
     onOpenChange: setOpen,
   });
+
+  console.log('App', {
+    refs,
+    open,
+  });
+
   const { getReferenceProps, getFloatingProps } = useInteractions([useHover(context, props)]);
 
   return (
@@ -262,18 +268,28 @@ describe.skipIf(!isJSDOM)('useHover', () => {
   test('does not show after delay if domReference changes', async () => {
     const { rerender } = render(<App delay={1000} />);
 
+    console.log('1');
+    screen.debug();
     fireEvent.mouseEnter(screen.getByRole('button'));
 
+    console.log('2');
+    screen.debug();
     await act(async () => {
       vi.advanceTimersByTime(1);
     });
 
+    console.log('3');
+    screen.debug();
     rerender(<App showReference={false} />);
 
+    console.log('4');
+    screen.debug();
     await act(async () => {
       vi.advanceTimersByTime(999);
     });
 
+    console.log('5');
+    screen.debug();
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
     cleanup();

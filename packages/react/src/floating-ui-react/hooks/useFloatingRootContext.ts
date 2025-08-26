@@ -1,16 +1,16 @@
-import * as React from 'react';
 import { isElement } from '@floating-ui/utils/dom';
+import * as React from 'react';
 import { useEventCallback } from '../../utils/useEventCallback';
 
-import type {
-  FloatingRootContext,
-  ReferenceElement,
-  ContextData,
-  OpenChangeReason,
-} from '../types';
-import { createEventEmitter } from '../utils/createEventEmitter';
 import { useId } from '../../utils/useId';
 import { useFloatingParentNodeId } from '../components/FloatingTree';
+import type {
+  ContextData,
+  FloatingRootContext,
+  OpenChangeReason,
+  ReferenceElement,
+} from '../types';
+import { createEventEmitter } from '../utils/createEventEmitter';
 
 export interface UseFloatingRootContextOptions {
   open?: boolean;

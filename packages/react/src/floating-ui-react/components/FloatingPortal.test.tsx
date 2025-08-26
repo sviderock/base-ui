@@ -1,8 +1,8 @@
 import { fireEvent, flushMicrotasks, render, screen } from '@mui/internal-test-utils';
 import * as React from 'react';
 
-import { FloatingPortal, useFloating } from '../index';
 import { isJSDOM } from '../../utils/detectBrowser';
+import { FloatingPortal, useFloating } from '../index';
 
 function App(props: {
   root?: HTMLElement | null | React.RefObject<HTMLElement | null>;
@@ -46,6 +46,7 @@ describe.skipIf(!isJSDOM)('FloatingPortal', () => {
     render(<App id="custom-id" />);
     fireEvent.click(screen.getByTestId('reference'));
     await flushMicrotasks();
+    screen.debug(screen.getByTestId('floating').parentElement?.parentElement);
     expect(screen.getByTestId('floating').parentElement?.parentElement?.id).toBe('custom-id');
   });
 

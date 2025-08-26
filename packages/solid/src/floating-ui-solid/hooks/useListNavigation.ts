@@ -455,7 +455,7 @@ export function useListNavigation(
     }
 
     const nodes = tree.nodesRef;
-    const parent = nodes.find((node) => node.id() === parentId())?.context?.elements.floating();
+    const parent = nodes.find((node) => node.id === parentId())?.context?.elements.floating();
     const floating = context.elements.floating();
     const activeEl = activeElement(getDocument(floating));
     const treeContainsActiveEl = nodes.some(
@@ -563,7 +563,7 @@ export function useListNavigation(
     return (
       props.parentOrientation?.() ??
       (tree?.nodesRef
-        .find((node) => node.id() === parentId())
+        .find((node) => node.id === parentId())
         ?.context?.dataRef.orientation() as ReturnType<
         Exclude<UseListNavigationProps['orientation'], undefined>
       >)
@@ -834,9 +834,8 @@ export function useListNavigation(
           event.key.trim() === '';
 
         if (virtual() && context.open()) {
-          const rootNode = tree?.nodesRef.find((node) => node.parentId() == null);
-          const deepestNode =
-            tree && rootNode ? getDeepestNode(tree.nodesRef, rootNode.id()) : null;
+          const rootNode = tree?.nodesRef.find((node) => node.parentId == null);
+          const deepestNode = tree && rootNode ? getDeepestNode(tree.nodesRef, rootNode.id) : null;
 
           if (isMoveKey && deepestNode && props.virtualItemRef?.ref()) {
             const eventObject = new KeyboardEvent('keydown', {
@@ -865,7 +864,7 @@ export function useListNavigation(
             if ((isMainKey || isHomeOrEndKey) && deepestNode.context) {
               if (
                 deepestNode.context.open() &&
-                deepestNode.parentId() &&
+                deepestNode.parentId &&
                 event.currentTarget !== deepestNode.context.elements.domReference()
               ) {
                 stopEvent(event);

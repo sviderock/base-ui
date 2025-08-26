@@ -11,7 +11,13 @@ import { useId } from '../../utils/useId';
 import type { FloatingNodeType, FloatingTreeType, ReferenceType } from '../types';
 import { createEventEmitter } from '../utils/createEventEmitter';
 
-const FloatingNodeContext = createContext<FloatingNodeType | null>(null);
+interface ContextFloatingNodeType {
+  id: Accessor<FloatingNodeType['id']>;
+  parentId: Accessor<FloatingNodeType['parentId']>;
+  context?: FloatingNodeType['context'];
+}
+
+const FloatingNodeContext = createContext<ContextFloatingNodeType | null>(null);
 const FloatingTreeContext = createContext<FloatingTreeType | null>(null);
 
 /**
@@ -35,14 +41,15 @@ export const useFloatingTree = <
 export function useFloatingNodeId(customParentId?: string): Accessor<string | undefined> {
   const id = useId();
   const tree = useFloatingTree();
-  const reactParentId = useFloatingParentNodeId();
-  const parentId = () => customParentId || reactParentId();
+  const solidParentId = useFloatingParentNodeId();
+  const parentId = () => customParentId || solidParentId();
 
   createEffect(() => {
     if (!id()) {
       return;
     }
-    const node = { id, parentId };
+
+    const node = { id: id(), parentId: parentId() };
     tree?.addNode(node);
 
     onCleanup(() => {
@@ -101,15 +108,17 @@ export function FloatingTree(props: FloatingTreeProps): JSX.Element {
   }
 
   const events = createEventEmitter();
-  const contextValue = {
-    nodesRef,
-    addNode,
-    removeNode,
-    events,
-  };
 
   return (
-    <FloatingTreeContext.Provider value={contextValue}>
+    <FloatingTreeContext.Provider
+      value={{
+        nodesRef,
+        setNodesRef,
+        addNode,
+        removeNode,
+        events,
+      }}
+    >
       {props.children}
     </FloatingTreeContext.Provider>
   );

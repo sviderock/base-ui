@@ -1,58 +1,64 @@
-import { useId } from '@base-ui-components/react/utils';
-import { createRenderer, screen } from '@mui/internal-test-utils';
+import { createRenderer } from '#test-utils';
+import { useId } from '@base-ui-components/solid/utils';
+import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
+import { createSignal } from 'solid-js';
+import { generateHydrationScript, NoHydration } from 'solid-js/web';
 
 interface TestComponentProps {
   id?: string;
 }
 
 describe('useId', () => {
-  const { render, renderToString } = createRenderer();
+  const { render } = createRenderer();
 
   it('returns the provided ID', () => {
-    function TestComponent({ id: idProp }: TestComponentProps) {
-      const id = useId(idProp);
-      return <span data-testid="target" id={id} />;
+    const [id, setId] = createSignal('some-id');
+
+    function TestComponent(props: TestComponentProps) {
+      console.log(generateHydrationScript());
+      const id = useId(() => props.id);
+      return <span data-testid="target" id={id()} />;
     }
-    const { hydrate } = renderToString(<TestComponent id="some-id" />);
-    const { setProps } = hydrate();
+
+    render(() => <TestComponent id={id()} />);
 
     expect(screen.getByTestId('target')).to.have.property('id', 'some-id');
 
-    setProps({ id: 'another-id' });
+    setId('another-id');
 
     expect(screen.getByTestId('target')).to.have.property('id', 'another-id');
   });
 
   it("generates an ID if one isn't provided", () => {
-    function TestComponent({ id: idProp }: TestComponentProps) {
-      const id = useId(idProp);
-      return <span data-testid="target" id={id} />;
+    const [id, setId] = createSignal<string | undefined>();
+
+    function TestComponent(props: TestComponentProps) {
+      const id = useId(() => props.id);
+      return <span data-testid="target" id={id()} />;
     }
-    const { hydrate } = renderToString(<TestComponent />);
-    const { setProps } = hydrate();
+    render(() => <TestComponent id={id()} />);
 
     expect(screen.getByTestId('target').id).not.to.equal('');
-
-    setProps({ id: 'another-id' });
+    setId('another-id');
     expect(screen.getByTestId('target')).to.have.property('id', 'another-id');
   });
 
   it('can be suffixed', () => {
     function Widget() {
       const id = useId();
-      const labelId = `${id}-label`;
+      const labelId = () => `${id()}-label`;
 
       return (
-        <React.Fragment>
-          <span data-testid="labelable" aria-labelledby={labelId} />
-          <span data-testid="label" id={labelId}>
+        <>
+          <span data-testid="labelable" aria-labelledby={labelId()} />
+          <span data-testid="label" id={labelId()}>
             Label
           </span>
-        </React.Fragment>
+        </>
       );
     }
-    render(<Widget />);
+    render(() => <Widget />);
 
     expect(screen.getByTestId('labelable')).to.have.attr(
       'aria-labelledby',
@@ -66,18 +72,18 @@ describe('useId', () => {
       const labelPartB = useId();
 
       return (
-        <React.Fragment>
-          <span data-testid="labelable" aria-labelledby={`${labelPartA} ${labelPartB}`} />
-          <span data-testid="labelA" id={labelPartA}>
+        <>
+          <span data-testid="labelable" aria-labelledby={`${labelPartA()} ${labelPartB()}`} />
+          <span data-testid="labelA" id={labelPartA()}>
             A
           </span>
-          <span data-testid="labelB" id={labelPartB}>
+          <span data-testid="labelB" id={labelPartB()}>
             B
           </span>
-        </React.Fragment>
+        </>
       );
     }
-    render(<Widget />);
+    render(() => <Widget />);
 
     expect(screen.getByTestId('labelable')).to.have.attr(
       'aria-labelledby',
@@ -85,15 +91,17 @@ describe('useId', () => {
     );
   });
 
-  it('provides an ID on server in React 18', ({ skip }) => {
-    if (React.useId === undefined) {
-      skip();
-    }
+  // TODO: not sure if this is needed as supposedly Solid is SSR friendly
+  it('provides an ID on server', () => {
     function TestComponent() {
       const id = useId();
-      return <span data-testid="target" id={id} />;
+      return <span data-testid="target" id={id()} />;
     }
-    renderToString(<TestComponent />);
+    render(() => (
+      <NoHydration>
+        <TestComponent />
+      </NoHydration>
+    ));
 
     expect(screen.getByTestId('target').id).not.to.equal('');
   });
@@ -104,15 +112,15 @@ describe('useId', () => {
       const id = useId(undefined, PREFIX);
 
       return (
-        <React.Fragment>
-          <span data-testid="labelable" aria-labelledby={id} />
-          <span data-testid="label" id={id}>
+        <>
+          <span data-testid="labelable" aria-labelledby={id()} />
+          <span data-testid="label" id={id()}>
             Label
           </span>
-        </React.Fragment>
+        </>
       );
     }
-    render(<Widget />);
+    render(() => <Widget />);
 
     expect(screen.getByTestId('label').id.slice(0, 8)).to.equal(`${PREFIX}-`);
     expect(screen.getByTestId('labelable')).to.have.attr(

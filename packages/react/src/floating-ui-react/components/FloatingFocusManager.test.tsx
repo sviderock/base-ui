@@ -4,19 +4,22 @@
 /* eslint-disable react/function-component-definition */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable react/jsx-fragments */
-import userEvent from '@testing-library/user-event';
 import {
-  flushMicrotasks,
   act,
   fireEvent,
+  flushMicrotasks,
   render,
   screen,
   waitFor,
   within,
 } from '@mui/internal-test-utils';
-import { test } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import * as React from 'react';
 import * as ReactDOMClient from 'react-dom/client';
+import { test } from 'vitest';
+import { Main as MenuVirtual } from '../../../test/floating-ui-tests/MenuVirtual';
+import { Main as Navigation } from '../../../test/floating-ui-tests/Navigation';
+import { isJSDOM } from '../../utils/detectBrowser';
 import {
   FloatingFocusManager,
   FloatingNode,
@@ -32,9 +35,6 @@ import {
   useRole,
 } from '../index';
 import type { FloatingFocusManagerProps } from './FloatingFocusManager';
-import { isJSDOM } from '../../utils/detectBrowser';
-import { Main as MenuVirtual } from '../../../test/floating-ui-tests/MenuVirtual';
-import { Main as Navigation } from '../../../test/floating-ui-tests/Navigation';
 
 beforeAll(() => {
   vi.spyOn(window, 'requestAnimationFrame').mockImplementation(
@@ -516,7 +516,8 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       expect(document.body).not.toHaveFocus();
     });
 
-    test.skipIf(!isJSDOM)('false', async () => {
+    // test.skipIf(!isJSDOM)('false', async () => {
+    test('false', async () => {
       render(<App guards={false} />);
 
       fireEvent.click(screen.getByTestId('reference'));
@@ -527,6 +528,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       await userEvent.tab();
 
       expect(document.activeElement).toHaveAttribute('inert', '');
+      // screen.debug();
     });
   });
 
@@ -2166,8 +2168,13 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
     expect(screen.getByTestId('inner')).toHaveFocus();
     await userEvent.tab({ shift: true });
+
     expect(screen.getByTestId('reference')).toHaveFocus();
+    // console.log('ACTIVE 1', document.activeElement?.outerHTML);
+    // screen.debug();
     await userEvent.tab();
+    // console.log('ACTIVE 2', document.activeElement?.outerHTML);
+    // screen.debug();
     expect(screen.getByTestId('inner')).toHaveFocus();
   });
 });

@@ -29,6 +29,7 @@ export class Timeout {
   }
 
   clear = () => {
+    console.log('clear', this.currentId);
     if (this.currentId !== EMPTY) {
       clearTimeout(this.currentId as TimeoutId);
       this.currentId = EMPTY;

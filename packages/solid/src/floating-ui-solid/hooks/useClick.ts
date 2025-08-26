@@ -112,7 +112,7 @@ export function useClick(
       );
       context.onOpenChange(nextOpen, event, 'click');
     },
-    onKeyDown() {
+    onKeyDown(e) {
       pointerTypeRef = undefined;
     },
   }));

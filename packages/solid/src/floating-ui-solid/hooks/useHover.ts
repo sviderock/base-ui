@@ -108,7 +108,6 @@ export function useHover(
   let blockMouseMoveRef = true;
   let performedPointerEventsMutationRef = false;
   let restTimeoutPendingRef = false;
-  let handlerRef: ((event: MouseEvent) => void) | undefined;
   let unbindMouseMoveRef = () => {};
 
   const isHoverOpen = () => {
@@ -169,7 +168,7 @@ export function useHover(
     reason: OpenChangeReason = 'hover',
   ) => {
     const closeDelay = getDelay(delay, 'close', pointerTypeRef);
-    if (closeDelay && !handlerRef) {
+    if (closeDelay) {
       timeout.start(closeDelay, () => context.onOpenChange(false, event, reason));
     } else if (runElseBranch) {
       timeout.clear();
@@ -179,7 +178,6 @@ export function useHover(
 
   const cleanupMouseMoveHandler = () => {
     unbindMouseMoveRef();
-    handlerRef = undefined;
   };
 
   const clearPointerEvents = () => {
@@ -249,7 +247,7 @@ export function useHover(
           timeout.clear();
         }
 
-        handlerRef = props.handleClose({
+        const handler = props.handleClose({
           ...context.dataRef.floatingContext,
           tree,
           x: event.clientX,
@@ -262,8 +260,6 @@ export function useHover(
             }
           },
         });
-
-        const handler = handlerRef;
 
         doc.addEventListener('mousemove', handler);
         unbindMouseMoveRef = () => {
@@ -321,8 +317,8 @@ export function useHover(
       }
     }
 
-    if (isElement(context.elements.domReference)) {
-      const reference = context.elements.domReference as unknown as HTMLElement;
+    if (isElement(context.elements.domReference())) {
+      const reference = context.elements.domReference() as unknown as HTMLElement;
       const floating = context.elements.floating();
 
       if (context.open()) {
@@ -387,7 +383,7 @@ export function useHover(
         const ref = domReference as unknown as HTMLElement | SVGSVGElement;
 
         const parentFloating = tree?.nodesRef
-          .find((node) => node.id() === parentId())
+          .find((node) => node.id === parentId())
           ?.context?.elements.floating();
 
         if (parentFloating) {
@@ -416,15 +412,16 @@ export function useHover(
     }
   });
 
-  onCleanup(
-    on([enabled, context.elements.domReference, () => timeout, () => restTimeout], () => {
-      cleanupMouseMoveHandler();
-      timeout.clear();
-      restTimeout.clear();
-      clearPointerEvents();
+  createEffect(
+    on([enabled, context.elements.domReference], () => {
+      onCleanup(() => {
+        cleanupMouseMoveHandler();
+        timeout.clear();
+        restTimeout.clear();
+        clearPointerEvents();
+      });
     }),
   );
-
   const reference = createMemo<ElementProps['reference']>(() => {
     function setPointerRef(event: PointerEvent) {
       pointerTypeRef = event.pointerType;

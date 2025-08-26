@@ -1,5 +1,5 @@
 'use client';
-import { createSignal, onCleanup } from 'solid-js';
+import { onCleanup } from 'solid-js';
 
 type TimeoutId = number;
 export type Timeout = ReturnType<typeof useTimeout>;
@@ -10,27 +10,25 @@ const EMPTY = 0 as TimeoutId;
  * A `setTimeout` with automatic cleanup and guard.
  */
 export function useTimeout() {
-  const [currentId, setCurrentId] = createSignal<TimeoutId>(EMPTY);
+  let currentId: TimeoutId = EMPTY;
 
   function start(delay: number, fn: Function) {
     clear();
-    setCurrentId(
-      setTimeout(() => {
-        setCurrentId(EMPTY);
-        fn();
-      }, delay) as unknown as TimeoutId,
-    );
+    currentId = setTimeout(() => {
+      currentId = EMPTY;
+      fn();
+    }, delay) as unknown as TimeoutId;
   }
 
   function clear() {
-    if (currentId() !== EMPTY) {
-      clearTimeout(currentId() as TimeoutId);
-      setCurrentId(EMPTY);
+    if (currentId !== EMPTY) {
+      clearTimeout(currentId as TimeoutId);
+      currentId = EMPTY;
     }
   }
 
   function isStarted() {
-    return currentId() !== EMPTY;
+    return currentId !== EMPTY;
   }
 
   onCleanup(() => {

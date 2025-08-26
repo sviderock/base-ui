@@ -1,4 +1,5 @@
-import { createMemo, type Accessor, type JSX } from 'solid-js';
+import { combineProps } from '@solid-primitives/props';
+import { type Accessor, type JSX } from 'solid-js';
 import type { ElementProps } from '../types';
 import { ACTIVE_KEY, FOCUSABLE_ATTRIBUTE, SELECTED_KEY } from '../utils/constants';
 
@@ -23,101 +24,46 @@ export interface UseInteractionsReturn {
  */
 export function useInteractions(
   propsList: Accessor<Array<ElementProps | void>> = () => [],
-): Accessor<UseInteractionsReturn> {
-  const returnValue = createMemo<UseInteractionsReturn>(() => ({
+): UseInteractionsReturn {
+  return {
     getReferenceProps(userProps) {
-      return mergeProps(userProps, propsList(), 'reference');
+      const referenceList = propsList()
+        .map((item) => item?.reference)
+        .filter((i): i is JSX.HTMLAttributes<Element> => !!i);
+
+      if (userProps) {
+        referenceList.push(userProps);
+      }
+
+      return combineProps(referenceList, { reverseEventHandlers: true });
     },
     getFloatingProps(userProps) {
-      // @ts-expect-error TODO: fix typing
-      return mergeProps(userProps, propsList(), 'floating');
+      const list = propsList()
+        .map((item) => item?.floating)
+        .filter((i): i is JSX.HTMLAttributes<HTMLElement> => !!i);
+
+      list.unshift({ tabIndex: -1, [FOCUSABLE_ATTRIBUTE as any]: '' });
+      if (userProps) {
+        list.push(userProps);
+      }
+      return combineProps(list, { reverseEventHandlers: true });
     },
     getItemProps(userProps) {
-      // @ts-expect-error TODO: fix typing
-      return mergeProps(userProps, propsList(), 'item');
+      const list = propsList()
+        .map((item) => item?.item)
+        .filter((i): i is JSX.HTMLAttributes<HTMLElement> => !!i);
+
+      if (userProps) {
+        list.push(userProps);
+      }
+
+      return combineProps(list, { reverseEventHandlers: true });
     },
-  }));
-
-  return returnValue;
+  };
 }
 
-/* eslint-disable guard-for-in */
-
-function mergeProps<Key extends keyof ElementProps>(
-  userProps: (JSX.HTMLAttributes<Element> & ExtendedUserProps) | undefined,
-  propsList: Array<ElementProps | void>,
-  elementKey: Key,
-): Record<string, unknown> {
-  const eventHandlers = new Map<string, Array<(...args: unknown[]) => void>>();
-  const isItem = elementKey === 'item';
-
-  const outputProps = {} as Record<string, unknown>;
-
-  if (elementKey === 'floating') {
-    outputProps.tabIndex = -1;
-    outputProps[FOCUSABLE_ATTRIBUTE] = '';
-  }
-
-  for (const key in userProps) {
-    if (isItem && userProps) {
-      if (key === ACTIVE_KEY || key === SELECTED_KEY) {
-        continue;
-      }
-    }
-    outputProps[key] = (userProps as any)[key];
-  }
-
-  for (let i = 0; i < propsList.length; i += 1) {
-    let props;
-
-    const propsOrGetProps = propsList[i]?.[elementKey];
-    if (typeof propsOrGetProps === 'function') {
-      props = userProps ? propsOrGetProps(userProps) : null;
-    } else {
-      props = propsOrGetProps;
-    }
-    if (!props) {
-      continue;
-    }
-
-    mutablyMergeProps(outputProps, props, isItem, eventHandlers);
-  }
-
-  mutablyMergeProps(outputProps, userProps, isItem, eventHandlers);
-
-  return outputProps;
-}
-
-function mutablyMergeProps(
-  outputProps: Record<string, unknown>,
-  props: any,
-  isItem: boolean,
-  eventHandlers: Map<string, Array<(...args: unknown[]) => void>>,
-) {
-  for (const key in props) {
-    const value = (props as any)[key];
-
-    if (isItem && (key === ACTIVE_KEY || key === SELECTED_KEY)) {
-      continue;
-    }
-
-    if (!key.startsWith('on')) {
-      outputProps[key] = value;
-    } else {
-      if (!eventHandlers.has(key)) {
-        eventHandlers.set(key, []);
-      }
-
-      if (typeof value === 'function') {
-        eventHandlers.get(key)?.push(value);
-
-        outputProps[key] = (...args: unknown[]) => {
-          return eventHandlers
-            .get(key)
-            ?.map((fn) => fn(...args))
-            .find((val) => val !== undefined);
-        };
-      }
-    }
-  }
-}
+// if (isItem && userProps) {
+//   if (key === ACTIVE_KEY || key === SELECTED_KEY) {
+//     continue;
+//   }
+// }

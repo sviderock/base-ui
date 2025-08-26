@@ -1,28 +1,29 @@
-import * as React from 'react';
-import { tabbable, isTabbable, focusable, type FocusableElement } from 'tabbable';
 import { getNodeName, isHTMLElement } from '@floating-ui/utils/dom';
+import { screen } from '@testing-library/react';
+import * as React from 'react';
+import { focusable, isTabbable, tabbable, type FocusableElement } from 'tabbable';
+import { FocusGuard } from '../../utils/FocusGuard';
+import { useEventCallback } from '../../utils/useEventCallback';
 import { useForkRef } from '../../utils/useForkRef';
 import { useLatestRef } from '../../utils/useLatestRef';
-import { useEventCallback } from '../../utils/useEventCallback';
 import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
-import { FocusGuard } from '../../utils/FocusGuard';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import {
   activeElement,
   contains,
   getDocument,
+  getFloatingFocusElement,
+  getNextTabbable,
+  getNodeAncestors,
+  getNodeChildren,
+  getPreviousTabbable,
+  getTabbableOptions,
   getTarget,
+  isOutsideEvent,
   isTypeableCombobox,
   isVirtualClick,
   isVirtualPointerEvent,
   stopEvent,
-  getNodeAncestors,
-  getNodeChildren,
-  getFloatingFocusElement,
-  getTabbableOptions,
-  isOutsideEvent,
-  getNextTabbable,
-  getPreviousTabbable,
 } from '../utils';
 
 import type { FloatingRootContext, OpenChangeReason } from '../types';
@@ -31,6 +32,9 @@ import { enqueueFocus } from '../utils/enqueueFocus';
 import { markOthers, supportsInert } from '../utils/markOthers';
 import { usePortalContext } from './FloatingPortal';
 import { useFloatingTree } from './FloatingTree';
+
+let count = 0;
+let countEffect3 = 0;
 
 const LIST_LIMIT = 20;
 let previouslyFocusedElements: Element[] = [];
@@ -606,7 +610,6 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
       if (['hover', 'safe-polygon'].includes(reason) && event.type === 'mouseleave') {
         preventReturnFocusRef.current = true;
       }
-
       if (reason !== 'outside-press') {
         return;
       }

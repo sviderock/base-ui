@@ -40,7 +40,7 @@ function initialIndex(
  * Used to register a list item and its index (DOM position) in the `CompositeList`.
  */
 export function useCompositeListItem<Metadata extends Accessor<unknown>>(
-  params: UseCompositeListItemParameters<Metadata>,
+  params: UseCompositeListItemParameters<Metadata> = {},
 ): UseCompositeListItemReturnValue {
   const context = useCompositeListContext();
   const indexRef = -1;

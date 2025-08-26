@@ -1,8 +1,9 @@
 import { isElement } from '@floating-ui/utils/dom';
-import { createSignal, type Accessor } from 'solid-js';
+import { screen } from '@solidjs/testing-library';
+import { createEffect, createSignal, onCleanup, onMount, type Accessor } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { useId } from '../../utils/useId';
-import { useFloatingParentNodeId } from '../components/FloatingTree';
+import { useFloatingNodeId, useFloatingParentNodeId } from '../components/FloatingTree';
 import type {
   ContextData,
   FloatingRootContext,
@@ -15,9 +16,9 @@ export interface UseFloatingRootContextOptions {
   open?: Accessor<boolean | undefined>;
   onOpenChange?: (open: boolean, event?: Event, reason?: OpenChangeReason) => void;
   elements: {
-    reference: Accessor<Element | undefined>;
-    floating: Accessor<HTMLElement | undefined>;
-    domReference: Accessor<Element | undefined>;
+    reference: Accessor<Element | null>;
+    floating: Accessor<HTMLElement | null>;
+    domReference: Accessor<Element | null>;
   };
 }
 
@@ -27,7 +28,8 @@ export function useFloatingRootContext(
   const open = () => options.open?.() ?? false;
   const floatingId = useId();
   const events = createEventEmitter();
-  const nested = () => useFloatingParentNodeId() != null;
+  const parentId = useFloatingParentNodeId();
+  const nested = () => parentId() != null;
   const dataRef: ContextData = {};
 
   if (process.env.NODE_ENV !== 'production') {
@@ -41,7 +43,7 @@ export function useFloatingRootContext(
     }
   }
 
-  const [positionReference, setPositionReference] = createSignal<ReferenceElement | undefined>(
+  const [positionReference, setPositionReference] = createSignal<ReferenceElement | null>(
     options.elements.reference(),
   );
   const [floating, setFloating] = createSignal(options.elements.floating());
@@ -49,7 +51,7 @@ export function useFloatingRootContext(
 
   const onOpenChange = (newOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
     dataRef.openEvent = newOpen ? event : undefined;
-    events.emit('openchange', { open: newOpen, event, reason, nested });
+    events.emit('openchange', { open: newOpen, event, reason, nested: nested() });
     options.onOpenChange?.(newOpen, event, reason);
   };
 

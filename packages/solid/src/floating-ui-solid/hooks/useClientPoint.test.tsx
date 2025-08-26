@@ -1,6 +1,6 @@
 import type { Coords } from '@floating-ui/dom';
 import { fireEvent, render, screen } from '@solidjs/testing-library';
-import { createEffect, createSignal, mergeProps, Show } from 'solid-js';
+import { createSignal, mergeProps, Show } from 'solid-js';
 import { test } from 'vitest';
 import { useClientPoint, useFloating, useInteractions } from '../index';
 
@@ -14,37 +14,32 @@ function expectLocation({ x, y }: Coords) {
 function App(props: { enabled?: boolean; point?: Coords; axis?: 'both' | 'x' | 'y' }) {
   const merged = mergeProps({ enabled: true }, props);
   const [isOpen, setIsOpen] = createSignal(false);
-  const floating = useFloating({
+  const { refs, elements, context } = useFloating({
     open: isOpen,
     onOpenChange: setIsOpen,
   });
-  const clientPoint = useClientPoint(floating().context, {
+  const clientPoint = useClientPoint(context, {
     enabled: () => merged.enabled,
     x: () => merged.point?.x,
     y: () => merged.point?.y,
     axis: () => merged.axis,
   });
-  const interactions = useInteractions(() => [clientPoint()]);
-  let ref: HTMLDivElement | undefined;
+  const { getReferenceProps, getFloatingProps } = useInteractions(() => [clientPoint()]);
 
-  const rect = () => floating().elements.reference()?.getBoundingClientRect();
+  const rect = () => elements.reference()?.getBoundingClientRect();
 
   return (
     <>
       <div
         data-testid="reference"
-        ref={floating().refs.setReference}
-        {...interactions().getReferenceProps()}
+        ref={refs.setReference}
+        {...getReferenceProps()}
         style={{ width: 0, height: 0 }}
       >
         Reference
       </div>
       <Show when={isOpen()}>
-        <div
-          data-testid="floating"
-          ref={floating().refs.setFloating}
-          {...interactions().getFloatingProps()}
-        >
+        <div data-testid="floating" ref={refs.setFloating} {...getFloatingProps()}>
           Floating
         </div>
       </Show>
@@ -152,7 +147,6 @@ test('cleans up window listener when closing or disabling', () => {
   render(() => <App enabled={enabled()} />);
 
   fireEvent.click(screen.getByRole('button'));
-  console.log('1');
   fireEvent(
     screen.getByTestId('reference'),
     new MouseEvent('mousemove', {
@@ -161,9 +155,8 @@ test('cleans up window listener when closing or disabling', () => {
       clientY: 500,
     }),
   );
-  console.log('2');
+
   fireEvent.click(screen.getByRole('button'));
-  console.log('3');
   fireEvent(
     document.body,
     new MouseEvent('mousemove', {
@@ -172,9 +165,9 @@ test('cleans up window listener when closing or disabling', () => {
       clientY: 0,
     }),
   );
-  console.log('4');
+
   expectLocation({ x: 500, y: 500 });
-  console.log('5');
+
   fireEvent.click(screen.getByRole('button'));
 
   fireEvent(

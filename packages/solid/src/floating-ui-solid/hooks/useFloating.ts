@@ -18,27 +18,25 @@ import { useFloatingRootContext } from './useFloatingRootContext';
  */
 export function useFloating<RT extends ReferenceType = ReferenceType>(
   options: UseFloatingOptions = {},
-): Accessor<UseFloatingReturn<RT>> {
-  const internalRootContext = useFloatingRootContext({
-    ...options,
-    elements: {
-      reference: () => undefined,
-      floating: () => undefined,
-      domReference: () => undefined,
-      ...options.elements,
-    },
-  });
+): UseFloatingReturn<RT> {
+  const rootContext =
+    options.rootContext ||
+    useFloatingRootContext({
+      ...options,
+      elements: {
+        reference: () => null,
+        floating: () => null,
+        domReference: () => null,
+        ...options.elements,
+      },
+    });
 
-  const rootContext = createMemo(() => options.rootContext || internalRootContext);
+  const [domReferenceState, setDomReference] = createSignal<NarrowedElement<RT> | null>(null);
+  const [positionReference, setPositionReferenceRaw] = createSignal<ReferenceType | null>(null);
 
-  const computedElements = createMemo(() => rootContext().elements);
-
-  const [domReferenceState, setDomReference] = createSignal<NarrowedElement<RT>>();
-  const [positionReference, setPositionReferenceRaw] = createSignal<ReferenceType>();
-
-  const optionDomReference = createMemo(() => computedElements().domReference());
+  const optionDomReference = rootContext.elements.domReference;
   const domReference = createMemo(
-    () => (optionDomReference() || domReferenceState()) as NarrowedElement<RT> | undefined,
+    () => (optionDomReference() || domReferenceState()) as NarrowedElement<RT> | null,
   );
 
   const tree = useFloatingTree();
@@ -46,12 +44,12 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
   const position = usePosition({
     ...options,
     elements: {
-      floating: computedElements().floating,
-      reference: positionReference as Accessor<NarrowedElement<RT> | undefined>,
+      floating: rootContext.elements.floating,
+      reference: positionReference as Accessor<NarrowedElement<RT> | null>,
     },
   });
 
-  const setPositionReference = (node: ReferenceType | undefined) => {
+  const setPositionReference = (node: ReferenceType | null) => {
     const computedPositionReference = isElement(node)
       ? ({
           getBoundingClientRect: () => node.getBoundingClientRect(),
@@ -65,9 +63,9 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     position().refs.setReference(computedPositionReference);
   };
 
-  const setReference = (node: RT | undefined) => {
-    if (isElement(node) || node === undefined) {
-      setDomReference(() => node as NarrowedElement<RT> | undefined);
+  const setReference = (node: RT | null) => {
+    if (isElement(node) || node === null) {
+      setDomReference(() => node as NarrowedElement<RT> | null);
     }
 
     // Backwards-compatibility for passing a virtual element to `reference`
@@ -75,55 +73,58 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     const reference = position().refs.reference();
     if (
       isElement(reference) ||
-      reference === undefined ||
+      reference === null ||
       // Don't allow setting virtual elements using the old technique back to
       // `null` to support `positionReference` + an unstable `reference`
       // callback ref.
-      (node !== undefined && !isElement(node))
+      (node !== null && !isElement(node))
     ) {
       position().refs.setReference(node);
     }
+
+    onCleanup(() => {
+      setReference(null);
+    });
   };
 
-  const refs = createMemo(() => ({
+  const refs = {
     ...position().refs,
     setReference,
     setPositionReference,
     domReference,
     setDomReference,
-  }));
+  };
 
-  const elements = createMemo(() => ({
+  const elements = {
     ...position().elements,
     domReference,
-  }));
+  };
 
-  const context = createMemo<FloatingContext<RT>>(() => ({
+  const context: FloatingContext<RT> = {
     ...position(),
-    ...rootContext(),
-    refs: refs(),
-    elements: elements(),
-    nodeId: () => rootContext().floatingId(),
-  }));
+    ...rootContext,
+    refs,
+    elements,
+    nodeId: () => options.nodeId?.(),
+  };
 
   createEffect(() => {
-    // TODO: fix typing
-    const ctx = context() as unknown as FloatingContext;
-    rootContext().dataRef.floatingContext = ctx;
+    rootContext.dataRef.floatingContext = context as unknown as FloatingContext;
 
-    const node = tree?.nodesRef.find((n) => n.id() === rootContext().floatingId());
-    if (node) {
-      node.context = ctx;
+    if (!tree) {
+      return;
+    }
+
+    const nodeIdx = tree?.nodesRef.findIndex((n) => n.id === options.nodeId?.());
+    if (nodeIdx !== -1) {
+      tree?.setNodesRef(nodeIdx, 'context', context as unknown as FloatingContext);
     }
   });
 
-  const returnValue = createMemo<UseFloatingReturn<RT>>(() => ({
+  return {
     ...position(),
-    context: context(),
-    // @ts-expect-error – TODO: fix typing
-    refs: refs(),
-    elements: elements(),
-  }));
-
-  return returnValue;
+    context,
+    refs,
+    elements,
+  } as UseFloatingReturn<RT>;
 }

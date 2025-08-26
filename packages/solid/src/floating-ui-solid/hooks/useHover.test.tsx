@@ -1,51 +1,48 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import {
-  act,
-  cleanup,
-  fireEvent,
-  flushMicrotasks,
-  render,
-  screen,
-  waitFor,
-} from '@mui/internal-test-utils';
-import * as React from 'react';
-import { vi, test } from 'vitest';
+import { flushMicrotasks } from '#test-utils';
+import { cleanup, fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import { useFloating, useHover, useInteractions } from '../index';
-import type { UseHoverProps } from './useHover';
+import { createEffect, createSignal } from 'solid-js';
+import { test, vi } from 'vitest';
 import { Popover } from '../../../test/floating-ui-tests/Popover';
 import { isJSDOM } from '../../utils/detectBrowser';
+import { useFloating, useHover, useInteractions } from '../index';
+import type { UseHoverProps } from './useHover';
 
 vi.useFakeTimers();
 
-function App({ showReference = true, ...props }: UseHoverProps & { showReference?: boolean }) {
-  const [open, setOpen] = React.useState(false);
+function App(props: UseHoverProps & { showReference?: boolean }) {
+  const showReference = () => props.showReference ?? true;
+  const [open, setOpen] = createSignal(false);
   const { refs, context } = useFloating({
     open,
     onOpenChange: setOpen,
   });
-  const { getReferenceProps, getFloatingProps } = useInteractions([useHover(context, props)]);
+
+  const hover = useHover(context, props);
+  const { getReferenceProps, getFloatingProps } = useInteractions(() => [hover()]);
 
   return (
-    <React.Fragment>
-      {showReference && <button {...getReferenceProps({ ref: refs.setReference })} />}
-      {open && <div role="tooltip" {...getFloatingProps({ ref: refs.setFloating })} />}
-    </React.Fragment>
+    <>
+      {showReference() && <button {...getReferenceProps({ ref: refs.setReference })} />}
+      {open() && <div role="tooltip" {...getFloatingProps({ ref: refs.setFloating })} />}
+    </>
   );
 }
 
 describe.skipIf(!isJSDOM)('useHover', () => {
-  test('opens on mouseenter', () => {
-    render(<App />);
+  test('opens on mouseenter', async () => {
+    render(() => <App />);
 
     fireEvent.mouseEnter(screen.getByRole('button'));
+
     expect(screen.getByRole('tooltip')).toBeInTheDocument();
 
     cleanup();
   });
 
   test('closes on mouseleave', () => {
-    render(<App />);
+    render(() => <App />);
 
     fireEvent.mouseEnter(screen.getByRole('button'));
     fireEvent.mouseLeave(screen.getByRole('button'));
@@ -56,19 +53,15 @@ describe.skipIf(!isJSDOM)('useHover', () => {
 
   describe('delay', () => {
     test('symmetric number', async () => {
-      render(<App delay={1000} />);
+      render(() => <App delay={() => 1000} />);
 
       fireEvent.mouseEnter(screen.getByRole('button'));
 
-      await act(async () => {
-        vi.advanceTimersByTime(999);
-      });
+      vi.advanceTimersByTime(999);
 
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
-      await act(async () => {
-        vi.advanceTimersByTime(1);
-      });
+      vi.advanceTimersByTime(1);
 
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
 
@@ -76,19 +69,15 @@ describe.skipIf(!isJSDOM)('useHover', () => {
     });
 
     test('open', async () => {
-      render(<App delay={{ open: 500 }} />);
+      render(() => <App delay={() => ({ open: 500 })} />);
 
       fireEvent.mouseEnter(screen.getByRole('button'));
 
-      await act(async () => {
-        vi.advanceTimersByTime(499);
-      });
+      vi.advanceTimersByTime(499);
 
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
-      await act(async () => {
-        vi.advanceTimersByTime(1);
-      });
+      vi.advanceTimersByTime(1);
 
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
 
@@ -96,20 +85,16 @@ describe.skipIf(!isJSDOM)('useHover', () => {
     });
 
     test('close', async () => {
-      render(<App delay={{ close: 500 }} />);
+      render(() => <App delay={() => ({ close: 500 })} />);
 
       fireEvent.mouseEnter(screen.getByRole('button'));
       fireEvent.mouseLeave(screen.getByRole('button'));
 
-      await act(async () => {
-        vi.advanceTimersByTime(499);
-      });
+      vi.advanceTimersByTime(499);
 
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
 
-      await act(async () => {
-        vi.advanceTimersByTime(1);
-      });
+      vi.advanceTimersByTime(1);
 
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
@@ -117,19 +102,15 @@ describe.skipIf(!isJSDOM)('useHover', () => {
     });
 
     test('open with close 0', async () => {
-      render(<App delay={{ open: 500 }} />);
+      render(() => <App delay={() => ({ open: 500 })} />);
 
       fireEvent.mouseEnter(screen.getByRole('button'));
 
-      await act(async () => {
-        vi.advanceTimersByTime(499);
-      });
+      vi.advanceTimersByTime(499);
 
       fireEvent.mouseLeave(screen.getByRole('button'));
 
-      await act(async () => {
-        vi.advanceTimersByTime(1);
-      });
+      vi.advanceTimersByTime(1);
 
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
@@ -137,13 +118,11 @@ describe.skipIf(!isJSDOM)('useHover', () => {
     });
 
     test('restMs + nullish open delay should respect restMs', async () => {
-      render(<App restMs={100} delay={{ close: 100 }} />);
+      render(() => <App restMs={() => 100} delay={() => ({ close: 100 })} />);
 
       fireEvent.mouseEnter(screen.getByRole('button'));
 
-      await act(async () => {
-        vi.advanceTimersByTime(99);
-      });
+      vi.advanceTimersByTime(99);
 
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
@@ -152,7 +131,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
   });
 
   test('restMs', async () => {
-    render(<App restMs={100} />);
+    render(() => <App restMs={() => 100} />);
 
     const button = screen.getByRole('button');
 
@@ -165,23 +144,17 @@ describe.skipIf(!isJSDOM)('useHover', () => {
 
     fireEvent.mouseMove(button);
 
-    await act(async () => {
-      vi.advanceTimersByTime(99);
-    });
+    vi.advanceTimersByTime(99);
 
     fireEvent.mouseMove(button);
 
-    await act(async () => {
-      vi.advanceTimersByTime(1);
-    });
+    vi.advanceTimersByTime(1);
 
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
     fireEvent.mouseMove(button);
 
-    await act(async () => {
-      vi.advanceTimersByTime(100);
-    });
+    vi.advanceTimersByTime(100);
 
     expect(screen.getByRole('tooltip')).toBeInTheDocument();
 
@@ -190,7 +163,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
   });
 
   test.skip('restMs is always 0 for touch input', async () => {
-    render(<App restMs={100} />);
+    render(() => <App restMs={() => 100} />);
 
     fireEvent.pointerDown(screen.getByRole('button'), { pointerType: 'touch' });
     fireEvent.mouseMove(screen.getByRole('button'));
@@ -203,7 +176,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
   });
 
   test('restMs does not cause floating element to open if mouseOnly is true', async () => {
-    render(<App restMs={100} mouseOnly />);
+    render(() => <App restMs={() => 100} mouseOnly={() => true} />);
 
     fireEvent.pointerDown(screen.getByRole('button'), { pointerType: 'touch' });
     fireEvent.mouseMove(screen.getByRole('button'));
@@ -214,7 +187,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
   });
 
   test('restMs does not reset timer for minor mouse movement', async () => {
-    render(<App restMs={100} />);
+    render(() => <App restMs={() => 100} />);
 
     const button = screen.getByRole('button');
 
@@ -227,15 +200,11 @@ describe.skipIf(!isJSDOM)('useHover', () => {
 
     fireEvent.mouseMove(button);
 
-    await act(async () => {
-      vi.advanceTimersByTime(99);
-    });
+    vi.advanceTimersByTime(99);
 
     fireEvent.mouseMove(button);
 
-    await act(async () => {
-      vi.advanceTimersByTime(1);
-    });
+    vi.advanceTimersByTime(1);
 
     expect(screen.getByRole('tooltip')).toBeInTheDocument();
 
@@ -244,7 +213,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
   });
 
   test('mouseleave on the floating element closes it (mouse)', async () => {
-    render(<App />);
+    render(() => <App />);
 
     fireEvent.mouseEnter(screen.getByRole('button'));
     await flushMicrotasks();
@@ -260,19 +229,16 @@ describe.skipIf(!isJSDOM)('useHover', () => {
   });
 
   test('does not show after delay if domReference changes', async () => {
-    const { rerender } = render(<App delay={1000} />);
+    const [showReference, setShowReference] = createSignal<boolean | undefined>(undefined);
+    render(() => <App delay={() => 1000} showReference={showReference()} />);
 
     fireEvent.mouseEnter(screen.getByRole('button'));
 
-    await act(async () => {
-      vi.advanceTimersByTime(1);
-    });
+    vi.advanceTimersByTime(1);
 
-    rerender(<App showReference={false} />);
+    setShowReference(false);
 
-    await act(async () => {
-      vi.advanceTimersByTime(999);
-    });
+    vi.advanceTimersByTime(999);
 
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
@@ -281,7 +247,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
 
   test('reason string', async () => {
     function App() {
-      const [isOpen, setIsOpen] = React.useState(false);
+      const [isOpen, setIsOpen] = createSignal(false);
       const { refs, context } = useFloating({
         open: isOpen,
         onOpenChange(isOpen, _, reason) {
@@ -291,17 +257,17 @@ describe.skipIf(!isJSDOM)('useHover', () => {
       });
 
       const hover = useHover(context);
-      const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [hover()]);
 
       return (
-        <React.Fragment>
+        <>
           <button ref={refs.setReference} {...getReferenceProps()} />
-          {isOpen && <div role="tooltip" ref={refs.setFloating} {...getFloatingProps()} />}
-        </React.Fragment>
+          {isOpen() && <div role="tooltip" ref={refs.setFloating} {...getFloatingProps()} />}
+        </>
       );
     }
 
-    render(<App />);
+    render(() => <App />);
     const button = screen.getByRole('button');
     fireEvent.mouseEnter(button);
     await flushMicrotasks();
@@ -311,13 +277,13 @@ describe.skipIf(!isJSDOM)('useHover', () => {
   test('cleans up blockPointerEvents if trigger changes', async () => {
     vi.useRealTimers();
     const user = userEvent.setup();
-    render(
+    render(() => (
       <Popover
         hover={false}
         modal={false}
         bubbles
         render={({ labelId, descriptionId, close }) => (
-          <React.Fragment>
+          <>
             <h2 id={labelId} className="mb-2 text-2xl font-bold">
               Parent title
             </h2>
@@ -329,7 +295,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
               modal={false}
               bubbles
               render={({ labelId, descriptionId, close }) => (
-                <React.Fragment>
+                <>
                   <h2 id={labelId} className="mb-2 text-2xl font-bold">
                     Child title
                   </h2>
@@ -339,7 +305,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
                   <button onClick={close} className="font-bold">
                     Close
                   </button>
-                </React.Fragment>
+                </>
               )}
             >
               <button type="button">Open child</button>
@@ -347,12 +313,12 @@ describe.skipIf(!isJSDOM)('useHover', () => {
             <button onClick={close} className="font-bold">
               Close
             </button>
-          </React.Fragment>
+          </>
         )}
       >
         <button type="button">Open parent</button>
-      </Popover>,
-    );
+      </Popover>
+    ));
 
     await user.click(screen.getByText('Open parent'));
     expect(screen.getByText('Parent title')).toBeInTheDocument();

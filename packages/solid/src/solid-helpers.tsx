@@ -1,10 +1,15 @@
 import {
   children,
+  createEffect,
+  createMemo,
   createSignal,
   getOwner,
+  onCleanup,
+  onMount,
   type Accessor,
   type JSX,
   type ParentProps,
+  type Ref,
 } from 'solid-js';
 import { createStore, type SetStoreFunction, type Store } from 'solid-js/store';
 
@@ -87,4 +92,42 @@ export function createRefSignal<T extends Element>(initialValue: T): RefSignal<T
 export function createStoreSignal<T extends object>(initialValue: T): StoreSignal<T> {
   const [store, setStore] = createStore<T>(initialValue);
   return { store, setStore };
+}
+
+export function debugActiveElement() {
+  let lastActiveElement = document.activeElement;
+  const handleFocusChange = () => {
+    queueMicrotask(() => {
+      const activeElement = document.activeElement;
+      if (lastActiveElement !== activeElement) {
+        console.trace('[Observer] activeElement changed', {
+          from: lastActiveElement,
+          to: activeElement,
+        });
+        lastActiveElement = activeElement;
+      }
+    });
+  };
+
+  onMount(() => {
+    document.addEventListener('focusin', handleFocusChange, true);
+    document.addEventListener('focusout', handleFocusChange, true);
+  });
+
+  onCleanup(() => {
+    document.removeEventListener('focusin', handleFocusChange, true);
+    document.removeEventListener('focusout', handleFocusChange, true);
+  });
+}
+
+export function autofocus(element: HTMLElement, autofocusProp: Accessor<boolean>) {
+  if (autofocusProp?.() === false) {
+    return;
+  }
+
+  onMount(() => {
+    if (element.hasAttribute('autofocus')) {
+      queueMicrotask(() => element.focus());
+    }
+  });
 }

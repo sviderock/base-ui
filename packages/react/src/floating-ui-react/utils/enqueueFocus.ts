@@ -12,7 +12,9 @@ export function enqueueFocus(el: FocusableElement | null, options: Options = {})
   if (cancelPrevious) {
     cancelAnimationFrame(rafId);
   }
-  const exec = () => el?.focus({ preventScroll });
+  const exec = () => {
+    return el?.focus({ preventScroll });
+  };
   if (sync) {
     exec();
   } else {

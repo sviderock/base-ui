@@ -11,3 +11,11 @@ declare global {
 }
 
 export type {};
+
+declare module 'solid-js' {
+  namespace JSX {
+    interface Directives {
+      autofocus: boolean;
+    }
+  }
+}

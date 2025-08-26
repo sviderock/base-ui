@@ -32,8 +32,8 @@ export type UsePositionOptions<RT extends ReferenceType = ReferenceType> = Prett
      * Object containing the reference and floating elements.
      */
     elements?: {
-      reference?: Accessor<RT | undefined>;
-      floating?: Accessor<HTMLElement | undefined>;
+      reference?: Accessor<RT | null>;
+      floating?: Accessor<HTMLElement | null>;
     };
     /**
      * The `open` state of the floating element to synchronize with the
@@ -68,26 +68,26 @@ export type UsePositionFloatingReturn<RT extends ReferenceType = ReferenceType> 
       /**
        * A Solid ref to the reference element.
        */
-      reference: Accessor<RT | undefined>;
+      reference: Accessor<RT | null>;
       /**
        * A Solid ref to the floating element.
        */
-      floating: Accessor<HTMLElement | undefined>;
+      floating: Accessor<HTMLElement | null>;
       /**
        * A callback to set the reference element (reactive).
        */
-      setReference: (value: RT | undefined) => void;
+      setReference: (value: RT | null) => void;
       /**
        * A callback to set the floating element (reactive).
        */
-      setFloating: (value: HTMLElement | undefined) => void;
+      setFloating: (value: HTMLElement | null) => void;
     };
     /**
      * Object containing the reference and floating elements.
      */
     elements: {
-      reference: Accessor<RT | undefined>;
-      floating: Accessor<HTMLElement | undefined>;
+      reference: Accessor<RT | null>;
+      floating: Accessor<HTMLElement | null>;
     };
   }
 >;
@@ -114,10 +114,10 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
     isPositioned: false,
   });
 
-  const [reference, setReference] = createSignal<RT>();
-  const [floating, setFloating] = createSignal<HTMLElement>();
+  const [reference, setReference] = createSignal<RT | null>(null);
+  const [floating, setFloating] = createSignal<HTMLElement | null>(null);
 
-  const referenceEl = () => (elementsProp().reference?.() || reference()) as RT | undefined;
+  const referenceEl = () => elementsProp().reference?.() || reference();
   const floatingEl = () => elementsProp().floating?.() || floating();
 
   let isMountedRef = false;
@@ -176,22 +176,23 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
     return undefined;
   });
 
-  const refs = () => ({
+  const refs = {
     reference,
     floating,
-    setReference: (node: RT | undefined) => {
+    setReference: (node: RT | null) => {
       setReference(() => node);
+
       onCleanup(() => {
-        setReference(() => undefined);
+        setReference(null);
       });
     },
-    setFloating: (node: HTMLElement | undefined) => {
+    setFloating: (node: HTMLElement | null) => {
       setFloating(() => node);
-      onCleanup(() => {
-        setFloating(() => undefined);
-      });
+      // onCleanup(() => {
+      //   setFloating(() => undefined);
+      // });
     },
-  });
+  };
   const elements = { reference: referenceEl, floating: floatingEl };
 
   const floatingStyles = createMemo<JSX.CSSProperties>(() => {
@@ -226,7 +227,7 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   const returnValue = createMemo<UsePositionFloatingReturn<RT>>(() => ({
     ...data,
     update,
-    refs: refs(),
+    refs,
     elements,
     floatingStyles: floatingStyles(),
   }));

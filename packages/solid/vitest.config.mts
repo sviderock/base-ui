@@ -11,14 +11,10 @@ export default mergeConfig(
     },
     plugins: [solidPlugin()],
     test: {
-      retry: 0,
-      browser: {
-        // Enable browser-based testing for UI components
-        enabled: true,
-        headless: true,
-        provider: 'playwright',
-        instances: [{ browser: 'chromium', name: 'chromium-solid' }],
-        screenshotFailures: false,
+      server: {
+        deps: {
+          inline: ['@solidjs/testing-library', 'solid-js'],
+        },
       },
     },
   }),

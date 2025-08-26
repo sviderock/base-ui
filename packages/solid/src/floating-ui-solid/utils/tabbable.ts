@@ -1,3 +1,4 @@
+import { screen } from '@solidjs/testing-library';
 import { tabbable, type FocusableElement } from 'tabbable';
 import { activeElement, contains, getDocument } from './element';
 
@@ -13,11 +14,11 @@ export const getTabbableOptions = () =>
         : 'none',
   }) as const;
 
-function getTabbableIn(container: HTMLElement, dir: 1 | -1): FocusableElement | undefined {
+function getTabbableIn(container: HTMLElement, dir: 1 | -1): FocusableElement | null {
   const list = tabbable(container, getTabbableOptions());
   const len = list.length;
   if (len === 0) {
-    return undefined;
+    return null;
   }
 
   const active = activeElement(getDocument(container)) as FocusableElement;
@@ -28,17 +29,13 @@ function getTabbableIn(container: HTMLElement, dir: 1 | -1): FocusableElement | 
   return list[nextIndex];
 }
 
-export function getNextTabbable(
-  referenceElement: Element | undefined,
-): FocusableElement | undefined {
+export function getNextTabbable(referenceElement: Element | null): FocusableElement | null {
   return (
     getTabbableIn(getDocument(referenceElement).body, 1) || (referenceElement as FocusableElement)
   );
 }
 
-export function getPreviousTabbable(
-  referenceElement: Element | undefined,
-): FocusableElement | undefined {
+export function getPreviousTabbable(referenceElement: Element | null): FocusableElement | null {
   return (
     getTabbableIn(getDocument(referenceElement).body, -1) || (referenceElement as FocusableElement)
   );

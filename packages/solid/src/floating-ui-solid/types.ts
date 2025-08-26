@@ -100,19 +100,19 @@ export type Delay = number | Partial<{ open: number; close: number }>;
 export type NarrowedElement<T> = T extends Element ? T : Element;
 
 export interface ExtendedRefs<RT> {
-  reference: Accessor<ReferenceType | undefined>;
-  floating: Accessor<HTMLElement | undefined>;
-  domReference: Accessor<NarrowedElement<RT> | undefined>;
-  setReference: (value: RT | undefined) => void;
-  setFloating: (value: HTMLElement | undefined) => void;
-  setPositionReference: (value: ReferenceType | undefined) => void;
-  setDomReference: (value: Element | undefined) => void;
+  reference: Accessor<ReferenceType | null>;
+  floating: Accessor<HTMLElement | null>;
+  domReference: Accessor<NarrowedElement<RT> | null>;
+  setReference: (value: RT | null) => void;
+  setFloating: (value: HTMLElement | null) => void;
+  setPositionReference: (value: ReferenceType | null) => void;
+  setDomReference: (value: Element | null) => void;
 }
 
 export interface ExtendedElements<RT> {
-  reference: Accessor<ReferenceType | undefined>;
-  floating: Accessor<HTMLElement | undefined>;
-  domReference: Accessor<NarrowedElement<RT> | undefined>;
+  reference: Accessor<ReferenceType | null>;
+  floating: Accessor<HTMLElement | null>;
+  domReference: Accessor<NarrowedElement<RT> | null>;
 }
 
 export interface FloatingEvents {
@@ -134,16 +134,16 @@ export interface FloatingRootContext<RT extends ReferenceType = ReferenceType> {
   open: Accessor<boolean>;
   onOpenChange: (open: boolean, event?: Event, reason?: OpenChangeReason) => void;
   elements: {
-    domReference: Accessor<Element | undefined>;
-    reference: Accessor<RT | undefined>;
-    floating: Accessor<HTMLElement | undefined>;
+    domReference: Accessor<Element | null>;
+    reference: Accessor<RT | null>;
+    floating: Accessor<HTMLElement | null>;
   };
   events: FloatingEvents;
   floatingId: Accessor<string | undefined>;
   refs: {
-    setPositionReference(node: ReferenceType | undefined): void;
-    setFloating(node: HTMLElement | undefined): void;
-    setDomReference(node: Element | undefined): void;
+    setPositionReference(node: ReferenceType | null): void;
+    setFloating(node: HTMLElement | null): void;
+    setDomReference(node: Element | null): void;
   };
 }
 
@@ -162,13 +162,14 @@ export type FloatingContext<RT extends ReferenceType = ReferenceType> = Omit<
 };
 
 export interface FloatingNodeType<RT extends ReferenceType = ReferenceType> {
-  id: Accessor<string | undefined>;
-  parentId: Accessor<string | null>;
+  id: string | undefined;
+  parentId: string | null;
   context?: FloatingContext<RT>;
 }
 
 export interface FloatingTreeType<RT extends ReferenceType = ReferenceType> {
   nodesRef: Store<Array<FloatingNodeType<RT>>>;
+  setNodesRef: SetStoreFunction<Array<FloatingNodeType<RT>>>;
   events: FloatingEvents;
   addNode(node: FloatingNodeType): void;
   removeNode(node: FloatingNodeType): void;
@@ -211,11 +212,11 @@ export interface UseFloatingOptions<RT extends ReferenceType = ReferenceType>
     /**
      * Externally passed reference element. Store in state.
      */
-    reference?: Accessor<Element | undefined>;
+    reference?: Accessor<Element | null>;
     /**
      * Externally passed floating element. Store in state.
      */
-    floating?: Accessor<HTMLElement | undefined>;
+    floating?: Accessor<HTMLElement | null>;
   };
   /**
    * An event callback that is invoked when the floating element is opened or

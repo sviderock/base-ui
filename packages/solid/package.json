@@ -31,7 +31,8 @@
     "./collapsible": "./src/collapsible/index.ts",
     "./merge-props": "./src/merge-props/index.ts",
     "./scroll-area": "./src/scroll-area/index.ts",
-    "./solid-helpers": "./src/solid-helpers.ts"
+    "./solid-helpers": "./src/solid-helpers.ts",
+    "./utils": "./src/utils/index.ts"
   },
   "imports": {
     "#test-utils": "./test/index.ts"
@@ -54,6 +55,7 @@
     "@babel/runtime": "^7.27.6",
     "@floating-ui/dom": "^1.7.2",
     "@floating-ui/utils": "^0.2.10",
+    "@solid-primitives/props": "^3.2.2",
     "@solid-primitives/refs": "^1.1.2",
     "reselect": "^5.1.1",
     "tabbable": "^6.2.0"

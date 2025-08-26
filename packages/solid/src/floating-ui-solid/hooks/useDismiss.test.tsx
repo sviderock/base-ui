@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { cleanup, fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import { createEffect, createSignal, Show, splitProps, type JSX } from 'solid-js';
+import { createEffect, createSignal, Show, splitProps, type Accessor, type JSX } from 'solid-js';
 import { vi } from 'vitest';
 
 import { isJSDOM } from '../../utils/detectBrowser';
@@ -36,7 +36,7 @@ function App(
   },
 ) {
   const [open, setOpen] = createSignal(true);
-  const { refs, context } = useFloating({
+  const { context, refs } = useFloating({
     open,
     onOpenChange(open, _, reason) {
       setOpen(open);
@@ -54,18 +54,18 @@ function App(
       }
     },
   });
-  const { getReferenceProps, getFloatingProps } = useInteractions([
-    () => useDismiss(context, props),
-  ]);
+
+  const dismiss = useDismiss(context, props);
+  const { getReferenceProps, getFloatingProps } = useInteractions(() => [dismiss()]);
 
   return (
     <>
       <button {...getReferenceProps({ ref: refs.setReference })} />
-      {open() && (
+      <Show when={open()}>
         <div role="tooltip" {...getFloatingProps({ ref: refs.setFloating })}>
           <input />
         </div>
-      )}
+      </Show>
     </>
   );
 }
@@ -154,26 +154,26 @@ describe('useDismiss', () => {
 
         const dismiss = useDismiss(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions([() => dismiss]);
+        const { getReferenceProps, getFloatingProps } = useInteractions(() => [dismiss()]);
 
         return (
           <>
             <button {...getReferenceProps({ ref: refs.setReference })} />
-            {isOpen() && (
+            <Show when={isOpen()}>
               <FloatingFocusManager context={context}>
                 <div role="dialog" {...getFloatingProps({ ref: refs.setFloating })} />
               </FloatingFocusManager>
-            )}
+            </Show>
           </>
         );
       }
 
       render(() => <App />);
 
-      screen.debug();
       const thirdParty = document.createElement('div');
       thirdParty.setAttribute('data-testid', 'third-party');
       document.body.append(thirdParty);
+      // screen.debug();
       await userEvent.click(thirdParty);
       expect(screen.getByRole('dialog')).toBeInTheDocument();
       thirdParty.remove();
@@ -190,7 +190,7 @@ describe('useDismiss', () => {
 
         const dismiss = useDismiss(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions([() => dismiss]);
+        const { getReferenceProps, getFloatingProps } = useInteractions(() => [dismiss()]);
 
         const dialogJsx = (
           <div
@@ -311,25 +311,24 @@ describe('useDismiss', () => {
     test('does not dismiss when clicking portaled children', async () => {
       function App() {
         const [open, setOpen] = createSignal(true);
-        const { refs, context } = useFloating({
+        const { context, refs } = useFloating({
           open,
           onOpenChange: setOpen,
         });
 
-        const { getReferenceProps, getFloatingProps } = useInteractions([
-          () => useDismiss(context),
-        ]);
+        const dismiss = useDismiss(context);
+        const { getReferenceProps, getFloatingProps } = useInteractions(() => [dismiss()]);
 
         return (
           <>
-            <button ref={refs.setReference} {...getReferenceProps()} />
-            {open() && (
-              <div ref={refs.setFloating} {...getFloatingProps()}>
+            <button {...getReferenceProps({ ref: refs.setReference })} />
+            <Show when={open()}>
+              <div {...getFloatingProps({ ref: refs.setFloating })}>
                 <FloatingPortal>
                   <button data-testid="portaled-button" />
                 </FloatingPortal>
               </div>
-            )}
+            </Show>
           </>
         );
       }
@@ -359,15 +358,14 @@ describe('useDismiss', () => {
       const [open, setOpen] = createSignal(true);
       const nodeId = useFloatingNodeId();
 
-      const { refs, context } = useFloating({
+      const { context, refs } = useFloating({
         open,
         onOpenChange: setOpen,
         nodeId,
       });
 
-      const { getReferenceProps, getFloatingProps } = useInteractions([
-        () => useDismiss(context, others),
-      ]);
+      const dismiss = useDismiss(context, others);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [dismiss()]);
 
       return (
         <FloatingNode id={nodeId()}>
@@ -523,10 +521,10 @@ describe('useDismiss', () => {
             onOpenChange: setTooltipOpen,
           });
 
-          const popoverInteractions = useInteractions([() => useDismiss(popover.context)]);
-          const tooltipInteractions = useInteractions([
-            () => useFocus(tooltip.context, { visibleOnly: false }),
-            () => useDismiss(tooltip.context),
+          const popoverInteractions = useInteractions(() => [useDismiss(popover.context)()]);
+          const tooltipInteractions = useInteractions(() => [
+            useFocus(tooltip.context, { visibleOnly: () => false })(),
+            useDismiss(tooltip.context)(),
           ]);
 
           return (
@@ -718,15 +716,14 @@ describe('useDismiss', () => {
       const [open, setOpen] = createSignal(true);
       const nodeId = useFloatingNodeId();
 
-      const { refs, context } = useFloating({
+      const { context, refs } = useFloating({
         open,
         onOpenChange: setOpen,
         nodeId,
       });
 
-      const { getReferenceProps, getFloatingProps } = useInteractions([
-        () => useDismiss(context, others),
-      ]);
+      const dismiss = useDismiss(context, others);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [dismiss()]);
 
       return (
         <FloatingNode id={nodeId()}>
@@ -909,11 +906,11 @@ describe('useDismiss', () => {
   test('nested floating elements with different portal roots', async () => {
     function ButtonWithFloating(props: {
       children?: JSX.Element;
-      portalRoot?: HTMLElement | null;
+      portalRoot?: Accessor<HTMLElement | undefined>;
       triggerText: string;
     }) {
       const [open, setOpen] = createSignal(false);
-      const { refs, floatingStyles, context } = useFloating({
+      const { context, refs, floatingStyles } = useFloating({
         open,
         onOpenChange: setOpen,
       });
@@ -921,17 +918,15 @@ describe('useDismiss', () => {
       const click = useClick(context);
       const dismiss = useDismiss(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions([() => click, () => dismiss]);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [click(), dismiss()]);
 
       return (
         <>
-          <button ref={refs.setReference} {...getReferenceProps()}>
-            {props.triggerText}
-          </button>
+          <button {...getReferenceProps({ ref: refs.setReference })}>{props.triggerText}</button>
           {open() && (
-            <FloatingPortal root={() => props.portalRoot}>
+            <FloatingPortal root={props.portalRoot?.()}>
               <FloatingFocusManager context={context} modal={false}>
-                <div ref={refs.setFloating} style={floatingStyles()} {...getFloatingProps()}>
+                <div {...getFloatingProps({ ref: refs.setFloating })} style={floatingStyles}>
                   {props.children}
                 </div>
               </FloatingFocusManager>
@@ -942,7 +937,7 @@ describe('useDismiss', () => {
     }
 
     function App() {
-      const [otherContainer, setOtherContainer] = createSignal<HTMLDivElement | null>();
+      const [otherContainer, setOtherContainer] = createSignal<HTMLDivElement>();
 
       const portal1 = undefined;
       const portal2 = otherContainer;
@@ -950,7 +945,7 @@ describe('useDismiss', () => {
       return (
         <>
           <ButtonWithFloating portalRoot={portal1} triggerText="open 1">
-            <ButtonWithFloating portalRoot={portal2()} triggerText="open 2">
+            <ButtonWithFloating portalRoot={portal2} triggerText="open 2">
               <button>nested</button>
             </ButtonWithFloating>
           </ButtonWithFloating>

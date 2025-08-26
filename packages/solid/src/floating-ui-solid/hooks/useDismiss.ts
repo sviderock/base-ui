@@ -1,3 +1,4 @@
+import type { MaybeAccessor } from '@base-ui-components/solid/solid-helpers';
 import { getOverflowAncestors } from '@floating-ui/dom';
 import {
   getComputedStyle,
@@ -7,7 +8,7 @@ import {
   isLastTraversableNode,
   isWebKit,
 } from '@floating-ui/utils/dom';
-import { createEffect, createMemo, onCleanup, type Accessor } from 'solid-js';
+import { createEffect, createMemo, onCleanup, type Accessor, type JSX } from 'solid-js';
 import { useTimeout } from '../../utils/useTimeout';
 import {
   contains,
@@ -31,10 +32,10 @@ const bubbleHandlerKeys = {
 };
 
 const captureHandlerKeys = {
-  pointerdown: 'onPointerDownCapture',
-  mousedown: 'onMouseDownCapture',
-  click: 'onClickCapture',
-};
+  pointerdown: 'on:pointerdown',
+  mousedown: 'on:mousedown',
+  click: 'on:click',
+} satisfies Record<string, keyof JSX.CustomEventHandlersNamespaced<HTMLElement>>;
 
 export const normalizeProp = (
   normalizable?: boolean | { escapeKey?: boolean; outsidePress?: boolean },
@@ -87,7 +88,7 @@ export interface UseDismissProps {
    * ```
    * @default true
    */
-  outsidePress?: (event?: MouseEvent) => boolean;
+  outsidePress?: MaybeAccessor<boolean> | ((event: MouseEvent) => boolean);
   /**
    * The type of event to use to determine an outside “press”.
    * - `pointerdown` is eager on both mouse + touch input.
@@ -124,24 +125,30 @@ export function useDismiss(
 ): Accessor<ElementProps> {
   const enabled = () => props.enabled?.() ?? true;
   const escapeKey = () => props.escapeKey?.() ?? true;
-  const outsidePressEvent = () => props.outsidePressEvent?.() ?? 'pointerdown';
+  const outsidePressEvent = createMemo(() => props.outsidePressEvent?.() ?? 'pointerdown');
   const referencePress = () => props.referencePress?.() ?? false;
   const referencePressEvent = () => props.referencePressEvent?.() ?? 'pointerdown';
   const ancestorScroll = () => props.ancestorScroll?.() ?? false;
 
-  const outsidePress: Exclude<UseDismissProps['outsidePress'], undefined> = (event) => {
-    return props.outsidePress?.(event) ?? true;
-  };
+  const outsidePress = createMemo(() => {
+    // If it's an accessor
+    if (typeof props.outsidePress === 'function' && props.outsidePress.length === 0) {
+      return (props.outsidePress as Accessor<boolean>)();
+    }
+
+    // If it's an event callback
+    if (typeof props.outsidePress === 'function' && props.outsidePress.length === 1) {
+      return props.outsidePress;
+    }
+
+    return props.outsidePress ?? true;
+  });
 
   const tree = useFloatingTree();
 
   let endedOrStartedInsideRef = false;
-  const { escapeKey: escapeKeyBubbles, outsidePress: outsidePressBubbles } = normalizeProp(
-    props.bubbles?.(),
-  );
-  const { escapeKey: escapeKeyCapture, outsidePress: outsidePressCapture } = normalizeProp(
-    props.capture?.(),
-  );
+  const bubbles = () => normalizeProp(props.bubbles?.());
+  const capture = () => normalizeProp(props.capture?.());
 
   let isComposingRef = false;
   const blurTimeout = useTimeout();
@@ -161,7 +168,7 @@ export function useDismiss(
 
     const children = tree ? getNodeChildren(tree.nodesRef, nodeId) : [];
 
-    if (!escapeKeyBubbles) {
+    if (!bubbles().escapeKey) {
       event.stopPropagation();
 
       if (children.length > 0) {
@@ -183,15 +190,14 @@ export function useDismiss(
   };
 
   const closeOnEscapeKeyDownCapture = (event: KeyboardEvent) => {
-    const callback = () => {
+    function callback() {
       closeOnEscapeKeyDown(event);
       getTarget(event)?.removeEventListener('keydown', callback);
-    };
+    }
     getTarget(event)?.addEventListener('keydown', callback);
   };
 
   const closeOnPressOutside = (event: MouseEvent) => {
-    console.log('closeOnPressOutside', event);
     // Given developers can stop the propagation of the synthetic event,
     // we can only be confident with a positive value.
     const insideReactTree = context.dataRef.insideReactTree;
@@ -212,7 +218,8 @@ export function useDismiss(
       return;
     }
 
-    if (!outsidePress(event)) {
+    const resolvedOutsidePress = outsidePress();
+    if (typeof resolvedOutsidePress === 'function' && !resolvedOutsidePress(event)) {
       return;
     }
 
@@ -230,13 +237,6 @@ export function useDismiss(
       targetRootAncestor = nextParent;
     }
 
-    console.log({
-      markers,
-      target,
-      floating: context.elements.floating(),
-      targetRootAncestor,
-      inertSelector,
-    });
     // Check if the click occurred on a third-party element injected after the
     // floating element rendered.
     if (
@@ -332,8 +332,29 @@ export function useDismiss(
       return;
     }
 
-    context.dataRef.__escapeKeyBubbles = escapeKeyBubbles;
-    context.dataRef.__outsidePressBubbles = outsidePressBubbles;
+    const resolvedOutsidePress = outsidePress();
+    if (!resolvedOutsidePress) {
+      return;
+    }
+
+    const doc = getDocument(context.elements.floating());
+    const event = outsidePressEvent();
+    const shouldCapture = capture().outsidePress;
+    const callback = shouldCapture ? closeOnPressOutsideCapture : closeOnPressOutside;
+
+    doc.addEventListener(event, callback, shouldCapture);
+    onCleanup(() => {
+      doc.removeEventListener(event, callback, shouldCapture);
+    });
+  });
+
+  createEffect(() => {
+    if (!context.open() || !enabled()) {
+      return;
+    }
+
+    context.dataRef.__escapeKeyBubbles = bubbles().escapeKey;
+    context.dataRef.__outsidePressBubbles = bubbles().outsidePress;
 
     const compositionTimeout = useTimeout();
 
@@ -365,20 +386,20 @@ export function useDismiss(
     if (escapeKey()) {
       doc.addEventListener(
         'keydown',
-        escapeKeyCapture ? closeOnEscapeKeyDownCapture : closeOnEscapeKeyDown,
-        escapeKeyCapture,
+        capture().escapeKey ? closeOnEscapeKeyDownCapture : closeOnEscapeKeyDown,
+        capture().escapeKey,
       );
       doc.addEventListener('compositionstart', handleCompositionStart);
       doc.addEventListener('compositionend', handleCompositionEnd);
     }
 
-    if (outsidePress()) {
-      doc.addEventListener(
-        outsidePressEvent(),
-        outsidePressCapture ? closeOnPressOutsideCapture : closeOnPressOutside,
-        outsidePressCapture,
-      );
-    }
+    // if (outsidePress()) {
+    //   doc.addEventListener(
+    //     outsidePressEvent(),
+    //     capture().outsidePress ? closeOnPressOutsideCapture : closeOnPressOutside,
+    //     capture().outsidePress,
+    //   );
+    // }
 
     let ancestors: (Element | Window | VisualViewport)[] = [];
 
@@ -410,20 +431,20 @@ export function useDismiss(
       if (escapeKey()) {
         doc.removeEventListener(
           'keydown',
-          escapeKeyCapture ? closeOnEscapeKeyDownCapture : closeOnEscapeKeyDown,
-          escapeKeyCapture,
+          capture().escapeKey ? closeOnEscapeKeyDownCapture : closeOnEscapeKeyDown,
+          capture().escapeKey,
         );
         doc.removeEventListener('compositionstart', handleCompositionStart);
         doc.removeEventListener('compositionend', handleCompositionEnd);
       }
 
-      if (outsidePress()) {
-        doc.removeEventListener(
-          outsidePressEvent(),
-          outsidePressCapture ? closeOnPressOutsideCapture : closeOnPressOutside,
-          outsidePressCapture,
-        );
-      }
+      // if (outsidePress()) {
+      //   doc.removeEventListener(
+      //     outsidePressEvent(),
+      //     capture().outsidePress ? closeOnPressOutsideCapture : closeOnPressOutside,
+      //     capture().outsidePress,
+      //   );
+      // }
 
       ancestors.forEach((ancestor) => {
         ancestor.removeEventListener('scroll', onScroll);
@@ -459,17 +480,23 @@ export function useDismiss(
     onMouseUp() {
       endedOrStartedInsideRef = true;
     },
-    [captureHandlerKeys[outsidePressEvent()]]: () => {
-      context.dataRef.insideReactTree = true;
-    },
-    onBlurCapture() {
-      if (tree) {
-        return;
-      }
-      context.dataRef.insideReactTree = true;
-      blurTimeout.start(0, () => {
-        context.dataRef.insideReactTree = false;
-      });
+    [captureHandlerKeys[outsidePressEvent()]]: {
+      capture: true,
+      handleEvent(e) {
+        context.dataRef.insideReactTree = true;
+      },
+    } satisfies JSX.EventHandlerWithOptionsUnion<HTMLElement, MouseEvent | PointerEvent>,
+    'on:blur': {
+      capture: true,
+      handleEvent() {
+        if (tree) {
+          return;
+        }
+        context.dataRef.insideReactTree = true;
+        blurTimeout.start(0, () => {
+          context.dataRef.insideReactTree = false;
+        });
+      },
     },
   }));
 

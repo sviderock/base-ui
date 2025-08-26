@@ -1,5 +1,16 @@
+import type { RefSignal } from '@base-ui-components/solid/solid-helpers';
 import c from 'clsx';
-import { type Accessor, createContext, type JSX } from 'solid-js';
+import * as React from 'react';
+import {
+  type Accessor,
+  createContext,
+  createEffect,
+  createSignal,
+  createUniqueId,
+  type JSX,
+  onCleanup,
+  useContext,
+} from 'solid-js';
 import { CompositeList } from '../../src/composite/list/CompositeList';
 import { useCompositeListItem } from '../../src/composite/list/useCompositeListItem';
 import {
@@ -50,37 +61,39 @@ interface MenuProps {
   label: string;
   nested?: boolean;
   children?: JSX.Element;
-  virtualItemRef: Accessor<HTMLElement | undefined>;
+  virtualItemRef: RefSignal<HTMLElement>;
 }
 
-/** @internal */
-export const MenuComponent = React.forwardRef<
-  HTMLElement,
-  MenuProps & React.HTMLAttributes<HTMLElement>
->(function Menu({ children, label, virtualItemRef, ...props }, forwardedRef) {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
-  const [allowHover, setAllowHover] = React.useState(false);
-  const [hasFocusInside, setHasFocusInside] = React.useState(false);
+// children,
+//   label,
+//   virtualItemRef,
+//   ...props
 
-  const elementsRef = React.useRef<Array<HTMLElement | null>>([]);
-  const labelsRef = React.useRef<Array<string | null>>([]);
+/** @internal */
+export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>) {
+  const [isOpen, setIsOpen] = createSignal(false);
+  const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
+  const [allowHover, setAllowHover] = createSignal(false);
+  const [hasFocusInside, setHasFocusInside] = createSignal(false);
+
+  const elementsRef: Array<HTMLElement | undefined> = [];
+  const labelsRef: Array<string | null> = [];
 
   const tree = useFloatingTree();
   const nodeId = useFloatingNodeId();
   const parentId = useFloatingParentNodeId();
-  const isNested = parentId != null;
+  const isNested = () => parentId() != null;
 
-  const parent = React.useContext(MenuContext);
+  const parent = useContext(MenuContext);
   const item = useCompositeListItem();
 
   const { floatingStyles, refs, context } = useFloating({
     nodeId,
     open: isOpen,
     onOpenChange: setIsOpen,
-    placement: isNested ? 'right-start' : 'bottom-start',
-    middleware: [
-      offset({ mainAxis: isNested ? 0 : 4, alignmentAxis: isNested ? -4 : 0 }),
+    placement: () => (isNested() ? 'right-start' : 'bottom-start'),
+    middleware: () => [
+      offset({ mainAxis: isNested() ? 0 : 4, alignmentAxis: isNested() ? -4 : 0 }),
       flip(),
       shift(),
     ],
@@ -88,32 +101,32 @@ export const MenuComponent = React.forwardRef<
   });
 
   const hover = useHover(context, {
-    enabled: isNested && allowHover,
-    delay: { open: 75 },
+    enabled: () => isNested() && allowHover(),
+    delay: () => ({ open: 75 }),
     handleClose: safePolygon({ blockPointerEvents: true }),
   });
-  const role = useRole(context, { role: 'menu' });
-  const dismiss = useDismiss(context, { bubbles: true });
+  const role = useRole(context, { role: () => 'menu' });
+  const dismiss = useDismiss(context, { bubbles: () => true });
   const listNavigation = useListNavigation(context, {
     listRef: elementsRef,
     activeIndex,
     nested: isNested,
     onNavigate: setActiveIndex,
-    virtual: true,
-    virtualItemRef,
+    virtual: () => true,
+    virtualItemRef: props.virtualItemRef,
   });
 
-  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
-    hover,
-    role,
-    dismiss,
-    listNavigation,
+  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
+    hover(),
+    role(),
+    dismiss(),
+    listNavigation(),
   ]);
 
   // Event emitter allows you to communicate across tree components.
   // This effect closes all menus when an item gets clicked anywhere
   // in the tree.
-  React.useEffect(() => {
+  createEffect(() => {
     if (!tree) {
       return;
     }
@@ -123,7 +136,7 @@ export const MenuComponent = React.forwardRef<
     }
 
     function onSubMenuOpen(event: { nodeId: string; parentId: string }) {
-      if (event.nodeId !== nodeId && event.parentId === parentId) {
+      if (event.nodeId !== nodeId() && event.parentId === parentId()) {
         setIsOpen(false);
       }
     }
@@ -132,22 +145,22 @@ export const MenuComponent = React.forwardRef<
     tree.events.on('menuopen', onSubMenuOpen);
 
     // eslint-disable-next-line consistent-return
-    return () => {
+    onCleanup(() => {
       tree.events.off('click', handleTreeClick);
       tree.events.off('menuopen', onSubMenuOpen);
-    };
-  }, [tree, nodeId, parentId]);
+    });
+  });
 
-  React.useEffect(() => {
-    if (isOpen && tree) {
-      tree.events.emit('menuopen', { parentId, nodeId });
+  createEffect(() => {
+    if (isOpen() && tree) {
+      tree.events.emit('menuopen', { parentId: parentId(), nodeId: nodeId() });
     }
-  }, [tree, isOpen, nodeId, parentId]);
+  });
 
   // Determine if "hover" logic can run based on the modality of input. This
   // prevents unwanted focus synchronization as menus open and close with
   // keyboard navigation and the cursor is resting on the menu.
-  React.useEffect(() => {
+  createEffect(() => {
     function onPointerMove({ pointerType }: PointerEvent) {
       if (pointerType !== 'touch') {
         setAllowHover(true);
@@ -163,36 +176,41 @@ export const MenuComponent = React.forwardRef<
       capture: true,
     });
     window.addEventListener('keydown', onKeyDown, true);
-    return () => {
+    onCleanup(() => {
       window.removeEventListener('pointermove', onPointerMove, {
         capture: true,
       });
       window.removeEventListener('keydown', onKeyDown, true);
-    };
-  }, [allowHover]);
+    });
+  });
 
-  const id = React.useId();
-  const mergedRef = useForkRefN([refs.setReference, item.ref, forwardedRef]);
+  const id = createUniqueId();
 
   return (
-    <FloatingNode id={nodeId}>
+    <FloatingNode id={nodeId()}>
       {isNested ? (
         // eslint-disable-next-line jsx-a11y/role-supports-aria-props
         <div
           id={id}
-          ref={mergedRef}
-          data-open={isOpen ? '' : undefined}
+          ref={useForkRefN([
+            refs.setReference,
+            item.ref,
+            (el) => {
+              props.ref = el;
+            },
+          ])}
+          data-open={isOpen() ? '' : undefined}
           tabIndex={-1}
           role="menuitem"
           aria-autocomplete="list"
-          className={c(
-            props.className ||
+          class={c(
+            props.class ||
               'flex cursor-default items-center justify-between gap-4 rounded px-2 py-1 text-left',
             {
-              'bg-red-500 text-white': parent.activeIndex === item.index,
-              'focus:bg-red-500 outline-none': isNested,
-              'bg-red-100 text-red-900': isOpen && isNested && !hasFocusInside,
-              'bg-red-100 rounded px-2 py-1': isNested && isOpen && hasFocusInside,
+              'bg-red-500 text-white': parent.activeIndex() === item.index(),
+              'focus:bg-red-500 outline-none': isNested(),
+              'bg-red-100 text-red-900': isOpen() && isNested() && !hasFocusInside(),
+              'bg-red-100 rounded px-2 py-1': isNested() && isOpen() && hasFocusInside(),
             },
           )}
           {...getReferenceProps({
@@ -205,16 +223,16 @@ export const MenuComponent = React.forwardRef<
               },
               onMouseEnter(event) {
                 props.onMouseEnter?.(event);
-                if (parent.allowHover && parent.isOpen) {
-                  parent.setActiveIndex(item.index);
+                if (parent.allowHover() && parent.isOpen()) {
+                  parent.setActiveIndex(item.index());
                 }
               },
             }),
           })}
         >
-          {label}
-          {isNested && (
-            <span aria-hidden className="ml-4">
+          {props.label}
+          {isNested() && (
+            <span aria-hidden class="ml-4">
               Icon
             </span>
           )}
@@ -271,7 +289,7 @@ export const MenuComponent = React.forwardRef<
       </MenuContext.Provider>
     </FloatingNode>
   );
-});
+}
 
 interface MenuItemProps {
   label: string;

@@ -1,22 +1,18 @@
 /* eslint-disable testing-library/no-node-access */
 /* eslint-disable jsx-a11y/role-has-required-aria-props */
 /* eslint-disable no-promise-executor-return */
-/* eslint-disable react/function-component-definition */
 /* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable react/jsx-fragments */
+
+import { flushMicrotasks } from '#test-utils';
+import { fireEvent, render, screen, waitFor, within } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import {
-  flushMicrotasks,
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@mui/internal-test-utils';
+import { batch, createSignal, onMount, Show, type Component, type JSX } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import { test } from 'vitest';
-import * as React from 'react';
-import * as ReactDOMClient from 'react-dom/client';
+import { Main as MenuVirtual } from '../../../test/floating-ui-tests/MenuVirtual';
+import { Main as Navigation } from '../../../test/floating-ui-tests/Navigation';
+import { autofocus } from '../../solid-helpers';
+import { isJSDOM } from '../../utils/detectBrowser';
 import {
   FloatingFocusManager,
   FloatingNode,
@@ -32,9 +28,6 @@ import {
   useRole,
 } from '../index';
 import type { FloatingFocusManagerProps } from './FloatingFocusManager';
-import { isJSDOM } from '../../utils/detectBrowser';
-import { Main as MenuVirtual } from '../../../test/floating-ui-tests/MenuVirtual';
-import { Main as Navigation } from '../../../test/floating-ui-tests/Navigation';
 
 beforeAll(() => {
   vi.spyOn(window, 'requestAnimationFrame').mockImplementation(
@@ -59,17 +52,21 @@ function App(
     }
   >,
 ) {
-  const ref = React.useRef<HTMLButtonElement | null>(null);
-  const [open, setOpen] = React.useState(false);
+  let ref: HTMLButtonElement | undefined;
+  const [open, setOpen] = createSignal(false);
   const { refs, context } = useFloating({
     open,
     onOpenChange: setOpen,
   });
 
+  onMount(() => {
+    console.log('MOUNTED APP', open());
+  });
+
   return (
     <>
-      <button data-testid="reference" ref={refs.setReference} onClick={() => setOpen(!open)} />
-      {open && (
+      <button data-testid="reference" ref={refs.setReference} onClick={() => setOpen((v) => !v)} />
+      {open() && (
         <FloatingFocusManager
           {...props}
           initialFocus={props.initialFocus === 'two' ? ref : props.initialFocus}
@@ -96,12 +93,12 @@ function App(
 
 interface DialogProps {
   open?: boolean;
-  render: (props: { close: () => void }) => React.ReactNode;
-  children: React.JSX.Element;
+  render: Component<{ close: () => void }>;
+  children: Component<any>;
 }
 
-function Dialog({ render, open: passedOpen = false, children }: DialogProps) {
-  const [open, setOpen] = React.useState(passedOpen);
+function Dialog(props: DialogProps) {
+  const [open, setOpen] = createSignal(props.open ?? false);
   const nodeId = useFloatingNodeId();
 
   const { refs, context } = useFloating({
@@ -110,24 +107,20 @@ function Dialog({ render, open: passedOpen = false, children }: DialogProps) {
     nodeId,
   });
 
-  const { getReferenceProps, getFloatingProps } = useInteractions([
-    useClick(context),
-    useDismiss(context, { bubbles: false }),
+  const { getReferenceProps, getFloatingProps } = useInteractions(() => [
+    useClick(context)(),
+    useDismiss(context, { bubbles: () => false })(),
   ]);
 
   return (
-    <FloatingNode id={nodeId}>
-      {React.cloneElement(
-        children,
-        getReferenceProps({ ref: refs.setReference, ...children.props }),
-      )}
+    <FloatingNode id={nodeId()}>
+      <Dynamic component={props.children} {...getReferenceProps({ ref: refs.setReference })} />
+
       <FloatingPortal>
-        {open && (
+        {open() && (
           <FloatingFocusManager context={context}>
             <div {...getFloatingProps({ ref: refs.setFloating })}>
-              {render({
-                close: () => setOpen(false),
-              })}
+              <Dynamic component={props.render} close={() => setOpen(false)} />
             </div>
           </FloatingFocusManager>
         )}
@@ -136,37 +129,47 @@ function Dialog({ render, open: passedOpen = false, children }: DialogProps) {
   );
 }
 
-describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
+// describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
+describe('FloatingFocusManager', () => {
   describe('initialFocus', () => {
     test('number', async () => {
-      const { rerender } = render(<App />);
+      const [initialFocus, setInitialFocus] = createSignal<number>();
+      render(() => <App initialFocus={initialFocus()} />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
 
-      expect(screen.getByTestId('one')).toHaveFocus();
+      await waitFor(() => {
+        expect(screen.getByTestId('one')).toHaveFocus();
+      });
 
-      rerender(<App initialFocus={1} />);
-      expect(screen.getByTestId('two')).not.toHaveFocus();
+      setInitialFocus(1);
+      await waitFor(() => {
+        expect(screen.getByTestId('two')).not.toHaveFocus();
+      });
 
-      rerender(<App initialFocus={2} />);
-      expect(screen.getByTestId('three')).not.toHaveFocus();
+      setInitialFocus(2);
+      await waitFor(() => {
+        expect(screen.getByTestId('three')).not.toHaveFocus();
+      });
     });
 
     test('ref', async () => {
-      render(<App initialFocus="two" />);
+      render(() => <App initialFocus="two" />);
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
 
-      expect(screen.getByTestId('two')).toHaveFocus();
+      await waitFor(() => {
+        expect(screen.getByTestId('two')).toHaveFocus();
+      });
     });
 
-    test('respects autoFocus', async () => {
-      render(
+    test('respects autoFocus with directive (only for Solid)', async () => {
+      render(() => (
         <App>
-          <input autoFocus data-testid="input" />
-        </App>,
-      );
+          <input autofocus use:autofocus data-testid="input" />
+        </App>
+      ));
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
       expect(screen.getByTestId('input')).toHaveFocus();
@@ -175,17 +178,20 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   describe('returnFocus', () => {
     test('true', async () => {
-      const { rerender } = render(<App />);
+      const [returnFocus, setReturnFocus] = createSignal<boolean>();
+      render(() => <App returnFocus={returnFocus()} />);
 
       screen.getByTestId('reference').focus();
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
 
-      expect(screen.getByTestId('one')).toHaveFocus();
+      await waitFor(() => {
+        expect(screen.getByTestId('one')).toHaveFocus();
+      });
 
-      act(() => screen.getByTestId('two').focus());
+      screen.getByTestId('two').focus();
 
-      rerender(<App returnFocus={false} />);
+      setReturnFocus(false);
 
       expect(screen.getByTestId('two')).toHaveFocus();
 
@@ -194,13 +200,15 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     });
 
     test('false', async () => {
-      render(<App returnFocus={false} />);
+      render(() => <App returnFocus={false} />);
 
       screen.getByTestId('reference').focus();
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
 
-      expect(screen.getByTestId('one')).toHaveFocus();
+      await waitFor(() => {
+        expect(screen.getByTestId('one')).toHaveFocus();
+      });
 
       fireEvent.click(screen.getByTestId('three'));
       expect(screen.getByTestId('reference')).not.toHaveFocus();
@@ -208,7 +216,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
     test('ref', async () => {
       function Test() {
-        const ref = React.useRef<HTMLInputElement | null>(null);
+        let ref: HTMLInputElement | undefined;
         return (
           <div>
             <input />
@@ -219,7 +227,8 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<Test />);
+      render(() => <Test />);
+
       screen.getByTestId('reference').focus();
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -230,36 +239,33 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     });
 
     test('always returns to the reference for nested elements', async () => {
-      const NestedDialog: React.FC<DialogProps> = (props) => {
+      const NestedDialog = (props: DialogProps) => {
         const parentId = useFloatingParentNodeId();
-
-        if (parentId == null) {
-          return (
+        return (
+          <Show when={parentId() == null} fallback={<Dialog {...props} />}>
             <FloatingTree>
               <Dialog {...props} />
             </FloatingTree>
-          );
-        }
-
-        return <Dialog {...props} />;
+          </Show>
+        );
       };
 
-      render(
+      render(() => (
         <NestedDialog
-          render={({ close }) => (
+          render={(props) => (
             <>
               <NestedDialog
-                render={({ close }) => <button onClick={close} data-testid="close-nested-dialog" />}
+                render={(p) => <button onClick={p.close} data-testid="close-nested-dialog" />}
               >
-                <button data-testid="open-nested-dialog" />
+                {(p) => <button data-testid="open-nested-dialog" {...p} />}
               </NestedDialog>
-              <button onClick={close} data-testid="close-dialog" />
+              <button onClick={props.close} data-testid="close-dialog" />
             </>
           )}
         >
-          <button data-testid="open-dialog" />
-        </NestedDialog>,
-      );
+          {(props) => <button data-testid="open-dialog" {...props} />}
+        </NestedDialog>
+      ));
 
       await userEvent.click(screen.getByTestId('open-dialog'));
       await userEvent.click(screen.getByTestId('open-nested-dialog'));
@@ -276,19 +282,22 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     });
 
     test('return to the first focusable descendent of the reference, if the reference is not focusable', async () => {
-      render(
-        <Dialog render={({ close }) => <button onClick={close} data-testid="close-dialog" />}>
-          <div data-testid="non-focusable-reference">
-            <button data-testid="open-dialog" />
-          </div>
-        </Dialog>,
-      );
+      render(() => (
+        <Dialog render={(p) => <button onClick={p.close} data-testid="close-dialog" />}>
+          {(p) => (
+            <div data-testid="non-focusable-reference" {...p}>
+              <button data-testid="open-dialog" />
+            </div>
+          )}
+        </Dialog>
+      ));
       screen.getByTestId('open-dialog').focus();
       await userEvent.keyboard('{Enter}');
 
       expect(screen.getByTestId('close-dialog')).toBeInTheDocument();
 
-      await userEvent.keyboard('{Esc}');
+      // TODO (explanatory): test was failing with {Esc}
+      await userEvent.keyboard('{Escape}');
 
       expect(screen.queryByTestId('close-dialog')).not.toBeInTheDocument();
 
@@ -297,8 +306,8 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
     test('preserves tabbable context next to reference element if removed (modal)', async () => {
       function App() {
-        const [isOpen, setIsOpen] = React.useState(false);
-        const [removed, setRemoved] = React.useState(false);
+        const [isOpen, setIsOpen] = createSignal(false);
+        const [removed, setRemoved] = createSignal(false);
 
         const { refs, context } = useFloating({
           open: isOpen,
@@ -307,14 +316,14 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
         const click = useClick(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions([click]);
+        const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
 
         return (
           <>
-            {!removed && (
+            {!removed() && (
               <button ref={refs.setReference} {...getReferenceProps()} data-testid="reference" />
             )}
-            {isOpen && (
+            {isOpen() && (
               <FloatingPortal>
                 <FloatingFocusManager context={context}>
                   <div ref={refs.setFloating} {...getFloatingProps()}>
@@ -336,7 +345,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -351,8 +360,8 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
     test('preserves tabbable context next to reference element if removed (non-modal)', async () => {
       function App() {
-        const [isOpen, setIsOpen] = React.useState(false);
-        const [removed, setRemoved] = React.useState(false);
+        const [isOpen, setIsOpen] = createSignal(false);
+        const [removed, setRemoved] = createSignal(false);
 
         const { refs, context } = useFloating({
           open: isOpen,
@@ -361,14 +370,14 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
         const click = useClick(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions([click]);
+        const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
 
         return (
           <>
-            {!removed && (
+            {!removed() && (
               <button ref={refs.setReference} {...getReferenceProps()} data-testid="reference" />
             )}
-            {isOpen && (
+            {isOpen() && (
               <FloatingPortal>
                 <FloatingFocusManager context={context} modal={false}>
                   <div ref={refs.setFloating} {...getFloatingProps()}>
@@ -390,7 +399,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -399,7 +408,6 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       await flushMicrotasks();
 
       await userEvent.tab();
-
       expect(screen.getByTestId('fallback')).toHaveFocus();
     });
 
@@ -407,7 +415,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       'does not return focus to reference on outside press when preventScroll is not supported',
       async () => {
         function App() {
-          const [isOpen, setIsOpen] = React.useState(false);
+          const [isOpen, setIsOpen] = createSignal(false);
 
           const { refs, context } = useFloating({
             open: isOpen,
@@ -417,14 +425,17 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
           const click = useClick(context);
           const dismiss = useDismiss(context);
 
-          const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss]);
+          const { getReferenceProps, getFloatingProps } = useInteractions(() => [
+            click(),
+            dismiss(),
+          ]);
 
           return (
             <>
               <button ref={refs.setReference} {...getReferenceProps()}>
                 reference
               </button>
-              {isOpen && (
+              {isOpen() && (
                 <FloatingFocusManager context={context}>
                   <div ref={refs.setFloating} {...getFloatingProps()} data-testid="floating" />
                 </FloatingFocusManager>
@@ -433,7 +444,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
           );
         }
 
-        render(<App />);
+        render(() => <App />);
 
         await userEvent.click(screen.getByText('reference'));
         await flushMicrotasks();
@@ -453,6 +464,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         configurable: true,
         writable: true,
         value(options: any) {
+          console.trace('focus', document.activeElement);
           // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           options && options.preventScroll;
           return originalFocus.call(this, options);
@@ -460,7 +472,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       });
 
       function App() {
-        const [isOpen, setIsOpen] = React.useState(false);
+        const [isOpen, setIsOpen] = createSignal(false);
 
         const { refs, context } = useFloating({
           open: isOpen,
@@ -470,14 +482,14 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         const click = useClick(context);
         const dismiss = useDismiss(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss]);
+        const { getReferenceProps, getFloatingProps } = useInteractions(() => [click(), dismiss()]);
 
         return (
           <>
             <button ref={refs.setReference} {...getReferenceProps()}>
               reference
             </button>
-            {isOpen && (
+            {isOpen() && (
               <FloatingFocusManager context={context}>
                 <div ref={refs.setFloating} {...getFloatingProps()} data-testid="floating" />
               </FloatingFocusManager>
@@ -486,7 +498,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       await userEvent.click(screen.getByText('reference'));
       await flushMicrotasks();
@@ -504,7 +516,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   describe('guards', () => {
     test('true', async () => {
-      render(<App guards />);
+      render(() => <App guards />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -517,7 +529,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     });
 
     test.skipIf(!isJSDOM)('false', async () => {
-      render(<App guards={false} />);
+      render(() => <App guards={false} />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -526,17 +538,20 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       await userEvent.tab();
       await userEvent.tab();
 
+      await waitFor(() => {
+        expect(document.activeElement).toHaveTextContent('outside');
+      });
       expect(document.activeElement).toHaveAttribute('inert', '');
     });
   });
 
   describe('iframe focus navigation', () => {
-    function App({ iframe }: { iframe: HTMLElement }) {
+    function App(props: { iframe: HTMLElement }) {
       return (
         <div>
           <a href="#">prev iframe link</a>
           <Popover
-            portalRef={iframe}
+            portalRef={props.iframe}
             render={() => (
               <div data-testid="popover">
                 <a href="#">popover link 1</a>
@@ -544,23 +559,19 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
               </div>
             )}
           >
-            <button>Open</button>
+            {() => <button>Open</button>}
           </Popover>
           <a href="#">next iframe link</a>
         </div>
       );
     }
 
-    function Popover({
-      children,
-      render,
-      portalRef,
-    }: {
-      children: React.ReactElement;
-      render: () => React.ReactNode;
+    function Popover(props: {
+      children: Component;
+      render: () => JSX.Element;
       portalRef?: HTMLElement;
     }) {
-      const [open, setOpen] = React.useState(false);
+      const [open, setOpen] = createSignal(false);
 
       const { floatingStyles, refs, context } = useFloating({
         open,
@@ -570,16 +581,16 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       const click = useClick(context);
       const dismiss = useDismiss(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss]);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [click(), dismiss()]);
 
       return (
         <>
-          {React.cloneElement(children, getReferenceProps({ ref: refs.setReference }))}
-          {open && (
-            <FloatingPortal root={portalRef}>
+          <Dynamic component={props.children} {...getReferenceProps({ ref: refs.setReference })} />
+          {open() && (
+            <FloatingPortal root={props.portalRef}>
               <FloatingFocusManager context={context} modal={false}>
                 <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>
-                  {render()}
+                  <Dynamic component={props.render} />
                 </div>
               </FloatingFocusManager>
             </FloatingPortal>
@@ -589,7 +600,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     }
 
     function IframeApp() {
-      React.useEffect(() => {
+      onMount(() => {
         function createIframe() {
           const container = document.querySelector('#innerRoot');
           const iframe = document.createElement('iframe');
@@ -612,10 +623,11 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         }
 
         const root = createIframe();
+
         if (root) {
-          ReactDOMClient.createRoot(root).render(<App iframe={root} />);
+          // createRoot(root).render(<App iframe={root} />);
         }
-      }, []);
+      });
 
       return (
         <>
@@ -629,7 +641,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     // "Should not already be working"(?) when trying to click within the iframe
     // https://github.com/facebook/react/pull/32441
     test.skipIf(!isJSDOM)('tabs from the popover to the next element in the iframe', async () => {
-      render(<IframeApp />);
+      render(() => <IframeApp />);
 
       const iframe: HTMLIFrameElement = await screen.findByTestId('iframe');
       const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
@@ -652,7 +664,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     test.skipIf(!isJSDOM)(
       'shift+tab from the popover to the previous element in the iframe',
       async () => {
-        render(<IframeApp />);
+        render(() => <IframeApp />);
 
         const iframe: HTMLIFrameElement = await screen.findByTestId('iframe');
         const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
@@ -673,7 +685,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   describe('modal', () => {
     test('true', async () => {
-      render(<App modal />);
+      render(() => <App modal />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -704,7 +716,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     });
 
     test('false', async () => {
-      render(<App modal={false} />);
+      render(() => <App modal={false} />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -718,7 +730,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       await userEvent.tab();
 
       // Wait for the setTimeout that wraps onOpenChange(false).
-      await act(() => new Promise((resolve) => setTimeout(resolve)));
+      await new Promise((resolve) => setTimeout(resolve));
 
       // Focus leaving the floating element closes it.
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -727,7 +739,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     });
 
     test('false — shift tabbing does not trap focus when reference is in order', async () => {
-      render(<App modal={false} order={['reference', 'content']} />);
+      render(() => <App modal={false} order={['reference', 'content']} />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -741,7 +753,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
     test('true - comboboxes hide all other nodes with aria-hidden', async () => {
       function App() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
         const { refs, context } = useFloating({
           open,
           onOpenChange: setOpen,
@@ -757,7 +769,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
             />
             <button data-testid="btn-1" />
             <button data-testid="btn-2" />
-            {open && (
+            {open() && (
               <FloatingFocusManager context={context} modal order={['reference']}>
                 <div role="listbox" ref={refs.setFloating} data-testid="floating" />
               </FloatingFocusManager>
@@ -766,7 +778,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       fireEvent.focus(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -779,7 +791,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
     test('true - comboboxes hide all other nodes with inert when outsideElementsInert=true', async () => {
       function App() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
         const { refs, context } = useFloating({
           open,
           onOpenChange: setOpen,
@@ -795,7 +807,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
             />
             <button data-testid="btn-1" />
             <button data-testid="btn-2" />
-            {open && (
+            {open() && (
               <FloatingFocusManager
                 context={context}
                 modal
@@ -809,7 +821,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       fireEvent.focus(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -822,7 +834,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
     test('false - comboboxes do not hide all other nodes', async () => {
       function App() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
         const { refs, context } = useFloating({
           open,
           onOpenChange: setOpen,
@@ -838,7 +850,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
             />
             <button data-testid="btn-1" />
             <button data-testid="btn-2" />
-            {open && (
+            {open() && (
               <FloatingFocusManager context={context} modal={false}>
                 <div role="listbox" ref={refs.setFloating} data-testid="floating" />
               </FloatingFocusManager>
@@ -847,7 +859,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       fireEvent.focus(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -860,7 +872,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
     test('fallback to floating element when it has no tabbable content', async () => {
       function App() {
-        const { refs, context } = useFloating({ open: true });
+        const { refs, context } = useFloating({ open: () => true });
         return (
           <>
             <button data-testid="reference" ref={refs.setReference} />
@@ -871,7 +883,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
       await flushMicrotasks();
 
       expect(screen.getByTestId('floating')).toHaveFocus();
@@ -885,21 +897,16 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       interface Props {
         open?: boolean;
         modal?: boolean;
-        render: (props: { close: () => void }) => React.ReactNode;
-        children?: React.JSX.Element;
-        sideChildren?: React.JSX.Element;
+        render: (props: { close: () => void }) => JSX.Element;
+        children?: Component;
+        sideChildren?: JSX.Element;
       }
 
-      const Dialog = ({
-        render,
-        open: controlledOpen,
-        modal = true,
-        children,
-        sideChildren,
-      }: Props) => {
-        const [internalOpen, setOpen] = React.useState(false);
+      const Dialog = (props: Props) => {
+        const modal = () => props.modal ?? true;
+        const [internalOpen, setOpen] = createSignal(false);
         const nodeId = useFloatingNodeId();
-        const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+        const open = () => (props.open !== undefined ? props.open : internalOpen());
 
         const { refs, context } = useFloating({
           open,
@@ -907,84 +914,100 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
           nodeId,
         });
 
-        const { getReferenceProps, getFloatingProps } = useInteractions([
-          useClick(context),
-          useDismiss(context, { bubbles: false }),
+        const { getReferenceProps, getFloatingProps } = useInteractions(() => [
+          useClick(context)(),
+          useDismiss(context, { bubbles: () => false })(),
         ]);
 
         return (
-          <FloatingNode id={nodeId}>
-            {children &&
-              React.cloneElement(
-                children,
-                getReferenceProps({ ref: refs.setReference, ...children.props }),
-              )}
+          <FloatingNode id={nodeId()}>
+            <Dynamic
+              component={props.children}
+              {...getReferenceProps({ ref: refs.setReference })}
+            />
             <FloatingPortal>
-              {open && (
-                <FloatingFocusManager context={context} modal={modal}>
+              <Show when={open()}>
+                <FloatingFocusManager context={context} modal={modal()}>
                   <div {...getFloatingProps({ ref: refs.setFloating })}>
-                    {render({
-                      close: () => setOpen(false),
-                    })}
+                    <Dynamic component={props.render} close={() => setOpen(false)} />
                   </div>
                 </FloatingFocusManager>
-              )}
+              </Show>
             </FloatingPortal>
-            {sideChildren}
+            {props.sideChildren}
           </FloatingNode>
         );
       };
 
-      const NestedDialog: React.FC<Props> = (props) => {
+      const NestedDialog = (props: Props) => {
         const parentId = useFloatingParentNodeId();
 
-        if (parentId == null) {
-          return (
+        return (
+          <Show when={parentId() == null} fallback={<Dialog {...props} />}>
             <FloatingTree>
               <Dialog {...props} />
             </FloatingTree>
-          );
-        }
-
-        return <Dialog {...props} />;
+          </Show>
+        );
       };
 
       const App = () => {
-        const [sideDialogOpen, setSideDialogOpen] = React.useState(false);
+        const [sideDialogOpen, setSideDialogOpen] = createSignal(false);
+
         return (
           <NestedDialog
             modal={false}
-            render={({ close }) => (
-              <>
-                <button onClick={close} data-testid="close-dialog" />
-                <button onClick={() => setSideDialogOpen(true)} data-testid="open-nested-dialog" />
-              </>
-            )}
+            render={(props) => {
+              return (
+                <>
+                  <button
+                    onClick={() => {
+                      props.close();
+                    }}
+                    data-testid="close-dialog"
+                  />
+                  <button
+                    onClick={() => {
+                      setSideDialogOpen(true);
+                    }}
+                    data-testid="open-nested-dialog"
+                  />
+                </>
+              );
+            }}
             sideChildren={
               <NestedDialog
                 modal
-                open={sideDialogOpen}
-                render={({ close }) => <button onClick={close} data-testid="close-nested-dialog" />}
+                open={sideDialogOpen()}
+                render={(props) => {
+                  return (
+                    <button
+                      onClick={() => {
+                        props.close();
+                      }}
+                      data-testid="close-nested-dialog"
+                    />
+                  );
+                }}
               />
             }
           >
-            <button data-testid="open-dialog" />
+            {(props) => <button data-testid="open-dialog" {...props} />}
           </NestedDialog>
         );
       };
 
-      render(<App />);
+      render(() => <App />);
 
       await userEvent.click(screen.getByTestId('open-dialog'));
       await userEvent.click(screen.getByTestId('open-nested-dialog'));
-
       expect(screen.getByTestId('close-dialog')).toBeInTheDocument();
       expect(screen.getByTestId('close-nested-dialog')).toBeInTheDocument();
     });
 
     test('true - applies aria-hidden to outside nodes', async () => {
       function App() {
-        const [isOpen, setIsOpen] = React.useState(false);
+        const [isOpen, setIsOpen] = createSignal(false);
         const { refs, context } = useFloating({
           open: isOpen,
           onOpenChange: setIsOpen,
@@ -1002,7 +1025,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
               <button data-testid="btn-1" />
               <button data-testid="btn-2" />
             </div>
-            {isOpen && (
+            {isOpen() && (
               <FloatingFocusManager context={context}>
                 <div ref={refs.setFloating} data-testid="floating" />
               </FloatingFocusManager>
@@ -1011,7 +1034,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -1032,7 +1055,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
     test('true - applies inert to outside nodes when outsideElementsInert=true', async () => {
       function App() {
-        const [isOpen, setIsOpen] = React.useState(false);
+        const [isOpen, setIsOpen] = createSignal(false);
         const { refs, context } = useFloating({
           open: isOpen,
           onOpenChange: setIsOpen,
@@ -1050,7 +1073,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
               <button data-testid="btn-1" />
               <button data-testid="btn-2" />
             </div>
-            {isOpen && (
+            {isOpen() && (
               <FloatingFocusManager context={context} outsideElementsInert>
                 <div ref={refs.setFloating} data-testid="floating" />
               </FloatingFocusManager>
@@ -1059,7 +1082,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -1080,7 +1103,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
     test('false - does not apply inert to outside nodes', async () => {
       function App() {
-        const [isOpen, setIsOpen] = React.useState(false);
+        const [isOpen, setIsOpen] = createSignal(false);
         const { refs, context } = useFloating({
           open: isOpen,
           onOpenChange: setIsOpen,
@@ -1098,7 +1121,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
               <button data-testid="btn-1" />
               <button data-testid="btn-2" />
             </div>
-            {isOpen && (
+            {isOpen() && (
               <FloatingFocusManager context={context} modal={false}>
                 <div role="listbox" ref={refs.setFloating} data-testid="floating" />
               </FloatingFocusManager>
@@ -1107,7 +1130,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -1131,8 +1154,8 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
   describe('disabled', () => {
     test('true -> false', async () => {
       function App() {
-        const [isOpen, setIsOpen] = React.useState(false);
-        const [disabled, setDisabled] = React.useState(true);
+        const [isOpen, setIsOpen] = createSignal(false);
+        const [disabled, setDisabled] = createSignal(true);
 
         const { refs, context } = useFloating({
           open: isOpen,
@@ -1147,8 +1170,8 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
               onClick={() => setIsOpen((v) => !v)}
             />
             <button data-testid="toggle" onClick={() => setDisabled((v) => !v)} />
-            {isOpen && (
-              <FloatingFocusManager context={context} disabled={disabled}>
+            {isOpen() && (
+              <FloatingFocusManager context={context} disabled={disabled()}>
                 <div ref={refs.setFloating} data-testid="floating" role="dialog" />
               </FloatingFocusManager>
             )}
@@ -1156,20 +1179,22 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
+
       expect(screen.getByTestId('floating')).not.toHaveFocus();
       fireEvent.click(screen.getByTestId('toggle'));
       await flushMicrotasks();
+
       expect(screen.getByTestId('floating')).toHaveFocus();
     });
 
     test('false', async () => {
       function App() {
-        const [isOpen, setIsOpen] = React.useState(false);
-        const [disabled, setDisabled] = React.useState(false);
+        const [isOpen, setIsOpen] = createSignal(false);
+        const [disabled, setDisabled] = createSignal(false);
 
         const { refs, context } = useFloating({
           open: isOpen,
@@ -1178,14 +1203,14 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
         const click = useClick(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions([click]);
+        const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
 
         return (
           <>
             <button data-testid="reference" ref={refs.setReference} {...getReferenceProps()} />
             <button data-testid="toggle" onClick={() => setDisabled((v) => !v)} />
-            {isOpen && (
-              <FloatingFocusManager context={context} disabled={disabled}>
+            {isOpen() && (
+              <FloatingFocusManager context={context} disabled={disabled()}>
                 <div ref={refs.setFloating} data-testid="floating" {...getFloatingProps()} />
               </FloatingFocusManager>
             )}
@@ -1193,7 +1218,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -1202,7 +1227,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
     test('supports keepMounted behavior', async () => {
       function App() {
-        const [isOpen, setIsOpen] = React.useState(false);
+        const [isOpen, setIsOpen] = createSignal(false);
 
         const { refs, context } = useFloating({
           open: isOpen,
@@ -1212,12 +1237,12 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         const click = useClick(context);
         const dismiss = useDismiss(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss]);
+        const { getReferenceProps, getFloatingProps } = useInteractions(() => [click(), dismiss()]);
 
         return (
           <>
             <button data-testid="reference" ref={refs.setReference} {...getReferenceProps()} />
-            <FloatingFocusManager context={context} disabled={!isOpen} modal={false}>
+            <FloatingFocusManager context={context} disabled={!isOpen()} modal={false}>
               <div ref={refs.setFloating} data-testid="floating" {...getFloatingProps()}>
                 <button data-testid="child" />
               </div>
@@ -1227,7 +1252,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       await flushMicrotasks();
 
@@ -1257,7 +1282,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   describe('order', () => {
     test('[reference, content]', async () => {
-      render(<App order={['reference', 'content']} />);
+      render(() => <App order={['reference', 'content']} />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -1272,7 +1297,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     });
 
     test('[floating, content]', async () => {
-      render(<App order={['floating', 'content']} />);
+      render(() => <App order={['floating', 'content']} />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -1305,7 +1330,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     });
 
     test('[reference, floating, content]', async () => {
-      render(<App order={['reference', 'floating', 'content']} />);
+      render(() => <App order={['reference', 'floating', 'content']} />);
 
       fireEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -1342,7 +1367,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
   describe('non-modal + FloatingPortal', () => {
     test('focuses inside element, tabbing out focuses last document element', async () => {
       function App() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
         const { refs, context } = useFloating({
           open,
           onOpenChange: setOpen,
@@ -1353,7 +1378,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
             <span tabIndex={0} data-testid="first" />
             <button data-testid="reference" ref={refs.setReference} onClick={() => setOpen(true)} />
             <FloatingPortal>
-              {open && (
+              {open() && (
                 <FloatingFocusManager context={context} modal={false}>
                   <div data-testid="floating" ref={refs.setFloating}>
                     <span tabIndex={0} data-testid="inside" />
@@ -1366,7 +1391,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       await userEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -1381,7 +1406,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
     test('order: [reference, content] focuses reference, then inside, then, last document element', async () => {
       function App() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
         const { refs, context } = useFloating({
           open,
           onOpenChange: setOpen,
@@ -1392,7 +1417,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
             <span tabIndex={0} data-testid="first" />
             <button data-testid="reference" ref={refs.setReference} onClick={() => setOpen(true)} />
             <FloatingPortal>
-              {open && (
+              {open() && (
                 <FloatingFocusManager
                   context={context}
                   modal={false}
@@ -1409,7 +1434,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       await userEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -1426,7 +1451,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
     test('order: [reference, floating, content] focuses reference, then inside, then, last document element', async () => {
       function App() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
         const { refs, context } = useFloating({
           open,
           onOpenChange: setOpen,
@@ -1437,7 +1462,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
             <span tabIndex={0} data-testid="first" />
             <button data-testid="reference" ref={refs.setReference} onClick={() => setOpen(true)} />
             <FloatingPortal>
-              {open && (
+              {open() && (
                 <FloatingFocusManager
                   context={context}
                   modal={false}
@@ -1454,7 +1479,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       await userEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -1475,7 +1500,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
     test('shift+tab', async () => {
       function App() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
         const { refs, context } = useFloating({
           open,
           onOpenChange: setOpen,
@@ -1486,7 +1511,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
             <span tabIndex={0} data-testid="first" />
             <button data-testid="reference" ref={refs.setReference} onClick={() => setOpen(true)} />
             <FloatingPortal>
-              {open && (
+              {open() && (
                 <FloatingFocusManager context={context} modal={false}>
                   <div data-testid="floating" ref={refs.setFloating}>
                     <span tabIndex={0} data-testid="inside" />
@@ -1499,11 +1524,10 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       await userEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
-
       await userEvent.tab({ shift: true });
 
       expect(screen.getByTestId('floating')).toBeInTheDocument();
@@ -1516,14 +1540,14 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   describe('Navigation', () => {
     test('does not focus reference when hovering it', async () => {
-      render(<Navigation />);
+      render(() => <Navigation />);
       await userEvent.hover(screen.getByText('Product'));
       await userEvent.unhover(screen.getByText('Product'));
       expect(screen.getByText('Product')).not.toHaveFocus();
     });
 
     test('returns focus to reference when floating element was opened by hover but is closed by esc key', async () => {
-      render(<Navigation />);
+      render(() => <Navigation />);
       await userEvent.hover(screen.getByText('Product'));
       await flushMicrotasks();
       await userEvent.keyboard('{Escape}');
@@ -1531,7 +1555,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     });
 
     test('returns focus to reference when floating element was opened by hover but is closed by an explicit close button', async () => {
-      render(<Navigation />);
+      render(() => <Navigation />);
       await userEvent.hover(screen.getByText('Product'));
       await flushMicrotasks();
       await userEvent.click(screen.getByText('Close').parentElement!);
@@ -1542,14 +1566,14 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     });
 
     test('does not re-open after closing via escape key', async () => {
-      render(<Navigation />);
+      render(() => <Navigation />);
       await userEvent.hover(screen.getByText('Product'));
       await userEvent.keyboard('{Escape}');
       expect(screen.queryByText('Link 1')).not.toBeInTheDocument();
     });
 
     test('closes when unhovering floating element even when focus is inside it', async () => {
-      render(<Navigation />);
+      render(() => <Navigation />);
       await userEvent.hover(screen.getByText('Product'));
       await userEvent.click(screen.getByTestId('subnavigation'));
       await userEvent.unhover(screen.getByTestId('subnavigation'));
@@ -1560,9 +1584,10 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
   });
 
   describe('restoreFocus', () => {
-    function App({ restoreFocus = true }: { restoreFocus?: boolean }) {
-      const [isOpen, setIsOpen] = React.useState(false);
-      const [removed, setRemoved] = React.useState(false);
+    function App(props: { restoreFocus?: boolean }) {
+      const restoreFocus = () => props.restoreFocus ?? true;
+      const [isOpen, setIsOpen] = createSignal(false);
+      const [removed, setRemoved] = createSignal(false);
 
       const { refs, context } = useFloating({
         open: isOpen,
@@ -1570,14 +1595,14 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       });
 
       const click = useClick(context);
-      const { getReferenceProps, getFloatingProps } = useInteractions([click]);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
 
       return (
         <>
           <button onClick={() => setRemoved(true)}>remove</button>
           <button ref={refs.setReference} {...getReferenceProps()} data-testid="reference" />
-          {isOpen && (
-            <FloatingFocusManager context={context} restoreFocus={restoreFocus} initialFocus={1}>
+          {isOpen() && (
+            <FloatingFocusManager context={context} restoreFocus={restoreFocus()} initialFocus={1}>
               <div ref={refs.setFloating} {...getFloatingProps()} data-testid="floating">
                 <button>one</button>
                 {!removed && <button>two</button>}
@@ -1592,7 +1617,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     test.skipIf(isJSDOM)(
       'true: restores focus to nearest tabbable element if currently focused element is removed',
       async () => {
-        render(<App />);
+        render(() => <App />);
 
         await userEvent.click(screen.getByTestId('reference'));
         await flushMicrotasks();
@@ -1614,7 +1639,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     test.skipIf(isJSDOM)(
       'false: does not restore focus to nearest tabbable element if currently focused element is removed',
       async () => {
-        render(<App restoreFocus={false} />);
+        render(() => <App restoreFocus={false} />);
 
         await userEvent.click(screen.getByTestId('reference'));
         await flushMicrotasks();
@@ -1636,7 +1661,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   test('trapped combobox prevents focus moving outside floating element', async () => {
     function App() {
-      const [isOpen, setIsOpen] = React.useState(false);
+      const [isOpen, setIsOpen] = createSignal(false);
 
       const { refs, floatingStyles, context } = useFloating({
         open: isOpen,
@@ -1647,17 +1672,21 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       const dismiss = useDismiss(context);
       const click = useClick(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions([role, dismiss, click]);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [
+        role(),
+        dismiss(),
+        click(),
+      ]);
 
       return (
-        <div className="App">
+        <div class="App">
           <input
             ref={refs.setReference}
             {...getReferenceProps()}
             data-testid="input"
             role="combobox"
           />
-          {isOpen && (
+          {isOpen() && (
             <FloatingFocusManager context={context}>
               <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>
                 <button>one</button>
@@ -1669,7 +1698,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
     await userEvent.click(screen.getByTestId('input'));
     await flushMicrotasks();
     expect(screen.getByTestId('input')).not.toHaveFocus();
@@ -1683,7 +1712,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   test('untrapped combobox creates non-modal focus management', async () => {
     function App() {
-      const [isOpen, setIsOpen] = React.useState(false);
+      const [isOpen, setIsOpen] = createSignal(false);
 
       const { refs, floatingStyles, context } = useFloating({
         open: isOpen,
@@ -1694,7 +1723,11 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       const dismiss = useDismiss(context);
       const click = useClick(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions([role, dismiss, click]);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [
+        role(),
+        dismiss(),
+        click(),
+      ]);
 
       return (
         <>
@@ -1704,7 +1737,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
             data-testid="input"
             role="combobox"
           />
-          {isOpen && (
+          {isOpen() && (
             <FloatingPortal>
               <FloatingFocusManager context={context} initialFocus={-1} modal={false}>
                 <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>
@@ -1719,7 +1752,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
     await userEvent.click(screen.getByTestId('input'));
     await flushMicrotasks();
     expect(screen.getByTestId('input')).toHaveFocus();
@@ -1730,16 +1763,13 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
   });
 
   test('returns focus to last connected element', async () => {
-    function Drawer({
-      open,
-      onOpenChange,
-    }: {
-      open: boolean;
-      onOpenChange: (open: boolean) => void;
-    }) {
-      const { refs, context } = useFloating({ open, onOpenChange });
+    function Drawer(props: { open: boolean; onOpenChange: (open: boolean) => void }) {
+      const { refs, context } = useFloating({
+        open: () => props.open,
+        onOpenChange: props.onOpenChange,
+      });
       const dismiss = useDismiss(context);
-      const { getFloatingProps } = useInteractions([dismiss]);
+      const { getFloatingProps } = useInteractions(() => [dismiss()]);
 
       return (
         <FloatingFocusManager context={context}>
@@ -1751,8 +1781,8 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     }
 
     function Parent() {
-      const [isOpen, setIsOpen] = React.useState(false);
-      const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+      const [isOpen, setIsOpen] = createSignal(false);
+      const [isDrawerOpen, setIsDrawerOpen] = createSignal(false);
 
       const { refs, context } = useFloating({
         open: isOpen,
@@ -1762,31 +1792,33 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       const dismiss = useDismiss(context);
       const click = useClick(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss]);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [click(), dismiss()]);
 
       return (
         <>
           <button ref={refs.setReference} data-testid="parent-reference" {...getReferenceProps()} />
-          {isOpen && (
+          {isOpen() && (
             <FloatingFocusManager context={context}>
               <div ref={refs.setFloating} {...getFloatingProps()}>
                 Parent Floating
                 <button
                   data-testid="parent-floating-reference"
                   onClick={() => {
-                    setIsDrawerOpen(true);
-                    setIsOpen(false);
+                    batch(() => {
+                      setIsDrawerOpen(true);
+                      setIsOpen(false);
+                    });
                   }}
                 />
               </div>
             </FloatingFocusManager>
           )}
-          {isDrawerOpen && <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} />}
+          {isDrawerOpen() && <Drawer open={isDrawerOpen()} onOpenChange={setIsDrawerOpen} />}
         </>
       );
     }
 
-    render(<Parent />);
+    render(() => <Parent />);
     await userEvent.click(screen.getByTestId('parent-reference'));
     await flushMicrotasks();
     expect(screen.getByTestId('parent-floating-reference')).toHaveFocus();
@@ -1799,7 +1831,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   test('focus is placed on element with floating props when floating element is a wrapper', async () => {
     function App() {
-      const [isOpen, setIsOpen] = React.useState(false);
+      const [isOpen, setIsOpen] = createSignal(false);
 
       const { refs, context } = useFloating({
         open: isOpen,
@@ -1808,7 +1840,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
       const role = useRole(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions([role]);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [role()]);
 
       return (
         <>
@@ -1818,7 +1850,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
               onClick: () => setIsOpen((v) => !v),
             })}
           />
-          {isOpen && (
+          {isOpen() && (
             <FloatingFocusManager context={context}>
               <div ref={refs.setFloating} data-testid="outer">
                 <div {...getFloatingProps()} data-testid="inner" />
@@ -1829,7 +1861,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     await userEvent.click(screen.getByRole('button'));
     await flushMicrotasks();
@@ -1839,7 +1871,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   test('floating element closes upon tabbing out of modal combobox', async () => {
     function App() {
-      const [isOpen, setIsOpen] = React.useState(false);
+      const [isOpen, setIsOpen] = createSignal(false);
 
       const { refs, context } = useFloating({
         open: isOpen,
@@ -1848,7 +1880,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
       const click = useClick(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions([click]);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
 
       return (
         <>
@@ -1858,7 +1890,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
             data-testid="input"
             role="combobox"
           />
-          {isOpen && (
+          {isOpen() && (
             <FloatingFocusManager context={context} initialFocus={-1}>
               <div ref={refs.setFloating} {...getFloatingProps()} data-testid="floating">
                 <button tabIndex={-1}>one</button>
@@ -1870,7 +1902,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
     await userEvent.click(screen.getByTestId('input'));
     await flushMicrotasks();
     expect(screen.getByTestId('input')).toHaveFocus();
@@ -1881,7 +1913,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   test('focus does not return to reference when floating element is triggered by hover', async () => {
     function App() {
-      const [isOpen, setIsOpen] = React.useState(false);
+      const [isOpen, setIsOpen] = createSignal(false);
 
       const { refs, context } = useFloating({
         open: isOpen,
@@ -1890,12 +1922,12 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
       const hover = useHover(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [hover()]);
 
       return (
         <>
           <button ref={refs.setReference} {...getReferenceProps()} data-testid="reference" />
-          {isOpen && (
+          {isOpen() && (
             <FloatingFocusManager context={context}>
               <div ref={refs.setFloating} {...getFloatingProps()} data-testid="floating" />
             </FloatingFocusManager>
@@ -1904,11 +1936,11 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     const reference = screen.getByTestId('reference');
 
-    act(() => reference.focus());
+    reference.focus();
 
     await userEvent.hover(reference);
     await flushMicrotasks();
@@ -1922,7 +1954,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   test('uses aria-hidden instead of inert on outside nodes if opened with hover and modal=true', async () => {
     function App() {
-      const [isOpen, setIsOpen] = React.useState(false);
+      const [isOpen, setIsOpen] = createSignal(false);
 
       const { refs, context } = useFloating({
         open: isOpen,
@@ -1931,12 +1963,12 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
       const hover = useHover(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [hover()]);
 
       return (
         <>
           <button ref={refs.setReference} {...getReferenceProps()} data-testid="reference" />
-          {isOpen && (
+          {isOpen() && (
             <FloatingFocusManager context={context}>
               <div ref={refs.setFloating} {...getFloatingProps()} data-testid="floating" />
             </FloatingFocusManager>
@@ -1946,7 +1978,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     await userEvent.hover(screen.getByTestId('reference'));
     await flushMicrotasks();
@@ -1956,7 +1988,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
   });
 
   test('aria-hidden is not applied on root combobox with virtual nested menu', async () => {
-    render(<MenuVirtual />);
+    render(() => <MenuVirtual />);
 
     await userEvent.click(screen.getByRole('combobox'));
     await flushMicrotasks();
@@ -1978,7 +2010,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
   describe('getInsideElements', () => {
     test('returns a list of elements that should be considered part of the floating element', async () => {
       function App() {
-        const [isOpen, setIsOpen] = React.useState(false);
+        const [isOpen, setIsOpen] = createSignal(false);
 
         const { refs, context } = useFloating({
           open: isOpen,
@@ -1987,13 +2019,13 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
         const click = useClick(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions([click]);
+        const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
 
         return (
           <>
             <button ref={refs.setReference} {...getReferenceProps()} data-testid="reference" />
             <div data-testid="inside" />
-            {isOpen && (
+            {isOpen() && (
               <FloatingFocusManager
                 context={context}
                 getInsideElements={() => {
@@ -2008,7 +2040,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       await userEvent.click(screen.getByTestId('reference'));
       await flushMicrotasks();
@@ -2019,7 +2051,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   test('floating element with no focusable elements and no listbox role gets tabIndex=0 when initialFocus is -1', async () => {
     function App() {
-      const [isOpen, setIsOpen] = React.useState(false);
+      const [isOpen, setIsOpen] = createSignal(false);
 
       const { refs, context } = useFloating({
         open: isOpen,
@@ -2029,7 +2061,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       return (
         <>
           <button data-testid="reference" ref={refs.setReference} onClick={() => setIsOpen(true)} />
-          {isOpen && (
+          {isOpen() && (
             <FloatingFocusManager context={context} initialFocus={-1} modal={false}>
               <div ref={refs.setFloating} data-testid="floating" role="dialog" />
             </FloatingFocusManager>
@@ -2038,7 +2070,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     const reference = screen.getByTestId('reference');
     await userEvent.click(reference);
@@ -2051,7 +2083,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   test('floating element with listbox role ignores tabIndex setting', async () => {
     function App() {
-      const [isOpen, setIsOpen] = React.useState(false);
+      const [isOpen, setIsOpen] = createSignal(false);
 
       const { refs, context } = useFloating({
         open: isOpen,
@@ -2059,7 +2091,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       });
 
       const click = useClick(context);
-      const { getReferenceProps, getFloatingProps } = useInteractions([click]);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
 
       return (
         <>
@@ -2071,7 +2103,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
           >
             ref
           </button>
-          {isOpen && (
+          {isOpen() && (
             <FloatingFocusManager context={context} initialFocus={-1} modal={false}>
               <div
                 ref={refs.setFloating}
@@ -2087,7 +2119,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
     await userEvent.click(screen.getByTestId('reference'));
     await flushMicrotasks();
 
@@ -2096,7 +2128,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   test('handles manual tabindex on dialog floating element', async () => {
     function App() {
-      const [isOpen, setIsOpen] = React.useState(false);
+      const [isOpen, setIsOpen] = createSignal(false);
 
       const { refs, context } = useFloating({
         open: isOpen,
@@ -2106,7 +2138,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       return (
         <>
           <button data-testid="reference" ref={refs.setReference} onClick={() => setIsOpen(true)} />
-          {isOpen && (
+          {isOpen() && (
             <FloatingFocusManager context={context} modal={false}>
               <div ref={refs.setFloating} data-testid="floating" role="dialog" />
             </FloatingFocusManager>
@@ -2115,7 +2147,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     await userEvent.click(screen.getByTestId('reference'));
     await flushMicrotasks();
@@ -2129,7 +2161,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
   test('standard tabbing back and forth of a non-modal floating element', async () => {
     function App() {
-      const [isOpen, setIsOpen] = React.useState(false);
+      const [isOpen, setIsOpen] = createSignal(false);
 
       const { refs, context } = useFloating({
         open: isOpen,
@@ -2137,12 +2169,12 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       });
 
       const click = useClick(context);
-      const { getReferenceProps, getFloatingProps } = useInteractions([click]);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
 
       return (
         <>
           <button data-testid="reference" ref={refs.setReference} {...getReferenceProps()} />
-          {isOpen && (
+          {isOpen() && (
             <FloatingPortal>
               <FloatingFocusManager context={context} modal={false}>
                 <div
@@ -2159,15 +2191,17 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         </>
       );
     }
-    render(<App />);
+    render(() => <App />);
 
     await userEvent.click(screen.getByTestId('reference'));
     await flushMicrotasks();
 
     expect(screen.getByTestId('inner')).toHaveFocus();
     await userEvent.tab({ shift: true });
+
     expect(screen.getByTestId('reference')).toHaveFocus();
     await userEvent.tab();
+
     expect(screen.getByTestId('inner')).toHaveFocus();
   });
 });

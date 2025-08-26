@@ -37,10 +37,6 @@ function App({
 
   const rect = elements.reference?.getBoundingClientRect();
 
-  React.useEffect(() => {
-    console.log('floating', elements.floating);
-  }, [elements.floating]);
-
   return (
     <React.Fragment>
       <div
@@ -171,7 +167,6 @@ test('cleans up window listener when closing or disabling', async () => {
 
   fireEvent.click(screen.getByRole('button'));
 
-  console.log('1');
   fireEvent(
     screen.getByTestId('reference'),
     new MouseEvent('mousemove', {
@@ -180,13 +175,11 @@ test('cleans up window listener when closing or disabling', async () => {
       clientY: 500,
     }),
   );
-  console.log('2');
+
   await act(async () => {});
 
-  console.log('3');
   fireEvent.click(screen.getByRole('button'));
 
-  console.log('4');
   fireEvent(
     document.body,
     new MouseEvent('mousemove', {
@@ -195,10 +188,9 @@ test('cleans up window listener when closing or disabling', async () => {
       clientY: 0,
     }),
   );
-  console.log('5');
+
   await act(async () => {});
 
-  console.log('6');
   expectLocation({ x: 500, y: 500 });
 
   fireEvent.click(screen.getByRole('button'));
