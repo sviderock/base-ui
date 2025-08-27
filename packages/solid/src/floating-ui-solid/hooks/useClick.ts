@@ -55,10 +55,12 @@ export function useClick(
   const frame = useAnimationFrame();
 
   const reference = createMemo<ElementProps['reference']>(() => ({
-    onPointerDown(event) {
+    'on:pointerdown': (event) => {
+      console.log('POINTER DOWN', event);
       pointerTypeRef = event.pointerType;
     },
-    onMouseDown(event) {
+    'on:mousedown': (event) => {
+      console.log('MOUSE DOWN', event);
       const pointerType = pointerTypeRef;
 
       // Ignore all buttons except for the "main" button.
@@ -86,7 +88,8 @@ export function useClick(
         context.onOpenChange(nextOpen, event, 'click');
       });
     },
-    onClick(event) {
+    'on:click': (event) => {
+      console.log('CLICK', event);
       const pointerType = pointerTypeRef;
 
       if (eventOption() === 'mousedown' && pointerType) {
@@ -112,7 +115,7 @@ export function useClick(
       );
       context.onOpenChange(nextOpen, event, 'click');
     },
-    onKeyDown(e) {
+    'on:keydown': (e) => {
       pointerTypeRef = undefined;
     },
   }));

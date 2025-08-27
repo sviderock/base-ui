@@ -26,9 +26,9 @@ import type { ElementProps, FloatingRootContext } from '../types';
 import { createAttribute } from '../utils/createAttribute';
 
 const bubbleHandlerKeys = {
-  pointerdown: 'onPointerDown',
-  mousedown: 'onMouseDown',
-  click: 'onClick',
+  pointerdown: 'on:pointerdown',
+  mousedown: 'on:mousedown',
+  click: 'on:click',
 };
 
 const captureHandlerKeys = {
@@ -459,13 +459,13 @@ export function useDismiss(
   });
 
   const reference = createMemo<ElementProps['reference']>(() => ({
-    onKeyDown: closeOnEscapeKeyDown,
+    'on:keydown': closeOnEscapeKeyDown,
     ...(referencePress() && {
       [bubbleHandlerKeys[referencePressEvent()]]: (event: Event) => {
         context.onOpenChange(false, event, 'reference-press');
       },
       ...(referencePressEvent() !== 'click' && {
-        onClick(event) {
+        'on:click': (event) => {
           context.onOpenChange(false, event, 'reference-press');
         },
       }),
@@ -473,11 +473,11 @@ export function useDismiss(
   }));
 
   const floating = createMemo<ElementProps['floating']>(() => ({
-    onKeyDown: closeOnEscapeKeyDown,
-    onMouseDown() {
+    'on:keydown': closeOnEscapeKeyDown,
+    'on:mousedown': () => {
       endedOrStartedInsideRef = true;
     },
-    onMouseUp() {
+    'on:mouseup': () => {
       endedOrStartedInsideRef = true;
     },
     [captureHandlerKeys[outsidePressEvent()]]: {

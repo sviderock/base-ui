@@ -6,7 +6,15 @@
 import { flushMicrotasks } from '#test-utils';
 import { fireEvent, render, screen, waitFor, within } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import { batch, createSignal, onMount, Show, type Component, type JSX } from 'solid-js';
+import {
+  batch,
+  createEffect,
+  createSignal,
+  onMount,
+  Show,
+  type Component,
+  type JSX,
+} from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { test } from 'vitest';
 import { Main as MenuVirtual } from '../../../test/floating-ui-tests/MenuVirtual';
@@ -28,6 +36,10 @@ import {
   useRole,
 } from '../index';
 import type { FloatingFocusManagerProps } from './FloatingFocusManager';
+
+// do not treeshake autofocus
+// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+autofocus;
 
 beforeAll(() => {
   vi.spyOn(window, 'requestAnimationFrame').mockImplementation(
@@ -559,7 +571,7 @@ describe('FloatingFocusManager', () => {
               </div>
             )}
           >
-            {() => <button>Open</button>}
+            {(p) => <button {...p}>Open</button>}
           </Popover>
           <a href="#">next iframe link</a>
         </div>
@@ -578,10 +590,10 @@ describe('FloatingFocusManager', () => {
         onOpenChange: setOpen,
       });
 
-      const click = useClick(context);
-      const dismiss = useDismiss(context);
-
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [click(), dismiss()]);
+      const { getReferenceProps, getFloatingProps } = useInteractions(() => [
+        useClick(context)(),
+        useDismiss(context)(),
+      ]);
 
       return (
         <>
@@ -625,7 +637,7 @@ describe('FloatingFocusManager', () => {
         const root = createIframe();
 
         if (root) {
-          // createRoot(root).render(<App iframe={root} />);
+          render(() => <App iframe={root} />, { container: root });
         }
       });
 
@@ -651,12 +663,14 @@ describe('FloatingFocusManager', () => {
 
       await user.click(iframeWithin.getByRole('button', { name: 'Open' }));
 
-      expect(iframeWithin.getByTestId('popover')).toBeInTheDocument();
+      const popover = iframeWithin.getByTestId('popover');
+      expect(iframeDoc!.body.contains(popover)).toBe(true);
 
       await user.tab();
       await user.tab();
 
-      expect(iframeWithin.getByText('next iframe link')).toHaveFocus();
+      const el = iframeWithin.getByText('next iframe link');
+      expect(iframeDoc?.activeElement).toBe(el);
     });
 
     // "Should not already be working"(?) when trying to click within the iframe
@@ -674,11 +688,13 @@ describe('FloatingFocusManager', () => {
 
         await user.click(iframeWithin.getByRole('button', { name: 'Open' }));
 
-        expect(iframeWithin.getByTestId('popover')).toBeInTheDocument();
+        const popover = iframeWithin.getByTestId('popover');
+        expect(iframeDoc!.body.contains(popover)).toBe(true);
 
         await user.tab({ shift: true });
 
-        expect(iframeWithin.getByRole('button', { name: 'Open' })).toHaveFocus();
+        const el = iframeWithin.getByRole('button', { name: 'Open' });
+        expect(iframeDoc?.activeElement).toBe(el);
       },
     );
   });

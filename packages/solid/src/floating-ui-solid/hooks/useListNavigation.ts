@@ -91,7 +91,7 @@ export interface UseListNavigationProps {
    * A ref that holds an array of list items.
    * @default empty list
    */
-  listRef: Array<HTMLElement | undefined>;
+  listRef: Array<HTMLElement | null>;
   /**
    * The index of the currently active (focused or highlighted) item, which may
    * or may not be selected.
@@ -512,7 +512,7 @@ export function useListNavigation(
   const hasActiveIndex = props.activeIndex() != null;
 
   const item = createMemo<ElementProps['item']>(() => {
-    function syncCurrentTarget(currentTarget: HTMLElement | undefined) {
+    function syncCurrentTarget(currentTarget: HTMLElement | null) {
       if (!context.open()) {
         return;
       }
@@ -789,8 +789,8 @@ export function useListNavigation(
     return {
       'aria-orientation': typesafeOrientation === 'both' ? undefined : typesafeOrientation,
       ...(!typeableComboboxReference() ? ariaActiveDescendantProp() : {}),
-      onKeyDown: commonOnKeyDown,
-      onPointerMove() {
+      'on:keydown': commonOnKeyDown,
+      'on:pointermove': () => {
         isPointerModalityRef = true;
       },
     };
@@ -814,7 +814,7 @@ export function useListNavigation(
 
     return {
       ...ariaActiveDescendantProp(),
-      onKeyDown(event) {
+      'on:keydown': (event) => {
         isPointerModalityRef = false;
 
         const isArrowKey = event.key.startsWith('Arrow');
@@ -923,16 +923,16 @@ export function useListNavigation(
 
         return undefined;
       },
-      onFocus() {
+      'on:focus': () => {
         if (context.open() && !virtual()) {
           indexRef = -1;
           onNavigate();
         }
       },
-      onPointerDown: checkVirtualPointer,
-      onPointerEnter: checkVirtualPointer,
-      onMouseDown: checkVirtualMouse,
-      onClick: checkVirtualMouse,
+      'on:pointerdown': checkVirtualPointer,
+      'on:pointerenter': checkVirtualPointer,
+      'on:mousedown': checkVirtualMouse,
+      'on:click': checkVirtualMouse,
     };
   });
 

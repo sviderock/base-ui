@@ -906,7 +906,7 @@ describe('useDismiss', () => {
   test('nested floating elements with different portal roots', async () => {
     function ButtonWithFloating(props: {
       children?: JSX.Element;
-      portalRoot?: Accessor<HTMLElement | undefined>;
+      portalRoot?: Accessor<HTMLElement | null>;
       triggerText: string;
     }) {
       const [open, setOpen] = createSignal(false);

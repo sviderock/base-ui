@@ -77,7 +77,7 @@ function createVirtualElement(
   };
 }
 
-function isMouseBasedEvent(event: Event | undefined): event is MouseEvent {
+function isMouseBasedEvent(event: Event | null): event is MouseEvent {
   return event != null && (event as MouseEvent).clientX != null;
 }
 
@@ -224,10 +224,10 @@ export function useClientPoint(
     }
 
     return {
-      onPointerDown: setPointerTypeRef,
-      onPointerEnter: setPointerTypeRef,
-      onMouseMove: handleReferenceEnterOrMove,
-      onMouseEnter: handleReferenceEnterOrMove,
+      'on:pointerdown': setPointerTypeRef,
+      'on:pointerenter': setPointerTypeRef,
+      'on:mousemove': handleReferenceEnterOrMove,
+      'on:mouseenter': handleReferenceEnterOrMove,
     };
   });
 

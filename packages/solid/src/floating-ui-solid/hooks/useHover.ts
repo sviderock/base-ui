@@ -428,9 +428,9 @@ export function useHover(
     }
 
     return {
-      onPointerDown: setPointerRef,
-      onPointerEnter: setPointerRef,
-      onMouseMove(event) {
+      'on:pointerdown': setPointerRef,
+      'on:pointerenter': setPointerRef,
+      'on:mousemove': (event) => {
         function handleMouseMove() {
           if (!blockMouseMoveRef && !context.open()) {
             context.onOpenChange(true, event, 'hover');

@@ -72,7 +72,7 @@ function applyAttributeToOthers(
   deep(body);
   elementsToKeep.clear();
 
-  function keep(el: Node | undefined) {
+  function keep(el: Node | null | undefined) {
     if (!el || elementsToKeep.has(el)) {
       return;
     }

@@ -10,3 +10,6 @@
 - need to use `@solid-primitives/autofocus` for the native autofocus to work
 - there is a need to re-arrange effects and cleanup functions' order due to Solid having cleanups executing bottom-to-top while in React it's top-to-bottom which sometimes executes a wrong order of actions. This would probably require some changes in logic to make it more framework-agnostic.
 - Solid has opposite to React order of unmount: in React it's top-to-bottom (first parent unmounts, then child) while in Solid it's bottom-to-top (child unmounts first, then parent) (https://github.com/facebook/react/issues/16728#issuecomment-584208473)
+- to reactively bubble events from the iframe – need to use `on:` events as Solid doesn't have the SyntheticEvent layer and so event delegation doesn't work in the iframe
+- all the hooks in floating-ui-solid/hooks are ported to `on:` events for the sake of iframe compatibility
+- most likely jest-dom versions of react and solid differ as for some reason toBeInTheDocument doesn't work for Solid version when checking against iframe and toBeTruthy needs to be used

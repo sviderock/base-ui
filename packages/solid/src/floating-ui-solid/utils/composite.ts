@@ -10,19 +10,19 @@ export function isDifferentGridRow(index: number, cols: number, prevRow: number)
   return Math.floor(index / cols) !== prevRow;
 }
 
-export function isIndexOutOfListBounds(listRef: Array<HTMLElement | undefined>, index: number) {
+export function isIndexOutOfListBounds(listRef: Array<HTMLElement | null>, index: number) {
   return index < 0 || index >= listRef.length;
 }
 
 export function getMinListIndex(
-  listRef: Array<HTMLElement | undefined>,
+  listRef: Array<HTMLElement | null>,
   disabledIndices: DisabledIndices | undefined,
 ) {
   return findNonDisabledListIndex(listRef, { disabledIndices });
 }
 
 export function getMaxListIndex(
-  listRef: Array<HTMLElement | undefined>,
+  listRef: Array<HTMLElement | null>,
   disabledIndices: DisabledIndices | undefined,
 ) {
   return findNonDisabledListIndex(listRef, {
@@ -33,7 +33,7 @@ export function getMaxListIndex(
 }
 
 export function findNonDisabledListIndex(
-  listRef: Array<HTMLElement | undefined>,
+  listRef: Array<HTMLElement | null>,
   {
     startingIndex = -1,
     decrement = false,
@@ -59,7 +59,7 @@ export function findNonDisabledListIndex(
 }
 
 export function getGridNavigatedIndex(
-  listRef: Array<HTMLElement | undefined>,
+  listRef: Array<HTMLElement | null>,
   {
     event,
     orientation,
@@ -317,7 +317,7 @@ export function getGridCellIndices(
 }
 
 export function isListIndexDisabled(
-  listRef: Array<HTMLElement | undefined>,
+  listRef: Array<HTMLElement | null>,
   index: number,
   disabledIndices?: DisabledIndices,
 ) {

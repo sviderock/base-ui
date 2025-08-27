@@ -574,6 +574,12 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
       const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss]);
 
+      React.useEffect(() => {
+        console.log(123, {
+          open,
+        });
+      }, [open]);
+
       return (
         <>
           {React.cloneElement(children, getReferenceProps({ ref: refs.setReference }))}

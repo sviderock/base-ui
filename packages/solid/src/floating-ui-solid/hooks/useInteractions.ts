@@ -27,6 +27,15 @@ export function useInteractions(
 ): UseInteractionsReturn {
   return {
     getReferenceProps(userProps) {
+      const insideIframe = (() => {
+        try {
+          return window.self !== window.top;
+        } catch {
+          return true;
+        }
+      })();
+      console.log(123, window.frameElement);
+
       const referenceList = propsList()
         .map((item) => item?.reference)
         .filter((i): i is JSX.HTMLAttributes<Element> => !!i);

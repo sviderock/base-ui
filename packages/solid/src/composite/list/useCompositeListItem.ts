@@ -6,7 +6,7 @@ import { useCompositeListContext } from './CompositeListContext';
 export interface UseCompositeListItemParameters<Metadata extends Accessor<unknown>> {
   label?: string | null;
   metadata?: Metadata;
-  textRef?: HTMLElement | undefined;
+  textRef?: HTMLElement | null;
   /** Enables guessing the indexes. This avoids a re-render after mount, which is useful for
    * large lists. This should be used for lists that are likely flat and vertical, other cases
    * might trigger a re-render anyway. */
@@ -14,7 +14,7 @@ export interface UseCompositeListItemParameters<Metadata extends Accessor<unknow
 }
 
 interface UseCompositeListItemReturnValue {
-  ref: (node: HTMLElement | undefined) => void;
+  ref: (node: HTMLElement | null) => void;
   index: Accessor<number>;
 }
 
