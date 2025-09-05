@@ -83,7 +83,7 @@ export namespace CompositeRoot {
     enableHomeAndEndKeys?: boolean;
     onMapChange?: (newMap: Map<Node, CompositeMetadata<Metadata> | null>) => void;
     stopEventPropagation?: boolean;
-    rootRef?: HTMLElement | undefined;
+    rootRef?: HTMLElement | null;
     disabledIndices?: number[];
     modifierKeys?: ModifierKey[];
     highlightItemOnHover?: boolean;

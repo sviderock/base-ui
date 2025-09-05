@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { createSignal, splitProps, type JSX } from 'solid-js';
 import {
   flip,
   FloatingFocusManager,
@@ -22,30 +22,26 @@ interface SubItemProps {
 }
 
 /** @internal */
-export const NavigationSubItem = React.forwardRef<
-  HTMLAnchorElement,
-  SubItemProps & React.HTMLProps<HTMLAnchorElement>
->(function NavigationSubItem({ label, href, ...props }, ref) {
+export function NavigationSubItem(props: SubItemProps & JSX.HTMLAttributes<HTMLAnchorElement>) {
+  const [local, elementProps] = splitProps(props, ['label']);
   return (
-    <a {...props} ref={ref} href={href} className="NavigationItem">
-      {label}
+    <a {...elementProps} class="NavigationItem">
+      {local.label}
     </a>
   );
-});
+}
 
 interface ItemProps {
   label: string;
   href: string;
-  children?: React.ReactNode;
+  children?: JSX.Element;
 }
 
 /** @internal */
-export const NavigationItem = React.forwardRef<
-  HTMLAnchorElement,
-  ItemProps & React.HTMLProps<HTMLAnchorElement>
->(function NavigationItem({ children, label, href, ...props }, ref) {
-  const [open, setOpen] = React.useState(false);
-  const hasChildren = !!children;
+export function NavigationItem(props: ItemProps & JSX.HTMLAttributes<HTMLAnchorElement>) {
+  const [local, elementProps] = splitProps(props, ['children', 'label', 'href']);
+  const [open, setOpen] = createSignal(false);
+  const hasChildren = () => !!local.children;
 
   const nodeId = useFloatingNodeId();
 
@@ -53,68 +49,67 @@ export const NavigationItem = React.forwardRef<
     open,
     nodeId,
     onOpenChange: setOpen,
-    middleware: [offset(8), flip(), shift()],
-    placement: 'right-start',
+    middleware: () => [offset(8), flip(), shift()],
+    placement: () => 'right-start',
   });
 
-  const { getReferenceProps, getFloatingProps } = useInteractions([
+  const { getReferenceProps, getFloatingProps } = useInteractions(() => [
     useHover(context, {
       handleClose: safePolygon(),
       enabled: hasChildren,
-    }),
+    })(),
     useFocus(context, {
       enabled: hasChildren,
-    }),
+    })(),
     useDismiss(context, {
       enabled: hasChildren,
-    }),
+    })(),
   ]);
 
-  const mergedReferenceRef = useForkRef(ref, refs.setReference);
-
+  // TODO: fix types
   return (
-    <FloatingNode id={nodeId}>
+    <FloatingNode id={nodeId()}>
       <li>
         <a
-          href={href}
-          ref={mergedReferenceRef}
-          className="bg-slate-100 my-1 flex w-48 items-center justify-between rounded p-2"
-          {...getReferenceProps(props)}
+          href={local.href}
+          ref={useForkRef(elementProps.ref as any, refs.setReference)}
+          class="bg-slate-100 my-1 flex w-48 items-center justify-between rounded p-2"
+          {...getReferenceProps(elementProps as any)}
         >
-          {label}
+          {local.label}
         </a>
       </li>
       <FloatingPortal>
-        {open && (
+        {open() && (
           <FloatingFocusManager context={context} modal={false} initialFocus={-1}>
             <div
               data-testid="subnavigation"
               ref={refs.setFloating}
-              className="bg-slate-100 flex flex-col overflow-y-auto rounded px-4 py-2 backdrop-blur-sm outline-none"
+              class="bg-slate-100 flex flex-col overflow-y-auto rounded px-4 py-2 backdrop-blur-sm outline-none"
               style={floatingStyles}
               {...getFloatingProps()}
             >
               <button type="button" onClick={() => setOpen(false)}>
                 Close
               </button>
-              <ul className="flex flex-col">{children}</ul>
+              <ul class="flex flex-col">{local.children}</ul>
             </div>
           </FloatingFocusManager>
         )}
       </FloatingPortal>
     </FloatingNode>
   );
-});
+}
 
 interface NavigationProps {
-  children?: React.ReactNode;
+  children?: JSX.Element;
 }
 
 /** @internal */
 export function Navigation(props: NavigationProps) {
   return (
-    <nav className="Navigation">
-      <ul className="NavigationList">{props.children}</ul>
+    <nav class="Navigation">
+      <ul class="NavigationList">{props.children}</ul>
     </nav>
   );
 }
@@ -122,9 +117,9 @@ export function Navigation(props: NavigationProps) {
 /** @internal */
 export function Main() {
   return (
-    <React.Fragment>
-      <h1 className="mb-8 text-5xl font-bold">Navigation</h1>
-      <div className="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
+    <>
+      <h1 class="mb-8 text-5xl font-bold">Navigation</h1>
+      <div class="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
         <Navigation>
           <NavigationItem label="Home" href="#" />
           <NavigationItem label="Product" href="#">
@@ -135,6 +130,6 @@ export function Main() {
           <NavigationItem label="About" href="#" />
         </Navigation>
       </div>
-    </React.Fragment>
+    </>
   );
 }

@@ -48,6 +48,7 @@ export function useFloatingRootContext(
 
   const onOpenChange = useEventCallback(
     (newOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
+      console.log('onOpenChange', { newOpen, event, reason });
       dataRef.current.openEvent = newOpen ? event : undefined;
       events.emit('openchange', { open: newOpen, event, reason, nested });
       onOpenChangeProp?.(newOpen, event, reason);

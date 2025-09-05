@@ -74,9 +74,9 @@ export function childrenLazy<T extends Record<string, any>>(
   };
 }
 
-export interface RefSignal<T extends Element> {
-  ref: Accessor<T | undefined>;
-  setRef: (value: T | undefined) => void;
+export interface RefSignal<T extends Element | null> {
+  ref: Accessor<T | null>;
+  setRef: (value: T | null) => void;
 }
 
 export interface StoreSignal<T extends object> {
@@ -84,8 +84,8 @@ export interface StoreSignal<T extends object> {
   setStore: SetStoreFunction<T>;
 }
 
-export function createRefSignal<T extends Element>(initialValue: T): RefSignal<T> {
-  const [ref, setRef] = createSignal<T>(initialValue);
+export function createRefSignal<T extends Element | null>(initialValue: T | null): RefSignal<T> {
+  const [ref, setRef] = createSignal<T | null>(initialValue);
   return { ref, setRef };
 }
 

@@ -37,6 +37,14 @@ function App({
 
   const rect = elements.reference?.getBoundingClientRect();
 
+  React.useEffect(() => {
+    console.log('rect', rect);
+  }, [rect]);
+
+  React.useEffect(() => {
+    console.log('isOpen', isOpen);
+  }, [isOpen]);
+
   return (
     <React.Fragment>
       <div
@@ -165,7 +173,10 @@ test('ignores mouse events when explicit coords are specified', async () => {
 test('cleans up window listener when closing or disabling', async () => {
   const { rerender } = render(<App />);
 
+  console.log(1);
   fireEvent.click(screen.getByRole('button'));
+
+  console.log(2);
 
   fireEvent(
     screen.getByTestId('reference'),
@@ -178,7 +189,10 @@ test('cleans up window listener when closing or disabling', async () => {
 
   await act(async () => {});
 
+  console.log(3);
   fireEvent.click(screen.getByRole('button'));
+
+  console.log(4);
 
   fireEvent(
     document.body,
@@ -191,8 +205,11 @@ test('cleans up window listener when closing or disabling', async () => {
 
   await act(async () => {});
 
+  console.log(5);
+
   expectLocation({ x: 500, y: 500 });
 
+  console.log(6);
   fireEvent.click(screen.getByRole('button'));
 
   fireEvent(

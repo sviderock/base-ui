@@ -132,14 +132,14 @@ export namespace CompositeList {
      * A ref to the list of HTML elements, ordered by their index.
      * `useListNavigation`'s `listRef` prop.
      */
-    elements: Store<Array<HTMLElement | undefined>>;
-    setElements: SetStoreFunction<Array<HTMLElement | undefined>>;
+    elements: Store<Array<HTMLElement | null>>;
+    setElements: SetStoreFunction<Array<HTMLElement | null>>;
     /**
      * A ref to the list of element labels, ordered by their index.
      * `useTypeahead`'s `listRef` prop.
      */
     labels?: Store<Array<string | null> | undefined>;
-    setLabels: SetStoreFunction<Array<string | null> | undefined>;
+    setLabels: SetStoreFunction<Array<string | null>>;
     onMapChange?: (newMap: Map<Element, CompositeMetadata<Metadata> | null>) => void;
   }
 }

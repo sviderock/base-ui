@@ -8,13 +8,14 @@ import {
   isLastTraversableNode,
   isWebKit,
 } from '@floating-ui/utils/dom';
-import { createEffect, createMemo, onCleanup, type Accessor, type JSX } from 'solid-js';
+import { createEffect, createMemo, on, onCleanup, type Accessor } from 'solid-js';
 import { useTimeout } from '../../utils/useTimeout';
 import {
   contains,
   getDocument,
   getNodeChildren,
   getTarget,
+  isEventTargetInsidePortal,
   isEventTargetWithin,
   isRootElement,
 } from '../utils';
@@ -25,17 +26,17 @@ import { useFloatingTree } from '../components/FloatingTree';
 import type { ElementProps, FloatingRootContext } from '../types';
 import { createAttribute } from '../utils/createAttribute';
 
-const bubbleHandlerKeys = {
+const bubbleAndCaptureHandlerKeys = {
   pointerdown: 'on:pointerdown',
   mousedown: 'on:mousedown',
   click: 'on:click',
 };
 
 const captureHandlerKeys = {
-  pointerdown: 'on:pointerdown',
-  mousedown: 'on:mousedown',
-  click: 'on:click',
-} satisfies Record<string, keyof JSX.CustomEventHandlersNamespaced<HTMLElement>>;
+  pointerdown: 'onPointerDown',
+  mousedown: 'onMouseDown',
+  click: 'onClick',
+};
 
 export const normalizeProp = (
   normalizable?: boolean | { escapeKey?: boolean; outsidePress?: boolean },
@@ -153,6 +154,8 @@ export function useDismiss(
   let isComposingRef = false;
   const blurTimeout = useTimeout();
 
+  const isInsideSolidTree = (event: Event) => {};
+
   const closeOnEscapeKeyDown = (event: KeyboardEvent) => {
     if (!context.open() || !enabled() || !escapeKey() || event.key !== 'Escape') {
       return;
@@ -198,9 +201,19 @@ export function useDismiss(
   };
 
   const closeOnPressOutside = (event: MouseEvent) => {
+    // TODO: explanation
+    if (!capture().outsidePress && event.cancelBubble) {
+      return;
+    }
+
+    console.log('closeOnPressOutside', {
+      isInsidePortal: isEventTargetInsidePortal(event),
+    });
     // Given developers can stop the propagation of the synthetic event,
     // we can only be confident with a positive value.
     const insideReactTree = context.dataRef.insideReactTree;
+
+    console.log('setting to false');
     context.dataRef.insideReactTree = false;
 
     // When click outside is lazy (`click` event), handle dragging.
@@ -319,34 +332,18 @@ export function useDismiss(
     context.onOpenChange(false, event, 'outside-press');
   };
 
-  const closeOnPressOutsideCapture = (event: MouseEvent) => {
-    const callback = () => {
-      closeOnPressOutside(event);
-      getTarget(event)?.removeEventListener(outsidePressEvent(), callback);
-    };
-    getTarget(event)?.addEventListener(outsidePressEvent(), callback);
-  };
-
-  createEffect(() => {
-    if (!context.open() || !enabled()) {
-      return;
+  function closeOnPressOutsideCapture(event: MouseEvent) {
+    if (isEventTargetInsidePortal(event)) {
+      onFloatingCapture(event);
     }
+    closeOnPressOutside(event);
+  }
 
-    const resolvedOutsidePress = outsidePress();
-    if (!resolvedOutsidePress) {
-      return;
-    }
-
-    const doc = getDocument(context.elements.floating());
-    const event = outsidePressEvent();
-    const shouldCapture = capture().outsidePress;
-    const callback = shouldCapture ? closeOnPressOutsideCapture : closeOnPressOutside;
-
-    doc.addEventListener(event, callback, shouldCapture);
-    onCleanup(() => {
-      doc.removeEventListener(event, callback, shouldCapture);
-    });
-  });
+  function onFloatingCapture(event: MouseEvent) {
+    console.log('onPointerDownOnFloating', event.target.outerHTML);
+    console.log('setting to true');
+    context.dataRef.insideReactTree = true;
+  }
 
   createEffect(() => {
     if (!context.open() || !enabled()) {
@@ -394,12 +391,17 @@ export function useDismiss(
     }
 
     // if (outsidePress()) {
-    //   doc.addEventListener(
-    //     outsidePressEvent(),
-    //     capture().outsidePress ? closeOnPressOutsideCapture : closeOnPressOutside,
-    //     capture().outsidePress,
-    //   );
+    //   console.log('ADD MAIN LISTENER', outsidePressEvent());
+    //   doc.addEventListener(outsidePressEvent(), closeOnPressOutside, capture().outsidePress);
     // }
+    if (outsidePress()) {
+      console.log('ADD MAIN LISTENER', outsidePressEvent());
+      doc.addEventListener(
+        outsidePressEvent(),
+        capture().outsidePress ? closeOnPressOutsideCapture : closeOnPressOutside,
+        capture().outsidePress,
+      );
+    }
 
     let ancestors: (Element | Window | VisualViewport)[] = [];
 
@@ -427,7 +429,9 @@ export function useDismiss(
       ancestor.addEventListener('scroll', onScroll, { passive: true });
     });
 
+    console.log('onCleanup');
     onCleanup(() => {
+      console.log('onCleanup remove');
       if (escapeKey()) {
         doc.removeEventListener(
           'keydown',
@@ -438,13 +442,15 @@ export function useDismiss(
         doc.removeEventListener('compositionend', handleCompositionEnd);
       }
 
-      // if (outsidePress()) {
-      //   doc.removeEventListener(
-      //     outsidePressEvent(),
-      //     capture().outsidePress ? closeOnPressOutsideCapture : closeOnPressOutside,
-      //     capture().outsidePress,
-      //   );
-      // }
+      if (outsidePress()) {
+        console.log('REMOVE MAIN LISTENER', outsidePressEvent());
+        doc.removeEventListener(
+          outsidePressEvent(),
+          capture().outsidePress ? closeOnPressOutsideCapture : closeOnPressOutside,
+          capture().outsidePress,
+        );
+        // doc.removeEventListener(outsidePressEvent(), closeOnPressOutside, capture().outsidePress);
+      }
 
       ancestors.forEach((ancestor) => {
         ancestor.removeEventListener('scroll', onScroll);
@@ -454,14 +460,17 @@ export function useDismiss(
     });
   });
 
-  createEffect(() => {
-    context.dataRef.insideReactTree = false;
-  });
+  createEffect(
+    on([outsidePress, outsidePressEvent], () => {
+      console.log('insideReactTree', context.dataRef.insideReactTree);
+      context.dataRef.insideReactTree = false;
+    }),
+  );
 
   const reference = createMemo<ElementProps['reference']>(() => ({
     'on:keydown': closeOnEscapeKeyDown,
     ...(referencePress() && {
-      [bubbleHandlerKeys[referencePressEvent()]]: (event: Event) => {
+      [bubbleAndCaptureHandlerKeys[referencePressEvent()]]: (event: Event) => {
         context.onOpenChange(false, event, 'reference-press');
       },
       ...(referencePressEvent() !== 'click' && {
@@ -480,15 +489,21 @@ export function useDismiss(
     'on:mouseup': () => {
       endedOrStartedInsideRef = true;
     },
-    [captureHandlerKeys[outsidePressEvent()]]: {
-      capture: true,
-      handleEvent(e) {
-        context.dataRef.insideReactTree = true;
-      },
-    } satisfies JSX.EventHandlerWithOptionsUnion<HTMLElement, MouseEvent | PointerEvent>,
+    // [bubbleAndCaptureHandlerKeys[outsidePressEvent()]]: {
+    //   capture: true,
+    //   handleEvent: (e) => {
+    //     // onPointerDown(e) {
+    //     console.log('capture handler', e.target.outerHTML);
+    //     console.log('setting to true');
+    //     context.dataRef.insideReactTree = true;
+    //   },
+    // } satisfies JSX.EventHandlerWithOptionsUnion<HTMLElement, MouseEvent | PointerEvent>,
+
+    [captureHandlerKeys[outsidePressEvent()]]: onFloatingCapture,
     'on:blur': {
       capture: true,
       handleEvent() {
+        console.log('blur handler', !!tree);
         if (tree) {
           return;
         }

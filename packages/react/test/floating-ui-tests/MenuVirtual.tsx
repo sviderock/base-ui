@@ -1,6 +1,5 @@
-import * as React from 'react';
 import c from 'clsx';
-import { useForkRefN } from '../../src/utils/useForkRef';
+import * as React from 'react';
 import { CompositeList } from '../../src/composite/list/CompositeList';
 import { useCompositeListItem } from '../../src/composite/list/useCompositeListItem';
 import {
@@ -23,6 +22,7 @@ import {
   useListNavigation,
   useRole,
 } from '../../src/floating-ui-react';
+import { useForkRefN } from '../../src/utils/useForkRef';
 
 type MenuContextType = {
   getItemProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
@@ -173,6 +173,18 @@ export const MenuComponent = React.forwardRef<
 
   const id = React.useId();
   const mergedRef = useForkRefN([refs.setReference, item.ref, forwardedRef]);
+
+  React.useEffect(() => {
+    console.log('isNested', isNested);
+  }, [isNested]);
+
+  React.useEffect(() => {
+    console.log('isOpen', isOpen);
+  }, [isOpen]);
+
+  React.useEffect(() => {
+    console.log('nodeId', nodeId);
+  }, [nodeId]);
 
   return (
     <FloatingNode id={nodeId}>

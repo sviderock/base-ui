@@ -163,6 +163,7 @@ export function useClientPoint(
       return;
     }
 
+    console.log('handleReferenceEnterOrMove', open);
     if (!open) {
       setReference(event.clientX, event.clientY);
     } else if (!cleanupListenerRef.current) {
@@ -192,6 +193,7 @@ export function useClientPoint(
     function handleMouseMove(event: MouseEvent) {
       const target = getTarget(event) as Element | null;
 
+      console.log('handleMouseMove', !contains(floating, target));
       if (!contains(floating, target)) {
         setReference(event.clientX, event.clientY);
       } else {

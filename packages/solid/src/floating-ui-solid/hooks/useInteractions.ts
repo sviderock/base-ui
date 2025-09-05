@@ -1,5 +1,5 @@
 import { combineProps } from '@solid-primitives/props';
-import { type Accessor, type JSX } from 'solid-js';
+import { onMount, type Accessor, type JSX } from 'solid-js';
 import type { ElementProps } from '../types';
 import { ACTIVE_KEY, FOCUSABLE_ATTRIBUTE, SELECTED_KEY } from '../utils/constants';
 
@@ -27,15 +27,6 @@ export function useInteractions(
 ): UseInteractionsReturn {
   return {
     getReferenceProps(userProps) {
-      const insideIframe = (() => {
-        try {
-          return window.self !== window.top;
-        } catch {
-          return true;
-        }
-      })();
-      console.log(123, window.frameElement);
-
       const referenceList = propsList()
         .map((item) => item?.reference)
         .filter((i): i is JSX.HTMLAttributes<Element> => !!i);
@@ -44,7 +35,9 @@ export function useInteractions(
         referenceList.push(userProps);
       }
 
-      return combineProps(referenceList, { reverseEventHandlers: true });
+      const combined = combineProps(referenceList, { reverseEventHandlers: true });
+
+      return combined;
     },
     getFloatingProps(userProps) {
       const list = propsList()
@@ -55,7 +48,11 @@ export function useInteractions(
       if (userProps) {
         list.push(userProps);
       }
-      return combineProps(list, { reverseEventHandlers: true });
+
+      const combined = combineProps(list, { reverseEventHandlers: true });
+
+      console.log('set floating props');
+      return combined;
     },
     getItemProps(userProps) {
       const list = propsList()

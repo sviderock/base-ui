@@ -337,24 +337,29 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
         const { getReferenceProps, getFloatingProps } = useInteractions([useDismiss(context)]);
 
         return (
-          <React.Fragment>
-            <button ref={refs.setReference} {...getReferenceProps()} />
-            {open && (
-              <div ref={refs.setFloating} {...getFloatingProps()}>
-                <FloatingPortal>
-                  <button data-testid="portaled-button" />
-                </FloatingPortal>
-              </div>
-            )}
-          </React.Fragment>
+          console.log('SETTING UP PORTAL'),
+          (
+            <React.Fragment>
+              <button ref={refs.setReference} {...getReferenceProps()} />
+              {open && (
+                <div ref={refs.setFloating} {...getFloatingProps()}>
+                  <FloatingPortal>
+                    <button data-testid="portaled-button" />
+                  </FloatingPortal>
+                </div>
+              )}
+            </React.Fragment>
+          )
         );
       }
 
       render(<App />);
 
+      screen.debug();
       fireEvent.pointerDown(screen.getByTestId('portaled-button'), {
         bubbles: true,
       });
+      screen.debug();
 
       expect(screen.getByTestId('portaled-button')).toBeInTheDocument();
 
@@ -722,7 +727,14 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       return (
         <div
           style={{ width: '100vw', height: '100vh' }}
-          onPointerDown={(event) => event.stopPropagation()}
+          onPointerDown={(event) => {
+            console.log(
+              'pointerdown in OVERLAY',
+              event.target.outerHTML,
+              event.currentTarget.outerHTML,
+            );
+            event.stopPropagation();
+          }}
           onKeyDown={(event) => {
             if (event.key === 'Escape') {
               event.stopPropagation();
@@ -796,18 +808,26 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
           </Overlay>,
         );
 
+        console.log(1);
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
 
+        console.log(2);
+        screen.debug();
         await user.click(screen.getByText('outer'));
 
+        console.log(3);
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
 
+        console.log(4);
         await user.click(screen.getByText('outside'));
 
+        console.log(5);
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
+
+        console.log(6);
         cleanup();
       });
 
@@ -832,7 +852,10 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.queryByText('inner')).not.toBeInTheDocument();
 
+        console.log(7);
         await user.click(screen.getByText('outside'));
+
+        console.log(8);
 
         expect(screen.queryByText('outer')).not.toBeInTheDocument();
         expect(screen.queryByText('inner')).not.toBeInTheDocument();

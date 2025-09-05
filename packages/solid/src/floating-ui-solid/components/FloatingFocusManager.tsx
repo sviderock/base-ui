@@ -31,15 +31,13 @@ import {
   stopEvent,
 } from '../utils';
 
-import { screen } from '@solidjs/testing-library';
+import { DelegatedEvents } from 'solid-js/web';
 import type { FloatingRootContext, OpenChangeReason } from '../types';
 import { createAttribute } from '../utils/createAttribute';
 import { enqueueFocus } from '../utils/enqueueFocus';
 import { markOthers, supportsInert } from '../utils/markOthers';
 import { usePortalContext } from './FloatingPortal';
-import { useFloatingTree } from './FloatingTree';
-
-let count = 0;
+import { useFloatingParentNodeId, useFloatingTree } from './FloatingTree';
 
 const LIST_LIMIT = 20;
 let previouslyFocusedElements: Element[] = [];
@@ -200,7 +198,6 @@ export interface FloatingFocusManagerProps {
  * @internal
  */
 export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Element {
-  let isMounted = false;
   const disabled = () => props.disabled ?? false;
   const order = () => props.order ?? ['content'];
   const guardsProp = () => props.guards ?? true;
@@ -358,7 +355,7 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
         }
       }
 
-      // https://github.com/floating-ui/floating-ui/issues/3060
+      // https://github.com/floasting-ui/floating-ui/issues/3060
       if (props.context.dataRef.insideReactTree) {
         props.context.dataRef.insideReactTree = false;
         return;
@@ -454,10 +451,6 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
       }
     }
   }
-
-  onMount(() => {
-    isMounted = true;
-  });
 
   onCleanup(() => {
     const doc = getDocument(floatingFocusElement());

@@ -1,6 +1,5 @@
-import type { RefSignal } from '@base-ui-components/solid/solid-helpers';
+import { screen } from '@solidjs/testing-library';
 import c from 'clsx';
-import * as React from 'react';
 import {
   type Accessor,
   createContext,
@@ -9,8 +8,12 @@ import {
   createUniqueId,
   type JSX,
   onCleanup,
+  onMount,
+  Show,
+  splitProps,
   useContext,
 } from 'solid-js';
+import { createStore } from 'solid-js/store';
 import { CompositeList } from '../../src/composite/list/CompositeList';
 import { useCompositeListItem } from '../../src/composite/list/useCompositeListItem';
 import {
@@ -33,6 +36,7 @@ import {
   useListNavigation,
   useRole,
 } from '../../src/floating-ui-solid';
+import { callEventHandler, createRefSignal, type RefSignal } from '../../src/solid-helpers';
 import { useForkRefN } from '../../src/utils/useForkRef';
 
 type MenuContextType = {
@@ -64,24 +68,23 @@ interface MenuProps {
   virtualItemRef: RefSignal<HTMLElement>;
 }
 
-// children,
-//   label,
-//   virtualItemRef,
-//   ...props
-
 /** @internal */
 export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>) {
+  const [local, elementProps] = splitProps(props, ['children', 'label', 'virtualItemRef']);
   const [isOpen, setIsOpen] = createSignal(false);
   const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
   const [allowHover, setAllowHover] = createSignal(false);
   const [hasFocusInside, setHasFocusInside] = createSignal(false);
 
-  const elementsRef: Array<HTMLElement | undefined> = [];
-  const labelsRef: Array<string | null> = [];
+  const [elements, setElements] = createStore<Array<HTMLElement | null>>([]);
+  const [labels, setLabels] = createStore<Array<string | null>>([]);
 
   const tree = useFloatingTree();
   const nodeId = useFloatingNodeId();
   const parentId = useFloatingParentNodeId();
+  createEffect(() => {
+    console.log('parentId', parentId());
+  });
   const isNested = () => parentId() != null;
 
   const parent = useContext(MenuContext);
@@ -108,12 +111,12 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
   const role = useRole(context, { role: () => 'menu' });
   const dismiss = useDismiss(context, { bubbles: () => true });
   const listNavigation = useListNavigation(context, {
-    listRef: elementsRef,
+    listRef: elements,
     activeIndex,
     nested: isNested,
     onNavigate: setActiveIndex,
     virtual: () => true,
-    virtualItemRef: props.virtualItemRef,
+    virtualItemRef: local.virtualItemRef,
   });
 
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
@@ -186,19 +189,26 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
 
   const id = createUniqueId();
 
+  createEffect(() => {
+    console.log('isNested', isNested());
+  });
+  createEffect(() => {
+    console.log('isOpen', isOpen());
+  });
+  createEffect(() => {
+    console.log('nodeId', nodeId());
+  });
+
+  onMount(() => {
+    console.log('MOUNT isNested', isNested());
+  });
   return (
     <FloatingNode id={nodeId()}>
-      {isNested ? (
+      {isNested() ? (
         // eslint-disable-next-line jsx-a11y/role-supports-aria-props
         <div
           id={id}
-          ref={useForkRefN([
-            refs.setReference,
-            item.ref,
-            (el) => {
-              props.ref = el;
-            },
-          ])}
+          ref={useForkRefN([refs.setReference, item.ref, props.ref as any])}
           data-open={isOpen() ? '' : undefined}
           tabIndex={-1}
           role="menuitem"
@@ -215,14 +225,14 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
           )}
           {...getReferenceProps({
             ...parent.getItemProps({
-              ...props,
+              ...elementProps,
               onFocus(event) {
-                props.onFocus?.(event);
+                callEventHandler(props.onFocus, event);
                 setHasFocusInside(false);
                 parent.setHasFocusInside(true);
               },
               onMouseEnter(event) {
-                props.onMouseEnter?.(event);
+                callEventHandler(props.onMouseEnter, event);
                 if (parent.allowHover() && parent.isOpen()) {
                   parent.setActiveIndex(item.index());
                 }
@@ -230,7 +240,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
             }),
           })}
         >
-          {props.label}
+          {local.label}
           {isNested() && (
             <span aria-hidden class="ml-4">
               Icon
@@ -239,11 +249,11 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
         </div>
       ) : (
         <input
-          className="border-slate-500 border"
-          ref={mergedRef}
+          class="border-slate-500 border"
+          ref={useForkRefN([refs.setReference, item.ref, props.ref as any])}
           id={id}
-          data-open={isOpen ? '' : undefined}
-          tabIndex={isNested ? -1 : 0}
+          data-open={isOpen() ? '' : undefined}
+          tabIndex={isNested() ? -1 : 0}
           // eslint-disable-next-line jsx-a11y/role-has-required-aria-props
           role="combobox"
           aria-autocomplete="list"
@@ -251,7 +261,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
             onKeyDown(event) {
               if (event.key === ' ' || event.key === 'Enter') {
                 // eslint-disable-next-line
-                console.log('clicked', virtualItemRef.current);
+                console.log('clicked', local.virtualItemRef);
               }
             },
           })}
@@ -270,17 +280,22 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
           parent,
         }}
       >
-        <CompositeList elementsRef={elementsRef} labelsRef={labelsRef}>
-          {isOpen && (
+        <CompositeList
+          elements={elements}
+          setElements={setElements}
+          labels={labels}
+          setLabels={setLabels}
+        >
+          {isOpen() && (
             <FloatingPortal>
-              <FloatingFocusManager context={context} initialFocus={-1} returnFocus={!isNested}>
+              <FloatingFocusManager context={context} initialFocus={-1} returnFocus={!isNested()}>
                 <div
                   ref={refs.setFloating}
-                  className="border-slate-900/10 flex flex-col rounded border bg-white bg-clip-padding p-1 shadow-lg outline-none"
+                  class="border-slate-900/10 flex flex-col rounded border bg-white bg-clip-padding p-1 shadow-lg outline-none"
                   style={floatingStyles}
                   {...getFloatingProps()}
                 >
-                  {children}
+                  {local.children}
                 </div>
               </FloatingFocusManager>
             </FloatingPortal>
@@ -297,42 +312,41 @@ interface MenuItemProps {
 }
 
 /** @internal */
-export const MenuItem = React.forwardRef<
-  HTMLElement,
-  MenuItemProps & React.HTMLAttributes<HTMLElement>
->(function MenuItem({ label, disabled, ...props }, forwardedRef) {
-  const menu = React.useContext(MenuContext);
-  const item = useCompositeListItem({ label: disabled ? null : label });
+export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLElement>) {
+  const [local, elementProps] = splitProps(props, ['label', 'disabled']);
+
+  const menu = useContext(MenuContext);
+  const item = useCompositeListItem({ label: local.disabled ? null : local.label });
   const tree = useFloatingTree();
-  const isActive = item.index === menu.activeIndex;
-  const id = React.useId();
+  const isActive = () => item.index() === menu.activeIndex();
+  const id = createUniqueId();
 
   return (
     <div
-      {...props}
+      {...elementProps}
       id={id}
-      ref={useForkRefN([item.ref, forwardedRef])}
+      ref={useForkRefN([item.ref, props.ref as any])}
       role="option"
       tabIndex={-1}
-      aria-selected={isActive}
-      aria-disabled={disabled}
-      className={c(
-        'focus:bg-red-500 flex cursor-default rounded px-2 py-1 text-left outline-none',
-        { 'opacity-40': disabled, 'bg-red-500 text-white': isActive },
-      )}
+      aria-selected={isActive()}
+      aria-disabled={local.disabled}
+      class={c('focus:bg-red-500 flex cursor-default rounded px-2 py-1 text-left outline-none', {
+        'opacity-40': local.disabled,
+        'bg-red-500 text-white': isActive(),
+      })}
       {...menu.getItemProps({
-        onClick(event: React.MouseEvent<HTMLButtonElement>) {
-          props.onClick?.(event);
+        onClick(event) {
+          callEventHandler(props.onClick, event);
           tree?.events.emit('click');
         },
-        onFocus(event: React.FocusEvent<HTMLButtonElement>) {
-          props.onFocus?.(event);
+        onFocus(event) {
+          callEventHandler(props.onFocus, event);
           menu.setHasFocusInside(true);
         },
-        onMouseEnter(event: React.MouseEvent<HTMLButtonElement>) {
-          props.onMouseEnter?.(event);
-          if (menu.allowHover && menu.isOpen) {
-            menu.setActiveIndex(item.index);
+        onMouseEnter(event) {
+          callEventHandler(props.onMouseEnter, event);
+          if (menu.allowHover() && menu.isOpen()) {
+            menu.setActiveIndex(item.index());
           }
         },
         onKeyDown(event) {
@@ -346,44 +360,42 @@ export const MenuItem = React.forwardRef<
           if (
             event.key === 'ArrowRight' &&
             // If the root reference is in a menubar, close parents
-            tree?.nodesRef.current[0].context?.elements.domReference?.closest('[role="menubar"]')
+            tree?.nodesRef[0]?.context?.elements.domReference()?.closest('[role="menubar"]')
           ) {
             closeParents(menu.parent);
           }
         },
       })}
     >
-      {label}
+      {local.label}
     </div>
   );
-});
+}
 
 /** @internal */
-export const Menu = React.forwardRef<
-  HTMLButtonElement,
-  MenuProps & React.HTMLProps<HTMLButtonElement>
->(function MenuWrapper(props, ref) {
+export function Menu(props: MenuProps & JSX.HTMLAttributes<HTMLElement>) {
   const parentId = useFloatingParentNodeId();
-
-  if (parentId === null) {
-    return (
+  return (
+    <Show when={parentId() === null} fallback={<MenuComponent {...props} />}>
       <FloatingTree>
-        <MenuComponent {...props} ref={ref} />
+        <MenuComponent {...props} />
       </FloatingTree>
-    );
-  }
-
-  return <MenuComponent {...props} ref={ref} />;
-});
+    </Show>
+  );
+}
 
 /** @internal */
 export function Main() {
-  const virtualItemRef = React.useRef<HTMLElement | null>(null) as any;
+  const virtualItemRef = createRefSignal<HTMLElement>(null);
+
+  createEffect(() => {
+    console.log('MOUNT Main', virtualItemRef.ref());
+  });
 
   return (
-    <React.Fragment>
-      <h1 className="mb-8 text-5xl font-bold">Menu Virtual</h1>
-      <div className="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
+    <>
+      <h1 class="mb-8 text-5xl font-bold">Menu Virtual</h1>
+      <div class="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
         <Menu label="Edit" virtualItemRef={virtualItemRef}>
           <MenuItem
             label="Undo"
@@ -411,6 +423,6 @@ export function Main() {
           </Menu>
         </Menu>
       </div>
-    </React.Fragment>
+    </>
   );
 }

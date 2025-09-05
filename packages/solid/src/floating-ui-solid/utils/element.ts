@@ -1,6 +1,7 @@
 import { isHTMLElement, isShadowRoot } from '@floating-ui/utils/dom';
 import { isJSDOM } from '../../utils/detectBrowser';
 import { FOCUSABLE_ATTRIBUTE, TYPEABLE_SELECTOR } from './constants';
+import { createAttribute } from './createAttribute';
 
 export function activeElement(doc: Document) {
   let element = doc.activeElement;
@@ -107,4 +108,8 @@ export function getFloatingFocusElement(floatingElement: HTMLElement | null): HT
   return floatingElement.hasAttribute(FOCUSABLE_ATTRIBUTE)
     ? floatingElement
     : floatingElement.querySelector(`[${FOCUSABLE_ATTRIBUTE}]`) || floatingElement;
+}
+
+export function isEventTargetInsidePortal<E extends Event>(event: E) {
+  return !!(event.target as HTMLElement)?.closest(`[${createAttribute('portal')}]`);
 }

@@ -14,7 +14,7 @@ export function useCompositeItem<Metadata extends Accessor<unknown>>(
   const context = useCompositeRootContext();
   const listItem = useCompositeListItem(params);
   const isHighlighted = () => context.highlightedIndex() === listItem.index();
-  const [itemRef, setItemRef] = createSignal<HTMLElement>();
+  const [itemRef, setItemRef] = createSignal<HTMLElement | null>(null);
 
   const props = createMemo<HTMLProps>(() => ({
     tabIndex: isHighlighted() ? 0 : -1,
@@ -36,7 +36,7 @@ export function useCompositeItem<Metadata extends Accessor<unknown>>(
   return {
     props,
     ref: itemRef,
-    setRef: (el: HTMLElement | undefined) => {
+    setRef: (el: HTMLElement | null) => {
       setItemRef(el);
       listItem.ref(el);
     },

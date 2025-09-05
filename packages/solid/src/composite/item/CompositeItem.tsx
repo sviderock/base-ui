@@ -36,7 +36,7 @@ export namespace CompositeItem {
 
   export interface Props<Metadata> extends Omit<BaseUIComponentProps<'div', State>, 'itemRef'> {
     // the itemRef name collides with https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/itemref
-    itemRef?: HTMLElement | undefined;
+    itemRef?: HTMLElement | null;
     metadata?: Metadata;
   }
 }

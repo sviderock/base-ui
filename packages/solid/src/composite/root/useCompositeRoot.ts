@@ -45,7 +45,7 @@ export interface UseCompositeRootParameters {
   onHighlightedIndexChange?: (index: number) => void;
   dense?: boolean | undefined;
   itemSizes?: Array<Dimensions> | undefined;
-  rootRef?: HTMLElement | undefined;
+  rootRef?: HTMLElement | null;
   /**
    * When `true`, pressing the Home key moves focus to the first item,
    * and pressing the End key moves focus to the last item.
@@ -94,9 +94,9 @@ export function useCompositeRoot(
 
   const isGrid = () => mergedParams.cols! > 1;
 
-  const [rootRef, setRootRef] = createSignal<HTMLElement>();
+  const [rootRef, setRootRef] = createSignal<HTMLElement | null>(null);
 
-  const [elements, setElements] = createStore<Array<HTMLDivElement | undefined>>([]);
+  const [elements, setElements] = createStore<Array<HTMLDivElement | null>>([]);
   let hasSetDefaultIndexRef = false;
 
   const highlightedIndex = () => mergedParams.highlightedIndex ?? internalHighlightedIndex();
@@ -113,7 +113,7 @@ export function useCompositeRoot(
   // https://github.com/mui/base-ui/issues/2101
   // TODO: Solid JS impolementation should be revisited. Patching with a signal for now.
   createEffect(() => {
-    const activeEl = activeElement(ownerDocument(rootRef())) as HTMLDivElement | undefined;
+    const activeEl = activeElement(ownerDocument(rootRef())) as HTMLDivElement | null;
     if (elements.includes(activeEl)) {
       const focusedItem = elements[highlightedIndex()];
       if (focusedItem && focusedItem !== activeEl) {
@@ -130,7 +130,7 @@ export function useCompositeRoot(
     const sortedElements = Array.from(map.keys());
     const activeItem = sortedElements.find((compositeElement) =>
       compositeElement?.hasAttribute(ACTIVE_COMPOSITE_ITEM),
-    ) as HTMLElement | undefined;
+    ) as HTMLElement | null;
     // Set the default highlighted index of an arbitrary composite item.
     const activeIndex = activeItem ? sortedElements.indexOf(activeItem) : -1;
     if (activeIndex !== -1) {
@@ -200,8 +200,8 @@ export function useCompositeRoot(
       }
 
       let nextIndex = highlightedIndex();
-      const minIndex = getMinListIndex(elements, mergedParams.disabledIndices);
-      const maxIndex = getMaxListIndex(elements, mergedParams.disabledIndices);
+      const minIndex = getMinListIndex(elements, () => mergedParams.disabledIndices);
+      const maxIndex = getMaxListIndex(elements, () => mergedParams.disabledIndices);
 
       if (isGrid()) {
         const sizes =
@@ -215,19 +215,21 @@ export function useCompositeRoot(
         const cellMap = createGridCellMap(sizes, mergedParams.cols, mergedParams.dense);
         const minGridIndex = cellMap.findIndex(
           (index) =>
-            index != null && !isListIndexDisabled(elements, index, mergedParams.disabledIndices),
+            index != null &&
+            !isListIndexDisabled(elements, index, () => mergedParams.disabledIndices),
         );
         // last enabled index
         const maxGridIndex = cellMap.reduce(
           (foundIndex: number, index, cellIndex) =>
-            index != null && !isListIndexDisabled(elements, index, mergedParams.disabledIndices)
+            index != null &&
+            !isListIndexDisabled(elements, index, () => mergedParams.disabledIndices)
               ? cellIndex
               : foundIndex,
           -1,
         );
         nextIndex = cellMap[
           getGridNavigatedIndex(
-            cellMap.map((itemIndex) => (itemIndex ? elements[itemIndex] : undefined)),
+            cellMap.map((itemIndex) => (itemIndex != null ? elements[itemIndex] : null)),
             {
               event,
               orientation: mergedParams.orientation,
@@ -312,7 +314,7 @@ export function useCompositeRoot(
           nextIndex = findNonDisabledListIndex(elements, {
             startingIndex: nextIndex,
             decrement: backwardKeys.includes(event.key),
-            disabledIndices: mergedParams.disabledIndices,
+            disabledIndices: () => mergedParams.disabledIndices,
           });
         }
       }
@@ -344,7 +346,7 @@ export function useCompositeRoot(
     disabledIndices: () => mergedParams.disabledIndices,
     onMapChange,
     rootRef,
-    setRootRef: (el: HTMLElement | undefined) => {
+    setRootRef: (el: HTMLElement | null) => {
       setRootRef(el);
       params.rootRef = el;
     },

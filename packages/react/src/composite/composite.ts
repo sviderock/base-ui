@@ -1,9 +1,6 @@
 import type { TextDirection } from '../direction-provider/DirectionContext';
 
 export {
-  stopEvent,
-  isIndexOutOfListBounds,
-  isListIndexDisabled,
   createGridCellMap,
   findNonDisabledListIndex,
   getGridCellIndexOfCorner,
@@ -11,6 +8,9 @@ export {
   getGridNavigatedIndex,
   getMaxListIndex,
   getMinListIndex,
+  isIndexOutOfListBounds,
+  isListIndexDisabled,
+  stopEvent,
 } from '../floating-ui-react/utils';
 
 export interface Dimensions {

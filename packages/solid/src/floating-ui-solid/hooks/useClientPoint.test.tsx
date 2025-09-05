@@ -1,6 +1,7 @@
+import { flushMicrotasks } from '#test-utils';
 import type { Coords } from '@floating-ui/dom';
 import { fireEvent, render, screen } from '@solidjs/testing-library';
-import { createSignal, mergeProps, Show } from 'solid-js';
+import { createEffect, createSignal, mergeProps, Show } from 'solid-js';
 import { test } from 'vitest';
 import { useClientPoint, useFloating, useInteractions } from '../index';
 
@@ -27,6 +28,10 @@ function App(props: { enabled?: boolean; point?: Coords; axis?: 'both' | 'x' | '
   const { getReferenceProps, getFloatingProps } = useInteractions(() => [clientPoint()]);
 
   const rect = () => elements.reference()?.getBoundingClientRect();
+
+  createEffect(() => {
+    console.log('rect', rect());
+  });
 
   return (
     <>
@@ -146,7 +151,10 @@ test('cleans up window listener when closing or disabling', () => {
   const [enabled, setEnabled] = createSignal<boolean | undefined>(undefined);
   render(() => <App enabled={enabled()} />);
 
+  console.log(1);
   fireEvent.click(screen.getByRole('button'));
+
+  console.log(2);
   fireEvent(
     screen.getByTestId('reference'),
     new MouseEvent('mousemove', {
@@ -156,7 +164,10 @@ test('cleans up window listener when closing or disabling', () => {
     }),
   );
 
+  console.log(3);
   fireEvent.click(screen.getByRole('button'));
+
+  console.log(4);
   fireEvent(
     document.body,
     new MouseEvent('mousemove', {
@@ -166,7 +177,11 @@ test('cleans up window listener when closing or disabling', () => {
     }),
   );
 
+  console.log(5);
+
   expectLocation({ x: 500, y: 500 });
+
+  console.log(6);
 
   fireEvent.click(screen.getByRole('button'));
 

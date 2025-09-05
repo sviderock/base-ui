@@ -1,5 +1,6 @@
 'use client';
-import { createMemo, type Accessor } from 'solid-js';
+import { screen } from '@solidjs/testing-library';
+import { createMemo, createSignal, onMount, type Accessor } from 'solid-js';
 import { useAnimationFrame } from '../../utils/useAnimationFrame';
 import type { ElementProps, FloatingRootContext } from '../types';
 import { isMouseLikePointerType } from '../utils';
@@ -53,72 +54,75 @@ export function useClick(
 
   let pointerTypeRef: 'mouse' | 'pen' | 'touch' | undefined | ({} & string);
   const frame = useAnimationFrame();
+  // const [isInside, setIsInside] = createSignal(false);
 
-  const reference = createMemo<ElementProps['reference']>(() => ({
-    'on:pointerdown': (event) => {
-      console.log('POINTER DOWN', event);
-      pointerTypeRef = event.pointerType;
-    },
-    'on:mousedown': (event) => {
-      console.log('MOUSE DOWN', event);
-      const pointerType = pointerTypeRef;
+  const reference = createMemo<ElementProps['reference']>(() => {
+    return {
+      'on:pointerdown': (event) => {
+        console.log('POINTER DOWN', event);
+        pointerTypeRef = event.pointerType;
+      },
+      'on:mousedown': (event) => {
+        console.log('MOUSE DOWN', event);
+        const pointerType = pointerTypeRef;
 
-      // Ignore all buttons except for the "main" button.
-      // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
-      if (
-        event.button !== 0 ||
-        eventOption() === 'click' ||
-        (isMouseLikePointerType(pointerType, true) && ignoreMouse())
-      ) {
-        return;
-      }
+        // Ignore all buttons except for the "main" button.
+        // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
+        if (
+          event.button !== 0 ||
+          eventOption() === 'click' ||
+          (isMouseLikePointerType(pointerType, true) && ignoreMouse())
+        ) {
+          return;
+        }
 
-      const openEvent = context.dataRef.openEvent;
-      const openEventType = openEvent?.type;
-      const nextOpen = !(
-        context.open() &&
-        toggle() &&
-        (openEvent && stickIfOpen()
-          ? openEventType === 'click' || openEventType === 'mousedown'
-          : true)
-      );
-      // Wait until focus is set on the element. This is an alternative to
-      // `event.preventDefault()` to avoid :focus-visible from appearing when using a pointer.
-      frame.request(() => {
+        const openEvent = context.dataRef.openEvent;
+        const openEventType = openEvent?.type;
+        const nextOpen = !(
+          context.open() &&
+          toggle() &&
+          (openEvent && stickIfOpen()
+            ? openEventType === 'click' || openEventType === 'mousedown'
+            : true)
+        );
+        // Wait until focus is set on the element. This is an alternative to
+        // `event.preventDefault()` to avoid :focus-visible from appearing when using a pointer.
+        frame.request(() => {
+          context.onOpenChange(nextOpen, event, 'click');
+        });
+      },
+      'on:click': (event) => {
+        console.log('CLICK', event);
+        const pointerType = pointerTypeRef;
+
+        if (eventOption() === 'mousedown' && pointerType) {
+          pointerTypeRef = undefined;
+          return;
+        }
+
+        if (isMouseLikePointerType(pointerType, true) && ignoreMouse()) {
+          return;
+        }
+
+        const openEvent = context.dataRef.openEvent;
+        const openEventType = openEvent?.type;
+        const nextOpen = !(
+          context.open() &&
+          toggle() &&
+          (openEvent && stickIfOpen()
+            ? openEventType === 'click' ||
+              openEventType === 'mousedown' ||
+              openEventType === 'keydown' ||
+              openEventType === 'keyup'
+            : true)
+        );
         context.onOpenChange(nextOpen, event, 'click');
-      });
-    },
-    'on:click': (event) => {
-      console.log('CLICK', event);
-      const pointerType = pointerTypeRef;
-
-      if (eventOption() === 'mousedown' && pointerType) {
+      },
+      'on:keydown': (e) => {
         pointerTypeRef = undefined;
-        return;
-      }
-
-      if (isMouseLikePointerType(pointerType, true) && ignoreMouse()) {
-        return;
-      }
-
-      const openEvent = context.dataRef.openEvent;
-      const openEventType = openEvent?.type;
-      const nextOpen = !(
-        context.open() &&
-        toggle() &&
-        (openEvent && stickIfOpen()
-          ? openEventType === 'click' ||
-            openEventType === 'mousedown' ||
-            openEventType === 'keydown' ||
-            openEventType === 'keyup'
-          : true)
-      );
-      context.onOpenChange(nextOpen, event, 'click');
-    },
-    'on:keydown': (e) => {
-      pointerTypeRef = undefined;
-    },
-  }));
+      },
+    };
+  });
 
   const returnValue = createMemo<ElementProps>(() => {
     if (!enabled()) {

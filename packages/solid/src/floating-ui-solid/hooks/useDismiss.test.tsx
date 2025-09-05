@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { cleanup, fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import { createEffect, createSignal, Show, splitProps, type Accessor, type JSX } from 'solid-js';
+import {
+  createEffect,
+  createSignal,
+  onMount,
+  Show,
+  splitProps,
+  type Accessor,
+  type JSX,
+} from 'solid-js';
 import { vi } from 'vitest';
 
 import { isJSDOM } from '../../utils/detectBrowser';
@@ -40,7 +48,7 @@ function App(
     open,
     onOpenChange(open, _, reason) {
       setOpen(open);
-      if (props.outsidePress) {
+      if (props.outsidePress?.()) {
         expect(reason).toBe('outside-press');
       } else if (props.escapeKey?.()) {
         expect(reason).toBe('escape-key');
@@ -271,6 +279,7 @@ describe('useDismiss', () => {
       popover1 = screen.getByTestId('popover-1');
       popover2 = screen.getByTestId('popover-2');
 
+      screen.debug();
       await userEvent.click(popover2);
       expect(popover1).toBeInTheDocument();
       expect(popover2).toBeInTheDocument();
@@ -698,7 +707,11 @@ describe('useDismiss', () => {
       return (
         <div
           style={{ width: '100vw', height: '100vh' }}
-          onPointerDown={(event) => event.stopPropagation()}
+          onPointerDown={function QWE(e) {
+            console.log('pointerdown in OVERLAY', e.target.outerHTML);
+            e.stopPropagation();
+            console.log('STOPPED PROPAGATION');
+          }}
           onKeyDown={(event) => {
             if (event.key === 'Escape') {
               event.stopPropagation();
@@ -768,18 +781,25 @@ describe('useDismiss', () => {
           </Overlay>
         ));
 
+        console.log(1);
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
 
+        console.log(2);
         await user.click(screen.getByText('outer'));
 
+        console.log(3);
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
 
+        console.log(4);
         await user.click(screen.getByText('outside'));
 
+        console.log(5);
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
+
+        console.log(6);
         cleanup();
       });
 
@@ -801,10 +821,15 @@ describe('useDismiss', () => {
 
         await user.click(screen.getByText('outer'));
 
+        screen.debug();
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.queryByText('inner')).not.toBeInTheDocument();
 
+        console.log(7);
+
         await user.click(screen.getByText('outside'));
+
+        console.log(8);
 
         expect(screen.queryByText('outer')).not.toBeInTheDocument();
         expect(screen.queryByText('inner')).not.toBeInTheDocument();

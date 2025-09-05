@@ -15,7 +15,7 @@ import {
   type Component,
   type JSX,
 } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
+import { DelegatedEvents, delegateEvents, Dynamic } from 'solid-js/web';
 import { test } from 'vitest';
 import { Main as MenuVirtual } from '../../../test/floating-ui-tests/MenuVirtual';
 import { Main as Navigation } from '../../../test/floating-ui-tests/Navigation';
@@ -141,8 +141,7 @@ function Dialog(props: DialogProps) {
   );
 }
 
-// describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
-describe('FloatingFocusManager', () => {
+describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
   describe('initialFocus', () => {
     test('number', async () => {
       const [initialFocus, setInitialFocus] = createSignal<number>();
@@ -659,6 +658,7 @@ describe('FloatingFocusManager', () => {
       const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
       const iframeWithin = iframeDoc ? within(iframeDoc.body) : screen;
 
+      console.log({ iframeDoc: iframe });
       const user = userEvent.setup({ document: iframeDoc });
 
       await user.click(iframeWithin.getByRole('button', { name: 'Open' }));
@@ -2007,6 +2007,7 @@ describe('FloatingFocusManager', () => {
     render(() => <MenuVirtual />);
 
     await userEvent.click(screen.getByRole('combobox'));
+
     await flushMicrotasks();
 
     await userEvent.keyboard('{ArrowDown}'); // undo

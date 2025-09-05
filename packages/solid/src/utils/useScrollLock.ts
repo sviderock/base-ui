@@ -9,7 +9,7 @@ let originalHtmlStyles: Partial<CSSStyleDeclaration> = {};
 let originalBodyStyles: Partial<CSSStyleDeclaration> = {};
 let originalHtmlScrollBehavior = '';
 
-function hasInsetScrollbars(referenceElement: Element | undefined) {
+function hasInsetScrollbars(referenceElement: Element | null) {
   if (typeof document === 'undefined') {
     return false;
   }
@@ -18,7 +18,7 @@ function hasInsetScrollbars(referenceElement: Element | undefined) {
   return win.innerWidth - doc.documentElement.clientWidth > 0;
 }
 
-function preventScrollBasic(referenceElement: Element | undefined) {
+function preventScrollBasic(referenceElement: Element | null) {
   const doc = ownerDocument(referenceElement);
   const html = doc.documentElement;
   const originalOverflow = html.style.overflow;
@@ -28,7 +28,7 @@ function preventScrollBasic(referenceElement: Element | undefined) {
   };
 }
 
-function preventScrollStandard(referenceElement: Element | undefined) {
+function preventScrollStandard(referenceElement: Element | null) {
   const doc = ownerDocument(referenceElement);
   const html = doc.documentElement;
   const body = doc.body;
@@ -152,7 +152,7 @@ class ScrollLocker {
   timeoutLock = useTimeout();
   timeoutUnlock = useTimeout();
 
-  acquire(referenceElement: Element | undefined) {
+  acquire(referenceElement: Element | null) {
     this.lockCount += 1;
     if (this.lockCount === 1 && this.restore === null) {
       this.timeoutLock.start(0, () => this.lock(referenceElement));
@@ -174,7 +174,7 @@ class ScrollLocker {
     }
   };
 
-  private lock(referenceElement: Element | undefined) {
+  private lock(referenceElement: Element | null) {
     if (this.lockCount === 0 || this.restore !== null) {
       return;
     }
@@ -214,7 +214,7 @@ export function useScrollLock(params: {
   enabled: boolean;
   mounted: boolean;
   open: boolean;
-  referenceElement?: Element | undefined;
+  referenceElement?: Element | null;
 }) {
   const referenceElement = () => params.referenceElement;
 

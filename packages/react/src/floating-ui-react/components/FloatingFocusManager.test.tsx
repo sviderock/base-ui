@@ -1966,6 +1966,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
   test('aria-hidden is not applied on root combobox with virtual nested menu', async () => {
     render(<MenuVirtual />);
 
+    screen.debug();
     await userEvent.click(screen.getByRole('combobox'));
     await flushMicrotasks();
 

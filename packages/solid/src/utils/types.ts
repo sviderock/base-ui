@@ -1,7 +1,7 @@
 import type { ComponentProps, JSX, Ref, ValidComponent } from 'solid-js';
 
 export type HTMLProps<T = any> = JSX.HTMLAttributes<T> & {
-  ref?: Ref<T | null | undefined>;
+  ref?: Ref<T | null>;
 };
 
 export type BaseUIEvent<E extends Event> = E & {
@@ -58,7 +58,7 @@ export type BaseUIComponentProps<
   render?: ComponentRenderFn<RenderFunctionProps, State>;
 } & (ElementType extends keyof HTMLElementTagNameMap
     ? {
-        ref?: Ref<HTMLElementTagNameMap[ElementType] | null | undefined>;
+        ref?: Ref<HTMLElementTagNameMap[ElementType] | null>;
       }
     : {});
 

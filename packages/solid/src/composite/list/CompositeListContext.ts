@@ -7,23 +7,29 @@ export interface CompositeListContextValue<Metadata> {
   unregister: (node: Element) => void;
   subscribeMapChange: (fn: (map: Map<Element, Metadata | null>) => void) => void;
   unsubscribeMapChange: (fn: Function) => void;
-  elements: Store<Array<HTMLElement | undefined>>;
-  setElements: SetStoreFunction<Array<HTMLElement | undefined>>;
-  labels?: Store<Array<string | null> | undefined>;
-  setLabels?: SetStoreFunction<Array<string | null> | undefined>;
+  elements: Store<Array<HTMLElement | null>>;
+  setElements: SetStoreFunction<Array<HTMLElement | null>>;
+  labels?: Store<Array<string | null>>;
+  setLabels?: SetStoreFunction<Array<string | null>>;
   nextIndex: Accessor<number>;
   setNextIndex: (nextIndex: number) => void;
 }
 
-export const CompositeListContext = createContext<CompositeListContextValue<any>>();
+export const CompositeListContext = createContext<CompositeListContextValue<any>>({
+  register: () => {},
+  unregister: () => {},
+  subscribeMapChange: () => {
+    return () => {};
+  },
+  unsubscribeMapChange: () => {
+    return () => {};
+  },
+  elements: [],
+  setElements: () => {},
+  nextIndex: () => 0,
+  setNextIndex: () => {},
+});
 
 export function useCompositeListContext() {
-  const context = useContext(CompositeListContext);
-  if (context === undefined) {
-    throw new Error(
-      'Base UI: CompositeListContext is missing. Composite parts must be placed within <Composite.List>.',
-    );
-  }
-
-  return context;
+  return useContext(CompositeListContext);
 }

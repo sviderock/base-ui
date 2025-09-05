@@ -50,7 +50,7 @@ export function useCompositeListItem<Metadata extends Accessor<unknown>>(
       : -1,
   );
 
-  const [componentRef, setComponentRef] = createSignal<Element | undefined>();
+  const [componentRef, setComponentRef] = createSignal<Element | null>(null);
 
   function onMapChange(map: Map<Element, CompositeMetadata<Metadata> | null>) {
     const itemRef = componentRef();

@@ -1,5 +1,4 @@
 import {
-  children,
   createContext,
   createEffect,
   createMemo,
@@ -10,9 +9,8 @@ import {
   useContext,
   type Accessor,
   type JSX,
-  type ParentComponent,
 } from 'solid-js';
-import { Portal } from 'solid-js/web';
+import { DelegatedEvents, Portal } from 'solid-js/web';
 import { FocusGuard } from '../../utils/FocusGuard';
 import { useId } from '../../utils/useId';
 import { visuallyHidden } from '../../utils/visuallyHidden';
@@ -24,8 +22,10 @@ import {
   isOutsideEvent,
 } from '../utils';
 
-import type { OpenChangeReason } from '../types';
+import { type OpenChangeReason } from '../types';
 import { createAttribute } from '../utils/createAttribute';
+
+const EventsToDelegateToPortals = new Map<string, Function[]>();
 
 type FocusManagerState = {
   modal: boolean;
@@ -66,6 +66,7 @@ export interface UseFloatingPortalNodeProps {
 export function useFloatingPortalNode(props: UseFloatingPortalNodeProps = {}) {
   const uniqueId = useId();
   const [portalNode, setPortalNode] = createSignal<HTMLElement | null>(null);
+  const portalContext = usePortalContext();
 
   const portalMount = createMemo<Parameters<typeof Portal>[0]['mount']>(() => {
     const id = props.id?.();
@@ -76,7 +77,7 @@ export function useFloatingPortalNode(props: UseFloatingPortalNodeProps = {}) {
       return existingIdRoot;
     }
 
-    const container = root || document.body;
+    const container = root || portalContext?.portalNode() || document.body;
     let idWrapper: HTMLDivElement | null = null;
     if (id) {
       idWrapper = document.createElement('div');
@@ -190,6 +191,10 @@ export function FloatingPortal(props: FloatingPortalProps): JSX.Element {
     enableFocusInside(node);
   });
 
+  onMount(() => {
+    console.log('FloatingPortal mounted');
+  });
+
   return (
     <PortalContext.Provider
       value={{
@@ -233,10 +238,6 @@ export function FloatingPortal(props: FloatingPortalProps): JSX.Element {
         {props.children}
       </Portal>
 
-      {/* <Show when={portalNode()}>
-        <CustomPortal mount={portalNode()!}>{props.children}</CustomPortal>
-      </Show> */}
-
       <Show when={shouldRenderGuards() && portalNode()}>
         <FocusGuard
           data-type="outside"
@@ -260,19 +261,3 @@ export function FloatingPortal(props: FloatingPortalProps): JSX.Element {
     </PortalContext.Provider>
   );
 }
-
-// TODO: not sure if this is needed
-const CustomPortal: ParentComponent<{ mount?: Element | DocumentFragment }> = (props) => {
-  createEffect(() => {
-    const mount = props.mount || document.body;
-    const c = children(() => props.children)
-      .toArray()
-      .filter(Boolean)
-      .filter((child): child is Element => child instanceof Element);
-
-    c.forEach((node) => mount.appendChild(node));
-    onCleanup(() => c.forEach((node) => mount.removeChild(node)));
-  });
-
-  return null; // This component renders nothing in its original place
-};

@@ -1,7 +1,7 @@
 import type { VirtualElement } from '@floating-ui/dom';
 import type { Accessor, JSX } from 'solid-js';
 import type { SetStoreFunction, Store } from 'solid-js/store';
-import type { StoreSignal } from '../solid-helpers';
+import type { RefSignal, StoreSignal } from '../solid-helpers';
 import type { UsePositionFloatingReturn, UsePositionOptions } from './hooks/useFloatingOriginal';
 import type { ExtendedUserProps } from './hooks/useInteractions';
 
@@ -227,6 +227,16 @@ export interface UseFloatingOptions<RT extends ReferenceType = ReferenceType>
    * Unique node id when using `FloatingTree`.
    */
   nodeId?: Accessor<string | undefined>;
+  /**
+   * When `true` reference/floating events will use default Solid event
+   * delegation using `on` events that are attached to document instead
+   * of dom elements. This will prevent events inside Portal/iframe from
+   * being captured by the parent elements.
+   * Setting this to `false` will bind events using `on:` event listeners
+   * which are attached to dom elements.
+   * @default true
+   */
+  delegateEvents?: boolean;
 }
 
 export type Accessorify<T> = {

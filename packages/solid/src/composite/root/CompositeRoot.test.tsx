@@ -1,4 +1,4 @@
-import { createRenderer, isJSDOM } from '#test-utils';
+import { createRenderer, flushMicrotasks, isJSDOM } from '#test-utils';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal, Index } from 'solid-js';
@@ -32,32 +32,28 @@ describe('Composite', () => {
       expect(getByTestId('1')).to.have.attribute('tabindex', '0');
 
       fireEvent.keyDown(getByTestId('1'), { key: 'ArrowDown' });
+      await flushMicrotasks();
 
-      await waitFor(() => {
-        expect(getByTestId('2')).to.have.attribute('tabindex', '0');
-        expect(getByTestId('2')).toHaveFocus();
-      });
+      expect(getByTestId('2')).to.have.attribute('tabindex', '0');
+      expect(getByTestId('2')).toHaveFocus();
 
       fireEvent.keyDown(getByTestId('2'), { key: 'ArrowDown' });
+      await flushMicrotasks();
 
-      await waitFor(() => {
-        expect(getByTestId('3')).to.have.attribute('tabindex', '0');
-        expect(getByTestId('3')).toHaveFocus();
-      });
+      expect(getByTestId('3')).to.have.attribute('tabindex', '0');
+      expect(getByTestId('3')).toHaveFocus();
 
       fireEvent.keyDown(getByTestId('3'), { key: 'ArrowUp' });
+      await flushMicrotasks();
 
-      await waitFor(() => {
-        expect(getByTestId('2')).to.have.attribute('tabindex', '0');
-        expect(getByTestId('2')).toHaveFocus();
-      });
+      expect(getByTestId('2')).to.have.attribute('tabindex', '0');
+      expect(getByTestId('2')).toHaveFocus();
 
       fireEvent.keyDown(getByTestId('2'), { key: 'ArrowUp' });
+      await flushMicrotasks();
 
-      await waitFor(() => {
-        expect(getByTestId('1')).to.have.attribute('tabindex', '0');
-        expect(getByTestId('1')).toHaveFocus();
-      });
+      expect(getByTestId('1')).to.have.attribute('tabindex', '0');
+      expect(getByTestId('1')).toHaveFocus();
     });
 
     it('uncontrolled mode', async () => {
