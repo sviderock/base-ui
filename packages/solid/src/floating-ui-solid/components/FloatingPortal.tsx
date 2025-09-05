@@ -4,13 +4,12 @@ import {
   createMemo,
   createSignal,
   onCleanup,
-  onMount,
   Show,
   useContext,
   type Accessor,
   type JSX,
 } from 'solid-js';
-import { DelegatedEvents, Portal } from 'solid-js/web';
+import { Portal } from 'solid-js/web';
 import { FocusGuard } from '../../utils/FocusGuard';
 import { useId } from '../../utils/useId';
 import { visuallyHidden } from '../../utils/visuallyHidden';
@@ -24,8 +23,6 @@ import {
 
 import { type OpenChangeReason } from '../types';
 import { createAttribute } from '../utils/createAttribute';
-
-const EventsToDelegateToPortals = new Map<string, Function[]>();
 
 type FocusManagerState = {
   modal: boolean;
@@ -189,10 +186,6 @@ export function FloatingPortal(props: FloatingPortalProps): JSX.Element {
     }
 
     enableFocusInside(node);
-  });
-
-  onMount(() => {
-    console.log('FloatingPortal mounted');
   });
 
   return (

@@ -282,41 +282,49 @@ describe.skipIf(!isJSDOM)('useHover', () => {
         hover={false}
         modal={false}
         bubbles
-        render={({ labelId, descriptionId, close }) => (
+        render={(props1) => (
           <>
-            <h2 id={labelId} className="mb-2 text-2xl font-bold">
+            <h2 id={props1.labelId} class="mb-2 text-2xl font-bold">
               Parent title
             </h2>
-            <p id={descriptionId} className="mb-2">
+            <p id={props1.descriptionId} class="mb-2">
               Description
             </p>
             <Popover
               hover
               modal={false}
               bubbles
-              render={({ labelId, descriptionId, close }) => (
+              render={(props2) => (
                 <>
-                  <h2 id={labelId} className="mb-2 text-2xl font-bold">
+                  <h2 id={props2.labelId} class="mb-2 text-2xl font-bold">
                     Child title
                   </h2>
-                  <p id={descriptionId} className="mb-2">
+                  <p id={props2.descriptionId} class="mb-2">
                     Description
                   </p>
-                  <button onClick={close} className="font-bold">
+                  <button onClick={props2.close} class="font-bold">
                     Close
                   </button>
                 </>
               )}
             >
-              <button type="button">Open child</button>
+              {(p) => (
+                <button type="button" {...p}>
+                  Open child
+                </button>
+              )}
             </Popover>
-            <button onClick={close} className="font-bold">
+            <button onClick={props1.close} class="font-bold">
               Close
             </button>
           </>
         )}
       >
-        <button type="button">Open parent</button>
+        {(p) => (
+          <button type="button" {...p}>
+            Open parent
+          </button>
+        )}
       </Popover>
     ));
 

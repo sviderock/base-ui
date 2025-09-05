@@ -1,23 +1,22 @@
-import * as React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { vi, it, describe } from 'vitest';
+import { describe, it, vi } from 'vitest';
 
-import { useClick, useDismiss, useFloating, useInteractions, useListNavigation } from '../index';
-import type { UseListNavigationProps } from '../types';
+import { createSignal } from 'solid-js';
 import { Main as ComplexGrid } from '../../../test/floating-ui-tests/ComplexGrid';
-import { Main as Grid } from '../../../test/floating-ui-tests/Grid';
 import { Main as EmojiPicker } from '../../../test/floating-ui-tests/EmojiPicker';
+import { Main as Grid } from '../../../test/floating-ui-tests/Grid';
 import { Main as ListboxFocus } from '../../../test/floating-ui-tests/ListboxFocus';
 import { Main as NestedMenu } from '../../../test/floating-ui-tests/Menu';
 import { HorizontalMenu } from '../../../test/floating-ui-tests/MenuOrientation';
 import { Menu, MenuItem } from '../../../test/floating-ui-tests/MenuVirtual';
 import { isJSDOM } from '../../utils/detectBrowser';
+import { useClick, useDismiss, useFloating, useInteractions, useListNavigation } from '../index';
+import type { UseListNavigationProps } from '../types';
 
 /* eslint-disable testing-library/no-unnecessary-act */
 
 function App(props: Omit<Partial<UseListNavigationProps>, 'listRef'>) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = createSignal(false);
   const listRef = React.useRef<Array<HTMLLIElement | null>>([]);
   const [activeIndex, setActiveIndex] = React.useState<null | number>(null);
   const { refs, context } = useFloating({

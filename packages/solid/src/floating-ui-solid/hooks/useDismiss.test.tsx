@@ -12,6 +12,7 @@ import {
 } from 'solid-js';
 import { vi } from 'vitest';
 
+import { flushMicrotasks } from '#test-utils';
 import { isJSDOM } from '../../utils/detectBrowser';
 import {
   FloatingFocusManager,
@@ -78,8 +79,7 @@ function App(
   );
 }
 
-// describe.skipIf(!isJSDOM)('useDismiss', () => {
-describe('useDismiss', () => {
+describe.skipIf(!isJSDOM)('useDismiss', () => {
   describe('true', () => {
     test('dismisses with escape key', () => {
       render(() => <App />);
@@ -181,7 +181,6 @@ describe('useDismiss', () => {
       const thirdParty = document.createElement('div');
       thirdParty.setAttribute('data-testid', 'third-party');
       document.body.append(thirdParty);
-      // screen.debug();
       await userEvent.click(thirdParty);
       expect(screen.getByRole('dialog')).toBeInTheDocument();
       thirdParty.remove();
@@ -781,25 +780,19 @@ describe('useDismiss', () => {
           </Overlay>
         ));
 
-        console.log(1);
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
 
-        console.log(2);
         await user.click(screen.getByText('outer'));
 
-        console.log(3);
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
 
-        console.log(4);
         await user.click(screen.getByText('outside'));
 
-        console.log(5);
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
 
-        console.log(6);
         cleanup();
       });
 
@@ -821,15 +814,10 @@ describe('useDismiss', () => {
 
         await user.click(screen.getByText('outer'));
 
-        screen.debug();
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.queryByText('inner')).not.toBeInTheDocument();
 
-        console.log(7);
-
         await user.click(screen.getByText('outside'));
-
-        console.log(8);
 
         expect(screen.queryByText('outer')).not.toBeInTheDocument();
         expect(screen.queryByText('inner')).not.toBeInTheDocument();
@@ -962,7 +950,7 @@ describe('useDismiss', () => {
     }
 
     function App() {
-      const [otherContainer, setOtherContainer] = createSignal<HTMLDivElement>();
+      const [otherContainer, setOtherContainer] = createSignal<HTMLDivElement | null>(null);
 
       const portal1 = undefined;
       const portal2 = otherContainer;
@@ -981,11 +969,15 @@ describe('useDismiss', () => {
 
     render(() => <App />);
 
+    console.log('CLICKING OPEN 1');
     await userEvent.click(screen.getByText('open 1'));
-
+    console.log('OPEN 1 CLICKED');
     expect(screen.getByText('open 2')).toBeInTheDocument();
 
+    console.log('CLICKING OPEN 2');
     await userEvent.click(screen.getByText('open 2'));
+    await flushMicrotasks();
+    console.log('OPEN 2 CLICKED');
 
     expect(screen.getByText('open 1')).toBeInTheDocument();
     expect(screen.getByText('open 2')).toBeInTheDocument();

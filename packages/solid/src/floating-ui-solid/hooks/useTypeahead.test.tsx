@@ -1,7 +1,8 @@
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
-import { createSignal } from 'solid-js';
+import { render, screen, waitFor } from '@solidjs/testing-library';
+import { createSignal, For, type JSX } from 'solid-js';
 import { Main } from '../../../test/floating-ui-tests/Menu';
 import { useClick, useFloating, useInteractions, useTypeahead } from '../index';
 import type { UseTypeaheadProps } from './useTypeahead';
@@ -23,9 +24,8 @@ const useImpl = (
     open: () => props.open ?? open(),
     onOpenChange: props.onOpenChange ?? setOpen,
   });
-  let listRef = props.list ?? ['one', 'two', 'three'];
   const typeahead = useTypeahead(context, {
-    listRef,
+    listRef: () => props.list ?? ['one', 'two', 'three'],
     activeIndex,
     onMatch(index) {
       setActiveIndex(index);
@@ -37,12 +37,12 @@ const useImpl = (
     enabled: addUseClick,
   });
 
-  const { getReferenceProps, getFloatingProps } = useInteractions([typeahead, click]);
+  const { getReferenceProps, getFloatingProps } = useInteractions(() => [typeahead(), click()]);
 
   return {
     activeIndex,
     open,
-    getReferenceProps: (userProps?: React.HTMLProps<Element>) =>
+    getReferenceProps: (userProps?: JSX.HTMLAttributes<Element>) =>
       getReferenceProps({
         role: 'combobox',
         ...userProps,
@@ -73,7 +73,7 @@ function Combobox(
 describe('useTypeahead', () => {
   it('rapidly focuses list items when they start with the same letter', async () => {
     const spy = vi.fn();
-    render(<Combobox onMatch={spy} />);
+    render(() => <Combobox onMatch={spy} />);
 
     await userEvent.click(screen.getByRole('combobox'));
 
@@ -89,7 +89,7 @@ describe('useTypeahead', () => {
 
   it('bails out of rapid focus of first letter if the list contains a string that starts with two of the same letter', async () => {
     const spy = vi.fn();
-    render(<Combobox onMatch={spy} list={['apple', 'aaron', 'apricot']} />);
+    render(() => <Combobox onMatch={spy} list={['apple', 'aaron', 'apricot']} />);
 
     await userEvent.click(screen.getByRole('combobox'));
 
@@ -102,7 +102,7 @@ describe('useTypeahead', () => {
 
   it('starts from the current activeIndex and correctly loops', async () => {
     const spy = vi.fn();
-    render(<Combobox onMatch={spy} list={['Toy Story 2', 'Toy Story 3', 'Toy Story 4']} />);
+    render(() => <Combobox onMatch={spy} list={['Toy Story 2', 'Toy Story 3', 'Toy Story 4']} />);
 
     await userEvent.click(screen.getByRole('combobox'));
 
@@ -142,7 +142,7 @@ describe('useTypeahead', () => {
 
   it('capslock characters continue to match', async () => {
     const spy = vi.fn();
-    render(<Combobox onMatch={spy} />);
+    render(() => <Combobox onMatch={spy} />);
 
     await userEvent.click(screen.getByRole('combobox'));
 
@@ -152,38 +152,39 @@ describe('useTypeahead', () => {
 
   function App1(props: Pick<UseTypeaheadProps, 'onMatch'> & { list: Array<string> }) {
     const { getReferenceProps, getFloatingProps, activeIndex, open } = useImpl(props);
-    const inputRef = React.useRef<HTMLInputElement | null>(null);
+    let inputRef: HTMLInputElement | undefined;
 
     return (
-      <React.Fragment>
+      <>
         <div
           {...getReferenceProps({
-            onClick: () => inputRef.current?.focus(),
+            onClick: () => inputRef?.focus(),
           })}
         >
           <input ref={inputRef} readOnly />
         </div>
-        {open && (
+        {open() && (
           <div {...getFloatingProps()}>
-            {props.list.map((value, i) => (
-              <div
-                key={value}
-                role="option"
-                tabIndex={i === activeIndex ? 0 : -1}
-                aria-selected={i === activeIndex}
-              >
-                {value}
-              </div>
-            ))}
+            <For each={props.list}>
+              {(value, i) => (
+                <div
+                  role="option"
+                  tabIndex={i() === activeIndex() ? 0 : -1}
+                  aria-selected={i() === activeIndex()}
+                >
+                  {value}
+                </div>
+              )}
+            </For>
           </div>
         )}
-      </React.Fragment>
+      </>
     );
   }
 
   it('matches when focus is within reference', async () => {
     const spy = vi.fn();
-    render(<App1 onMatch={spy} list={['one', 'two', 'three']} />);
+    render(() => <App1 onMatch={spy} list={['one', 'two', 'three']} />);
 
     await userEvent.click(screen.getByRole('combobox'));
 
@@ -193,7 +194,7 @@ describe('useTypeahead', () => {
 
   it('matches when focus is within floating', async () => {
     const spy = vi.fn();
-    render(<App1 onMatch={spy} list={['one', 'two', 'three']} />);
+    render(() => <App1 onMatch={spy} list={['one', 'two', 'three']} />);
 
     await userEvent.click(screen.getByRole('combobox'));
 
@@ -209,9 +210,9 @@ describe('useTypeahead', () => {
 
   it('onTypingChange is called when typing starts or stops', async () => {
     const spy = vi.fn();
-    render(<Combobox onTypingChange={spy} list={['one', 'two', 'three']} />);
+    render(() => <Combobox onTypingChange={spy} list={['one', 'two', 'three']} />);
 
-    act(() => screen.getByRole('combobox').focus());
+    screen.getByRole('combobox').focus();
 
     await userEvent.keyboard('t');
     expect(spy).toHaveBeenCalledTimes(1);
@@ -225,7 +226,7 @@ describe('useTypeahead', () => {
   it('Menu - skips disabled items and opens submenu on space if no match', async () => {
     vi.useRealTimers();
 
-    render(<Main />);
+    render(() => <Main />);
 
     await userEvent.click(screen.getByText('Edit'));
 

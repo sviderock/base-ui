@@ -1,5 +1,5 @@
 import c from 'clsx';
-import * as React from 'react';
+import { createContext, createSignal, type Accessor, type JSX } from 'solid-js';
 import { CompositeList } from '../../src/composite/list/CompositeList';
 import { useCompositeListItem } from '../../src/composite/list/useCompositeListItem';
 import {
@@ -29,22 +29,22 @@ import { useForkRefN } from '../../src/utils/useForkRef';
 
 type MenuContextType = {
   getItemProps: ReturnType<typeof useInteractions>['getItemProps'];
-  activeIndex: number | null;
-  setActiveIndex: React.Dispatch<React.SetStateAction<number | null>>;
-  setHasFocusInside: React.Dispatch<React.SetStateAction<boolean>>;
-  allowHover: boolean;
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  activeIndex: Accessor<number | null>;
+  setActiveIndex: (value: number | null) => void;
+  setHasFocusInside: (value: boolean) => void;
+  allowHover: Accessor<boolean>;
+  isOpen: Accessor<boolean>;
+  setIsOpen: (value: boolean) => void;
   parent: MenuContextType | null;
 };
 
-const MenuContext = React.createContext<MenuContextType>({
+const MenuContext = createContext<MenuContextType>({
   getItemProps: () => ({}),
-  activeIndex: null,
+  activeIndex: () => null,
   setActiveIndex: () => {},
   setHasFocusInside: () => {},
-  allowHover: true,
-  isOpen: false,
+  allowHover: () => true,
+  isOpen: () => false,
   setIsOpen: () => {},
   parent: null,
 });
@@ -52,7 +52,7 @@ const MenuContext = React.createContext<MenuContextType>({
 interface MenuProps {
   label: string;
   nested?: boolean;
-  children?: React.ReactNode;
+  children?: JSX.Element;
   keepMounted?: boolean;
   orientation?: 'vertical' | 'horizontal' | 'both';
   cols?: number;
@@ -60,25 +60,19 @@ interface MenuProps {
 }
 
 /** @internal */
-export const MenuComponent = React.forwardRef<
-  HTMLButtonElement,
-  MenuProps & React.HTMLProps<HTMLButtonElement>
->(function Menu(
-  {
-    children,
-    label,
-    keepMounted = false,
-    cols,
-    orientation: orientationOption,
-    openOnFocus = false,
-    ...props
-  },
-  forwardedRef,
-) {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
-  const [allowHover, setAllowHover] = React.useState(false);
-  const [hasFocusInside, setHasFocusInside] = React.useState(false);
+export function MenuComponent({
+  children,
+  label,
+  keepMounted = false,
+  cols,
+  orientation: orientationOption,
+  openOnFocus = false,
+  ...props
+}: MenuProps & JSX.HTMLAttributes<HTMLButtonElement>) {
+  const [isOpen, setIsOpen] = createSignal(false);
+  const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
+  const [allowHover, setAllowHover] = createSignal(false);
+  const [hasFocusInside, setHasFocusInside] = createSignal(false);
 
   const elementsRef = React.useRef<Array<HTMLButtonElement | null>>([]);
   const labelsRef = React.useRef<Array<string | null>>([]);
@@ -210,8 +204,8 @@ export const MenuComponent = React.forwardRef<
         data-open={isOpen ? '' : undefined}
         // eslint-disable-next-line no-nested-ternary
         tabIndex={!isNested ? props.tabIndex : parent.activeIndex === item.index ? 0 : -1}
-        className={c(
-          props.className || 'flex items-center justify-between gap-4 rounded px-2 py-1 text-left',
+        class={c(
+          props.class || 'flex items-center justify-between gap-4 rounded px-2 py-1 text-left',
           {
             'focus:bg-blue-500 outline-none focus:text-white': isNested,
             'bg-blue-500 text-white': isOpen && isNested && !hasFocusInside,
@@ -238,7 +232,7 @@ export const MenuComponent = React.forwardRef<
       >
         {label}
         {isNested && (
-          <span aria-hidden className="ml-4">
+          <span aria-hidden class="ml-4">
             Icon
           </span>
         )}
@@ -267,7 +261,7 @@ export const MenuComponent = React.forwardRef<
               >
                 <div
                   ref={refs.setFloating}
-                  className={c(
+                  class={c(
                     'border-slate-900/10 rounded border bg-white bg-clip-padding p-1 shadow-lg outline-none',
                     {
                       'flex flex-col': !cols,
@@ -295,7 +289,7 @@ export const MenuComponent = React.forwardRef<
       </MenuContext.Provider>
     </FloatingNode>
   );
-});
+}
 
 interface MenuItemProps {
   label: string;
@@ -320,10 +314,9 @@ export const MenuItem = React.forwardRef<
       role="menuitem"
       disabled={disabled}
       tabIndex={isActive ? 0 : -1}
-      className={c(
-        'focus:bg-blue-500 flex rounded px-2 py-1 text-left outline-none focus:text-white',
-        { 'opacity-40': disabled },
-      )}
+      class={c('focus:bg-blue-500 flex rounded px-2 py-1 text-left outline-none focus:text-white', {
+        'opacity-40': disabled,
+      })}
       {...menu.getItemProps({
         active: isActive,
         onClick(event: React.MouseEvent<HTMLButtonElement>) {
@@ -386,8 +379,8 @@ export function Main() {
   /* eslint-disable no-console */
   return (
     <React.Fragment>
-      <h1 className="mb-8 text-5xl font-bold">Menu</h1>
-      <div className="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
+      <h1 class="mb-8 text-5xl font-bold">Menu</h1>
+      <div class="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
         <Menu label="Edit">
           <MenuItem label="Undo" onClick={() => console.log('Undo')} />
           <MenuItem label="Redo" />

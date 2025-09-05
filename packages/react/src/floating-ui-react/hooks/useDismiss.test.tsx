@@ -1012,12 +1012,15 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     }
 
     render(<App />);
-
+    console.log('CLICKING OPEN 1');
     await userEvent.click(screen.getByText('open 1'));
+    console.log('OPEN 1 CLICKED');
     expect(screen.getByText('open 2')).toBeInTheDocument();
 
+    console.log('CLICKING OPEN 2');
     await userEvent.click(screen.getByText('open 2'));
     await flushMicrotasks();
+    console.log('OPEN 2 CLICKED');
 
     expect(screen.getByText('open 1')).toBeInTheDocument();
     expect(screen.getByText('open 2')).toBeInTheDocument();
