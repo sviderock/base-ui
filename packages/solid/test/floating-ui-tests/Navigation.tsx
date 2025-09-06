@@ -86,7 +86,7 @@ export function NavigationItem(props: ItemProps & JSX.HTMLAttributes<HTMLAnchorE
               data-testid="subnavigation"
               ref={refs.setFloating}
               class="bg-slate-100 flex flex-col overflow-y-auto rounded px-4 py-2 backdrop-blur-sm outline-none"
-              style={floatingStyles}
+              style={floatingStyles()}
               {...getFloatingProps()}
             >
               <button type="button" onClick={() => setOpen(false)}>

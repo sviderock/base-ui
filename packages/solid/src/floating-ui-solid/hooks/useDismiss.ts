@@ -200,13 +200,6 @@ export function useDismiss(
   };
 
   const closeOnPressOutside = (event: MouseEvent) => {
-    console.log('closeOnPressOutside', {
-      nodeId: context.dataRef.floatingContext?.nodeId(),
-      floatingId: context.floatingId(),
-      isInsideSolidTree: isInsideSolidTree(event),
-      outsidePress: capture().outsidePress,
-      target: getTarget(event)?.outerHTML,
-    });
     // TODO: explanation
     if (!capture().outsidePress && event.cancelBubble) {
       return;
@@ -225,7 +218,6 @@ export function useDismiss(
 
     if (!tree && isEventTargetInsidePortal(event)) {
       context.dataRef.insideDanglingPortal = true;
-      console.log(123123);
       return;
     }
 
@@ -373,7 +365,6 @@ export function useDismiss(
     }
 
     if (outsidePress()) {
-      console.log('ADD MAIN LISTENER', outsidePressEvent());
       doc.addEventListener(outsidePressEvent(), closeOnPressOutside, capture().outsidePress);
     }
 
@@ -403,9 +394,7 @@ export function useDismiss(
       ancestor.addEventListener('scroll', onScroll, { passive: true });
     });
 
-    console.log('onCleanup');
     onCleanup(() => {
-      console.log('onCleanup remove');
       if (escapeKey()) {
         doc.removeEventListener('keydown', closeOnEscapeKeyDown, capture().escapeKey);
         doc.removeEventListener('compositionstart', handleCompositionStart);
@@ -413,7 +402,6 @@ export function useDismiss(
       }
 
       if (outsidePress()) {
-        console.log('REMOVE MAIN LISTENER', outsidePressEvent());
         doc.removeEventListener(outsidePressEvent(), closeOnPressOutside, capture().outsidePress);
       }
 

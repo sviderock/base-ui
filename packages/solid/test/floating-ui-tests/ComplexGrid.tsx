@@ -1,5 +1,4 @@
-import { createSignal } from 'solid-js';
-import { createStore } from 'solid-js/store';
+import { createSignal, Index } from 'solid-js';
 import {
   FloatingFocusManager,
   useClick,
@@ -38,12 +37,12 @@ export function Main(props: Props) {
   const [open, setOpen] = createSignal(false);
   const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
 
-  const [listRef, setListRef] = createStore<Array<HTMLElement | undefined>>([]);
+  const listRef: Array<HTMLElement | null> = [];
 
   const { floatingStyles, refs, context } = useFloating({
     open,
     onOpenChange: setOpen,
-    placement: 'bottom-start',
+    placement: () => 'bottom-start',
   });
 
   const disabledIndices = [0, 1, 2, 3, 4, 5, 6, 9, 14, 23, 35];
@@ -58,69 +57,70 @@ export function Main(props: Props) {
   itemSizes[29].height = 2;
   itemSizes[36].width = 2;
 
-  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
-    useClick(context),
+  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
+    useClick(context)(),
     useListNavigation(context, {
-      listRef,
+      listRef: () => listRef,
       activeIndex,
       onNavigate: setActiveIndex,
-      cols: 7,
+      cols: () => 7,
       orientation,
       loop,
       rtl,
-      openOnArrowKeyDown: false,
-      disabledIndices,
-      itemSizes,
-    }),
-    useDismiss(context),
+      openOnArrowKeyDown: () => false,
+      disabledIndices: () => disabledIndices,
+      itemSizes: () => itemSizes,
+    })(),
+    useDismiss(context)(),
   ]);
 
   return (
-    <React.Fragment>
+    <>
       <h1>Complex Grid</h1>
-      <div className="container">
+      <div class="container">
         <button ref={refs.setReference} type="button" {...getReferenceProps()}>
           Reference
         </button>
-        {open && (
+        {open() && (
           <FloatingFocusManager context={context}>
             <div
               ref={refs.setFloating}
               data-testid="floating"
-              className="grid gap-2"
+              class="grid gap-2"
               style={{
-                ...floatingStyles,
+                ...floatingStyles(),
                 display: 'grid',
-                gridTemplateColumns: '100px 100px 100px 100px 100px 100px 100px',
-                zIndex: 999,
+                'grid-template-columns': '100px 100px 100px 100px 100px 100px 100px',
+                'z-index': 999,
               }}
               {...getFloatingProps()}
             >
-              {[...Array(37)].map((_, index) => (
-                <button
-                  type="button"
-                  role="option"
-                  key={index}
-                  aria-selected={activeIndex === index}
-                  tabIndex={activeIndex === index ? 0 : -1}
-                  disabled={disabledIndices.includes(index)}
-                  ref={(node) => {
-                    listRef.current[index] = node;
-                  }}
-                  className="border border-black disabled:opacity-20"
-                  style={{
-                    gridRow: `span ${itemSizes[index].height}`,
-                    gridColumn: `span ${itemSizes[index].width}`,
-                  }}
-                  {...getItemProps()}
-                >
-                  Item {index}
-                </button>
-              ))}
+              <Index each={Array(37)}>
+                {(index) => (
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={activeIndex() === index()}
+                    tabIndex={activeIndex() === index() ? 0 : -1}
+                    disabled={disabledIndices.includes(index())}
+                    ref={(node) => {
+                      listRef[index()] = node;
+                    }}
+                    class="border border-black disabled:opacity-20"
+                    style={{
+                      'grid-row': `span ${itemSizes[index()].height}`,
+                      'grid-column': `span ${itemSizes[index()].width}`,
+                    }}
+                    {...getItemProps()}
+                  >
+                    Item {index()}
+                  </button>
+                )}
+              </Index>
             </div>
           </FloatingFocusManager>
         )}
       </div>
-    </React.Fragment>
+    </>
   );
 }

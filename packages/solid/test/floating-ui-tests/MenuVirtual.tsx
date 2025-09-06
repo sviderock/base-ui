@@ -1,4 +1,3 @@
-import { screen } from '@solidjs/testing-library';
 import c from 'clsx';
 import {
   type Accessor,
@@ -82,9 +81,6 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
   const tree = useFloatingTree();
   const nodeId = useFloatingNodeId();
   const parentId = useFloatingParentNodeId();
-  createEffect(() => {
-    console.log('parentId', parentId());
-  });
   const isNested = () => parentId() != null;
 
   const parent = useContext(MenuContext);
@@ -111,7 +107,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
   const role = useRole(context, { role: () => 'menu' });
   const dismiss = useDismiss(context, { bubbles: () => true });
   const listNavigation = useListNavigation(context, {
-    listRef: elements,
+    listRef: () => elements,
     activeIndex,
     nested: isNested,
     onNavigate: setActiveIndex,
@@ -189,19 +185,6 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
 
   const id = createUniqueId();
 
-  createEffect(() => {
-    console.log('isNested', isNested());
-  });
-  createEffect(() => {
-    console.log('isOpen', isOpen());
-  });
-  createEffect(() => {
-    console.log('nodeId', nodeId());
-  });
-
-  onMount(() => {
-    console.log('MOUNT isNested', isNested());
-  });
   return (
     <FloatingNode id={nodeId()}>
       {isNested() ? (
@@ -292,7 +275,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
                 <div
                   ref={refs.setFloating}
                   class="border-slate-900/10 flex flex-col rounded border bg-white bg-clip-padding p-1 shadow-lg outline-none"
-                  style={floatingStyles}
+                  style={floatingStyles()}
                   {...getFloatingProps()}
                 >
                   {local.children}
@@ -387,10 +370,6 @@ export function Menu(props: MenuProps & JSX.HTMLAttributes<HTMLElement>) {
 /** @internal */
 export function Main() {
   const virtualItemRef = createRefSignal<HTMLElement>(null);
-
-  createEffect(() => {
-    console.log('MOUNT Main', virtualItemRef.ref());
-  });
 
   return (
     <>

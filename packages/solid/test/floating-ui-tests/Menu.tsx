@@ -1,5 +1,16 @@
 import c from 'clsx';
-import { createContext, createSignal, type Accessor, type JSX } from 'solid-js';
+import {
+  createContext,
+  createEffect,
+  createSignal,
+  onCleanup,
+  Show,
+  splitProps,
+  useContext,
+  type Accessor,
+  type JSX,
+} from 'solid-js';
+import { createStore } from 'solid-js/store';
 import { CompositeList } from '../../src/composite/list/CompositeList';
 import { useCompositeListItem } from '../../src/composite/list/useCompositeListItem';
 import {
@@ -25,6 +36,7 @@ import {
   useRole,
   useTypeahead,
 } from '../../src/floating-ui-solid';
+import { callEventHandler } from '../../src/solid-helpers';
 import { useForkRefN } from '../../src/utils/useForkRef';
 
 type MenuContextType = {
@@ -60,39 +72,41 @@ interface MenuProps {
 }
 
 /** @internal */
-export function MenuComponent({
-  children,
-  label,
-  keepMounted = false,
-  cols,
-  orientation: orientationOption,
-  openOnFocus = false,
-  ...props
-}: MenuProps & JSX.HTMLAttributes<HTMLButtonElement>) {
+export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonElement>) {
+  const [local, elementProps] = splitProps(props, [
+    'children',
+    'label',
+    'keepMounted',
+    'cols',
+    'orientation',
+    'openOnFocus',
+  ]);
+  const keepMounted = () => local.keepMounted ?? false;
+  const openOnFocus = () => local.openOnFocus ?? false;
   const [isOpen, setIsOpen] = createSignal(false);
   const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
   const [allowHover, setAllowHover] = createSignal(false);
   const [hasFocusInside, setHasFocusInside] = createSignal(false);
 
-  const elementsRef = React.useRef<Array<HTMLButtonElement | null>>([]);
-  const labelsRef = React.useRef<Array<string | null>>([]);
+  const [elements, setElements] = createStore<Array<HTMLButtonElement | null>>([]);
+  const [labels, setLabels] = createStore<Array<string | null>>([]);
 
   const tree = useFloatingTree();
   const nodeId = useFloatingNodeId();
   const parentId = useFloatingParentNodeId();
-  const isNested = parentId != null;
-  const orientation = orientationOption ?? (cols ? 'both' : 'vertical');
+  const isNested = () => parentId() != null;
+  const orientation = () => local.orientation ?? (local.cols ? 'both' : 'vertical');
 
-  const parent = React.useContext(MenuContext);
+  const parent = useContext(MenuContext);
   const item = useCompositeListItem();
 
   const { floatingStyles, refs, context } = useFloating<HTMLButtonElement>({
     nodeId,
     open: isOpen,
     onOpenChange: setIsOpen,
-    placement: isNested ? 'right-start' : 'bottom-start',
-    middleware: [
-      offset({ mainAxis: isNested ? 0 : 4, alignmentAxis: isNested ? -4 : 0 }),
+    placement: () => (isNested() ? 'right-start' : 'bottom-start'),
+    middleware: () => [
+      offset({ mainAxis: isNested() ? 0 : 4, alignmentAxis: isNested() ? -4 : 0 }),
       flip(),
       shift(),
     ],
@@ -100,48 +114,48 @@ export function MenuComponent({
   });
 
   const hover = useHover(context, {
-    enabled: isNested && allowHover,
-    delay: { open: 75 },
+    enabled: () => isNested() && allowHover(),
+    delay: () => ({ open: 75 }),
     handleClose: safePolygon({ blockPointerEvents: true }),
   });
   const click = useClick(context, {
-    event: 'mousedown',
-    toggle: !isNested || !allowHover,
+    event: () => 'mousedown',
+    toggle: () => !isNested() || !allowHover(),
     ignoreMouse: isNested,
   });
   const focus = useFocus(context, { enabled: openOnFocus });
-  const role = useRole(context, { role: 'menu' });
-  const dismiss = useDismiss(context, { bubbles: true });
+  const role = useRole(context, { role: () => 'menu' });
+  const dismiss = useDismiss(context, { bubbles: () => true });
   const listNavigation = useListNavigation(context, {
-    listRef: elementsRef,
+    listRef: () => elements,
     activeIndex,
     nested: isNested,
     onNavigate: setActiveIndex,
     orientation,
-    cols,
+    cols: () => local.cols,
   });
   const typeahead = useTypeahead(context, {
-    listRef: labelsRef,
-    onMatch: isOpen ? setActiveIndex : undefined,
+    listRef: () => labels,
+    onMatch: (index) => (isOpen() ? setActiveIndex(index) : undefined),
     activeIndex,
   });
 
-  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
-    hover,
-    click,
-    role,
-    dismiss,
-    focus,
-    listNavigation,
-    typeahead,
+  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
+    hover(),
+    click(),
+    role(),
+    dismiss(),
+    focus(),
+    listNavigation(),
+    typeahead(),
   ]);
 
   // Event emitter allows you to communicate across tree components.
   // This effect closes all menus when an item gets clicked anywhere
   // in the tree.
-  React.useEffect(() => {
+  createEffect(() => {
     if (!tree) {
-      return undefined;
+      return;
     }
 
     function handleTreeClick() {
@@ -149,7 +163,7 @@ export function MenuComponent({
     }
 
     function onSubMenuOpen(event: { nodeId: string; parentId: string }) {
-      if (event.nodeId !== nodeId && event.parentId === parentId) {
+      if (event.nodeId !== nodeId() && event.parentId === parentId()) {
         setIsOpen(false);
       }
     }
@@ -157,22 +171,22 @@ export function MenuComponent({
     tree.events.on('click', handleTreeClick);
     tree.events.on('menuopen', onSubMenuOpen);
 
-    return () => {
+    onCleanup(() => {
       tree.events.off('click', handleTreeClick);
       tree.events.off('menuopen', onSubMenuOpen);
-    };
-  }, [tree, nodeId, parentId]);
+    });
+  });
 
-  React.useEffect(() => {
-    if (isOpen && tree) {
-      tree.events.emit('menuopen', { parentId, nodeId });
+  createEffect(() => {
+    if (isOpen() && tree) {
+      tree.events.emit('menuopen', { parentId: parentId(), nodeId: nodeId() });
     }
-  }, [tree, isOpen, nodeId, parentId]);
+  });
 
   // Determine if "hover" logic can run based on the modality of input. This
   // prevents unwanted focus synchronization as menus open and close with
   // keyboard navigation and the cursor is resting on the menu.
-  React.useEffect(() => {
+  createEffect(() => {
     function onPointerMove({ pointerType }: PointerEvent) {
       if (pointerType !== 'touch') {
         setAllowHover(true);
@@ -188,50 +202,50 @@ export function MenuComponent({
       capture: true,
     });
     window.addEventListener('keydown', onKeyDown, true);
-    return () => {
+    onCleanup(() => {
       window.removeEventListener('pointermove', onPointerMove, {
         capture: true,
       });
       window.removeEventListener('keydown', onKeyDown, true);
-    };
-  }, [allowHover]);
+    });
+  });
 
   return (
-    <FloatingNode id={nodeId}>
+    <FloatingNode id={nodeId()}>
       <button
         type="button"
-        ref={useForkRefN([refs.setReference, item.ref, forwardedRef])}
-        data-open={isOpen ? '' : undefined}
+        ref={useForkRefN([refs.setReference, item.ref, props.ref as any])}
+        data-open={isOpen() ? '' : undefined}
         // eslint-disable-next-line no-nested-ternary
-        tabIndex={!isNested ? props.tabIndex : parent.activeIndex === item.index ? 0 : -1}
+        tabIndex={!isNested() ? props.tabIndex : parent.activeIndex() === item.index() ? 0 : -1}
         class={c(
           props.class || 'flex items-center justify-between gap-4 rounded px-2 py-1 text-left',
           {
             'focus:bg-blue-500 outline-none focus:text-white': isNested,
-            'bg-blue-500 text-white': isOpen && isNested && !hasFocusInside,
-            'bg-slate-200 rounded px-2 py-1': isNested && isOpen && hasFocusInside,
+            'bg-blue-500 text-white': isOpen() && isNested() && !hasFocusInside(),
+            'bg-slate-200 rounded px-2 py-1': isNested() && isOpen() && hasFocusInside(),
             'bg-slate-200': !isNested && isOpen,
           },
         )}
         {...getReferenceProps(
-          parent.getItemProps({
-            ...props,
-            onFocus(event: React.FocusEvent<HTMLButtonElement>) {
-              props.onFocus?.(event);
+          parent.getItemProps<HTMLButtonElement>({
+            ...elementProps,
+            onFocus(event) {
+              callEventHandler(props.onFocus, event);
               setHasFocusInside(false);
               parent.setHasFocusInside(true);
             },
-            onMouseEnter(event: React.MouseEvent<HTMLButtonElement>) {
-              props.onMouseEnter?.(event);
-              if (parent.allowHover && parent.isOpen) {
-                parent.setActiveIndex(item.index);
+            onMouseEnter(event) {
+              callEventHandler(props.onMouseEnter, event);
+              if (parent.allowHover() && parent.isOpen()) {
+                parent.setActiveIndex(item.index());
               }
             },
           }),
         )}
       >
-        {label}
-        {isNested && (
+        {props.label}
+        {isNested() && (
           <span aria-hidden class="ml-4">
             Icon
           </span>
@@ -250,37 +264,42 @@ export function MenuComponent({
           parent,
         }}
       >
-        <CompositeList elementsRef={elementsRef} labelsRef={labelsRef}>
-          {(keepMounted || isOpen) && (
+        <CompositeList
+          elements={elements}
+          labels={labels}
+          setElements={setElements}
+          setLabels={setLabels}
+        >
+          {(keepMounted() || isOpen()) && (
             <FloatingPortal>
               <FloatingFocusManager
                 context={context}
                 modal={false}
-                initialFocus={isNested ? -1 : 0}
-                returnFocus={!isNested}
+                initialFocus={isNested() ? -1 : 0}
+                returnFocus={!isNested()}
               >
                 <div
                   ref={refs.setFloating}
                   class={c(
                     'border-slate-900/10 rounded border bg-white bg-clip-padding p-1 shadow-lg outline-none',
                     {
-                      'flex flex-col': !cols,
+                      'flex flex-col': !local.cols,
                     },
                     {
-                      [`grid grid-cols-[repeat(var(--cols),_minmax(0,_1fr))] gap-3`]: cols,
+                      [`grid grid-cols-[repeat(var(--cols),_minmax(0,_1fr))] gap-3`]: local.cols,
                     },
                   )}
                   style={{
-                    ...floatingStyles,
+                    ...floatingStyles(),
                     // @ts-ignore
-                    '--cols': cols,
+                    '--cols': local.cols,
                     // eslint-disable-next-line no-nested-ternary
-                    visibility: !keepMounted ? undefined : isOpen ? 'visible' : 'hidden',
+                    visibility: !keepMounted() ? undefined : isOpen() ? 'visible' : 'hidden',
                   }}
-                  aria-hidden={!isOpen}
+                  aria-hidden={!isOpen()}
                   {...getFloatingProps()}
                 >
-                  {children}
+                  {local.children}
                 </div>
               </FloatingFocusManager>
             </FloatingPortal>
@@ -297,40 +316,38 @@ interface MenuItemProps {
 }
 
 /** @internal */
-export const MenuItem = React.forwardRef<
-  HTMLButtonElement,
-  MenuItemProps & React.ButtonHTMLAttributes<HTMLButtonElement>
->(function MenuItem({ label, disabled, ...props }, forwardedRef) {
-  const menu = React.useContext(MenuContext);
-  const item = useCompositeListItem({ label: disabled ? null : label });
+export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLButtonElement>) {
+  const [local, elementProps] = splitProps(props, ['label', 'disabled']);
+  const menu = useContext(MenuContext);
+  const item = useCompositeListItem({ label: local.disabled ? null : local.label });
   const tree = useFloatingTree();
-  const isActive = item.index === menu.activeIndex;
+  const isActive = () => item.index() === menu.activeIndex();
 
   return (
     <button
-      {...props}
-      ref={useForkRefN([item.ref, forwardedRef])}
+      {...elementProps}
+      ref={useForkRefN([item.ref, props.ref as any])}
       type="button"
       role="menuitem"
-      disabled={disabled}
-      tabIndex={isActive ? 0 : -1}
+      disabled={local.disabled}
+      tabIndex={isActive() ? 0 : -1}
       class={c('focus:bg-blue-500 flex rounded px-2 py-1 text-left outline-none focus:text-white', {
-        'opacity-40': disabled,
+        'opacity-40': local.disabled,
       })}
-      {...menu.getItemProps({
-        active: isActive,
-        onClick(event: React.MouseEvent<HTMLButtonElement>) {
-          props.onClick?.(event);
+      {...menu.getItemProps<HTMLButtonElement>({
+        active: isActive(),
+        onClick(event) {
+          callEventHandler(props.onClick, event);
           tree?.events.emit('click');
         },
-        onFocus(event: React.FocusEvent<HTMLButtonElement>) {
-          props.onFocus?.(event);
+        onFocus(event) {
+          callEventHandler(props.onFocus, event);
           menu.setHasFocusInside(true);
         },
-        onMouseEnter(event: React.MouseEvent<HTMLButtonElement>) {
-          props.onMouseEnter?.(event);
-          if (menu.allowHover && menu.isOpen) {
-            menu.setActiveIndex(item.index);
+        onMouseEnter(event) {
+          callEventHandler(props.onMouseEnter, event);
+          if (menu.allowHover() && menu.isOpen()) {
+            menu.setActiveIndex(item.index());
           }
         },
         onKeyDown(event) {
@@ -344,41 +361,36 @@ export const MenuItem = React.forwardRef<
           if (
             event.key === 'ArrowRight' &&
             // If the root reference is in a menubar, close parents
-            tree?.nodesRef.current[0].context?.elements.domReference?.closest('[role="menubar"]')
+            tree?.nodesRef[0].context?.elements.domReference()?.closest('[role="menubar"]')
           ) {
             closeParents(menu.parent);
           }
         },
       })}
     >
-      {label}
+      {local.label}
     </button>
   );
-});
+}
 
 /** @internal */
-export const Menu = React.forwardRef<
-  HTMLButtonElement,
-  MenuProps & React.HTMLProps<HTMLButtonElement>
->(function MenuWrapper(props, ref) {
+export function Menu(props: MenuProps & JSX.HTMLAttributes<HTMLButtonElement>) {
   const parentId = useFloatingParentNodeId();
 
-  if (parentId === null) {
-    return (
+  return (
+    <Show when={parentId() === null} fallback={<MenuComponent {...props} />}>
       <FloatingTree>
-        <MenuComponent {...props} ref={ref} />
+        <MenuComponent {...props} />
       </FloatingTree>
-    );
-  }
-
-  return <MenuComponent {...props} ref={ref} />;
-});
+    </Show>
+  );
+}
 
 /** @internal */
 export function Main() {
   /* eslint-disable no-console */
   return (
-    <React.Fragment>
+    <>
       <h1 class="mb-8 text-5xl font-bold">Menu</h1>
       <div class="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
         <Menu label="Edit">
@@ -402,6 +414,6 @@ export function Main() {
           </Menu>
         </Menu>
       </div>
-    </React.Fragment>
+    </>
   );
 }

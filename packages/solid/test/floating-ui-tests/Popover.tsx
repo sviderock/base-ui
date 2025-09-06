@@ -161,7 +161,7 @@ function PopoverComponent(props: Props) {
             <div
               class="border-slate-900/10 rounded border bg-white bg-clip-padding px-4 py-6 shadow-md"
               ref={refs.setFloating}
-              style={floatingStyles}
+              style={floatingStyles()}
               aria-labelledby={labelId}
               aria-describedby={descriptionId}
               {...getFloatingProps()}

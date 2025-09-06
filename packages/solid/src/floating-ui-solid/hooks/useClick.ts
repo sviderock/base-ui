@@ -59,11 +59,9 @@ export function useClick(
   const reference = createMemo<ElementProps['reference']>(() => {
     return {
       'on:pointerdown': (event) => {
-        console.log('onClick -> POINTER DOWN', event);
         pointerTypeRef = event.pointerType;
       },
       'on:mousedown': (event) => {
-        console.log('onClick -> MOUSE DOWN', event);
         const pointerType = pointerTypeRef;
 
         // Ignore all buttons except for the "main" button.
@@ -92,7 +90,6 @@ export function useClick(
         });
       },
       'on:click': (event) => {
-        console.log('onClick -> CLICK', event);
         const pointerType = pointerTypeRef;
 
         if (eventOption() === 'mousedown' && pointerType) {

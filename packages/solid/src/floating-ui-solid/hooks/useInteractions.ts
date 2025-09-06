@@ -1,5 +1,5 @@
 import { combineProps } from '@solid-primitives/props';
-import { onMount, type Accessor, type JSX } from 'solid-js';
+import { type Accessor, type JSX } from 'solid-js';
 import type { ElementProps } from '../types';
 import { ACTIVE_KEY, FOCUSABLE_ATTRIBUTE, SELECTED_KEY } from '../utils/constants';
 
@@ -9,10 +9,14 @@ export type ExtendedUserProps = {
 };
 
 export interface UseInteractionsReturn {
-  getReferenceProps: (userProps?: JSX.HTMLAttributes<Element>) => Record<string, unknown>;
-  getFloatingProps: (userProps?: JSX.HTMLAttributes<HTMLElement>) => Record<string, unknown>;
-  getItemProps: (
-    userProps?: Omit<JSX.HTMLAttributes<HTMLElement>, 'selected' | 'active'> & ExtendedUserProps,
+  getReferenceProps: <T extends Element>(
+    userProps?: JSX.HTMLAttributes<T>,
+  ) => Record<string, unknown>;
+  getFloatingProps: <T extends HTMLElement>(
+    userProps?: JSX.HTMLAttributes<T>,
+  ) => Record<string, unknown>;
+  getItemProps: <T extends HTMLElement>(
+    userProps?: Omit<JSX.HTMLAttributes<T>, 'selected' | 'active'> & ExtendedUserProps,
   ) => Record<string, unknown>;
 }
 
@@ -29,15 +33,13 @@ export function useInteractions(
     getReferenceProps(userProps) {
       const referenceList = propsList()
         .map((item) => item?.reference)
-        .filter((i): i is JSX.HTMLAttributes<Element> => !!i);
+        .filter((i): i is JSX.HTMLAttributes<any> => !!i);
 
       if (userProps) {
         referenceList.push(userProps);
       }
 
-      const combined = combineProps(referenceList, { reverseEventHandlers: true });
-
-      return combined;
+      return combineProps(referenceList, { reverseEventHandlers: true });
     },
     getFloatingProps(userProps) {
       const list = propsList()
@@ -49,10 +51,7 @@ export function useInteractions(
         list.push(userProps);
       }
 
-      const combined = combineProps(list, { reverseEventHandlers: true });
-
-      console.log('set floating props');
-      return combined;
+      return combineProps(list, { reverseEventHandlers: true });
     },
     getItemProps(userProps) {
       const list = propsList()

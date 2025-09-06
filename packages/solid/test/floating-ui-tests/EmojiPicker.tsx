@@ -1,5 +1,5 @@
 import c from 'clsx';
-import * as React from 'react';
+import { createEffect, createSignal, For, Match, splitProps, Switch, type JSX } from 'solid-js';
 import {
   arrow,
   autoUpdate,
@@ -57,53 +57,50 @@ const emojis = [
   },
 ];
 
-type OptionProps = React.HTMLAttributes<HTMLButtonElement> & {
+type OptionProps = JSX.HTMLAttributes<HTMLButtonElement> & {
   name: string;
   active: boolean;
   selected: boolean;
-  children: React.ReactNode;
+  children: JSX.Element;
 };
 
 /** @internal */
-const Option = React.forwardRef<HTMLButtonElement, OptionProps>(function Option(
-  { name, active, selected, children, ...props },
-  ref,
-) {
+function Option(props: OptionProps) {
+  const [local, others] = splitProps(props, ['name', 'active', 'selected', 'children']);
   const id = useId();
   return (
     <button
-      {...props}
-      ref={ref}
-      id={id}
+      {...others}
+      id={id()}
       role="option"
-      className={c('aspect-square cursor-default rounded text-center text-3xl select-none', {
-        'bg-cyan-100': selected && !active,
-        'bg-cyan-200': active,
-        'opacity-40': name === 'orange',
+      class={c('aspect-square cursor-default rounded text-center text-3xl select-none', {
+        'bg-cyan-100': local.selected && !local.active,
+        'bg-cyan-200': local.active,
+        'opacity-40': local.name === 'orange',
       })}
-      aria-selected={selected}
-      disabled={name === 'orange'}
-      aria-label={name}
+      aria-selected={local.selected}
+      disabled={local.name === 'orange'}
+      aria-label={local.name}
       tabIndex={-1}
-      data-active={active ? '' : undefined}
+      data-active={local.active ? '' : undefined}
       type="button"
     >
-      {children}
+      {local.children}
     </button>
   );
-});
+}
 
 /** @internal */
 export function Main() {
-  const [open, setOpen] = React.useState(false);
-  const [search, setSearch] = React.useState('');
-  const [selectedEmoji, setSelectedEmoji] = React.useState<string | null>(null);
-  const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
-  const [placement, setPlacement] = React.useState<Placement | null>(null);
+  const [open, setOpen] = createSignal(false);
+  const [search, setSearch] = createSignal('');
+  const [selectedEmoji, setSelectedEmoji] = createSignal<string | null>(null);
+  const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
+  const [placement, setPlacement] = createSignal<Placement | null>(null);
 
-  const arrowRef = React.useRef(null);
+  let arrowRef: Element | null = null;
 
-  const listRef = React.useRef<Array<HTMLElement | null>>([]);
+  const listRef: Array<HTMLElement | null> = [];
 
   const noResultsId = useId();
 
@@ -113,16 +110,16 @@ export function Main() {
     context,
     placement: resultantPlacement,
   } = useFloating({
-    placement: placement ?? 'bottom-start',
+    placement: () => placement() ?? 'bottom-start',
     open,
     onOpenChange: setOpen,
     // We don't want flipping to occur while searching, as the floating element
     // will resize and cause disorientation.
-    middleware: [
+    middleware: () => [
       offset(8),
-      ...(placement ? [] : [flip()]),
+      ...(placement() ? [] : [flip()]),
       arrow({
-        element: arrowRef,
+        element: arrowRef!,
         padding: 20,
       }),
     ],
@@ -130,10 +127,10 @@ export function Main() {
   });
 
   // Handles opening the floating element via the Choose Emoji button.
-  const { getReferenceProps, getFloatingProps } = useInteractions([
-    useClick(context),
-    useDismiss(context),
-    useRole(context, { role: 'menu' }),
+  const { getReferenceProps, getFloatingProps } = useInteractions(() => [
+    useClick(context)(),
+    useDismiss(context)(),
+    useRole(context, { role: () => 'menu' })(),
   ]);
 
   // Handles the list navigation where the reference is the inner input, not
@@ -142,64 +139,58 @@ export function Main() {
     getReferenceProps: getInputProps,
     getFloatingProps: getListFloatingProps,
     getItemProps,
-  } = useInteractions([
+  } = useInteractions(() => [
     useListNavigation(context, {
-      listRef,
-      onNavigate: open ? setActiveIndex : undefined,
+      listRef: () => listRef,
+      onNavigate: open() ? setActiveIndex : undefined,
       activeIndex,
-      cols: 3,
-      orientation: 'horizontal',
-      loop: true,
-      focusItemOnOpen: false,
-      virtual: true,
-      allowEscape: true,
-    }),
+      cols: () => 3,
+      orientation: () => 'horizontal',
+      loop: () => true,
+      focusItemOnOpen: () => false,
+      virtual: () => true,
+      allowEscape: () => true,
+    })(),
   ]);
 
-  React.useEffect(() => {
-    if (open) {
-      setPlacement(resultantPlacement);
+  createEffect(() => {
+    if (open()) {
+      setPlacement(resultantPlacement());
     } else {
       setSearch('');
       setActiveIndex(null);
       setPlacement(null);
     }
-  }, [open, resultantPlacement]);
+  });
 
   const handleEmojiClick = () => {
-    if (activeIndex !== null) {
+    if (activeIndex() !== null) {
       // eslint-disable-next-line
-      setSelectedEmoji(filteredEmojis[activeIndex].emoji);
+      setSelectedEmoji(filteredEmojis()[activeIndex()!].emoji);
       setOpen(false);
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
+  const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Enter') {
       handleEmojiClick();
     }
   };
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setActiveIndex(null);
-    setSearch(event.target.value);
-  };
-
-  const filteredEmojis = emojis.filter(({ name }) =>
-    name.toLocaleLowerCase().includes(search.toLocaleLowerCase()),
-  );
+  const filteredEmojis = () =>
+    emojis.filter(({ name }) => name.toLocaleLowerCase().includes(search().toLocaleLowerCase()));
 
   return (
-    <React.Fragment>
-      <h1 className="mb-8 text-5xl font-bold">Emoji Picker</h1>
-      <div className="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
-        <div className="text-center">
+    <>
+      <h1 class="mb-8 text-5xl font-bold">Emoji Picker</h1>
+      <div class="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
+        <div class="text-center">
           <Button
             ref={refs.setReference}
-            className="text-2xl"
+            class="text-2xl"
             aria-label="Choose emoji"
             aria-describedby="emoji-label"
-            data-open={open ? '' : undefined}
+            data-open={open() ? '' : undefined}
             {...getReferenceProps()}
           >
             ☻
@@ -208,71 +199,71 @@ export function Main() {
           {selectedEmoji && (
             <span id="emoji-label">
               <span
-                style={{ fontSize: 30 }}
-                aria-label={emojis.find(({ emoji }) => emoji === selectedEmoji)?.name}
+                style={{ 'font-size': '30px' }}
+                aria-label={emojis.find(({ emoji }) => emoji === selectedEmoji())?.name}
               >
-                {selectedEmoji}
+                {selectedEmoji()}
               </span>{' '}
               selected
             </span>
           )}
           <FloatingPortal>
-            {open && (
+            {open() && (
               <FloatingFocusManager context={context} modal={false}>
                 <div
                   ref={refs.setFloating}
-                  className="border-slate-900/10 rounded-lg border bg-white/70 bg-clip-padding p-4 shadow-md backdrop-blur-sm"
-                  style={floatingStyles}
+                  class="border-slate-900/10 rounded-lg border bg-white/70 bg-clip-padding p-4 shadow-md backdrop-blur-sm"
+                  style={floatingStyles()}
                   {...getFloatingProps(getListFloatingProps())}
                 >
-                  <span className="text-sm uppercase opacity-40">Emoji Picker</span>
+                  <span class="text-sm uppercase opacity-40">Emoji Picker</span>
                   <input
-                    className="border-slate-300 focus:border-blue-600 my-2 block w-36 rounded border p-1 outline-none"
+                    class="border-slate-300 focus:border-blue-600 my-2 block w-36 rounded border p-1 outline-none"
                     placeholder="Search emoji"
-                    value={search}
-                    aria-controls={filteredEmojis.length === 0 ? noResultsId : undefined}
-                    {...getInputProps({
-                      onChange: handleInputChange,
+                    value={search()}
+                    aria-controls={filteredEmojis().length === 0 ? noResultsId() : undefined}
+                    {...getInputProps<HTMLInputElement>({
+                      onChange(event) {
+                        setActiveIndex(null);
+                        setSearch(event.target.value);
+                      },
                       onKeyDown: handleKeyDown,
                     })}
                   />
-                  {filteredEmojis.length === 0 && (
-                    <p
-                      key={search}
-                      id={noResultsId}
-                      role="region"
-                      aria-atomic="true"
-                      aria-live="assertive"
-                    >
-                      No results.
-                    </p>
-                  )}
-                  {filteredEmojis.length > 0 && (
-                    <div className="grid grid-cols-3" role="listbox">
-                      {filteredEmojis.map(({ name, emoji }, index) => (
-                        <Option
-                          key={name}
-                          name={name}
-                          ref={(node) => {
-                            listRef.current[index] = node;
-                          }}
-                          selected={selectedEmoji === emoji}
-                          active={activeIndex === index}
-                          {...getItemProps({
-                            onClick: handleEmojiClick,
-                          })}
-                        >
-                          {emoji}
-                        </Option>
-                      ))}
-                    </div>
-                  )}
+                  <Switch>
+                    <Match when={filteredEmojis().length === 0}>
+                      <p id={noResultsId()} role="region" aria-atomic="true" aria-live="assertive">
+                        No results.
+                      </p>
+                    </Match>
+                    <Match when={filteredEmojis().length > 0}>
+                      <div class="grid grid-cols-3" role="listbox">
+                        <For each={filteredEmojis()}>
+                          {(item, index) => (
+                            <Option
+                              name={item.name}
+                              ref={(node) => {
+                                listRef[index()] = node;
+                              }}
+                              selected={selectedEmoji() === item.emoji}
+                              active={activeIndex() === index()}
+                              {...getItemProps({
+                                onClick: handleEmojiClick,
+                              })}
+                            >
+                              {item.emoji}
+                            </Option>
+                          )}
+                        </For>
+                      </div>
+                    </Match>
+                  </Switch>
                 </div>
               </FloatingFocusManager>
             )}
           </FloatingPortal>
         </div>
       </div>
-    </React.Fragment>
+    </>
   );
 }

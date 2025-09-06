@@ -1,5 +1,16 @@
 import c from 'clsx';
-import * as React from 'react';
+import {
+  createContext,
+  createEffect,
+  createSignal,
+  onCleanup,
+  Show,
+  splitProps,
+  useContext,
+  type Accessor,
+  type JSX,
+} from 'solid-js';
+import { createStore } from 'solid-js/store';
 import { CompositeList } from '../../src/composite/list/CompositeList';
 import { useCompositeListItem } from '../../src/composite/list/useCompositeListItem';
 import {
@@ -24,73 +35,79 @@ import {
   useRole,
   useTypeahead,
 } from '../../src/floating-ui-solid';
+import { callEventHandler } from '../../src/solid-helpers';
 import { useForkRefN } from '../../src/utils/useForkRef';
 
 type MenuContextType = {
   getItemProps: ReturnType<typeof useInteractions>['getItemProps'];
-  activeIndex: number | null;
-  setActiveIndex: React.Dispatch<React.SetStateAction<number | null>>;
-  setHasFocusInside: React.Dispatch<React.SetStateAction<boolean>>;
-  allowHover: boolean;
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  activeIndex: Accessor<number | null>;
+  setActiveIndex: (value: number | null) => void;
+  setHasFocusInside: (value: boolean) => void;
+  allowHover: Accessor<boolean>;
+  isOpen: Accessor<boolean>;
+  setIsOpen: (value: boolean) => void;
   parent: MenuContextType | null;
-  orientation: 'vertical' | 'horizontal' | 'both';
+  orientation: Accessor<'vertical' | 'horizontal' | 'both'>;
 };
 
-const MenuContext = React.createContext<MenuContextType>({
+const MenuContext = createContext<MenuContextType>({
   getItemProps: () => ({}),
-  activeIndex: null,
+  activeIndex: () => null,
   setActiveIndex: () => {},
   setHasFocusInside: () => {},
-  allowHover: true,
-  isOpen: false,
+  allowHover: () => true,
+  isOpen: () => false,
   setIsOpen: () => {},
   parent: null,
-  orientation: 'vertical',
+  orientation: () => 'vertical' as const,
 });
 
 interface MenuProps {
   label: string;
   nested?: boolean;
-  children?: React.ReactNode;
+  children?: JSX.Element;
   keepMounted?: boolean;
   orientation?: 'vertical' | 'horizontal' | 'both';
   cols?: number;
 }
 
 /** @internal */
-export const MenuComponent = React.forwardRef<
-  HTMLButtonElement,
-  MenuProps & React.HTMLProps<HTMLButtonElement>
->(function Menu(
-  { children, label, keepMounted = false, cols, orientation: orientationOption, ...props },
-  forwardedRef,
+export function MenuComponent(
+  // { children, label, keepMounted = false, cols, orientation: orientationOption, ...props },
+  props: MenuProps & JSX.HTMLAttributes<HTMLButtonElement>,
 ) {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
-  const [allowHover, setAllowHover] = React.useState(false);
-  const [hasFocusInside, setHasFocusInside] = React.useState(false);
+  const [local, elementProps] = splitProps(props, [
+    'children',
+    'label',
+    'keepMounted',
+    'cols',
+    'orientation',
+  ]);
+  const keepMounted = () => local.keepMounted ?? false;
+  const [isOpen, setIsOpen] = createSignal(false);
+  const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
+  const [allowHover, setAllowHover] = createSignal(false);
+  const [hasFocusInside, setHasFocusInside] = createSignal(false);
 
-  const elementsRef = React.useRef<Array<HTMLButtonElement | null>>([]);
-  const labelsRef = React.useRef<Array<string | null>>([]);
+  const [elements, setElements] = createStore<Array<HTMLButtonElement | null>>([]);
+  const [labels, setLabels] = createStore<Array<string | null>>([]);
 
   const tree = useFloatingTree();
   const nodeId = useFloatingNodeId();
   const parentId = useFloatingParentNodeId();
-  const isNested = parentId != null;
-  const orientation = orientationOption ?? (cols ? 'both' : 'vertical');
+  const isNested = () => parentId() != null;
+  const orientation = () => local.orientation ?? (local.cols ? 'both' : 'vertical');
 
-  const parent = React.useContext(MenuContext);
+  const parent = useContext(MenuContext);
   const item = useCompositeListItem();
 
   const { floatingStyles, refs, context } = useFloating<HTMLButtonElement>({
     nodeId,
     open: isOpen,
     onOpenChange: setIsOpen,
-    placement: isNested ? 'right-start' : 'bottom-start',
-    middleware: [
-      offset({ mainAxis: isNested ? 0 : 4, alignmentAxis: isNested ? -4 : 0 }),
+    placement: () => (isNested() ? 'right-start' : 'bottom-start'),
+    middleware: () => [
+      offset({ mainAxis: isNested() ? 0 : 4, alignmentAxis: isNested() ? -4 : 0 }),
       flip(),
       shift(),
     ],
@@ -98,44 +115,44 @@ export const MenuComponent = React.forwardRef<
   });
 
   const hover = useHover(context, {
-    enabled: isNested && allowHover,
-    delay: { open: 75 },
+    enabled: () => isNested() && allowHover(),
+    delay: () => ({ open: 75 }),
     handleClose: safePolygon({ blockPointerEvents: true }),
   });
   const click = useClick(context, {
-    event: 'mousedown',
-    toggle: !isNested || !allowHover,
+    event: () => 'mousedown',
+    toggle: () => !isNested() || !allowHover(),
     ignoreMouse: isNested,
   });
-  const role = useRole(context, { role: 'menu' });
-  const dismiss = useDismiss(context, { bubbles: true });
+  const role = useRole(context, { role: () => 'menu' });
+  const dismiss = useDismiss(context, { bubbles: () => true });
   const listNavigation = useListNavigation(context, {
-    listRef: elementsRef,
+    listRef: () => elements,
     activeIndex,
     nested: isNested,
     onNavigate: setActiveIndex,
     orientation,
-    cols,
+    cols: () => local.cols,
   });
   const typeahead = useTypeahead(context, {
-    listRef: labelsRef,
-    onMatch: isOpen ? setActiveIndex : undefined,
+    listRef: () => labels,
+    onMatch: (index) => (isOpen() ? setActiveIndex(index) : undefined),
     activeIndex,
   });
 
-  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
-    hover,
-    click,
-    role,
-    dismiss,
-    listNavigation,
-    typeahead,
+  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
+    hover(),
+    click(),
+    role(),
+    dismiss(),
+    listNavigation(),
+    typeahead(),
   ]);
 
   // Event emitter allows you to communicate across tree components.
   // This effect closes all menus when an item gets clicked anywhere
   // in the tree.
-  React.useEffect(() => {
+  createEffect(() => {
     if (!tree) {
       return;
     }
@@ -145,7 +162,7 @@ export const MenuComponent = React.forwardRef<
     }
 
     function onSubMenuOpen(event: { nodeId: string; parentId: string }) {
-      if (event.nodeId !== nodeId && event.parentId === parentId) {
+      if (event.nodeId !== nodeId() && event.parentId === parentId()) {
         setIsOpen(false);
       }
     }
@@ -154,22 +171,22 @@ export const MenuComponent = React.forwardRef<
     tree.events.on('menuopen', onSubMenuOpen);
 
     // eslint-disable-next-line consistent-return
-    return () => {
+    onCleanup(() => {
       tree.events.off('click', handleTreeClick);
       tree.events.off('menuopen', onSubMenuOpen);
-    };
-  }, [tree, nodeId, parentId]);
+    });
+  });
 
-  React.useEffect(() => {
-    if (isOpen && tree) {
-      tree.events.emit('menuopen', { parentId, nodeId });
+  createEffect(() => {
+    if (isOpen() && tree) {
+      tree.events.emit('menuopen', { parentId: parentId(), nodeId: nodeId() });
     }
-  }, [tree, isOpen, nodeId, parentId]);
+  });
 
   // Determine if "hover" logic can run based on the modality of input. This
   // prevents unwanted focus synchronization as menus open and close with
   // keyboard navigation and the cursor is resting on the menu.
-  React.useEffect(() => {
+  createEffect(() => {
     function onPointerMove({ pointerType }: PointerEvent) {
       if (pointerType !== 'touch') {
         setAllowHover(true);
@@ -185,51 +202,51 @@ export const MenuComponent = React.forwardRef<
       capture: true,
     });
     window.addEventListener('keydown', onKeyDown, true);
-    return () => {
+    onCleanup(() => {
       window.removeEventListener('pointermove', onPointerMove, {
         capture: true,
       });
       window.removeEventListener('keydown', onKeyDown, true);
-    };
+    });
   }, [allowHover]);
 
   return (
-    <FloatingNode id={nodeId}>
+    <FloatingNode id={nodeId()}>
       <button
         type="button"
-        ref={useForkRefN([refs.setReference, item.ref, forwardedRef])}
-        data-open={isOpen ? '' : undefined}
+        ref={useForkRefN([refs.setReference, item.ref, props.ref as any])}
+        data-open={isOpen() ? '' : undefined}
         // eslint-disable-next-line no-nested-ternary
-        tabIndex={!isNested ? props.tabIndex : parent.activeIndex === item.index ? 0 : -1}
-        className={c(
-          props.className || 'flex items-center justify-between gap-4 rounded px-2 py-1 text-left',
+        tabIndex={!isNested() ? props.tabIndex : parent.activeIndex() === item.index() ? 0 : -1}
+        class={c(
+          props.class || 'flex items-center justify-between gap-4 rounded px-2 py-1 text-left',
           {
-            'focus:bg-blue-500 outline-none focus:text-white': isNested,
-            'bg-blue-500 text-white': isOpen && isNested && !hasFocusInside,
-            'bg-slate-200 rounded px-2 py-1': isNested && isOpen && hasFocusInside,
-            'bg-slate-200': !isNested && isOpen,
+            'focus:bg-blue-500 outline-none focus:text-white': isNested(),
+            'bg-blue-500 text-white': isOpen() && isNested() && !hasFocusInside(),
+            'bg-slate-200 rounded px-2 py-1': isNested() && isOpen() && hasFocusInside(),
+            'bg-slate-200': !isNested() && isOpen(),
           },
         )}
         {...getReferenceProps(
-          parent.getItemProps({
-            ...props,
-            onFocus(event: React.FocusEvent<HTMLButtonElement>) {
-              props.onFocus?.(event);
+          parent.getItemProps<HTMLButtonElement>({
+            ...elementProps,
+            onFocus(event) {
+              callEventHandler(props.onFocus, event);
               setHasFocusInside(false);
               parent.setHasFocusInside(true);
             },
-            onMouseEnter(event: React.MouseEvent<HTMLButtonElement>) {
-              props.onMouseEnter?.(event);
-              if (parent.allowHover && parent.isOpen) {
-                parent.setActiveIndex(item.index);
+            onMouseEnter(event) {
+              callEventHandler(props.onMouseEnter, event);
+              if (parent.allowHover() && parent.isOpen()) {
+                parent.setActiveIndex(item.index());
               }
             },
           }),
         )}
       >
-        {label}
-        {isNested && (
-          <span aria-hidden className="ml-4">
+        {props.label}
+        {isNested() && (
+          <span aria-hidden class="ml-4">
             Icon
           </span>
         )}
@@ -248,40 +265,45 @@ export const MenuComponent = React.forwardRef<
           orientation,
         }}
       >
-        <CompositeList elementsRef={elementsRef} labelsRef={labelsRef}>
-          {(keepMounted || isOpen) && (
+        <CompositeList
+          elements={elements}
+          labels={labels}
+          setElements={setElements}
+          setLabels={setLabels}
+        >
+          {(keepMounted() || isOpen()) && (
             <FloatingPortal>
               <FloatingFocusManager
                 context={context}
                 modal={false}
-                initialFocus={isNested ? -1 : 0}
-                returnFocus={!isNested}
+                initialFocus={isNested() ? -1 : 0}
+                returnFocus={!isNested()}
               >
                 <div
                   ref={refs.setFloating}
-                  className={c(
+                  class={c(
                     'border-slate-900/10 rounded border bg-white bg-clip-padding p-1 shadow-lg outline-none',
                     {
-                      'flex flex-col': !cols && orientation !== 'horizontal',
+                      'flex flex-col': !local.cols && orientation() !== 'horizontal',
                     },
                     {
-                      'flex flex-row': orientation === 'horizontal',
+                      'flex flex-row': orientation() === 'horizontal',
                     },
                     {
-                      [`grid grid-cols-[repeat(var(--cols),_minmax(0,_1fr))] gap-3`]: cols,
+                      [`grid grid-cols-[repeat(var(--cols),_minmax(0,_1fr))] gap-3`]: local.cols,
                     },
                   )}
                   style={{
-                    ...floatingStyles,
+                    ...floatingStyles(),
                     // @ts-ignore
-                    '--cols': cols,
+                    '--cols': local.cols,
                     // eslint-disable-next-line no-nested-ternary
-                    visibility: !keepMounted ? undefined : isOpen ? 'visible' : 'hidden',
+                    visibility: !keepMounted() ? undefined : isOpen() ? 'visible' : 'hidden',
                   }}
                   aria-hidden={!isOpen}
                   {...getFloatingProps()}
                 >
-                  {children}
+                  {local.children}
                 </div>
               </FloatingFocusManager>
             </FloatingPortal>
@@ -290,7 +312,7 @@ export const MenuComponent = React.forwardRef<
       </MenuContext.Provider>
     </FloatingNode>
   );
-});
+}
 
 interface MenuItemProps {
   label: string;
@@ -298,41 +320,38 @@ interface MenuItemProps {
 }
 
 /** @internal */
-export const MenuItem = React.forwardRef<
-  HTMLButtonElement,
-  MenuItemProps & React.ButtonHTMLAttributes<HTMLButtonElement>
->(function MenuItem({ label, disabled, ...props }, forwardedRef) {
-  const menu = React.useContext(MenuContext);
-  const item = useCompositeListItem({ label: disabled ? null : label });
+export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLButtonElement>) {
+  const [local, elementProps] = splitProps(props, ['label', 'disabled']);
+  const menu = useContext(MenuContext);
+  const item = useCompositeListItem({ label: local.disabled ? null : local.label });
   const tree = useFloatingTree();
-  const isActive = item.index === menu.activeIndex;
+  const isActive = () => item.index() === menu.activeIndex();
 
   return (
     <button
-      {...props}
-      ref={useForkRefN([item.ref, forwardedRef])}
+      {...elementProps}
+      ref={useForkRefN([item.ref, props.ref as any])}
       type="button"
       role="menuitem"
-      disabled={disabled}
-      tabIndex={isActive ? 0 : -1}
-      className={c(
-        'focus:bg-blue-500 flex rounded px-2 py-1 text-left outline-none focus:text-white',
-        { 'opacity-40': disabled },
-      )}
-      {...menu.getItemProps({
-        active: isActive,
-        onClick(event: React.MouseEvent<HTMLButtonElement>) {
-          props.onClick?.(event);
+      disabled={local.disabled}
+      tabIndex={isActive() ? 0 : -1}
+      class={c('focus:bg-blue-500 flex rounded px-2 py-1 text-left outline-none focus:text-white', {
+        'opacity-40': local.disabled,
+      })}
+      {...menu.getItemProps<HTMLButtonElement>({
+        active: isActive(),
+        onClick(event) {
+          callEventHandler(props.onClick, event);
           tree?.events.emit('click');
         },
-        onFocus(event: React.FocusEvent<HTMLButtonElement>) {
-          props.onFocus?.(event);
+        onFocus(event) {
+          callEventHandler(props.onFocus, event);
           menu.setHasFocusInside(true);
         },
-        onMouseEnter(event: React.MouseEvent<HTMLButtonElement>) {
-          props.onMouseEnter?.(event);
-          if (menu.allowHover && menu.isOpen) {
-            menu.setActiveIndex(item.index);
+        onMouseEnter(event) {
+          callEventHandler(props.onMouseEnter, event);
+          if (menu.allowHover() && menu.isOpen()) {
+            menu.setActiveIndex(item.index());
           }
         },
         onKeyDown(event) {
@@ -346,42 +365,37 @@ export const MenuItem = React.forwardRef<
           if (
             event.key === 'ArrowRight' &&
             // If the root reference is in a menubar, close parents
-            tree?.nodesRef.current[0].context?.elements.domReference?.closest('[role="menubar"]')
+            tree?.nodesRef[0].context?.elements.domReference()?.closest('[role="menubar"]')
           ) {
             closeParents(menu.parent);
           }
         },
       })}
     >
-      {label}
+      {local.label}
     </button>
   );
-});
+}
 
 /** @internal */
-export const Menu = React.forwardRef<
-  HTMLButtonElement,
-  MenuProps & React.HTMLProps<HTMLButtonElement>
->(function MenuWrapper(props, ref) {
+export function Menu(props: MenuProps & JSX.HTMLAttributes<HTMLButtonElement>) {
   const parentId = useFloatingParentNodeId();
 
-  if (parentId === null) {
-    return (
+  return (
+    <Show when={parentId() === null} fallback={<MenuComponent {...props} />}>
       <FloatingTree>
-        <MenuComponent {...props} ref={ref} />
+        <MenuComponent {...props} />
       </FloatingTree>
-    );
-  }
-
-  return <MenuComponent {...props} ref={ref} />;
-});
+    </Show>
+  );
+}
 
 /** @internal */
 export function HorizontalMenu() {
   return (
-    <React.Fragment>
-      <h1 className="mb-8 text-5xl font-bold">Horizontal menu</h1>
-      <div className="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
+    <>
+      <h1 class="mb-8 text-5xl font-bold">Horizontal menu</h1>
+      <div class="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
         <Menu label="Edit" orientation="horizontal">
           <MenuItem
             label="Undo"
@@ -409,16 +423,16 @@ export function HorizontalMenu() {
           </Menu>
         </Menu>
       </div>
-    </React.Fragment>
+    </>
   );
 }
 
 /** @internal */
 export function VerticalMenu() {
   return (
-    <React.Fragment>
-      <h1 className="mb-8 text-5xl font-bold">Vertical menu</h1>
-      <div className="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
+    <>
+      <h1 class="mb-8 text-5xl font-bold">Vertical menu</h1>
+      <div class="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
         <Menu label="Edit">
           <MenuItem
             label="Undo"
@@ -446,16 +460,16 @@ export function VerticalMenu() {
           </Menu>
         </Menu>
       </div>
-    </React.Fragment>
+    </>
   );
 }
 
 /** @internal */
 export function HorizontalMenuWithHorizontalSubmenus() {
   return (
-    <React.Fragment>
-      <h1 className="mb-8 text-5xl font-bold">Horizontal menu with horizontal submenus</h1>
-      <div className="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
+    <>
+      <h1 class="mb-8 text-5xl font-bold">Horizontal menu with horizontal submenus</h1>
+      <div class="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
         <Menu label="Edit" orientation="horizontal">
           <MenuItem
             label="Undo"
@@ -483,17 +497,17 @@ export function HorizontalMenuWithHorizontalSubmenus() {
           </Menu>
         </Menu>
       </div>
-    </React.Fragment>
+    </>
   );
 }
 
 /** @internal */
 export function Main() {
   return (
-    <React.Fragment>
+    <>
       <HorizontalMenu />
       <VerticalMenu />
       <HorizontalMenuWithHorizontalSubmenus />
-    </React.Fragment>
+    </>
   );
 }

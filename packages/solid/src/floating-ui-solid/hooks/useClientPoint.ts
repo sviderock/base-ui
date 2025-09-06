@@ -173,7 +173,6 @@ export function useClientPoint(
 
     const win = getWindow(floating());
 
-    console.log('handleMouseMove', !contains(floating(), target));
     if (!contains(floating(), target)) {
       setReference(event.clientX, event.clientY);
     } else {

@@ -288,7 +288,6 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
   }
 
   function handleFocusOutside(event: FocusEvent) {
-    console.log('handleFocusOutside');
     const relatedTarget = event.relatedTarget as HTMLElement | null;
     const currentTarget = event.currentTarget as HTMLElement | null;
     const target = getTarget(event) as HTMLElement | null;
@@ -326,9 +325,7 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
     );
 
     queueMicrotask(() => {
-      console.log(2);
       if (currentTarget === domReference && floatingElement) {
-        console.log(3);
         handleTabIndex(floatingElement, orderValue);
       }
 
@@ -340,7 +337,6 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
         !target?.isConnected &&
         activeElement(getDocument(floatingElement)) === getDocument(floatingElement).body
       ) {
-        console.log(4);
         // Let `FloatingPortal` effect knows that focus is still inside the
         // floating tree.
         if (isHTMLElement(floatingElement)) {
@@ -374,7 +370,6 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
         // Fix React 18 Strict Mode returnFocus due to double rendering.
         relatedTarget !== previouslyFocusedElement
       ) {
-        console.log(6);
         preventReturnFocusRef = true;
         props.context.onOpenChange(false, event, 'focus-out');
       }

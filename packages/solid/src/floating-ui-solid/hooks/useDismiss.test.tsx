@@ -706,10 +706,8 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       return (
         <div
           style={{ width: '100vw', height: '100vh' }}
-          onPointerDown={function QWE(e) {
-            console.log('pointerdown in OVERLAY', e.target.outerHTML);
+          onPointerDown={(e) => {
             e.stopPropagation();
-            console.log('STOPPED PROPAGATION');
           }}
           onKeyDown={(event) => {
             if (event.key === 'Escape') {
@@ -969,15 +967,11 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
     render(() => <App />);
 
-    console.log('CLICKING OPEN 1');
     await userEvent.click(screen.getByText('open 1'));
-    console.log('OPEN 1 CLICKED');
     expect(screen.getByText('open 2')).toBeInTheDocument();
 
-    console.log('CLICKING OPEN 2');
     await userEvent.click(screen.getByText('open 2'));
     await flushMicrotasks();
-    console.log('OPEN 2 CLICKED');
 
     expect(screen.getByText('open 1')).toBeInTheDocument();
     expect(screen.getByText('open 2')).toBeInTheDocument();

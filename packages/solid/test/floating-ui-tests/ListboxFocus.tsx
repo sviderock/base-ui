@@ -1,4 +1,5 @@
-import * as React from 'react';
+import { createContext, createSignal, useContext, type Accessor, type JSX } from 'solid-js';
+import { createStore } from 'solid-js/store';
 import { CompositeList } from '../../src/composite/list/CompositeList';
 import { useCompositeListItem } from '../../src/composite/list/useCompositeListItem';
 import {
@@ -10,60 +11,61 @@ import {
 } from '../../src/floating-ui-solid';
 
 interface SelectContextValue {
-  activeIndex: number | null;
-  selectedIndex: number | null;
+  activeIndex: Accessor<number | null>;
+  selectedIndex: Accessor<number | null>;
   getItemProps: ReturnType<typeof useInteractions>['getItemProps'];
   handleSelect: (index: number | null) => void;
 }
 
-const SelectContext = React.createContext<SelectContextValue>({} as SelectContextValue);
+const SelectContext = createContext<SelectContextValue>({} as SelectContextValue);
 
 /** @internal */
-function Listbox({ children }: { children: React.ReactNode }) {
-  const [activeIndex, setActiveIndex] = React.useState<number | null>(1);
-  const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
+function Listbox(props: { children: JSX.Element }) {
+  const [activeIndex, setActiveIndex] = createSignal<number | null>(1);
+  const [selectedIndex, setSelectedIndex] = createSignal<number | null>(null);
 
   const { refs, context } = useFloating({
-    open: true,
+    open: () => true,
   });
 
-  const elementsRef = React.useRef<Array<HTMLElement | null>>([]);
-  const labelsRef = React.useRef<Array<string | null>>([]);
+  const [elements, setElements] = createStore<Array<HTMLElement | null>>([]);
+  const [labels, setLabels] = createStore<Array<string | null>>([]);
 
-  const handleSelect = React.useCallback((index: number | null) => {
+  const handleSelect = (index: number | null) => {
     setSelectedIndex(index);
-  }, []);
+  };
 
   function handleTypeaheadMatch(index: number | null) {
     setActiveIndex(index);
   }
 
   const listNav = useListNavigation(context, {
-    listRef: elementsRef,
+    listRef: () => elements,
     activeIndex,
     selectedIndex,
     onNavigate: setActiveIndex,
-    focusItemOnHover: false,
+    focusItemOnHover: () => false,
   });
   const typeahead = useTypeahead(context, {
-    listRef: labelsRef,
+    listRef: () => labels,
     activeIndex,
     selectedIndex,
     onMatch: handleTypeaheadMatch,
   });
-  const role = useRole(context, { role: 'listbox' });
+  const role = useRole(context, { role: () => 'listbox' });
 
-  const { getFloatingProps, getItemProps } = useInteractions([listNav, typeahead, role]);
+  const { getFloatingProps, getItemProps } = useInteractions(() => [
+    listNav(),
+    typeahead(),
+    role(),
+  ]);
 
-  const selectContext = React.useMemo(
-    () => ({
-      activeIndex,
-      selectedIndex,
-      getItemProps,
-      handleSelect,
-    }),
-    [activeIndex, selectedIndex, getItemProps, handleSelect],
-  );
+  const selectContext = {
+    activeIndex,
+    selectedIndex,
+    getItemProps,
+    handleSelect,
+  };
 
   return (
     <SelectContext.Provider value={selectContext}>
@@ -71,8 +73,13 @@ function Listbox({ children }: { children: React.ReactNode }) {
         Select
       </button>
       <div ref={refs.setFloating} {...getFloatingProps()}>
-        <CompositeList elementsRef={elementsRef} labelsRef={labelsRef}>
-          {children}
+        <CompositeList
+          elements={elements}
+          setElements={setElements}
+          labels={labels}
+          setLabels={setLabels}
+        >
+          {props.children}
         </CompositeList>
       </div>
     </SelectContext.Provider>
@@ -80,35 +87,34 @@ function Listbox({ children }: { children: React.ReactNode }) {
 }
 
 /** @internal */
-function Option({ label }: { label: string }) {
-  const { activeIndex, selectedIndex, getItemProps, handleSelect } =
-    React.useContext(SelectContext);
+function Option(props: { label: string }) {
+  const { activeIndex, selectedIndex, getItemProps, handleSelect } = useContext(SelectContext);
 
-  const { ref, index } = useCompositeListItem({ label });
+  const { ref, index } = useCompositeListItem({ label: props.label });
 
-  const isActive = activeIndex === index;
-  const isSelected = selectedIndex === index;
+  const isActive = () => activeIndex() === index();
+  const isSelected = () => selectedIndex() === index();
 
-  const isFocusable =
+  const isFocusable = () =>
     // eslint-disable-next-line no-nested-ternary
-    activeIndex !== null ? isActive : selectedIndex !== null ? isSelected : index === 0;
+    activeIndex() !== null ? isActive() : selectedIndex() !== null ? isSelected() : index() === 0;
 
   return (
     <button
       ref={ref}
       type="button"
       role="option"
-      aria-selected={isActive && isSelected}
-      tabIndex={isFocusable ? 0 : -1}
+      aria-selected={isActive() && isSelected()}
+      tabIndex={isFocusable() ? 0 : -1}
       style={{
-        background: isActive ? 'cyan' : '',
-        fontWeight: isSelected ? 'bold' : '',
+        background: isActive() ? 'cyan' : '',
+        'font-weight': isSelected() ? 'bold' : '',
       }}
       {...getItemProps({
-        onClick: () => handleSelect(index),
+        onClick: () => handleSelect(index()),
       })}
     >
-      {label}
+      {props.label}
     </button>
   );
 }

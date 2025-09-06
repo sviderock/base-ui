@@ -228,7 +228,7 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
     ...data,
     update,
     refs,
-    elements,
+    elements: elements as any,
     floatingStyles: floatingStyles(),
   }));
 

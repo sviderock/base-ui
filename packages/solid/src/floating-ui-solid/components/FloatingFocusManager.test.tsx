@@ -71,10 +71,6 @@ function App(
     onOpenChange: setOpen,
   });
 
-  onMount(() => {
-    console.log('MOUNTED APP', open());
-  });
-
   return (
     <>
       <button data-testid="reference" ref={refs.setReference} onClick={() => setOpen((v) => !v)} />
@@ -658,7 +654,6 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
       const iframeWithin = iframeDoc ? within(iframeDoc.body) : screen;
 
-      console.log({ iframeDoc: iframe });
       const user = userEvent.setup({ document: iframeDoc });
 
       await user.click(iframeWithin.getByRole('button', { name: 'Open' }));

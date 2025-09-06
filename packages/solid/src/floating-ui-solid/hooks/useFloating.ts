@@ -122,7 +122,14 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
   });
 
   return {
-    ...position(),
+    update: position().update,
+    floatingStyles: () => position().floatingStyles,
+    isPositioned: () => position().isPositioned,
+    placement: () => position().placement,
+    strategy: () => position().strategy,
+    middlewareData: () => position().middlewareData,
+    x: () => position().x,
+    y: () => position().y,
     context,
     refs,
     elements,
