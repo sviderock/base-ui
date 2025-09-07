@@ -45,6 +45,8 @@ function App({
     console.log('isOpen', isOpen);
   }, [isOpen]);
 
+  console.log('REF', elements.reference?.textContent);
+
   return (
     <React.Fragment>
       <div
@@ -177,7 +179,6 @@ test('cleans up window listener when closing or disabling', async () => {
   fireEvent.click(screen.getByRole('button'));
 
   console.log(2);
-
   fireEvent(
     screen.getByTestId('reference'),
     new MouseEvent('mousemove', {

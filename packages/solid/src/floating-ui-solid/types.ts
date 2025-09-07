@@ -188,7 +188,7 @@ export type ReferenceType = Element | VirtualElement;
 export type UseFloatingData = Prettify<UseFloatingReturn>;
 
 export type UseFloatingReturn<RT extends ReferenceType = ReferenceType> = Prettify<
-  Accessorify<UsePositionFloatingReturn, 'refs' | 'elements'> & {
+  Accessorify<Omit<UsePositionFloatingReturn, 'refs' | 'elements'>> & {
     /**
      * `FloatingContext`
      */
@@ -239,12 +239,6 @@ export interface UseFloatingOptions<RT extends ReferenceType = ReferenceType>
   delegateEvents?: boolean;
 }
 
-export type Accessorify<T, ExcludeKeys extends keyof T = never> = {
-  [K in keyof T]: K extends ExcludeKeys
-    ? T[K]
-    : T[K] extends Accessor<any>
-      ? T[K]
-      : T[K] extends Function
-        ? T[K]
-        : Accessor<T[K]>;
+export type Accessorify<T> = {
+  [K in keyof T]: T[K] extends Accessor<any> ? T[K] : T[K] extends Function ? T[K] : Accessor<T[K]>;
 };

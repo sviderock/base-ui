@@ -1,6 +1,6 @@
-import { render } from '@solidjs/testing-library';
+import { render, renderHook } from '@solidjs/testing-library';
 import { vi } from 'vitest';
-import { useInteractions } from '../index';
+import { useFloating, useInteractions } from '../index';
 
 describe('useInteractions', () => {
   it('correctly merges functions', () => {

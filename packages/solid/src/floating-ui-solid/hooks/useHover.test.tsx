@@ -2,7 +2,7 @@
 import { flushMicrotasks } from '#test-utils';
 import { cleanup, fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import { createEffect, createSignal } from 'solid-js';
+import { createSignal } from 'solid-js';
 import { test, vi } from 'vitest';
 import { Popover } from '../../../test/floating-ui-tests/Popover';
 import { isJSDOM } from '../../utils/detectBrowser';

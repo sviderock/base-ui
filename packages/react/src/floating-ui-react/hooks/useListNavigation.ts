@@ -1,33 +1,33 @@
-import * as React from 'react';
 import { isHTMLElement } from '@floating-ui/utils/dom';
-import { useLatestRef } from '../../utils/useLatestRef';
+import * as React from 'react';
 import { useEventCallback } from '../../utils/useEventCallback';
+import { useLatestRef } from '../../utils/useLatestRef';
 import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
 import {
   activeElement,
   contains,
+  createGridCellMap,
+  findNonDisabledListIndex,
+  getDeepestNode,
   getDocument,
+  getFloatingFocusElement,
+  getGridCellIndexOfCorner,
+  getGridCellIndices,
+  getGridNavigatedIndex,
+  getMaxListIndex,
+  getMinListIndex,
+  isIndexOutOfListBounds,
+  isListIndexDisabled,
   isTypeableCombobox,
   isVirtualClick,
   isVirtualPointerEvent,
   stopEvent,
-  getDeepestNode,
-  getFloatingFocusElement,
-  isIndexOutOfListBounds,
-  getMinListIndex,
-  getMaxListIndex,
-  getGridNavigatedIndex,
-  isListIndexDisabled,
-  createGridCellMap,
-  getGridCellIndices,
-  getGridCellIndexOfCorner,
-  findNonDisabledListIndex,
 } from '../utils';
 
 import { useFloatingParentNodeId, useFloatingTree } from '../components/FloatingTree';
 import type { Dimensions, ElementProps, FloatingRootContext } from '../types';
+import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP } from '../utils/constants';
 import { enqueueFocus } from '../utils/enqueueFocus';
-import { ARROW_UP, ARROW_DOWN, ARROW_RIGHT, ARROW_LEFT } from '../utils/constants';
 
 export const ESCAPE = 'Escape';
 
@@ -301,6 +301,7 @@ export function useListNavigation(
   const isPointerModalityRef = React.useRef(true);
 
   const onNavigate = useEventCallback(() => {
+    console.log('onNavigate', indexRef.current);
     onNavigateProp(indexRef.current === -1 ? null : indexRef.current);
   });
 
@@ -387,6 +388,7 @@ export function useListNavigation(
         // item comes into view when the floating element is opened.
         forceScrollIntoViewRef.current = true;
         indexRef.current = selectedIndex;
+        console.log(1);
         onNavigate();
       }
     } else if (previousMountedRef.current) {
@@ -449,6 +451,7 @@ export function useListNavigation(
                 ? getMinListIndex(listRef, disabledIndicesRef.current)
                 : getMaxListIndex(listRef, disabledIndicesRef.current);
             keyRef.current = null;
+            console.log(2);
             onNavigate();
           }
         };
@@ -545,6 +548,7 @@ export function useListNavigation(
       const index = listRef.current.indexOf(currentTarget);
       if (index !== -1 && indexRef.current !== index) {
         indexRef.current = index;
+        console.log(3);
         onNavigate();
       }
     }
@@ -574,6 +578,7 @@ export function useListNavigation(
         }
 
         indexRef.current = -1;
+        console.log(4);
         onNavigate();
 
         if (!virtual) {
@@ -640,12 +645,14 @@ export function useListNavigation(
       if (event.key === 'Home') {
         stopEvent(event);
         indexRef.current = minIndex;
+        console.log(5);
         onNavigate();
       }
 
       if (event.key === 'End') {
         stopEvent(event);
         indexRef.current = maxIndex;
+        console.log(6);
         onNavigate();
       }
     }
@@ -725,6 +732,7 @@ export function useListNavigation(
 
       if (index != null) {
         indexRef.current = index;
+        console.log(7);
         onNavigate();
       }
 
@@ -745,6 +753,7 @@ export function useListNavigation(
         indexRef.current = isMainOrientationToEndKey(event.key, orientation, rtl)
           ? minIndex
           : maxIndex;
+        console.log(8);
         onNavigate();
         return;
       }
@@ -797,6 +806,7 @@ export function useListNavigation(
         indexRef.current = -1;
       }
 
+      console.log(9);
       onNavigate();
     }
   });
@@ -919,6 +929,7 @@ export function useListNavigation(
 
             if (open) {
               indexRef.current = getMinListIndex(listRef, disabledIndicesRef.current);
+              console.log(10);
               onNavigate();
             } else {
               onOpenChange(true, event.nativeEvent, 'list-navigation');
@@ -928,6 +939,7 @@ export function useListNavigation(
           return undefined;
         }
 
+        console.log('IS MAIN KEY', isMainKey);
         if (isMainKey) {
           if (selectedIndex != null) {
             indexRef.current = selectedIndex;
@@ -935,13 +947,19 @@ export function useListNavigation(
 
           stopEvent(event);
 
+          console.log({
+            open,
+            openOnArrowKeyDown,
+          });
           if (!open && openOnArrowKeyDown) {
             onOpenChange(true, event.nativeEvent, 'list-navigation');
           } else {
             commonOnKeyDown(event);
           }
 
+          console.log('open', open);
           if (open) {
+            console.log(11);
             onNavigate();
           }
         }
@@ -951,6 +969,7 @@ export function useListNavigation(
       onFocus() {
         if (open && !virtual) {
           indexRef.current = -1;
+          console.log(12);
           onNavigate();
         }
       },

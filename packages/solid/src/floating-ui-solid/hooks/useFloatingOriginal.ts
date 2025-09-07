@@ -117,8 +117,12 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   const [reference, setReference] = createSignal<RT | null>(null);
   const [floating, setFloating] = createSignal<HTMLElement | null>(null);
 
-  const referenceEl = () => elementsProp().reference?.() || reference();
-  const floatingEl = () => elementsProp().floating?.() || floating();
+  const referenceEl = createMemo(() => {
+    return elementsProp().reference?.() || reference();
+  });
+  const floatingEl = createMemo(() => {
+    return elementsProp().floating?.() || floating();
+  });
 
   let isMountedRef = false;
 
@@ -181,15 +185,15 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
     floating,
     setReference: (node: RT | null) => {
       setReference(() => node);
-
-      onCleanup(() => {
-        setReference(null);
-      });
+      // onCleanup(() => {
+      //   setReference(null);
+      // });
     },
     setFloating: (node: HTMLElement | null) => {
       setFloating(() => node);
+      // TODO: This somehow fixes "useClientPoint > cleans up window listener when closing or disabling" test
       // onCleanup(() => {
-      //   setFloating(() => undefined);
+      //   setFloating(null);
       // });
     },
   };

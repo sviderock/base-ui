@@ -44,7 +44,7 @@ export function useInteractions(
     getFloatingProps(userProps) {
       const list = propsList()
         .map((item) => item?.floating)
-        .filter((i): i is JSX.HTMLAttributes<HTMLElement> => !!i);
+        .filter((i): i is JSX.HTMLAttributes<any> => !!i);
 
       list.unshift({ tabIndex: -1, [FOCUSABLE_ATTRIBUTE as any]: '' });
       if (userProps) {
@@ -54,21 +54,23 @@ export function useInteractions(
       return combineProps(list, { reverseEventHandlers: true });
     },
     getItemProps(userProps) {
-      const list = propsList()
+      let list: ElementProps['item'][] = propsList()
         .map((item) => item?.item)
-        .filter((i): i is JSX.HTMLAttributes<HTMLElement> => !!i);
+        .filter((i) => !!i);
 
       if (userProps) {
-        list.push(userProps);
+        const userPropsWitoutActiveAndSelected = { ...userProps };
+        delete userPropsWitoutActiveAndSelected[ACTIVE_KEY];
+        delete userPropsWitoutActiveAndSelected[SELECTED_KEY];
+        list.push(userPropsWitoutActiveAndSelected as ElementProps['item']);
       }
+
+      list = list.map((item) =>
+        // TODO: ExtendedUserProps is enough for the check but probably not the best way to do it
+        typeof item === 'function' ? item(userProps as ExtendedUserProps) : item,
+      );
 
       return combineProps(list, { reverseEventHandlers: true });
     },
   };
 }
-
-// if (isItem && userProps) {
-//   if (key === ACTIVE_KEY || key === SELECTED_KEY) {
-//     continue;
-//   }
-// }

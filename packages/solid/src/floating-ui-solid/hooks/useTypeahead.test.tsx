@@ -1,6 +1,7 @@
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
+import { flushMicrotasks } from '#test-utils';
 import { render, screen, waitFor } from '@solidjs/testing-library';
 import { createSignal, For, type JSX } from 'solid-js';
 import { Main } from '../../../test/floating-ui-tests/Menu';

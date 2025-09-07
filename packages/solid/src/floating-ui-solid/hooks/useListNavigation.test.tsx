@@ -1,7 +1,7 @@
 import { flushMicrotasks } from '#test-utils';
 import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import { createSignal, For, type JSX } from 'solid-js';
+import { createEffect, createSignal, For, type JSX } from 'solid-js';
 import { describe, it, vi } from 'vitest';
 
 import { Main as ComplexGrid } from '../../../test/floating-ui-tests/ComplexGrid';
@@ -24,17 +24,21 @@ function App(props: Omit<Partial<UseListNavigationProps>, 'listRef'>) {
     open,
     onOpenChange: setOpen,
   });
+
+  const click = useClick(context);
+  const listNavigation = useListNavigation(context, {
+    ...props,
+    listRef: () => listRef,
+    activeIndex,
+    onNavigate(index) {
+      setActiveIndex(index);
+      props.onNavigate?.(index);
+    },
+  });
+
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
-    useClick(context)(),
-    useListNavigation(context, {
-      ...props,
-      listRef: () => listRef,
-      activeIndex,
-      onNavigate(index) {
-        setActiveIndex(index);
-        props.onNavigate?.(index);
-      },
-    })(),
+    click(),
+    listNavigation(),
   ]);
 
   return (
@@ -50,9 +54,9 @@ function App(props: Omit<Partial<UseListNavigationProps>, 'listRef'>) {
                   data-testid={`item-${index()}`}
                   aria-selected={activeIndex() === index()}
                   tabIndex={-1}
-                  {...getItemProps({
+                  {...getItemProps<HTMLLIElement>({
                     ref(node) {
-                      listRef[index()] = node as HTMLLIElement;
+                      listRef[index()] = node;
                     },
                   })}
                 >
@@ -71,11 +75,15 @@ describe('useListNavigation', () => {
   it('opens on ArrowDown and focuses first item', async () => {
     render(() => <App />);
 
+    console.log(1);
     fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowDown' });
+    console.log(2);
     expect(screen.getByRole('menu')).toBeInTheDocument();
+    console.log(3);
     await waitFor(() => {
       expect(screen.getByTestId('item-0')).toHaveFocus();
     });
+    console.log(4);
   });
 
   it('opens on ArrowUp and focuses last item', async () => {
@@ -155,15 +163,18 @@ describe('useListNavigation', () => {
         onOpenChange: setOpen,
       });
 
+      const dismiss = useDismiss(context);
+      const listNavigation = useListNavigation(context, {
+        listRef: () => listRef,
+        activeIndex,
+        onNavigate: setActiveIndex,
+        virtual: () => true,
+        loop: () => true,
+      });
+
       const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
-        useDismiss(context)(),
-        useListNavigation(context, {
-          listRef: () => listRef,
-          activeIndex,
-          onNavigate: setActiveIndex,
-          virtual: () => true,
-          loop: () => true,
-        })(),
+        dismiss(),
+        listNavigation(),
       ]);
 
       const items = () =>
@@ -172,10 +183,10 @@ describe('useListNavigation', () => {
       return (
         <>
           <input
-            {...getReferenceProps({
+            {...getReferenceProps<HTMLInputElement>({
               ref: refs.setReference,
-              onChange(event) {
-                const value = (event.target as HTMLInputElement).value;
+              onInput(event) {
+                const value = event.target.value;
                 setInputValue(value);
 
                 if (value) {
@@ -1176,13 +1187,17 @@ describe('useListNavigation', () => {
         open,
         onOpenChange: setOpen,
       });
+
+      const click = useClick(context);
+      const listNavigation = useListNavigation(context, {
+        listRef: () => listRef,
+        activeIndex,
+        onNavigate: setActiveIndex,
+      });
+
       const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
-        useClick(context)(),
-        useListNavigation(context, {
-          listRef: () => listRef,
-          activeIndex,
-          onNavigate: setActiveIndex,
-        })(),
+        click(),
+        listNavigation(),
       ]);
 
       return (

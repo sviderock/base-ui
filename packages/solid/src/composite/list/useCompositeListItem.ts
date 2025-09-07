@@ -61,11 +61,12 @@ export function useCompositeListItem<Metadata extends Accessor<unknown>>(
       if (i !== -1 && itemRef) {
         context.setElements(i, itemRef);
 
-        if (context.labels) {
+        if (context.labels && context.setLabels) {
           const isLabelDefined = params.label !== undefined;
-          context.labels[i] = isLabelDefined
-            ? params.label!
-            : (params.textRef?.textContent ?? itemRef.textContent);
+          context.setLabels(
+            i,
+            isLabelDefined ? params.label! : (params.textRef?.textContent ?? itemRef.textContent),
+          );
         }
       }
     }

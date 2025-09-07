@@ -1,5 +1,5 @@
 import { isHTMLElement } from '@floating-ui/utils/dom';
-import { createEffect, createMemo, createSignal, onCleanup, type Accessor } from 'solid-js';
+import { batch, createEffect, createMemo, createSignal, onCleanup, type Accessor } from 'solid-js';
 import {
   activeElement,
   contains,
@@ -293,7 +293,6 @@ export function useListNavigation(
     props.onNavigate?.(indexRef === -1 ? null : indexRef);
   };
 
-  let previousOnNavigateRef = onNavigate;
   let previousMountedRef = !!context.elements.floating();
   let previousOpenRef = context.open();
   let forceSyncFocusRef = false;
@@ -380,7 +379,7 @@ export function useListNavigation(
       // (onNavigate: open ? setActiveIndex : setSelectedIndex),
       // we store and call the previous function.
       indexRef = -1;
-      previousOnNavigateRef();
+      onNavigate();
     }
   });
 
@@ -497,7 +496,6 @@ export function useListNavigation(
   });
 
   createEffect(() => {
-    previousOnNavigateRef = onNavigate;
     previousOpenRef = context.open();
     previousMountedRef = !!context.elements.floating();
   });
@@ -509,7 +507,7 @@ export function useListNavigation(
     }
   });
 
-  const hasActiveIndex = props.activeIndex() != null;
+  const hasActiveIndex = () => props.activeIndex() != null;
 
   const item = createMemo<ElementProps['item']>(() => {
     function syncCurrentTarget(currentTarget: HTMLElement | null) {
@@ -780,7 +778,7 @@ export function useListNavigation(
     return (
       virtual() &&
       context.open() &&
-      hasActiveIndex && {
+      hasActiveIndex() && {
         'aria-activedescendant': virtualId() || activeId(),
       }
     );
@@ -819,6 +817,13 @@ export function useListNavigation(
       'on:keydown': (event) => {
         isPointerModalityRef = false;
 
+        /**
+         * We need to store the open state at the start of the function
+         * because changes in Solid's state are synchronous, while the
+         * React's state is asynchronous.
+         */
+        const openAtStart = context.open();
+
         const isArrowKey = event.key.startsWith('Arrow');
         const isHomeOrEndKey = ['Home', 'End'].includes(event.key);
         const isMoveKey = isArrowKey || isHomeOrEndKey;
@@ -835,7 +840,7 @@ export function useListNavigation(
           event.key === 'Enter' ||
           event.key.trim() === '';
 
-        if (virtual() && context.open()) {
+        if (virtual() && openAtStart) {
           const rootNode = tree?.nodesRef.find((node) => node.parentId == null);
           const deepestNode = tree && rootNode ? getDeepestNode(tree.nodesRef, rootNode.id) : null;
 
@@ -878,9 +883,10 @@ export function useListNavigation(
 
           return commonOnKeyDown(event);
         }
+
         // If a floating element should not open on arrow key down, avoid
         // setting `activeIndex` while it's closed.
-        if (!context.open() && !openOnArrowKeyDown() && isArrowKey) {
+        if (!openAtStart && !openOnArrowKeyDown() && isArrowKey) {
           return undefined;
         }
 
@@ -893,7 +899,7 @@ export function useListNavigation(
           if (isParentCrossOpenKey) {
             stopEvent(event);
 
-            if (context.open()) {
+            if (openAtStart) {
               indexRef = getMinListIndex(props.listRef(), disabledIndices);
               onNavigate();
             } else {
@@ -912,13 +918,17 @@ export function useListNavigation(
 
           stopEvent(event);
 
-          if (!context.open() && openOnArrowKeyDown()) {
+          if (!openAtStart && openOnArrowKeyDown()) {
+            /**
+             * This will cause a synchronous change in the open state which
+             * failes the next check for openAtStart.
+             */
             context.onOpenChange(true, event, 'list-navigation');
           } else {
             commonOnKeyDown(event);
           }
 
-          if (context.open()) {
+          if (openAtStart) {
             onNavigate();
           }
         }

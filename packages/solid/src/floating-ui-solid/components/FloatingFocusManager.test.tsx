@@ -596,7 +596,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
           {open() && (
             <FloatingPortal root={props.portalRef}>
               <FloatingFocusManager context={context} modal={false}>
-                <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>
+                <div ref={refs.setFloating} style={floatingStyles()} {...getFloatingProps()}>
                   <Dynamic component={props.render} />
                 </div>
               </FloatingFocusManager>
@@ -1699,7 +1699,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
           />
           {isOpen() && (
             <FloatingFocusManager context={context}>
-              <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>
+              <div ref={refs.setFloating} style={floatingStyles()} {...getFloatingProps()}>
                 <button>one</button>
                 <button>two</button>
               </div>
@@ -1751,7 +1751,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
           {isOpen() && (
             <FloatingPortal>
               <FloatingFocusManager context={context} initialFocus={-1} modal={false}>
-                <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>
+                <div ref={refs.setFloating} style={floatingStyles()} {...getFloatingProps()}>
                   <button>one</button>
                   <button>two</button>
                 </div>

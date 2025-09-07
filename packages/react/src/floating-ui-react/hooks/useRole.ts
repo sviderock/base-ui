@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { getFloatingFocusElement } from '../utils';
 
+import { useId } from '../../utils/useId';
 import { useFloatingParentNodeId } from '../components/FloatingTree';
 import type { ElementProps, FloatingRootContext } from '../types';
-import { useId } from '../../utils/useId';
 import type { ExtendedUserProps } from './useInteractions';
 
 type AriaRole = 'tooltip' | 'dialog' | 'alertdialog' | 'menu' | 'listbox' | 'grid' | 'tree';
@@ -86,7 +86,9 @@ export function useRole(context: FloatingRootContext, props: UseRoleProps = {}):
   }, [ariaRole, floatingId, referenceId, role]);
 
   const item: ElementProps['item'] = React.useCallback(
-    ({ active, selected }: ExtendedUserProps) => {
+    (qwe: ExtendedUserProps) => {
+      const { active, selected } = qwe;
+      console.log('item', qwe);
       const commonProps = {
         role: 'option',
         ...(active && { id: `${floatingId}-fui-option` }),

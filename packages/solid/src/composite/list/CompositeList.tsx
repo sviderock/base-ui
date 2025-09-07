@@ -126,14 +126,14 @@ function sortByDocumentPosition(a: Element, b: Element) {
 }
 
 export namespace CompositeList {
-  export interface Props<Metadata, E extends HTMLElement> {
+  export interface Props<Metadata> {
     children: JSX.Element;
     /**
      * A ref to the list of HTML elements, ordered by their index.
      * `useListNavigation`'s `listRef` prop.
      */
-    elements: Store<Array<E | null>>;
-    setElements: SetStoreFunction<Array<E | null>>;
+    elements: Store<Array<HTMLElement | null>>;
+    setElements: SetStoreFunction<Array<HTMLElement | null>>;
     /**
      * A ref to the list of element labels, ordered by their index.
      * `useTypeahead`'s `listRef` prop.

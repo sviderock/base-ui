@@ -1,9 +1,7 @@
 import { isElement } from '@floating-ui/utils/dom';
-import { screen } from '@solidjs/testing-library';
-import { createEffect, createSignal, onCleanup, onMount, type Accessor } from 'solid-js';
-import { createStore } from 'solid-js/store';
+import { createSignal, type Accessor } from 'solid-js';
 import { useId } from '../../utils/useId';
-import { useFloatingNodeId, useFloatingParentNodeId } from '../components/FloatingTree';
+import { useFloatingParentNodeId } from '../components/FloatingTree';
 import type {
   ContextData,
   FloatingRootContext,
@@ -50,6 +48,7 @@ export function useFloatingRootContext(
   const [domReference, setDomReference] = createSignal(options.elements.domReference());
 
   const onOpenChange = (newOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
+    console.log('onOpenChange', { newOpen, event, reason });
     dataRef.openEvent = newOpen ? event : undefined;
     events.emit('openchange', { open: newOpen, event, reason, nested: nested() });
     options.onOpenChange?.(newOpen, event, reason);

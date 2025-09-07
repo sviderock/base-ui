@@ -82,9 +82,9 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
       position().refs.setReference(node);
     }
 
-    onCleanup(() => {
-      setReference(null);
-    });
+    // onCleanup(() => {
+    //   setReference(null);
+    // });
   };
 
   const refs = {

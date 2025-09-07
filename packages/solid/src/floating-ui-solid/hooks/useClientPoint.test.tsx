@@ -29,7 +29,17 @@ function App(props: { enabled?: boolean; point?: Coords; axis?: 'both' | 'x' | '
 
   const rect = () => elements.reference()?.getBoundingClientRect();
 
-  createEffect(() => {});
+  createEffect(() => {
+    console.log('rect', rect());
+  });
+
+  createEffect(() => {
+    console.log('isOpen', isOpen());
+  });
+
+  createEffect(() => {
+    console.log('REF', elements.reference());
+  });
 
   return (
     <>
@@ -145,12 +155,14 @@ test('ignores mouse events when explicit coords are specified', () => {
   expectLocation({ x: 0, y: 0 });
 });
 
-test('cleans up window listener when closing or disabling', () => {
+test('cleans up window listener when closing or disabling', async () => {
   const [enabled, setEnabled] = createSignal<boolean | undefined>(undefined);
   render(() => <App enabled={enabled()} />);
 
+  console.log(1);
   fireEvent.click(screen.getByRole('button'));
 
+  console.log(2);
   fireEvent(
     screen.getByTestId('reference'),
     new MouseEvent('mousemove', {
@@ -160,7 +172,12 @@ test('cleans up window listener when closing or disabling', () => {
     }),
   );
 
+  await flushMicrotasks();
+
+  console.log(3);
   fireEvent.click(screen.getByRole('button'));
+
+  console.log(4);
 
   fireEvent(
     document.body,
@@ -171,8 +188,13 @@ test('cleans up window listener when closing or disabling', () => {
     }),
   );
 
+  await flushMicrotasks();
+
+  console.log(5);
+
   expectLocation({ x: 500, y: 500 });
 
+  console.log(6);
   fireEvent.click(screen.getByRole('button'));
 
   fireEvent(
@@ -183,6 +205,7 @@ test('cleans up window listener when closing or disabling', () => {
       clientY: 500,
     }),
   );
+  await flushMicrotasks();
 
   expectLocation({ x: 500, y: 500 });
 
@@ -196,6 +219,8 @@ test('cleans up window listener when closing or disabling', () => {
       clientY: 0,
     }),
   );
+
+  await flushMicrotasks();
 
   expectLocation({ x: 500, y: 500 });
 });

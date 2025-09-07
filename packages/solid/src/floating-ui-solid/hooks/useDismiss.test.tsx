@@ -937,7 +937,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
           {open() && (
             <FloatingPortal root={props.portalRoot?.()}>
               <FloatingFocusManager context={context} modal={false}>
-                <div {...getFloatingProps({ ref: refs.setFloating })} style={floatingStyles}>
+                <div {...getFloatingProps({ ref: refs.setFloating })} style={floatingStyles()}>
                   {props.children}
                 </div>
               </FloatingFocusManager>
