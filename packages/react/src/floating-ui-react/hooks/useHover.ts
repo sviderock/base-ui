@@ -186,7 +186,6 @@ export function useHover(context: FloatingRootContext, props: UseHoverProps = {}
 
   const closeWithDelay = React.useCallback(
     (event: Event, runElseBranch = true, reason: OpenChangeReason = 'hover') => {
-      console.log('closeWithDelay');
       const closeDelay = getDelay(delayRef.current, 'close', pointerTypeRef.current);
       if (closeDelay && !handlerRef.current) {
         timeout.start(closeDelay, () => onOpenChange(false, event, reason));
@@ -239,10 +238,8 @@ export function useHover(context: FloatingRootContext, props: UseHoverProps = {}
 
       const openDelay = getDelay(delayRef.current, 'open', pointerTypeRef.current);
 
-      console.log('onReferenceMouseEnter', openDelay);
       if (openDelay) {
         timeout.start(openDelay, () => {
-          console.log('timeout.start', openDelay);
           if (!openRef.current) {
             onOpenChange(true, event, 'hover');
           }
@@ -461,7 +458,6 @@ export function useHover(context: FloatingRootContext, props: UseHoverProps = {}
 
   React.useEffect(() => {
     return () => {
-      console.log('UNOUNT');
       cleanupMouseMoveHandler();
       timeout.clear();
       restTimeout.clear();

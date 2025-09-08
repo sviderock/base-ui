@@ -3,7 +3,7 @@ import { useId } from '@base-ui-components/solid/utils';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';
-import { generateHydrationScript, NoHydration } from 'solid-js/web';
+import { NoHydration } from 'solid-js/web';
 
 interface TestComponentProps {
   id?: string;
@@ -16,7 +16,6 @@ describe('useId', () => {
     const [id, setId] = createSignal('some-id');
 
     function TestComponent(props: TestComponentProps) {
-      console.log(generateHydrationScript());
       const id = useId(() => props.id);
       return <span data-testid="target" id={id()} />;
     }

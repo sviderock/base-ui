@@ -120,7 +120,6 @@ export function useCompositeRoot(params: UseCompositeRootParameters) {
     if (elementsRef.current.includes(activeEl)) {
       const focusedItem = elementsRef.current[highlightedIndex];
       if (focusedItem && focusedItem !== activeEl) {
-        console.log('focusing in useModernLayoutEffect', { focusedItem, activeEl });
         focusedItem.focus();
       }
     }
@@ -151,20 +150,10 @@ export function useCompositeRoot(params: UseCompositeRootParameters) {
       ref: mergedRef,
       onFocus(event) {
         const element = rootRef.current;
-        console.log('onFocus useCompositeRoot', {
-          element,
-          event,
-          isNativeInput: isNativeInput(event.target),
-        });
         if (!element || !isNativeInput(event.target)) {
           return;
         }
 
-        console.log('focusing in onFocus', {
-          target: event.target,
-          value: event.target.value,
-          length: event.target.value.length,
-        });
         event.target.setSelectionRange(0, event.target.value.length ?? 0);
       },
       onKeyDown(event) {

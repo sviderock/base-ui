@@ -197,11 +197,9 @@ export function useDismiss(
   });
 
   const closeOnPressOutside = useEventCallback((event: MouseEvent) => {
-    console.log('closeOnPressOutside', dataRef.current.insideReactTree);
     // Given developers can stop the propagation of the synthetic event,
     // we can only be confident with a positive value.
     const insideReactTree = dataRef.current.insideReactTree;
-    console.log('setting to false');
     dataRef.current.insideReactTree = false;
 
     // When click outside is lazy (`click` event), handle dragging.
@@ -211,11 +209,6 @@ export function useDismiss(
     const endedOrStartedInside = endedOrStartedInsideRef.current;
     endedOrStartedInsideRef.current = false;
 
-    console.log({
-      outsidePressEvent,
-      insideReactTree,
-      endedOrStartedInside,
-    });
     if (outsidePressEvent === 'click' && endedOrStartedInside) {
       return;
     }
@@ -325,7 +318,6 @@ export function useDismiss(
   });
 
   const closeOnPressOutsideCapture = useEventCallback((event: MouseEvent) => {
-    console.log('closeOnPressOutsideCapture', getTarget(event).outerHTML);
     const callback = () => {
       closeOnPressOutside(event);
       getTarget(event)?.removeEventListener(outsidePressEvent, callback);
@@ -348,7 +340,6 @@ export function useDismiss(
     }
 
     function handleCompositionStart() {
-      console.log('handleCompositionStart');
       compositionTimeout.clear();
       isComposingRef.current = true;
     }
@@ -380,8 +371,6 @@ export function useDismiss(
     }
 
     if (outsidePress) {
-      console.log('ADD MAIN LISTENER');
-      console.log({ float: elements.floating?.outerHTML });
       doc.addEventListener(
         outsidePressEvent,
         outsidePressCapture ? closeOnPressOutsideCapture : closeOnPressOutside,
@@ -416,9 +405,7 @@ export function useDismiss(
       ancestor.addEventListener('scroll', onScroll, { passive: true });
     });
 
-    console.log('onCleanup');
     return () => {
-      console.log('onCleanup remove');
       if (escapeKey) {
         doc.removeEventListener(
           'keydown',
@@ -430,7 +417,6 @@ export function useDismiss(
       }
 
       if (outsidePress) {
-        console.log('REMOVE MAIN LISTENER');
         doc.removeEventListener(
           outsidePressEvent,
           outsidePressCapture ? closeOnPressOutsideCapture : closeOnPressOutside,
@@ -465,7 +451,6 @@ export function useDismiss(
   ]);
 
   React.useEffect(() => {
-    console.log('useEffect', dataRef.current.insideReactTree);
     dataRef.current.insideReactTree = false;
   }, [dataRef, outsidePress, outsidePressEvent]);
 
@@ -495,20 +480,15 @@ export function useDismiss(
       onMouseUp() {
         endedOrStartedInsideRef.current = true;
       },
-      [captureHandlerKeys[outsidePressEvent]]: (e) => {
-        console.log('capture handler', e.target.outerHTML);
-        console.log('setting to true');
+      [captureHandlerKeys[outsidePressEvent]]: () => {
         dataRef.current.insideReactTree = true;
       },
       onBlurCapture() {
-        console.log('blur handler', !!tree);
         if (tree) {
           return;
         }
-        console.log('blur setting to true');
         dataRef.current.insideReactTree = true;
         blurTimeout.start(0, () => {
-          console.log('blur timeout');
           dataRef.current.insideReactTree = false;
         });
       },

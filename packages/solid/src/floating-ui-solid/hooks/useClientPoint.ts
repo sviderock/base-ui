@@ -155,7 +155,6 @@ export function useClientPoint(
       return;
     }
 
-    console.log('handleReferenceEnterOrMove', context.open());
     if (!context.open()) {
       setReference(event.clientX, event.clientY);
     }
@@ -174,32 +173,24 @@ export function useClientPoint(
 
     const win = getWindow(floating());
 
-    console.log('handleMouseMove', !contains(floating(), target));
     if (!contains(floating(), target)) {
       setReference(event.clientX, event.clientY);
     } else {
-      console.log('removeEventListener', 1);
       win.removeEventListener('mousemove', handleMouseMove);
     }
   }
 
   createEffect(() => {
-    console.log('createEffect');
     if (!openCheck() || !enabled() || x() != null || y() != null) {
       return;
     }
 
     const win = getWindow(floating());
 
-    console.log({
-      'context.dataRef.openEvent': context.dataRef.openEvent,
-    });
     if (!context.dataRef.openEvent || isMouseBasedEvent(context.dataRef.openEvent)) {
-      console.log('addEventListener', 1);
       win.addEventListener('mousemove', handleMouseMove);
 
       onCleanup(() => {
-        console.log('removeEventListener', 2);
         win.removeEventListener('mousemove', handleMouseMove);
       });
       return;

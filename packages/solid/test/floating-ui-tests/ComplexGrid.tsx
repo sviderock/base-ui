@@ -57,21 +57,25 @@ export function Main(props: Props) {
   itemSizes[29].height = 2;
   itemSizes[36].width = 2;
 
+  const click = useClick(context);
+  const listNavigation = useListNavigation(context, {
+    listRef: () => listRef,
+    activeIndex,
+    onNavigate: setActiveIndex,
+    cols: () => 7,
+    orientation,
+    loop,
+    rtl,
+    openOnArrowKeyDown: () => false,
+    disabledIndices: () => disabledIndices,
+    itemSizes: () => itemSizes,
+  });
+  const dismiss = useDismiss(context);
+
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
-    useClick(context)(),
-    useListNavigation(context, {
-      listRef: () => listRef,
-      activeIndex,
-      onNavigate: setActiveIndex,
-      cols: () => 7,
-      orientation,
-      loop,
-      rtl,
-      openOnArrowKeyDown: () => false,
-      disabledIndices: () => disabledIndices,
-      itemSizes: () => itemSizes,
-    })(),
-    useDismiss(context)(),
+    click(),
+    listNavigation(),
+    dismiss(),
   ]);
 
   return (
@@ -96,24 +100,24 @@ export function Main(props: Props) {
               {...getFloatingProps()}
             >
               <Index each={Array(37)}>
-                {(index) => (
+                {(_, index) => (
                   <button
                     type="button"
                     role="option"
-                    aria-selected={activeIndex() === index()}
-                    tabIndex={activeIndex() === index() ? 0 : -1}
-                    disabled={disabledIndices.includes(index())}
+                    aria-selected={activeIndex() === index}
+                    tabIndex={activeIndex() === index ? 0 : -1}
+                    disabled={disabledIndices.includes(index)}
                     ref={(node) => {
-                      listRef[index()] = node;
+                      listRef[index] = node;
                     }}
                     class="border border-black disabled:opacity-20"
                     style={{
-                      'grid-row': `span ${itemSizes[index()].height}`,
-                      'grid-column': `span ${itemSizes[index()].width}`,
+                      'grid-row': `span ${itemSizes[index].height}`,
+                      'grid-column': `span ${itemSizes[index].width}`,
                     }}
                     {...getItemProps()}
                   >
-                    Item {index()}
+                    Item {index}
                   </button>
                 )}
               </Index>

@@ -174,18 +174,6 @@ export const MenuComponent = React.forwardRef<
   const id = React.useId();
   const mergedRef = useForkRefN([refs.setReference, item.ref, forwardedRef]);
 
-  React.useEffect(() => {
-    console.log('isNested', isNested);
-  }, [isNested]);
-
-  React.useEffect(() => {
-    console.log('isOpen', isOpen);
-  }, [isOpen]);
-
-  React.useEffect(() => {
-    console.log('nodeId', nodeId);
-  }, [nodeId]);
-
   return (
     <FloatingNode id={nodeId}>
       {isNested ? (

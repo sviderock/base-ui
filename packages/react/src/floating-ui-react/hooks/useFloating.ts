@@ -67,7 +67,6 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
         : node;
       // Store the positionReference in state if the DOM reference is specified externally via the
       // `elements.reference` option. This ensures that it won't be overridden on future renders.
-      console.log('setPositionReference', !!computedPositionReference);
       setPositionReferenceRaw(computedPositionReference);
       position.refs.setReference(computedPositionReference);
     },
@@ -106,10 +105,6 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     }),
     [position.refs, setReference, setPositionReference],
   );
-
-  React.useEffect(() => {
-    console.log('reference', position.elements.reference?.innerHTML);
-  }, [position.elements.reference]);
 
   const elements = React.useMemo(
     () => ({

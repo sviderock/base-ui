@@ -246,7 +246,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
       >
         {props.label}
         {isNested() && (
-          <span aria-hidden class="ml-4">
+          <span aria-hidden="true" class="ml-4">
             Icon
           </span>
         )}

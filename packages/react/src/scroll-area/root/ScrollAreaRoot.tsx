@@ -62,7 +62,6 @@ export const ScrollAreaRoot = React.forwardRef(function ScrollAreaRoot(
   });
 
   const handleScroll = useEventCallback((scrollPosition: { x: number; y: number }) => {
-    console.log('handleScroll', { scrollPosition });
     const offsetX = scrollPosition.x - scrollPositionRef.current.x;
     const offsetY = scrollPosition.y - scrollPositionRef.current.y;
     scrollPositionRef.current = scrollPosition;
@@ -176,7 +175,6 @@ export const ScrollAreaRoot = React.forwardRef(function ScrollAreaRoot(
   });
 
   function handlePointerEnterOrMove({ pointerType }: React.PointerEvent) {
-    console.log('handlePointerEnterOrMove', { pointerType });
     const isTouch = pointerType === 'touch';
 
     setTouchModality(isTouch);

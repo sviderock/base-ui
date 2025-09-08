@@ -377,13 +377,11 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
     }
 
     function handleFocusOutside(event: FocusEvent) {
-      console.log('handleFocusOutside');
       const relatedTarget = event.relatedTarget as HTMLElement | null;
       const currentTarget = event.currentTarget;
       const target = getTarget(event) as HTMLElement | null;
 
       queueMicrotask(() => {
-        console.log(1);
         const nodeId = getNodeId();
         const movedToUnrelatedNode = !(
           contains(domReference, relatedTarget) ||
@@ -407,9 +405,7 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
               )))
         );
 
-        console.log(2);
         if (currentTarget === domReference && floatingFocusElement) {
-          console.log(3);
           handleTabIndex(floatingFocusElement, orderRef);
         }
 
@@ -422,7 +418,6 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
           activeElement(getDocument(floatingFocusElement)) ===
             getDocument(floatingFocusElement).body
         ) {
-          console.log(4);
           // Let `FloatingPortal` effect knows that focus is still inside the
           // floating tree.
           if (isHTMLElement(floatingFocusElement)) {
@@ -443,7 +438,6 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
 
         // https://github.com/floating-ui/floating-ui/issues/3060
         if (dataRef.current.insideReactTree) {
-          console.log(5);
           dataRef.current.insideReactTree = false;
           return;
         }
@@ -458,7 +452,6 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): React.JS
           // Fix React 18 Strict Mode returnFocus due to double rendering.
           relatedTarget !== getPreviouslyFocusedElement()
         ) {
-          console.log(6);
           preventReturnFocusRef.current = true;
           onOpenChange(false, event, 'focus-out');
         }

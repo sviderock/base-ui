@@ -337,19 +337,16 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
         const { getReferenceProps, getFloatingProps } = useInteractions([useDismiss(context)]);
 
         return (
-          console.log('SETTING UP PORTAL'),
-          (
-            <React.Fragment>
-              <button ref={refs.setReference} {...getReferenceProps()} />
-              {open && (
-                <div ref={refs.setFloating} {...getFloatingProps()}>
-                  <FloatingPortal>
-                    <button data-testid="portaled-button" />
-                  </FloatingPortal>
-                </div>
-              )}
-            </React.Fragment>
-          )
+          <React.Fragment>
+            <button ref={refs.setReference} {...getReferenceProps()} />
+            {open && (
+              <div ref={refs.setFloating} {...getFloatingProps()}>
+                <FloatingPortal>
+                  <button data-testid="portaled-button" />
+                </FloatingPortal>
+              </div>
+            )}
+          </React.Fragment>
         );
       }
 
@@ -728,11 +725,6 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
         <div
           style={{ width: '100vw', height: '100vh' }}
           onPointerDown={(event) => {
-            console.log(
-              'pointerdown in OVERLAY',
-              event.target.outerHTML,
-              event.currentTarget.outerHTML,
-            );
             event.stopPropagation();
           }}
           onKeyDown={(event) => {
@@ -808,26 +800,20 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
           </Overlay>,
         );
 
-        console.log(1);
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
 
-        console.log(2);
         screen.debug();
         await user.click(screen.getByText('outer'));
 
-        console.log(3);
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
 
-        console.log(4);
         await user.click(screen.getByText('outside'));
 
-        console.log(5);
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
 
-        console.log(6);
         cleanup();
       });
 
@@ -852,10 +838,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.queryByText('inner')).not.toBeInTheDocument();
 
-        console.log(7);
         await user.click(screen.getByText('outside'));
-
-        console.log(8);
 
         expect(screen.queryByText('outer')).not.toBeInTheDocument();
         expect(screen.queryByText('inner')).not.toBeInTheDocument();
@@ -1012,15 +995,11 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     }
 
     render(<App />);
-    console.log('CLICKING OPEN 1');
     await userEvent.click(screen.getByText('open 1'));
-    console.log('OPEN 1 CLICKED');
     expect(screen.getByText('open 2')).toBeInTheDocument();
 
-    console.log('CLICKING OPEN 2');
     await userEvent.click(screen.getByText('open 2'));
     await flushMicrotasks();
-    console.log('OPEN 2 CLICKED');
 
     expect(screen.getByText('open 1')).toBeInTheDocument();
     expect(screen.getByText('open 2')).toBeInTheDocument();

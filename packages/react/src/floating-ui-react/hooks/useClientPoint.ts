@@ -163,7 +163,6 @@ export function useClientPoint(
       return;
     }
 
-    console.log('handleReferenceEnterOrMove', open);
     if (!open) {
       setReference(event.clientX, event.clientY);
     } else if (!cleanupListenerRef.current) {
@@ -193,24 +192,17 @@ export function useClientPoint(
     function handleMouseMove(event: MouseEvent) {
       const target = getTarget(event) as Element | null;
 
-      console.log('handleMouseMove', !contains(floating, target));
       if (!contains(floating, target)) {
         setReference(event.clientX, event.clientY);
       } else {
-        console.log('removeEventListener', 1);
         win.removeEventListener('mousemove', handleMouseMove);
         cleanupListenerRef.current = null;
       }
     }
 
-    console.log({
-      'dataRef.current.openEvent': dataRef.current.openEvent,
-    });
     if (!dataRef.current.openEvent || isMouseBasedEvent(dataRef.current.openEvent)) {
-      console.log('addEventListener', 1);
       win.addEventListener('mousemove', handleMouseMove);
       const cleanup = () => {
-        console.log('removeEventListener', 2);
         win.removeEventListener('mousemove', handleMouseMove);
         cleanupListenerRef.current = null;
       };
@@ -223,7 +215,6 @@ export function useClientPoint(
   }, [openCheck, enabled, x, y, floating, dataRef, refs, domReference, setReference]);
 
   React.useEffect(() => {
-    console.log('useEffect', reactive);
     return addListener();
   }, [addListener, reactive]);
 

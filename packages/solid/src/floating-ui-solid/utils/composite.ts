@@ -1,28 +1,32 @@
 import { floor } from '@floating-ui/utils';
 
+import type { MaybeAccessor } from '../../solid-helpers';
 import type { Dimensions } from '../types';
 import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP } from './constants';
 import { stopEvent } from './event';
 
-type DisabledIndices = (index?: number) => boolean | Array<number> | undefined;
+type DisabledIndices = MaybeAccessor<Array<number>> | ((index?: number) => boolean);
 
 export function isDifferentGridRow(index: number, cols: number, prevRow: number) {
   return Math.floor(index / cols) !== prevRow;
 }
 
-export function isIndexOutOfListBounds(listRef: Array<HTMLElement | null>, index: number) {
+export function isIndexOutOfListBounds(
+  listRef: Array<HTMLElement | null | undefined>,
+  index: number,
+) {
   return index < 0 || index >= listRef.length;
 }
 
 export function getMinListIndex(
-  listRef: Array<HTMLElement | null>,
+  listRef: Array<HTMLElement | null | undefined>,
   disabledIndices: DisabledIndices | undefined,
 ) {
   return findNonDisabledListIndex(listRef, { disabledIndices });
 }
 
 export function getMaxListIndex(
-  listRef: Array<HTMLElement | null>,
+  listRef: Array<HTMLElement | null | undefined>,
   disabledIndices: DisabledIndices | undefined,
 ) {
   return findNonDisabledListIndex(listRef, {
@@ -33,7 +37,7 @@ export function getMaxListIndex(
 }
 
 export function findNonDisabledListIndex(
-  listRef: Array<HTMLElement | null>,
+  listRef: Array<HTMLElement | null | undefined>,
   {
     startingIndex = -1,
     decrement = false,
@@ -59,7 +63,7 @@ export function findNonDisabledListIndex(
 }
 
 export function getGridNavigatedIndex(
-  listRef: Array<HTMLElement | null>,
+  listRef: Array<HTMLElement | null | undefined>,
   {
     event,
     orientation,
@@ -317,19 +321,22 @@ export function getGridCellIndices(
 }
 
 export function isListIndexDisabled(
-  listRef: Array<HTMLElement | null>,
+  listRef: Array<HTMLElement | null | undefined>,
   index: number,
   disabledIndices?: DisabledIndices,
 ) {
   if (typeof disabledIndices === 'function') {
-    const disabled = disabledIndices(index);
+    const disabled = disabledIndices.length > 0 ? disabledIndices(index) : disabledIndices();
     return Array.isArray(disabled) ? disabled.includes(index) : disabled === true;
+  }
+
+  if (disabledIndices) {
+    return disabledIndices.includes(index);
   }
 
   const element = listRef[index];
   return (
     element == null ||
-    element === undefined ||
     element.hasAttribute('disabled') ||
     element.getAttribute('aria-disabled') === 'true'
   );

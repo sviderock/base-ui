@@ -21,7 +21,7 @@ import {
   stopEvent,
 } from '../utils';
 
-import type { RefSignal } from '../../solid-helpers';
+import type { MaybeAccessor, RefSignal } from '../../solid-helpers';
 import { useFloatingParentNodeId, useFloatingTree } from '../components/FloatingTree';
 import type { Dimensions, ElementProps, FloatingRootContext } from '../types';
 import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP } from '../utils/constants';
@@ -91,7 +91,7 @@ export interface UseListNavigationProps {
    * A ref that holds an array of list items.
    * @default empty list
    */
-  listRef: Accessor<Array<HTMLElement | null>>;
+  listRef: Accessor<Array<HTMLElement | null | undefined>>;
   /**
    * The index of the currently active (focused or highlighted) item, which may
    * or may not be selected.
@@ -142,7 +142,7 @@ export interface UseListNavigationProps {
    * navigating via arrow keys, specify an empty array.
    * @default undefined
    */
-  disabledIndices?: (index?: number) => boolean | Array<number> | undefined;
+  disabledIndices?: MaybeAccessor<Array<number>> | ((index?: number) => boolean);
   /**
    * Determines whether focus can escape the list, such that nothing is selected
    * after navigating beyond the boundary of the list. In some
@@ -246,11 +246,18 @@ export function useListNavigation(
   const virtual = () => props.virtual?.() ?? false;
   const focusItemOnHover = () => props.focusItemOnHover?.() ?? true;
   const openOnArrowKeyDown = () => props.openOnArrowKeyDown?.() ?? true;
-  const disabledIndices = (index?: number) => props.disabledIndices?.(index);
   const orientation = () => props.orientation?.() ?? 'vertical';
   const cols = () => props.cols?.() ?? 1;
   const scrollItemIntoView = () => props.scrollItemIntoView?.() ?? true;
   const dense = () => props.dense?.() ?? false;
+  const disabledIndices = createMemo(() => {
+    if (typeof props.disabledIndices === 'function') {
+      return props.disabledIndices.length > 0
+        ? props.disabledIndices
+        : (props.disabledIndices as Accessor<Array<number>>)();
+    }
+    return props.disabledIndices;
+  });
 
   if (process.env.NODE_ENV !== 'production') {
     if (allowEscape()) {
@@ -372,6 +379,7 @@ export function useListNavigation(
         // item comes into view when the floating element is opened.
         forceScrollIntoViewRef = true;
         indexRef = selected;
+        console.log(1);
         onNavigate();
       }
     } else if (previousMountedRef) {
@@ -379,6 +387,7 @@ export function useListNavigation(
       // (onNavigate: open ? setActiveIndex : setSelectedIndex),
       // we store and call the previous function.
       indexRef = -1;
+      console.log('OUTLIER');
       onNavigate();
     }
   });
@@ -396,6 +405,7 @@ export function useListNavigation(
       return;
     }
 
+    console.log(4, { activeIndex: props.activeIndex() });
     const activeIndex = props.activeIndex();
     if (activeIndex == null) {
       forceSyncFocusRef = false;
@@ -430,9 +440,17 @@ export function useListNavigation(
           } else {
             indexRef =
               keyRef == null || isMainOrientationToEndKey(keyRef, orientation, rtl()) || nested()
-                ? getMinListIndex(props.listRef(), disabledIndices)
-                : getMaxListIndex(props.listRef(), disabledIndices);
+                ? getMinListIndex(props.listRef(), disabledIndices())
+                : getMaxListIndex(props.listRef(), disabledIndices());
             keyRef = null;
+            console.log(
+              2,
+              keyRef == null,
+              isMainOrientationToEndKey(keyRef, orientation, rtl()),
+              nested(),
+              props.listRef().map((item) => item?.innerHTML),
+              getMinListIndex(props.listRef(), disabledIndices()),
+            );
             onNavigate();
           }
         };
@@ -440,6 +458,7 @@ export function useListNavigation(
         waitForListPopulated();
       }
     } else if (!isIndexOutOfListBounds(props.listRef(), activeIndex)) {
+      console.log(3, { activeIndex });
       indexRef = activeIndex;
       focusItem();
       forceScrollIntoViewRef = false;
@@ -517,6 +536,7 @@ export function useListNavigation(
       const index = props.listRef().indexOf(currentTarget);
       if (index !== -1 && indexRef !== index) {
         indexRef = index;
+        console.log(3);
         onNavigate();
       }
     }
@@ -546,6 +566,7 @@ export function useListNavigation(
         }
 
         indexRef = -1;
+        console.log(4);
         onNavigate();
 
         if (!virtual()) {
@@ -569,9 +590,11 @@ export function useListNavigation(
   };
 
   const commonOnKeyDown = (event: KeyboardEvent) => {
+    console.log('common keydown', event.key);
     isPointerModalityRef = false;
     forceSyncFocusRef = true;
 
+    console.log(11);
     // When composing a character, Chrome fires ArrowDown twice. Firefox/Safari
     // don't appear to suffer from this. `event.isComposing` is avoided due to
     // Safari not supporting it properly (although it's not needed in the first
@@ -579,6 +602,7 @@ export function useListNavigation(
     if (event.which === 229) {
       return;
     }
+    console.log(22);
 
     // If the floating element is animating out, ignore navigation. Otherwise,
     // the `activeIndex` gets set to 0 despite not being open so the next time
@@ -586,6 +610,7 @@ export function useListNavigation(
     if (!context.open() && event.currentTarget === floatingFocusElement()) {
       return;
     }
+    console.log(33);
 
     if (nested() && isCrossOrientationCloseKey(event.key, orientation, rtl(), cols())) {
       // If the nested list's close key is also the parent navigation key,
@@ -593,7 +618,7 @@ export function useListNavigation(
       if (!isMainOrientationKey(event.key, getParentOrientation)) {
         stopEvent(event);
       }
-
+      console.log('list-navigation', 1);
       context.onOpenChange(false, event, 'list-navigation');
 
       const domReference = context.elements.domReference();
@@ -608,24 +633,29 @@ export function useListNavigation(
       return;
     }
 
-    const currentIndex = indexRef;
-    const minIndex = getMinListIndex(props.listRef(), disabledIndices);
-    const maxIndex = getMaxListIndex(props.listRef(), disabledIndices);
+    console.log(44);
 
-    if (!typeableComboboxReference) {
+    const currentIndex = indexRef;
+    const minIndex = getMinListIndex(props.listRef(), disabledIndices());
+    const maxIndex = getMaxListIndex(props.listRef(), disabledIndices());
+
+    if (!typeableComboboxReference()) {
       if (event.key === 'Home') {
         stopEvent(event);
         indexRef = minIndex;
+        console.log(5);
         onNavigate();
       }
 
       if (event.key === 'End') {
         stopEvent(event);
         indexRef = maxIndex;
+        console.log(6);
         onNavigate();
       }
     }
 
+    console.log(55);
     // Grid navigation.
     if (cols() > 1) {
       const sizes =
@@ -636,18 +666,28 @@ export function useListNavigation(
         }));
       // To calculate movements on the grid, we use hypothetical cell indices
       // as if every item was 1x1, then convert back to real indices.
+      console.log(111, {
+        itemSizes: props.itemSizes?.(),
+        sizes,
+        cols: cols(),
+        dense: dense(),
+        listRef: props.listRef().map((item) => item?.innerHTML),
+      });
       const cellMap = createGridCellMap(sizes, cols(), dense());
       const minGridIndex = cellMap.findIndex(
-        (index) => index != null && !isListIndexDisabled(props.listRef(), index, disabledIndices),
+        (index) => index != null && !isListIndexDisabled(props.listRef(), index, disabledIndices()),
       );
       // last enabled index
       const maxGridIndex = cellMap.reduce(
         (foundIndex: number, index, cellIndex) =>
-          index != null && !isListIndexDisabled(props.listRef(), index, disabledIndices)
+          index != null && !isListIndexDisabled(props.listRef(), index, disabledIndices())
             ? cellIndex
             : foundIndex,
         -1,
       );
+
+      console.log(112, { minGridIndex, maxGridIndex });
+      console.log(66);
 
       const index =
         cellMap[
@@ -668,7 +708,7 @@ export function useListNavigation(
                     ...props
                       .listRef()
                       .map((_, listIndex) =>
-                        isListIndexDisabled(props.listRef(), listIndex, disabledIndices)
+                        isListIndexDisabled(props.listRef(), listIndex, disabledIndices())
                           ? listIndex
                           : undefined,
                       ),
@@ -698,8 +738,10 @@ export function useListNavigation(
           )
         ];
 
+      console.log(77, { index, cellMap });
       if (index != null) {
         indexRef = index;
+        console.log(7);
         onNavigate();
       }
 
@@ -708,7 +750,9 @@ export function useListNavigation(
       }
     }
 
+    console.log(isMainOrientationKey(event.key, orientation), orientation());
     if (isMainOrientationKey(event.key, orientation)) {
+      console.log(88);
       stopEvent(event);
 
       // Reset the index if no item is focused.
@@ -718,6 +762,7 @@ export function useListNavigation(
         activeElement((event.currentTarget as any)?.ownerDocument) === event.currentTarget
       ) {
         indexRef = isMainOrientationToEndKey(event.key, orientation, rtl()) ? minIndex : maxIndex;
+        console.log(8);
         onNavigate();
         return;
       }
@@ -732,14 +777,14 @@ export function useListNavigation(
                 : minIndex
               : findNonDisabledListIndex(props.listRef(), {
                   startingIndex: currentIndex,
-                  disabledIndices,
+                  disabledIndices: disabledIndices(),
                 });
         } else {
           indexRef = Math.min(
             maxIndex,
             findNonDisabledListIndex(props.listRef(), {
               startingIndex: currentIndex,
-              disabledIndices,
+              disabledIndices: disabledIndices(),
             }),
           );
         }
@@ -753,7 +798,7 @@ export function useListNavigation(
             : findNonDisabledListIndex(props.listRef(), {
                 startingIndex: currentIndex,
                 decrement: true,
-                disabledIndices,
+                disabledIndices: disabledIndices(),
               });
       } else {
         indexRef = Math.max(
@@ -761,7 +806,7 @@ export function useListNavigation(
           findNonDisabledListIndex(props.listRef(), {
             startingIndex: currentIndex,
             decrement: true,
-            disabledIndices,
+            disabledIndices: disabledIndices(),
           }),
         );
       }
@@ -770,6 +815,7 @@ export function useListNavigation(
         indexRef = -1;
       }
 
+      console.log(9);
       onNavigate();
     }
   };
@@ -840,6 +886,7 @@ export function useListNavigation(
           event.key === 'Enter' ||
           event.key.trim() === '';
 
+        console.log(event.key, { virtual: virtual(), openAtStart });
         if (virtual() && openAtStart) {
           const rootNode = tree?.nodesRef.find((node) => node.parentId == null);
           const deepestNode = tree && rootNode ? getDeepestNode(tree.nodesRef, rootNode.id) : null;
@@ -899,10 +946,13 @@ export function useListNavigation(
           if (isParentCrossOpenKey) {
             stopEvent(event);
 
+            console.log('AAAAA');
             if (openAtStart) {
-              indexRef = getMinListIndex(props.listRef(), disabledIndices);
+              indexRef = getMinListIndex(props.listRef(), disabledIndices());
+              console.log(10);
               onNavigate();
             } else {
+              console.log('list-navigation', 2);
               context.onOpenChange(true, event, 'list-navigation');
             }
           }
@@ -923,12 +973,14 @@ export function useListNavigation(
              * This will cause a synchronous change in the open state which
              * failes the next check for openAtStart.
              */
+            console.log('list-navigation', 3);
             context.onOpenChange(true, event, 'list-navigation');
           } else {
             commonOnKeyDown(event);
           }
 
           if (openAtStart) {
+            console.log(11);
             onNavigate();
           }
         }
@@ -938,6 +990,7 @@ export function useListNavigation(
       'on:focus': () => {
         if (context.open() && !virtual()) {
           indexRef = -1;
+          console.log(12);
           onNavigate();
         }
       },

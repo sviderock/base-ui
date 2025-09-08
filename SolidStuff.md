@@ -13,3 +13,4 @@
 - to reactively bubble events from the iframe – need to use `on:` events as Solid doesn't have the SyntheticEvent layer and so event delegation doesn't work in the iframe
 - all the hooks in floating-ui-solid/hooks are ported to `on:` events for the sake of iframe compatibility
 - most likely jest-dom versions of react and solid differ as for some reason toBeInTheDocument doesn't work for Solid version when checking against iframe and toBeTruthy needs to be used
+- in Solid the empty attributes like `aria-hidden` should be passed as `aria-hidden="true"` contrary to the simplified React's version as Solid renders empty attrivutes with an empty string value (`aria-hidden=""`)

@@ -37,10 +37,6 @@ function App(props: Omit<Partial<UseListNavigationProps>, 'listRef'>) {
     }),
   ]);
 
-  React.useEffect(() => {
-    console.log('OPEN', open);
-  }, [open]);
-
   return (
     <React.Fragment>
       <button {...getReferenceProps({ ref: refs.setReference })} />
@@ -182,10 +178,6 @@ describe('useListNavigation', () => {
       }
 
       const items = data.filter((item) => item.toLowerCase().startsWith(inputValue.toLowerCase()));
-
-      React.useEffect(() => {
-        console.log('OPEN', open);
-      }, [open]);
 
       return (
         <React.Fragment>
@@ -951,7 +943,9 @@ describe('useListNavigation', () => {
 
     await act(async () => {});
 
-    expect(screen.getByRole('textbox')).toHaveFocus();
+    await waitFor(() => {
+      expect(screen.getByRole('textbox')).toHaveFocus();
+    });
 
     await userEvent.keyboard('appl');
     await userEvent.keyboard('{ArrowDown}');
@@ -1016,6 +1010,8 @@ describe('useListNavigation', () => {
   // In JSDOM it will not focus the first item, but will in the browser
   it.skipIf(!isJSDOM)('focus management in nested lists', async () => {
     render(<NestedMenu />);
+    screen.debug();
+    console.log(screen.getByRole('button').outerHTML);
     await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
     await userEvent.keyboard('{ArrowDown}');
     await userEvent.keyboard('{ArrowDown}');

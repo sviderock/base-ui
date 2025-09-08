@@ -88,7 +88,6 @@ export function useRole(context: FloatingRootContext, props: UseRoleProps = {}):
   const item: ElementProps['item'] = React.useCallback(
     (qwe: ExtendedUserProps) => {
       const { active, selected } = qwe;
-      console.log('item', qwe);
       const commonProps = {
         role: 'option',
         ...(active && { id: `${floatingId}-fui-option` }),

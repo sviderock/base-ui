@@ -133,16 +133,19 @@ function PopoverComponent(props: Props) {
   const labelId = `${id}-label`;
   const descriptionId = `${id}-description`;
 
+  const hoverInteraction = useHover(context, {
+    enabled: hover,
+    handleClose: safePolygon({ blockPointerEvents: true }),
+  });
+  const click = useClick(context);
+  const role = useRole(context);
+  const dismiss = useDismiss(context, { bubbles });
+
   const { getReferenceProps, getFloatingProps } = useInteractions(() => [
-    useHover(context, {
-      enabled: hover,
-      handleClose: safePolygon({ blockPointerEvents: true }),
-    })(),
-    useClick(context)(),
-    useRole(context)(),
-    useDismiss(context, {
-      bubbles,
-    })(),
+    hoverInteraction(),
+    click(),
+    role(),
+    dismiss(),
   ]);
 
   return (

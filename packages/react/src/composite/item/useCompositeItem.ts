@@ -22,7 +22,6 @@ export function useCompositeItem<Metadata>(params: UseCompositeItemParameters<Me
     () => ({
       tabIndex: isHighlighted ? 0 : -1,
       onFocus() {
-        console.log('onFocus useCompositeItem');
         onHighlightedIndexChange(index);
       },
       onMouseMove() {

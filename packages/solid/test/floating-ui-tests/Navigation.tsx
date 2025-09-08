@@ -53,17 +53,21 @@ export function NavigationItem(props: ItemProps & JSX.HTMLAttributes<HTMLAnchorE
     placement: () => 'right-start',
   });
 
+  const hover = useHover(context, {
+    handleClose: safePolygon(),
+    enabled: hasChildren,
+  });
+  const focus = useFocus(context, {
+    enabled: hasChildren,
+  });
+  const dismiss = useDismiss(context, {
+    enabled: hasChildren,
+  });
+
   const { getReferenceProps, getFloatingProps } = useInteractions(() => [
-    useHover(context, {
-      handleClose: safePolygon(),
-      enabled: hasChildren,
-    })(),
-    useFocus(context, {
-      enabled: hasChildren,
-    })(),
-    useDismiss(context, {
-      enabled: hasChildren,
-    })(),
+    hover(),
+    focus(),
+    dismiss(),
   ]);
 
   // TODO: fix types

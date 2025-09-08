@@ -30,19 +30,23 @@ export function Main(props: Props) {
 
   const disabledIndices = [0, 1, 2, 3, 4, 5, 6, 7, 10, 15, 45, 48];
 
+  const click = useClick(context);
+  const listNavigation = useListNavigation(context, {
+    listRef: () => listRef,
+    activeIndex,
+    onNavigate: setActiveIndex,
+    cols: () => 5,
+    orientation,
+    loop,
+    openOnArrowKeyDown: () => false,
+    disabledIndices: () => disabledIndices,
+  });
+  const dismiss = useDismiss(context);
+
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
-    useClick(context)(),
-    useListNavigation(context, {
-      listRef: () => listRef,
-      activeIndex,
-      onNavigate: setActiveIndex,
-      cols: () => 5,
-      orientation,
-      loop,
-      openOnArrowKeyDown: () => false,
-      disabledIndices: () => disabledIndices,
-    })(),
-    useDismiss(context)(),
+    click(),
+    listNavigation(),
+    dismiss(),
   ]);
 
   return (

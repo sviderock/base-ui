@@ -58,11 +58,9 @@ export function useClick(context: FloatingRootContext, props: UseClickProps = {}
   const reference: ElementProps['reference'] = React.useMemo(
     () => ({
       onPointerDown(event) {
-        console.log('POINTER DOWN');
         pointerTypeRef.current = event.pointerType;
       },
       onMouseDown(event) {
-        console.log('MOUSE DOWN');
         const pointerType = pointerTypeRef.current;
         const nativeEvent = event.nativeEvent;
 
@@ -92,7 +90,6 @@ export function useClick(context: FloatingRootContext, props: UseClickProps = {}
         });
       },
       onClick(event) {
-        console.log('CLICK');
         const pointerType = pointerTypeRef.current;
 
         if (eventOption === 'mousedown' && pointerType) {

@@ -1,7 +1,7 @@
 import { flushMicrotasks } from '#test-utils';
 import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import { createEffect, createSignal, For, type JSX } from 'solid-js';
+import { createEffect, createSignal, For, Index, onCleanup, type JSX } from 'solid-js';
 import { describe, it, vi } from 'vitest';
 
 import { Main as ComplexGrid } from '../../../test/floating-ui-tests/ComplexGrid';
@@ -47,23 +47,23 @@ function App(props: Omit<Partial<UseListNavigationProps>, 'listRef'>) {
       {open() && (
         <div role="menu" {...getFloatingProps({ ref: refs.setFloating })}>
           <ul>
-            <For each={['one', 'two', 'three']}>
+            <Index each={['one', 'two', 'three']}>
               {(string, index) => (
                 // eslint-disable-next-line
                 <li
-                  data-testid={`item-${index()}`}
-                  aria-selected={activeIndex() === index()}
+                  data-testid={`item-${index}`}
+                  aria-selected={activeIndex() === index}
                   tabIndex={-1}
                   {...getItemProps<HTMLLIElement>({
                     ref(node) {
-                      listRef[index()] = node;
+                      listRef[index] = node;
                     },
                   })}
                 >
-                  {string}
+                  {string()}
                 </li>
               )}
-            </For>
+            </Index>
           </ul>
         </div>
       )}
@@ -75,15 +75,11 @@ describe('useListNavigation', () => {
   it('opens on ArrowDown and focuses first item', async () => {
     render(() => <App />);
 
-    console.log(1);
     fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowDown' });
-    console.log(2);
     expect(screen.getByRole('menu')).toBeInTheDocument();
-    console.log(3);
     await waitFor(() => {
       expect(screen.getByTestId('item-0')).toHaveFocus();
     });
-    console.log(4);
   });
 
   it('opens on ArrowUp and focuses last item', async () => {
@@ -543,7 +539,7 @@ describe('useListNavigation', () => {
 
   describe('disabledIndices', () => {
     it('indices are skipped in focus order', async () => {
-      render(() => <App disabledIndices={() => [0]} />);
+      render(() => <App disabledIndices={[0]} />);
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowDown' });
       await waitFor(() => {
         expect(screen.getByTestId('item-1')).toHaveFocus();
@@ -960,7 +956,9 @@ describe('useListNavigation', () => {
 
     await flushMicrotasks();
 
-    expect(screen.getByRole('textbox')).toHaveFocus();
+    await waitFor(() => {
+      expect(screen.getByRole('textbox')).toHaveFocus();
+    });
 
     await userEvent.keyboard('appl');
     await userEvent.keyboard('{ArrowDown}');
@@ -1025,6 +1023,7 @@ describe('useListNavigation', () => {
   // In JSDOM it will not focus the first item, but will in the browser
   it.skipIf(!isJSDOM)('focus management in nested lists', async () => {
     render(() => <NestedMenu />);
+    screen.debug();
     await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
     await userEvent.keyboard('{ArrowDown}');
     await userEvent.keyboard('{ArrowDown}');

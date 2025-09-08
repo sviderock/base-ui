@@ -25,11 +25,6 @@ function App({ showReference = true, ...props }: UseHoverProps & { showReference
     onOpenChange: setOpen,
   });
 
-  console.log('App', {
-    refs,
-    open,
-  });
-
   const { getReferenceProps, getFloatingProps } = useInteractions([useHover(context, props)]);
 
   return (
@@ -268,28 +263,18 @@ describe.skipIf(!isJSDOM)('useHover', () => {
   test('does not show after delay if domReference changes', async () => {
     const { rerender } = render(<App delay={1000} />);
 
-    console.log('1');
-    screen.debug();
     fireEvent.mouseEnter(screen.getByRole('button'));
 
-    console.log('2');
-    screen.debug();
     await act(async () => {
       vi.advanceTimersByTime(1);
     });
 
-    console.log('3');
-    screen.debug();
     rerender(<App showReference={false} />);
 
-    console.log('4');
-    screen.debug();
     await act(async () => {
       vi.advanceTimersByTime(999);
     });
 
-    console.log('5');
-    screen.debug();
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
     cleanup();

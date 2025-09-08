@@ -18,7 +18,6 @@ export function enqueueFocus(el: FocusableElement | null, options: Options = {})
   if (sync) {
     exec();
   } else {
-    console.log({ rafId });
     rafId = requestAnimationFrame(exec);
   }
 }

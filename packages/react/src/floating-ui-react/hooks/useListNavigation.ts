@@ -451,7 +451,14 @@ export function useListNavigation(
                 ? getMinListIndex(listRef, disabledIndicesRef.current)
                 : getMaxListIndex(listRef, disabledIndicesRef.current);
             keyRef.current = null;
-            console.log(2);
+            console.log(
+              2,
+              keyRef.current == null,
+              isMainOrientationToEndKey(keyRef.current, orientation, rtl),
+              nested,
+              listRef.current.map((item) => item?.innerHTML),
+              getMinListIndex(listRef, disabledIndicesRef.current),
+            );
             onNavigate();
           }
         };
@@ -624,6 +631,7 @@ export function useListNavigation(
         stopEvent(event);
       }
 
+      console.log('list-navigation', 1);
       onOpenChange(false, event.nativeEvent, 'list-navigation');
 
       if (isHTMLElement(elements.domReference)) {
@@ -667,6 +675,13 @@ export function useListNavigation(
         }));
       // To calculate movements on the grid, we use hypothetical cell indices
       // as if every item was 1x1, then convert back to real indices.
+      console.log(111, {
+        itemSizes,
+        sizes,
+        cols,
+        dense,
+        listRef: listRef.current.map((item) => item?.innerHTML),
+      });
       const cellMap = createGridCellMap(sizes, cols, dense);
       const minGridIndex = cellMap.findIndex(
         (index) => index != null && !isListIndexDisabled(listRef, index, disabledIndices),
@@ -679,6 +694,7 @@ export function useListNavigation(
             : foundIndex,
         -1,
       );
+      console.log(112, minGridIndex, maxGridIndex);
 
       const index =
         cellMap[
@@ -730,6 +746,7 @@ export function useListNavigation(
           )
         ];
 
+      console.log(77, { index, cellMap });
       if (index != null) {
         indexRef.current = index;
         console.log(7);
@@ -741,6 +758,7 @@ export function useListNavigation(
       }
     }
 
+    console.log(isMainOrientationKey(event.key, orientation), orientation);
     if (isMainOrientationKey(event.key, orientation)) {
       stopEvent(event);
 
@@ -868,6 +886,7 @@ export function useListNavigation(
           event.key === 'Enter' ||
           event.key.trim() === '';
 
+        console.log(event.key, { virtual, open });
         if (virtual && open) {
           const rootNode = tree?.nodesRef.current.find((node) => node.parentId == null);
           const deepestNode =
@@ -932,6 +951,7 @@ export function useListNavigation(
               console.log(10);
               onNavigate();
             } else {
+              console.log('list-navigation', 2);
               onOpenChange(true, event.nativeEvent, 'list-navigation');
             }
           }
@@ -952,12 +972,12 @@ export function useListNavigation(
             openOnArrowKeyDown,
           });
           if (!open && openOnArrowKeyDown) {
+            console.log('list-navigation', 3);
             onOpenChange(true, event.nativeEvent, 'list-navigation');
           } else {
             commonOnKeyDown(event);
           }
 
-          console.log('open', open);
           if (open) {
             console.log(11);
             onNavigate();

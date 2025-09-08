@@ -1,5 +1,16 @@
 import c from 'clsx';
-import { createEffect, createSignal, For, Match, splitProps, Switch, type JSX } from 'solid-js';
+import {
+  createEffect,
+  createSignal,
+  For,
+  Index,
+  Match,
+  onCleanup,
+  splitProps,
+  Switch,
+  type JSX,
+} from 'solid-js';
+import { createStore } from 'solid-js/store';
 import {
   arrow,
   autoUpdate,
@@ -100,7 +111,7 @@ export function Main() {
 
   let arrowRef: Element | null = null;
 
-  const listRef: Array<HTMLElement | null> = [];
+  const listRef: Array<HTMLElement | undefined> = [];
 
   const noResultsId = useId();
 
@@ -126,32 +137,35 @@ export function Main() {
     whileElementsMounted: autoUpdate,
   });
 
+  const click = useClick(context);
+  const dismiss = useDismiss(context);
+  const role = useRole(context, { role: () => 'menu' });
+
   // Handles opening the floating element via the Choose Emoji button.
   const { getReferenceProps, getFloatingProps } = useInteractions(() => [
-    useClick(context)(),
-    useDismiss(context)(),
-    useRole(context, { role: () => 'menu' })(),
+    click(),
+    dismiss(),
+    role(),
   ]);
 
+  const listNavigation = useListNavigation(context, {
+    listRef: () => listRef,
+    onNavigate: (index) => (open() ? setActiveIndex(index) : undefined),
+    activeIndex,
+    cols: () => 3,
+    orientation: () => 'horizontal',
+    loop: () => true,
+    focusItemOnOpen: () => false,
+    virtual: () => true,
+    allowEscape: () => true,
+  });
   // Handles the list navigation where the reference is the inner input, not
   // the button that opens the floating element.
   const {
     getReferenceProps: getInputProps,
     getFloatingProps: getListFloatingProps,
     getItemProps,
-  } = useInteractions(() => [
-    useListNavigation(context, {
-      listRef: () => listRef,
-      onNavigate: open() ? setActiveIndex : undefined,
-      activeIndex,
-      cols: () => 3,
-      orientation: () => 'horizontal',
-      loop: () => true,
-      focusItemOnOpen: () => false,
-      virtual: () => true,
-      allowEscape: () => true,
-    })(),
-  ]);
+  } = useInteractions(() => [listNavigation()]);
 
   createEffect(() => {
     if (open()) {
@@ -196,7 +210,7 @@ export function Main() {
             ☻
           </Button>
           <br />
-          {selectedEmoji && (
+          {selectedEmoji() && (
             <span id="emoji-label">
               <span
                 style={{ 'font-size': '30px' }}
@@ -223,7 +237,7 @@ export function Main() {
                     value={search()}
                     aria-controls={filteredEmojis().length === 0 ? noResultsId() : undefined}
                     {...getInputProps<HTMLInputElement>({
-                      onChange(event) {
+                      onInput(event) {
                         setActiveIndex(null);
                         setSearch(event.target.value);
                       },
@@ -238,23 +252,28 @@ export function Main() {
                     </Match>
                     <Match when={filteredEmojis().length > 0}>
                       <div class="grid grid-cols-3" role="listbox">
-                        <For each={filteredEmojis()}>
+                        <Index each={filteredEmojis()}>
                           {(item, index) => (
                             <Option
-                              name={item.name}
-                              ref={(node) => {
-                                listRef[index()] = node;
-                              }}
-                              selected={selectedEmoji() === item.emoji}
-                              active={activeIndex() === index()}
+                              name={item().name}
+                              selected={selectedEmoji() === item().emoji}
+                              active={activeIndex() === index}
                               {...getItemProps({
                                 onClick: handleEmojiClick,
+                                // TODO: need to figure out why is ref getting overwritten if it's above?
+                                ref(node) {
+                                  const idx = index;
+                                  listRef[idx] = node ?? null;
+                                  onCleanup(() => {
+                                    listRef[idx] = undefined;
+                                  });
+                                },
                               })}
                             >
-                              {item.emoji}
+                              {item().emoji}
                             </Option>
                           )}
-                        </For>
+                        </Index>
                       </div>
                     </Match>
                   </Switch>
