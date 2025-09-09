@@ -85,6 +85,7 @@ export function useClick(
         );
         // Wait until focus is set on the element. This is an alternative to
         // `event.preventDefault()` to avoid :focus-visible from appearing when using a pointer.
+
         frame.request(() => {
           context.onOpenChange(nextOpen, event, 'click');
         });
@@ -115,7 +116,7 @@ export function useClick(
         );
         context.onOpenChange(nextOpen, event, 'click');
       },
-      'on:keydown': (e) => {
+      'on:keydown': () => {
         pointerTypeRef = undefined;
       },
     };

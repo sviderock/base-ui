@@ -34,6 +34,7 @@ function doSwitch(
   vertical: boolean,
   horizontal: boolean,
 ) {
+  console.log('doSwitch', { orientation: orientation?.(), vertical, horizontal });
   switch (orientation?.()) {
     case 'vertical':
       return vertical;
@@ -283,7 +284,7 @@ export function useListNavigation(
     return getFloatingFocusElement(floating);
   };
 
-  const parentId = useFloatingParentNodeId();
+  const parentId = useFloatingParentNodeId()();
   const tree = useFloatingTree();
 
   createEffect(() => {
@@ -297,6 +298,7 @@ export function useListNavigation(
   let isPointerModalityRef = true;
 
   const onNavigate = () => {
+    console.log('onNavigate', indexRef);
     props.onNavigate?.(indexRef === -1 ? null : indexRef);
   };
 
@@ -379,7 +381,6 @@ export function useListNavigation(
         // item comes into view when the floating element is opened.
         forceScrollIntoViewRef = true;
         indexRef = selected;
-        console.log(1);
         onNavigate();
       }
     } else if (previousMountedRef) {
@@ -387,7 +388,6 @@ export function useListNavigation(
       // (onNavigate: open ? setActiveIndex : setSelectedIndex),
       // we store and call the previous function.
       indexRef = -1;
-      console.log('OUTLIER');
       onNavigate();
     }
   });
@@ -405,7 +405,6 @@ export function useListNavigation(
       return;
     }
 
-    console.log(4, { activeIndex: props.activeIndex() });
     const activeIndex = props.activeIndex();
     if (activeIndex == null) {
       forceSyncFocusRef = false;
@@ -421,6 +420,12 @@ export function useListNavigation(
       }
 
       // Initial sync.
+      console.log({
+        previousOpenRef,
+        previousMountedRef,
+        focusItemOnOpen: focusItemOnOpen(),
+        keyRef,
+      });
       if (
         (!previousOpenRef || !previousMountedRef) &&
         focusItemOnOpen() &&
@@ -428,6 +433,7 @@ export function useListNavigation(
       ) {
         let runs = 0;
         const waitForListPopulated = () => {
+          console.log(5);
           if (props.listRef()[0] == null) {
             // Avoid letting the browser paint if possible on the first try,
             // otherwise use rAF. Don't try more than twice, since something
@@ -443,14 +449,7 @@ export function useListNavigation(
                 ? getMinListIndex(props.listRef(), disabledIndices())
                 : getMaxListIndex(props.listRef(), disabledIndices());
             keyRef = null;
-            console.log(
-              2,
-              keyRef == null,
-              isMainOrientationToEndKey(keyRef, orientation, rtl()),
-              nested(),
-              props.listRef().map((item) => item?.innerHTML),
-              getMinListIndex(props.listRef(), disabledIndices()),
-            );
+
             onNavigate();
           }
         };
@@ -458,7 +457,6 @@ export function useListNavigation(
         waitForListPopulated();
       }
     } else if (!isIndexOutOfListBounds(props.listRef(), activeIndex)) {
-      console.log(3, { activeIndex });
       indexRef = activeIndex;
       focusItem();
       forceScrollIntoViewRef = false;
@@ -473,7 +471,7 @@ export function useListNavigation(
     }
 
     const nodes = tree.nodesRef;
-    const parent = nodes.find((node) => node.id === parentId())?.context?.elements.floating();
+    const parent = nodes.find((node) => node.id === parentId)?.context?.elements.floating();
     const floating = context.elements.floating();
     const activeEl = activeElement(getDocument(floating));
     const treeContainsActiveEl = nodes.some(
@@ -495,7 +493,7 @@ export function useListNavigation(
     if (!virtual()) {
       return;
     }
-    if (parentId()) {
+    if (parentId) {
       return;
     }
 
@@ -536,7 +534,6 @@ export function useListNavigation(
       const index = props.listRef().indexOf(currentTarget);
       if (index !== -1 && indexRef !== index) {
         indexRef = index;
-        console.log(3);
         onNavigate();
       }
     }
@@ -566,7 +563,6 @@ export function useListNavigation(
         }
 
         indexRef = -1;
-        console.log(4);
         onNavigate();
 
         if (!virtual()) {
@@ -579,22 +575,22 @@ export function useListNavigation(
   });
 
   const getParentOrientation = () => {
+    console.log({
+      treeRef: tree?.nodesRef,
+      parentId,
+      parentOrientation: props.parentOrientation?.(),
+    });
     return (
       props.parentOrientation?.() ??
-      (tree?.nodesRef
-        .find((node) => node.id === parentId())
-        ?.context?.dataRef.orientation() as ReturnType<
-        Exclude<UseListNavigationProps['orientation'], undefined>
-      >)
+      (tree?.nodesRef?.find((node) => node.id === parentId)?.context?.dataRef
+        ?.orientation as ReturnType<Exclude<UseListNavigationProps['orientation'], undefined>>)
     );
   };
 
   const commonOnKeyDown = (event: KeyboardEvent) => {
-    console.log('common keydown', event.key);
     isPointerModalityRef = false;
     forceSyncFocusRef = true;
 
-    console.log(11);
     // When composing a character, Chrome fires ArrowDown twice. Firefox/Safari
     // don't appear to suffer from this. `event.isComposing` is avoided due to
     // Safari not supporting it properly (although it's not needed in the first
@@ -602,7 +598,6 @@ export function useListNavigation(
     if (event.which === 229) {
       return;
     }
-    console.log(22);
 
     // If the floating element is animating out, ignore navigation. Otherwise,
     // the `activeIndex` gets set to 0 despite not being open so the next time
@@ -610,7 +605,6 @@ export function useListNavigation(
     if (!context.open() && event.currentTarget === floatingFocusElement()) {
       return;
     }
-    console.log(33);
 
     if (nested() && isCrossOrientationCloseKey(event.key, orientation, rtl(), cols())) {
       // If the nested list's close key is also the parent navigation key,
@@ -618,7 +612,6 @@ export function useListNavigation(
       if (!isMainOrientationKey(event.key, getParentOrientation)) {
         stopEvent(event);
       }
-      console.log('list-navigation', 1);
       context.onOpenChange(false, event, 'list-navigation');
 
       const domReference = context.elements.domReference();
@@ -633,8 +626,6 @@ export function useListNavigation(
       return;
     }
 
-    console.log(44);
-
     const currentIndex = indexRef;
     const minIndex = getMinListIndex(props.listRef(), disabledIndices());
     const maxIndex = getMaxListIndex(props.listRef(), disabledIndices());
@@ -643,19 +634,16 @@ export function useListNavigation(
       if (event.key === 'Home') {
         stopEvent(event);
         indexRef = minIndex;
-        console.log(5);
         onNavigate();
       }
 
       if (event.key === 'End') {
         stopEvent(event);
         indexRef = maxIndex;
-        console.log(6);
         onNavigate();
       }
     }
 
-    console.log(55);
     // Grid navigation.
     if (cols() > 1) {
       const sizes =
@@ -666,13 +654,7 @@ export function useListNavigation(
         }));
       // To calculate movements on the grid, we use hypothetical cell indices
       // as if every item was 1x1, then convert back to real indices.
-      console.log(111, {
-        itemSizes: props.itemSizes?.(),
-        sizes,
-        cols: cols(),
-        dense: dense(),
-        listRef: props.listRef().map((item) => item?.innerHTML),
-      });
+
       const cellMap = createGridCellMap(sizes, cols(), dense());
       const minGridIndex = cellMap.findIndex(
         (index) => index != null && !isListIndexDisabled(props.listRef(), index, disabledIndices()),
@@ -685,9 +667,6 @@ export function useListNavigation(
             : foundIndex,
         -1,
       );
-
-      console.log(112, { minGridIndex, maxGridIndex });
-      console.log(66);
 
       const index =
         cellMap[
@@ -738,10 +717,8 @@ export function useListNavigation(
           )
         ];
 
-      console.log(77, { index, cellMap });
       if (index != null) {
         indexRef = index;
-        console.log(7);
         onNavigate();
       }
 
@@ -750,9 +727,7 @@ export function useListNavigation(
       }
     }
 
-    console.log(isMainOrientationKey(event.key, orientation), orientation());
     if (isMainOrientationKey(event.key, orientation)) {
-      console.log(88);
       stopEvent(event);
 
       // Reset the index if no item is focused.
@@ -762,7 +737,6 @@ export function useListNavigation(
         activeElement((event.currentTarget as any)?.ownerDocument) === event.currentTarget
       ) {
         indexRef = isMainOrientationToEndKey(event.key, orientation, rtl()) ? minIndex : maxIndex;
-        console.log(8);
         onNavigate();
         return;
       }
@@ -815,7 +789,6 @@ export function useListNavigation(
         indexRef = -1;
       }
 
-      console.log(9);
       onNavigate();
     }
   };
@@ -845,6 +818,7 @@ export function useListNavigation(
   const reference = createMemo<ElementProps['reference']>(() => {
     // TODO: This is a hack to get the event type to work.
     function checkVirtualMouse(event: MouseEvent) {
+      console.log('useListNavigation -> reference -> checkVirtualMouse');
       if (focusItemOnOpen() === 'auto' && isVirtualClick(event)) {
         setFocusItemOnOpen(true);
       }
@@ -858,9 +832,12 @@ export function useListNavigation(
       }
     }
 
+    const openAtStart = context.open();
+
     return {
       ...ariaActiveDescendantProp(),
       'on:keydown': (event) => {
+        console.log('on:keydown', event.key);
         isPointerModalityRef = false;
 
         /**
@@ -868,7 +845,6 @@ export function useListNavigation(
          * because changes in Solid's state are synchronous, while the
          * React's state is asynchronous.
          */
-        const openAtStart = context.open();
 
         const isArrowKey = event.key.startsWith('Arrow');
         const isHomeOrEndKey = ['Home', 'End'].includes(event.key);
@@ -886,7 +862,6 @@ export function useListNavigation(
           event.key === 'Enter' ||
           event.key.trim() === '';
 
-        console.log(event.key, { virtual: virtual(), openAtStart });
         if (virtual() && openAtStart) {
           const rootNode = tree?.nodesRef.find((node) => node.parentId == null);
           const deepestNode = tree && rootNode ? getDeepestNode(tree.nodesRef, rootNode.id) : null;
@@ -937,8 +912,11 @@ export function useListNavigation(
           return undefined;
         }
 
+        console.log('isNavigationKey', isNavigationKey);
         if (isNavigationKey) {
           const isParentMainKey = isMainOrientationKey(event.key, getParentOrientation);
+          console.log('keyRef', { isParentMainKey, nested: nested() });
+
           keyRef = nested() && isParentMainKey ? null : event.key;
         }
 
@@ -946,13 +924,12 @@ export function useListNavigation(
           if (isParentCrossOpenKey) {
             stopEvent(event);
 
-            console.log('AAAAA');
             if (openAtStart) {
               indexRef = getMinListIndex(props.listRef(), disabledIndices());
-              console.log(10);
+              console.log(1);
               onNavigate();
             } else {
-              console.log('list-navigation', 2);
+              console.log(2);
               context.onOpenChange(true, event, 'list-navigation');
             }
           }
@@ -973,14 +950,14 @@ export function useListNavigation(
              * This will cause a synchronous change in the open state which
              * failes the next check for openAtStart.
              */
-            console.log('list-navigation', 3);
+            console.log(3);
             context.onOpenChange(true, event, 'list-navigation');
           } else {
             commonOnKeyDown(event);
           }
 
           if (openAtStart) {
-            console.log(11);
+            console.log(4);
             onNavigate();
           }
         }
@@ -988,9 +965,12 @@ export function useListNavigation(
         return undefined;
       },
       'on:focus': () => {
-        if (context.open() && !virtual()) {
+        console.log('useListNavigation -> reference -> on:focus', {
+          open: openAtStart,
+          virtual: virtual(),
+        });
+        if (openAtStart && !virtual()) {
           indexRef = -1;
-          console.log(12);
           onNavigate();
         }
       },

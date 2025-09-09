@@ -1022,14 +1022,30 @@ describe('useListNavigation', () => {
 
   // In JSDOM it will not focus the first item, but will in the browser
   it.skipIf(!isJSDOM)('focus management in nested lists', async () => {
+    // TODO: for some reason I need to mock this here
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation(
+      (callback: FrameRequestCallback): number => {
+        callback(0);
+        return 0;
+      },
+    );
+    console.log(1);
     render(() => <NestedMenu />);
-    screen.debug();
+    console.log(2, document.activeElement.outerHTML);
     await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    console.log(3, document.activeElement.outerHTML);
     await userEvent.keyboard('{ArrowDown}');
+    console.log(4, document.activeElement.outerHTML);
     await userEvent.keyboard('{ArrowDown}');
+    console.log(5, document.activeElement.outerHTML);
     await userEvent.keyboard('{ArrowDown}');
+    console.log(6, document.activeElement.outerHTML);
     await userEvent.keyboard('{ArrowRight}');
+    console.log(7, document.activeElement.outerHTML);
 
+    await waitFor(() => {
+      expect(screen.getByText('Text')).toHaveFocus();
+    });
     expect(screen.getByText('Text')).toHaveFocus();
   });
 

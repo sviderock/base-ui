@@ -40,8 +40,8 @@ export function useFocus(
   context: FloatingRootContext,
   props: UseFocusProps = {},
 ): Accessor<ElementProps> {
-  const enabled = () => props.enabled ?? true;
-  const visibleOnly = () => props.visibleOnly ?? true;
+  const enabled = () => props.enabled?.() ?? true;
+  const visibleOnly = () => props.visibleOnly?.() ?? true;
 
   let blockFocusRef = false;
   let keyboardModalityRef = true;

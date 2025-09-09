@@ -1,5 +1,5 @@
-import * as React from 'react';
 import { getWindow, isElement, isHTMLElement } from '@floating-ui/utils/dom';
+import * as React from 'react';
 import { isMac, isSafari } from '../../utils/detectBrowser';
 import { useTimeout } from '../../utils/useTimeout';
 import {
@@ -112,6 +112,7 @@ export function useFocus(context: FloatingRootContext, props: UseFocusProps = {}
         blockFocusRef.current = false;
       },
       onFocus(event) {
+        console.log('onFocus');
         if (blockFocusRef.current) {
           return;
         }

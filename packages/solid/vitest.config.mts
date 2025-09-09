@@ -11,6 +11,7 @@ export default mergeConfig(
     },
     plugins: [solidPlugin()],
     test: {
+      ...sharedConfig.test,
       server: {
         deps: {
           inline: ['@solidjs/testing-library', 'solid-js'],

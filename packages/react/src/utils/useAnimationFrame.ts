@@ -32,6 +32,7 @@ class Scheduler {
   isScheduled = false;
 
   tick = (timestamp: number) => {
+    console.log('tick');
     this.isScheduled = false;
 
     const currentCallbacks = this.callbacks;
@@ -63,8 +64,10 @@ class Scheduler {
       LAST_RAF !== requestAnimationFrame &&
       ((LAST_RAF = requestAnimationFrame), true);
 
+    console.log('ON REQUEST', this.isScheduled, didRAFChange);
     if (!this.isScheduled || didRAFChange) {
-      requestAnimationFrame(this.tick);
+      console.log('REQUEST ANIMATION FRAME');
+      requestAnimationFrame((t) => this.tick(t));
       this.isScheduled = true;
     }
     return id;
@@ -104,6 +107,7 @@ export class AnimationFrame {
     this.cancel();
     this.currentId = scheduler.request(() => {
       this.currentId = EMPTY;
+      console.log('FN');
       fn();
     });
   }

@@ -92,21 +92,21 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
   const [labels, setLabels] = createStore<Array<string | null>>([]);
 
   const tree = useFloatingTree();
-  const nodeId = useFloatingNodeId();
-  const parentId = useFloatingParentNodeId();
-  const isNested = () => parentId() != null;
+  const nodeId = useFloatingNodeId()();
+  const parentId = useFloatingParentNodeId()();
+  const isNested = parentId != null;
   const orientation = () => local.orientation ?? (local.cols ? 'both' : 'vertical');
 
   const parent = useContext(MenuContext);
   const item = useCompositeListItem();
 
   const { floatingStyles, refs, context } = useFloating<HTMLButtonElement>({
-    nodeId,
+    nodeId: () => nodeId,
     open: isOpen,
     onOpenChange: setIsOpen,
-    placement: () => (isNested() ? 'right-start' : 'bottom-start'),
+    placement: () => (isNested ? 'right-start' : 'bottom-start'),
     middleware: () => [
-      offset({ mainAxis: isNested() ? 0 : 4, alignmentAxis: isNested() ? -4 : 0 }),
+      offset({ mainAxis: isNested ? 0 : 4, alignmentAxis: isNested ? -4 : 0 }),
       flip(),
       shift(),
     ],
@@ -114,14 +114,14 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
   });
 
   const hover = useHover(context, {
-    enabled: () => isNested() && allowHover(),
+    enabled: () => isNested && allowHover(),
     delay: () => ({ open: 75 }),
     handleClose: safePolygon({ blockPointerEvents: true }),
   });
   const click = useClick(context, {
     event: () => 'mousedown',
-    toggle: () => !isNested() || !allowHover(),
-    ignoreMouse: isNested,
+    toggle: () => !isNested || !allowHover(),
+    ignoreMouse: () => isNested,
   });
   const focus = useFocus(context, { enabled: openOnFocus });
   const role = useRole(context, { role: () => 'menu' });
@@ -129,7 +129,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
   const listNavigation = useListNavigation(context, {
     listRef: () => elements,
     activeIndex,
-    nested: isNested,
+    nested: () => isNested,
     onNavigate: setActiveIndex,
     orientation,
     cols: () => local.cols,
@@ -163,7 +163,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
     }
 
     function onSubMenuOpen(event: { nodeId: string; parentId: string }) {
-      if (event.nodeId !== nodeId() && event.parentId === parentId()) {
+      if (event.nodeId !== nodeId && event.parentId === parentId) {
         setIsOpen(false);
       }
     }
@@ -179,7 +179,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
 
   createEffect(() => {
     if (isOpen() && tree) {
-      tree.events.emit('menuopen', { parentId: parentId(), nodeId: nodeId() });
+      tree.events.emit('menuopen', { parentId, nodeId });
     }
   });
 
@@ -210,21 +210,31 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
     });
   });
 
+  createEffect(() => {
+    console.log('isOpen', {
+      label: props.label,
+      isOpen: isOpen(),
+      nodeId,
+      parentId,
+      isNested,
+    });
+  });
+
   return (
-    <FloatingNode id={nodeId()}>
+    <FloatingNode id={nodeId}>
       <button
         type="button"
         ref={useForkRefN([refs.setReference, item.ref, props.ref as any])}
         data-open={isOpen() ? '' : undefined}
         // eslint-disable-next-line no-nested-ternary
-        tabIndex={!isNested() ? props.tabIndex : parent.activeIndex() === item.index() ? 0 : -1}
+        tabIndex={!isNested ? props.tabIndex : parent.activeIndex() === item.index() ? 0 : -1}
         class={c(
           props.class || 'flex items-center justify-between gap-4 rounded px-2 py-1 text-left',
           {
             'focus:bg-blue-500 outline-none focus:text-white': isNested,
-            'bg-blue-500 text-white': isOpen() && isNested() && !hasFocusInside(),
-            'bg-slate-200 rounded px-2 py-1': isNested() && isOpen() && hasFocusInside(),
-            'bg-slate-200': !isNested && isOpen,
+            'bg-blue-500 text-white': isOpen() && isNested && !hasFocusInside(),
+            'bg-slate-200 rounded px-2 py-1': isNested && isOpen() && hasFocusInside(),
+            'bg-slate-200': !isNested && isOpen(),
           },
         )}
         {...getReferenceProps(
@@ -245,7 +255,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
         )}
       >
         {props.label}
-        {isNested() && (
+        {isNested && (
           <span aria-hidden="true" class="ml-4">
             Icon
           </span>
@@ -275,8 +285,8 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
               <FloatingFocusManager
                 context={context}
                 modal={false}
-                initialFocus={isNested() ? -1 : 0}
-                returnFocus={!isNested()}
+                initialFocus={isNested ? -1 : 0}
+                returnFocus={!isNested}
               >
                 <div
                   ref={refs.setFloating}
@@ -326,7 +336,7 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLButtonEle
   return (
     <button
       {...elementProps}
-      ref={useForkRefN([item.ref, props.ref as any])}
+      ref={useForkRefN([item.ref, elementProps.ref as any])}
       type="button"
       role="menuitem"
       disabled={local.disabled}
@@ -337,15 +347,15 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLButtonEle
       {...menu.getItemProps<HTMLButtonElement>({
         active: isActive(),
         onClick(event) {
-          callEventHandler(props.onClick, event);
+          callEventHandler(elementProps.onClick, event);
           tree?.events.emit('click');
         },
         onFocus(event) {
-          callEventHandler(props.onFocus, event);
+          callEventHandler(elementProps.onFocus, event);
           menu.setHasFocusInside(true);
         },
         onMouseEnter(event) {
-          callEventHandler(props.onMouseEnter, event);
+          callEventHandler(elementProps.onMouseEnter, event);
           if (menu.allowHover() && menu.isOpen()) {
             menu.setActiveIndex(item.index());
           }

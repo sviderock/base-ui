@@ -85,6 +85,7 @@ export function useClick(context: FloatingRootContext, props: UseClickProps = {}
         );
         // Wait until focus is set on the element. This is an alternative to
         // `event.preventDefault()` to avoid :focus-visible from appearing when using a pointer.
+
         frame.request(() => {
           onOpenChange(nextOpen, nativeEvent, 'click');
         });
