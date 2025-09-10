@@ -39,7 +39,9 @@ export function useInteractions(
         referenceList.push(userProps);
       }
 
-      return combineProps(referenceList, { reverseEventHandlers: true });
+      const combined = combineProps(referenceList, { reverseEventHandlers: true });
+
+      return combined;
     },
     getFloatingProps(userProps) {
       const list = propsList()
@@ -47,11 +49,14 @@ export function useInteractions(
         .filter((i): i is JSX.HTMLAttributes<any> => !!i);
 
       list.unshift({ tabIndex: -1, [FOCUSABLE_ATTRIBUTE as any]: '' });
+
       if (userProps) {
         list.push(userProps);
       }
 
-      return combineProps(list, { reverseEventHandlers: true });
+      const combined = combineProps(list, { reverseEventHandlers: true });
+
+      return combined;
     },
     getItemProps(userProps) {
       let list: ElementProps['item'][] = propsList()
@@ -70,7 +75,9 @@ export function useInteractions(
         typeof item === 'function' ? item(userProps as ExtendedUserProps) : item,
       );
 
-      return combineProps(list, { reverseEventHandlers: true });
+      const combined = combineProps(list, { reverseEventHandlers: true });
+
+      return combined;
     },
   };
 }

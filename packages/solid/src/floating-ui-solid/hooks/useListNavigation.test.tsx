@@ -1029,28 +1029,27 @@ describe('useListNavigation', () => {
         return 0;
       },
     );
-    console.log(1);
-    render(() => <NestedMenu />);
-    console.log(2, document.activeElement.outerHTML);
-    await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
-    console.log(3, document.activeElement.outerHTML);
-    await userEvent.keyboard('{ArrowDown}');
-    console.log(4, document.activeElement.outerHTML);
-    await userEvent.keyboard('{ArrowDown}');
-    console.log(5, document.activeElement.outerHTML);
-    await userEvent.keyboard('{ArrowDown}');
-    console.log(6, document.activeElement.outerHTML);
-    await userEvent.keyboard('{ArrowRight}');
-    console.log(7, document.activeElement.outerHTML);
 
-    await waitFor(() => {
-      expect(screen.getByText('Text')).toHaveFocus();
-    });
+    render(() => <NestedMenu />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    await userEvent.keyboard('{ArrowDown}');
+    await userEvent.keyboard('{ArrowDown}');
+    await userEvent.keyboard('{ArrowDown}');
+    await userEvent.keyboard('{ArrowRight}');
+
     expect(screen.getByText('Text')).toHaveFocus();
   });
 
   // In JSDOM it will not focus the first item, but will in the browser
   it.skipIf(!isJSDOM)('keyboard navigation in nested menus lists', async () => {
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation(
+      (callback: FrameRequestCallback): number => {
+        callback(0);
+        return 0;
+      },
+    );
+
     render(() => <NestedMenu />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Edit' }));

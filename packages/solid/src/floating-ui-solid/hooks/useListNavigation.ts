@@ -21,6 +21,7 @@ import {
   stopEvent,
 } from '../utils';
 
+import { screen } from '@solidjs/testing-library';
 import type { MaybeAccessor, RefSignal } from '../../solid-helpers';
 import { useFloatingParentNodeId, useFloatingTree } from '../components/FloatingTree';
 import type { Dimensions, ElementProps, FloatingRootContext } from '../types';
@@ -34,7 +35,6 @@ function doSwitch(
   vertical: boolean,
   horizontal: boolean,
 ) {
-  console.log('doSwitch', { orientation: orientation?.(), vertical, horizontal });
   switch (orientation?.()) {
     case 'vertical':
       return vertical;
@@ -298,7 +298,6 @@ export function useListNavigation(
   let isPointerModalityRef = true;
 
   const onNavigate = () => {
-    console.log('onNavigate', indexRef);
     props.onNavigate?.(indexRef === -1 ? null : indexRef);
   };
 
@@ -420,12 +419,6 @@ export function useListNavigation(
       }
 
       // Initial sync.
-      console.log({
-        previousOpenRef,
-        previousMountedRef,
-        focusItemOnOpen: focusItemOnOpen(),
-        keyRef,
-      });
       if (
         (!previousOpenRef || !previousMountedRef) &&
         focusItemOnOpen() &&
@@ -433,7 +426,6 @@ export function useListNavigation(
       ) {
         let runs = 0;
         const waitForListPopulated = () => {
-          console.log(5);
           if (props.listRef()[0] == null) {
             // Avoid letting the browser paint if possible on the first try,
             // otherwise use rAF. Don't try more than twice, since something
@@ -534,6 +526,7 @@ export function useListNavigation(
       const index = props.listRef().indexOf(currentTarget);
       if (index !== -1 && indexRef !== index) {
         indexRef = index;
+
         onNavigate();
       }
     }
@@ -575,11 +568,6 @@ export function useListNavigation(
   });
 
   const getParentOrientation = () => {
-    console.log({
-      treeRef: tree?.nodesRef,
-      parentId,
-      parentOrientation: props.parentOrientation?.(),
-    });
     return (
       props.parentOrientation?.() ??
       (tree?.nodesRef?.find((node) => node.id === parentId)?.context?.dataRef
@@ -737,6 +725,7 @@ export function useListNavigation(
         activeElement((event.currentTarget as any)?.ownerDocument) === event.currentTarget
       ) {
         indexRef = isMainOrientationToEndKey(event.key, orientation, rtl()) ? minIndex : maxIndex;
+
         onNavigate();
         return;
       }
@@ -808,7 +797,9 @@ export function useListNavigation(
     return {
       'aria-orientation': typesafeOrientation === 'both' ? undefined : typesafeOrientation,
       ...(!typeableComboboxReference() ? ariaActiveDescendantProp() : {}),
-      'on:keydown': commonOnKeyDown,
+      'on:keydown': (e) => {
+        return commonOnKeyDown(e);
+      },
       'on:pointermove': () => {
         isPointerModalityRef = true;
       },
@@ -818,7 +809,6 @@ export function useListNavigation(
   const reference = createMemo<ElementProps['reference']>(() => {
     // TODO: This is a hack to get the event type to work.
     function checkVirtualMouse(event: MouseEvent) {
-      console.log('useListNavigation -> reference -> checkVirtualMouse');
       if (focusItemOnOpen() === 'auto' && isVirtualClick(event)) {
         setFocusItemOnOpen(true);
       }
@@ -837,7 +827,6 @@ export function useListNavigation(
     return {
       ...ariaActiveDescendantProp(),
       'on:keydown': (event) => {
-        console.log('on:keydown', event.key);
         isPointerModalityRef = false;
 
         /**
@@ -912,10 +901,8 @@ export function useListNavigation(
           return undefined;
         }
 
-        console.log('isNavigationKey', isNavigationKey);
         if (isNavigationKey) {
           const isParentMainKey = isMainOrientationKey(event.key, getParentOrientation);
-          console.log('keyRef', { isParentMainKey, nested: nested() });
 
           keyRef = nested() && isParentMainKey ? null : event.key;
         }
@@ -926,10 +913,8 @@ export function useListNavigation(
 
             if (openAtStart) {
               indexRef = getMinListIndex(props.listRef(), disabledIndices());
-              console.log(1);
               onNavigate();
             } else {
-              console.log(2);
               context.onOpenChange(true, event, 'list-navigation');
             }
           }
@@ -950,14 +935,12 @@ export function useListNavigation(
              * This will cause a synchronous change in the open state which
              * failes the next check for openAtStart.
              */
-            console.log(3);
             context.onOpenChange(true, event, 'list-navigation');
           } else {
             commonOnKeyDown(event);
           }
 
           if (openAtStart) {
-            console.log(4);
             onNavigate();
           }
         }
@@ -965,10 +948,6 @@ export function useListNavigation(
         return undefined;
       },
       'on:focus': () => {
-        console.log('useListNavigation -> reference -> on:focus', {
-          open: openAtStart,
-          virtual: virtual(),
-        });
         if (openAtStart && !virtual()) {
           indexRef = -1;
           onNavigate();

@@ -179,6 +179,7 @@ export const MenuComponent = React.forwardRef<
   // prevents unwanted focus synchronization as menus open and close with
   // keyboard navigation and the cursor is resting on the menu.
   React.useEffect(() => {
+    console.log('MenuComponent -> useEffect -> allowHover');
     function onPointerMove({ pointerType }: PointerEvent) {
       if (pointerType !== 'touch') {
         setAllowHover(true);
@@ -186,6 +187,7 @@ export const MenuComponent = React.forwardRef<
     }
 
     function onKeyDown() {
+      console.log(nodeId, 'MenuComponent -> createEffect -> onKeyDown');
       setAllowHover(false);
     }
 
@@ -233,6 +235,7 @@ export const MenuComponent = React.forwardRef<
           parent.getItemProps({
             ...props,
             onFocus(event: React.FocusEvent<HTMLButtonElement>) {
+              console.log(nodeId, 'MenuComponent -> getReferenceProps -> onFocus');
               props.onFocus?.(event);
               setHasFocusInside(false);
               parent.setHasFocusInside(true);
@@ -341,6 +344,7 @@ export const MenuItem = React.forwardRef<
           tree?.events.emit('click');
         },
         onFocus(event: React.FocusEvent<HTMLButtonElement>) {
+          console.log(label, 'MenuItem -> getItemProps -> onFocus');
           props.onFocus?.(event);
           menu.setHasFocusInside(true);
         },
@@ -351,6 +355,7 @@ export const MenuItem = React.forwardRef<
           }
         },
         onKeyDown(event) {
+          console.log('MenuItem -> onKeyDown', event.key);
           function closeParents(parent: MenuContextType | null) {
             parent?.setIsOpen(false);
             if (parent?.parent) {
@@ -363,6 +368,7 @@ export const MenuItem = React.forwardRef<
             // If the root reference is in a menubar, close parents
             tree?.nodesRef.current[0].context?.elements.domReference?.closest('[role="menubar"]')
           ) {
+            console.log('CLOSING PARENTS');
             closeParents(menu.parent);
           }
         },

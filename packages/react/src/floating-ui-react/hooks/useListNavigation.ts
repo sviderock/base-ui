@@ -301,7 +301,7 @@ export function useListNavigation(
   const isPointerModalityRef = React.useRef(true);
 
   const onNavigate = useEventCallback(() => {
-    console.trace('onNavigate', indexRef.current);
+    console.log('onNavigate', indexRef.current);
     onNavigateProp(indexRef.current === -1 ? null : indexRef.current);
   });
 
@@ -610,6 +610,7 @@ export function useListNavigation(
   }, [parentId, tree, parentOrientation]);
 
   const commonOnKeyDown = useEventCallback((event: React.KeyboardEvent) => {
+    console.log('commonOnKeyDown', event.key);
     isPointerModalityRef.current = false;
     forceSyncFocusRef.current = true;
 
@@ -832,7 +833,10 @@ export function useListNavigation(
     return {
       'aria-orientation': orientation === 'both' ? undefined : orientation,
       ...(!typeableComboboxReference ? ariaActiveDescendantProp : {}),
-      onKeyDown: commonOnKeyDown,
+      onKeyDown: (e) => {
+        console.log('floating -> on:keydown', e.key);
+        return commonOnKeyDown(e);
+      },
       onPointerMove() {
         isPointerModalityRef.current = true;
       },
@@ -858,7 +862,7 @@ export function useListNavigation(
     return {
       ...ariaActiveDescendantProp,
       onKeyDown(event) {
-        console.log('onKeyDown');
+        console.log('reference -> on:keydown', event.key);
         isPointerModalityRef.current = false;
 
         const isArrowKey = event.key.startsWith('Arrow');

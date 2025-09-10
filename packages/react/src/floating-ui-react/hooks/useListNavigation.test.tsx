@@ -1009,19 +1009,13 @@ describe('useListNavigation', () => {
 
   // In JSDOM it will not focus the first item, but will in the browser
   it.skipIf(!isJSDOM)('focus management in nested lists', async () => {
-    console.log(1);
     render(<NestedMenu />);
-    console.log(2, document.activeElement.outerHTML);
+
     await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
-    console.log(3, document.activeElement.outerHTML);
     await userEvent.keyboard('{ArrowDown}');
-    console.log(4, document.activeElement.outerHTML);
     await userEvent.keyboard('{ArrowDown}');
-    console.log(5, document.activeElement.outerHTML);
     await userEvent.keyboard('{ArrowDown}');
-    console.log(6, document.activeElement.outerHTML);
     await userEvent.keyboard('{ArrowRight}');
-    console.log(7, document.activeElement.outerHTML);
 
     expect(screen.getByText('Text')).toHaveFocus();
   });
@@ -1033,15 +1027,22 @@ describe('useListNavigation', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
     await act(async () => {});
     await userEvent.keyboard('{ArrowDown}');
+    console.log(3, document.activeElement.outerHTML);
     await userEvent.keyboard('{ArrowDown}');
+    console.log(4, document.activeElement.outerHTML);
     await userEvent.keyboard('{ArrowDown}');
+    console.log(5, document.activeElement.outerHTML);
     await userEvent.keyboard('{ArrowRight}'); // opens first submenu
     await act(async () => {});
+    console.log(6, document.activeElement.outerHTML);
 
     await userEvent.keyboard('{ArrowDown}');
+    console.log(7, document.activeElement.outerHTML);
     await userEvent.keyboard('{ArrowDown}');
+    console.log(8, document.activeElement.outerHTML);
     await userEvent.keyboard('{ArrowRight}'); // opens second submenu
     await act(async () => {});
+    console.log(9, document.activeElement.outerHTML);
 
     expect(screen.getByText('.png')).toHaveFocus();
 
