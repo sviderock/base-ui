@@ -286,7 +286,7 @@ export function useListNavigation(
     return getFloatingFocusElement(floating);
   };
 
-  const parentId = useFloatingParentNodeId()();
+  const parentId = useFloatingParentNodeId();
   const tree = useFloatingTree();
 
   createEffect(() => {

@@ -95,7 +95,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
 
   const tree = useFloatingTree();
   const nodeId = useFloatingNodeId();
-  const parentId = useFloatingParentNodeId()();
+  const parentId = useFloatingParentNodeId();
   const isNested = parentId != null;
   const orientation = () => local.orientation ?? (local.cols ? 'both' : 'vertical');
 
@@ -387,7 +387,7 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLButtonEle
 
 /** @internal */
 export function Menu(props: MenuProps & JSX.HTMLAttributes<HTMLButtonElement>) {
-  const parentId = useFloatingParentNodeId()();
+  const parentId = useFloatingParentNodeId();
 
   return (
     <Show when={parentId === null} fallback={<MenuComponent {...props} />}>

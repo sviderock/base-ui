@@ -24,8 +24,7 @@ const FloatingTreeContext = createContext<FloatingTreeType | null>(null);
  * Returns the parent node id for nested floating elements, if available.
  * Returns `null` for top-level floating elements.
  */
-export const useFloatingParentNodeId = (): Accessor<string | null> => () =>
-  useContext(FloatingNodeContext)?.id() || null;
+export const useFloatingParentNodeId = () => useContext(FloatingNodeContext)?.id() || null;
 
 /**
  * Returns the nearest floating tree context, if available.
@@ -42,7 +41,7 @@ export function useFloatingNodeId(customParentId?: string): Accessor<string | un
   const id = useId();
   const tree = useFloatingTree();
   const solidParentId = useFloatingParentNodeId();
-  const parentId = () => customParentId || solidParentId();
+  const parentId = () => customParentId || solidParentId;
 
   createEffect(() => {
     if (!id()) {
@@ -72,7 +71,7 @@ export interface FloatingNodeProps {
  */
 export function FloatingNode(props: FloatingNodeProps): JSX.Element {
   const parentId = useFloatingParentNodeId();
-  const contextValue = { id: () => props.id, parentId };
+  const contextValue = { id: () => props.id, parentId: () => parentId };
 
   return (
     <FloatingNodeContext.Provider value={contextValue}>

@@ -80,7 +80,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
 
   const tree = useFloatingTree();
   const nodeId = useFloatingNodeId();
-  const parentId = useFloatingParentNodeId()();
+  const parentId = useFloatingParentNodeId();
   const isNested = () => parentId != null;
 
   const parent = useContext(MenuContext);
@@ -359,7 +359,7 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLElement>)
 export function Menu(props: MenuProps & JSX.HTMLAttributes<HTMLElement>) {
   const parentId = useFloatingParentNodeId();
   return (
-    <Show when={parentId() === null} fallback={<MenuComponent {...props} />}>
+    <Show when={parentId === null} fallback={<MenuComponent {...props} />}>
       <FloatingTree>
         <MenuComponent {...props} />
       </FloatingTree>

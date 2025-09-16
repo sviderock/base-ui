@@ -52,7 +52,7 @@ export function useRole(
     (componentRoleToAriaRoleMap.get(role()) ?? role()) as AriaRole | false | undefined;
 
   const parentId = useFloatingParentNodeId();
-  const isNested = () => parentId() != null;
+  const isNested = () => parentId != null;
 
   const reference = createMemo<ElementProps['reference']>(() => {
     if (ariaRole() === 'tooltip' || role() === 'label') {

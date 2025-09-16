@@ -249,7 +249,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       const NestedDialog = (props: DialogProps) => {
         const parentId = useFloatingParentNodeId();
         return (
-          <Show when={parentId() == null} fallback={<Dialog {...props} />}>
+          <Show when={parentId == null} fallback={<Dialog {...props} />}>
             <FloatingTree>
               <Dialog {...props} />
             </FloatingTree>
@@ -954,7 +954,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         const parentId = useFloatingParentNodeId();
 
         return (
-          <Show when={parentId() == null} fallback={<Dialog {...props} />}>
+          <Show when={parentId == null} fallback={<Dialog {...props} />}>
             <FloatingTree>
               <Dialog {...props} />
             </FloatingTree>

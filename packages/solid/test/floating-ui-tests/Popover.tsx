@@ -189,7 +189,7 @@ export function Popover(props: Props) {
 
   // This is a root, so we wrap it with the tree
   return (
-    <Show when={parentId() === null} fallback={<PopoverComponent {...props} />}>
+    <Show when={parentId === null} fallback={<PopoverComponent {...props} />}>
       <FloatingTree>
         <PopoverComponent {...props} />
       </FloatingTree>

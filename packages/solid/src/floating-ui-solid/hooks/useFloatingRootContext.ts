@@ -27,7 +27,7 @@ export function useFloatingRootContext(
   const floatingId = useId();
   const events = createEventEmitter();
   const parentId = useFloatingParentNodeId();
-  const nested = () => parentId() != null;
+  const nested = () => parentId != null;
   const dataRef: ContextData = {};
 
   if (process.env.NODE_ENV !== 'production') {

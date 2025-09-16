@@ -390,7 +390,7 @@ export function useHover(
         const ref = domReference as unknown as HTMLElement | SVGSVGElement;
 
         const parentFloating = tree?.nodesRef
-          .find((node) => node.id === parentId())
+          .find((node) => node.id === parentId)
           ?.context?.elements.floating();
 
         if (parentFloating) {

@@ -392,7 +392,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       const parentId = useFloatingParentNodeId();
 
       return (
-        <Show when={parentId() == null} fallback={<Dialog {...props} />}>
+        <Show when={parentId == null} fallback={<Dialog {...props} />}>
           <FloatingTree>
             <Dialog {...props} />
           </FloatingTree>
@@ -755,7 +755,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       const parentId = useFloatingParentNodeId();
 
       return (
-        <Show when={parentId() == null} fallback={<Dialog {...props} />}>
+        <Show when={parentId == null} fallback={<Dialog {...props} />}>
           <FloatingTree>
             <Dialog {...props} />
           </FloatingTree>
