@@ -231,12 +231,26 @@ export function useClientPoint(
     };
   });
 
+  /**
+   * TODO: This is needed to fix the "cleans up window listener when closing or
+   * disabling" test but it's probably not the best way to do it
+   */
+  const floatingProps = createMemo<ElementProps['floating']>(() => {
+    return {
+      ref: () => {
+        onCleanup(() => {
+          context.refs.setFloating(null);
+        });
+      },
+    };
+  });
+
   const returnValue = createMemo<ElementProps>(() => {
     if (!enabled()) {
       return {};
     }
 
-    return { reference: reference() };
+    return { reference: reference(), floating: floatingProps() };
   });
 
   return returnValue;

@@ -48,7 +48,7 @@ export function useFloatingRootContext(
   const [domReference, setDomReference] = createSignal(options.elements.domReference());
 
   const onOpenChange = (newOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
-    console.log('onOpenChange', { newOpen, event, reason, target: event?.target?.textContent });
+    console.log('onOpenChange', { newOpen, event, reason });
     dataRef.openEvent = newOpen ? event : undefined;
     events.emit('openchange', { open: newOpen, event, reason, nested: nested() });
     options.onOpenChange?.(newOpen, event, reason);

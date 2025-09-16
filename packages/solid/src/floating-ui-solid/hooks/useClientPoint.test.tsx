@@ -1,7 +1,7 @@
 import { flushMicrotasks } from '#test-utils';
 import type { Coords } from '@floating-ui/dom';
 import { fireEvent, render, screen } from '@solidjs/testing-library';
-import { createEffect, createSignal, mergeProps, Show } from 'solid-js';
+import { createSignal, mergeProps, Show } from 'solid-js';
 import { test } from 'vitest';
 import { useClientPoint, useFloating, useInteractions } from '../index';
 
