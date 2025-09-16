@@ -1,7 +1,8 @@
+/* eslint-disable testing-library/no-node-access */
+import { flushMicrotasks, isJSDOM } from '#test-utils';
 import { fireEvent, render, screen } from '@solidjs/testing-library';
 import { createSignal, onMount } from 'solid-js';
 
-import { flushMicrotasks, isJSDOM } from '#test-utils';
 import { FloatingPortal, useFloating } from '../index';
 
 function App(props: { root?: HTMLElement; id?: string }) {
@@ -64,8 +65,7 @@ describe.skipIf(!isJSDOM)('FloatingPortal', () => {
   test('allows refs as roots', async () => {
     const el = document.createElement('div');
     document.body.appendChild(el);
-    let ref = el;
-    render(() => <App root={ref} />);
+    render(() => <App root={el} />);
     fireEvent.click(screen.getByTestId('reference'));
     await flushMicrotasks();
     const parent = screen.getByTestId('floating').parentElement;

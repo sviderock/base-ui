@@ -3,13 +3,13 @@ import {
   createEffect,
   createSignal,
   onCleanup,
-  onMount,
   useContext,
   type Accessor,
   type JSX,
 } from 'solid-js';
 import { useTimeout, type Timeout } from '../../utils/useTimeout';
 
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { getDelay } from '../hooks/useHover';
 import type { Delay, FloatingRootContext } from '../types';
 
@@ -70,10 +70,13 @@ export interface FloatingDelayGroupProps {
  * @internal
  */
 export function FloatingDelayGroup(props: FloatingDelayGroupProps): JSX.Element {
+  // eslint-disable-next-line solid/reactivity
   const initialDelayRef = props.delay;
   const [hasProvider, setHasProvider] = createSignal(false);
+  // eslint-disable-next-line solid/reactivity
   const [timeoutMs, setTimeoutMs] = createSignal(props.timeoutMs ?? 0);
-  const [delayRef, setDelayRef] = createSignal<Delay>(props.delay);
+  // eslint-disable-next-line solid/reactivity
+  const [delayRef, setDelayRef] = createSignal(props.delay);
   const [currentIdRef, setCurrentIdRef] = createSignal<any>(null);
   const currentContextRef: ContextValue['currentContextRef'] = null;
   const timeout = useTimeout();
@@ -104,7 +107,7 @@ interface UseDelayGroupOptions {
    * Whether delay grouping should be enabled.
    * @default true
    */
-  enabled?: Accessor<boolean>;
+  enabled?: MaybeAccessor<boolean>;
 }
 
 interface UseDelayGroupReturn {
@@ -132,7 +135,7 @@ export function useDelayGroup(
   context: FloatingRootContext,
   options: UseDelayGroupOptions = {},
 ): UseDelayGroupReturn {
-  const enabled = () => options.enabled?.() ?? true;
+  const enabled = () => access(options.enabled) ?? true;
 
   const groupContext = useContext(FloatingDelayGroupContext);
 

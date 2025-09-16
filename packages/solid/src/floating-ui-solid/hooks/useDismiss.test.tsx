@@ -1,18 +1,12 @@
+/* eslint-disable testing-library/no-node-access */
 /* eslint-disable @typescript-eslint/no-shadow */
+import { flushMicrotasks } from '#test-utils';
 import { cleanup, fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import {
-  createEffect,
-  createSignal,
-  onMount,
-  Show,
-  splitProps,
-  type Accessor,
-  type JSX,
-} from 'solid-js';
+import { createSignal, Show, splitProps, type Accessor, type JSX } from 'solid-js';
 import { vi } from 'vitest';
+import { access } from '../../solid-helpers';
 
-import { flushMicrotasks } from '#test-utils';
 import { isJSDOM } from '../../utils/detectBrowser';
 import {
   FloatingFocusManager,
@@ -49,16 +43,16 @@ function App(
     open,
     onOpenChange(open, _, reason) {
       setOpen(open);
-      if (props.outsidePress?.()) {
+      if (access(props.outsidePress)) {
         expect(reason).toBe('outside-press');
-      } else if (props.escapeKey?.()) {
+      } else if (access(props.escapeKey)) {
         expect(reason).toBe('escape-key');
         if (!open) {
           props.onClose?.();
         }
-      } else if (props.referencePress?.()) {
+      } else if (access(props.referencePress)) {
         expect(reason).toBe('reference-press');
-      } else if (props.ancestorScroll?.()) {
+      } else if (access(props.ancestorScroll)) {
         expect(reason).toBe('ancestor-scroll');
       }
     },
@@ -705,8 +699,8 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       return (
         <div
           style={{ width: '100vw', height: '100vh' }}
-          onPointerDown={(e) => {
-            e.stopPropagation();
+          onPointerDown={(event) => {
+            event.stopPropagation();
           }}
           onKeyDown={(event) => {
             if (event.key === 'Escape') {

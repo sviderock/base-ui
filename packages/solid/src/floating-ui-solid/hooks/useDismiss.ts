@@ -1,4 +1,3 @@
-import type { MaybeAccessor } from '@base-ui-components/solid/solid-helpers';
 import { getOverflowAncestors } from '@floating-ui/dom';
 import {
   getComputedStyle,
@@ -8,7 +7,8 @@ import {
   isLastTraversableNode,
   isWebKit,
 } from '@floating-ui/utils/dom';
-import { createEffect, createMemo, on, onCleanup, type Accessor } from 'solid-js';
+import { createEffect, createMemo, onCleanup, type Accessor } from 'solid-js';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useTimeout } from '../../utils/useTimeout';
 import {
   contains,
@@ -32,12 +32,6 @@ const bubbleAndCaptureHandlerKeys = {
   click: 'on:click',
 };
 
-const captureHandlerKeys = {
-  pointerdown: 'onPointerDown',
-  mousedown: 'onMouseDown',
-  click: 'onClick',
-};
-
 export const normalizeProp = (
   normalizable?: boolean | { escapeKey?: boolean; outsidePress?: boolean },
 ) => {
@@ -55,19 +49,19 @@ export interface UseDismissProps {
    * handlers.
    * @default true
    */
-  enabled?: Accessor<boolean | undefined>;
+  enabled?: MaybeAccessor<boolean | undefined>;
   /**
    * Whether to dismiss the floating element upon pressing the `esc` key.
    * @default true
    */
-  escapeKey?: Accessor<boolean | undefined>;
+  escapeKey?: MaybeAccessor<boolean | undefined>;
   /**
    * Whether to dismiss the floating element upon pressing the reference
    * element. You likely want to ensure the `move` option in the `useHover()`
    * Hook has been disabled when this is in use.
    * @default false
    */
-  referencePress?: Accessor<boolean | undefined>;
+  referencePress?: MaybeAccessor<boolean | undefined>;
   /**
    * The type of event to use to determine a “press”.
    * - `pointerdown` is eager on both mouse + touch input.
@@ -75,7 +69,7 @@ export interface UseDismissProps {
    * - `click` is lazy on both mouse + touch input.
    * @default 'pointerdown'
    */
-  referencePressEvent?: Accessor<'pointerdown' | 'mousedown' | 'click' | undefined>;
+  referencePressEvent?: MaybeAccessor<'pointerdown' | 'mousedown' | 'click' | undefined>;
   /**
    * Whether to dismiss the floating element upon pressing outside of the
    * floating element.
@@ -97,22 +91,22 @@ export interface UseDismissProps {
    * - `click` is lazy on both mouse + touch input.
    * @default 'pointerdown'
    */
-  outsidePressEvent?: Accessor<'pointerdown' | 'mousedown' | 'click' | undefined>;
+  outsidePressEvent?: MaybeAccessor<'pointerdown' | 'mousedown' | 'click' | undefined>;
   /**
    * Whether to dismiss the floating element upon scrolling an overflow
    * ancestor.
    * @default false
    */
-  ancestorScroll?: Accessor<boolean | undefined>;
+  ancestorScroll?: MaybeAccessor<boolean | undefined>;
   /**
    * Determines whether event listeners bubble upwards through a tree of
    * floating elements.
    */
-  bubbles?: Accessor<boolean | { escapeKey?: boolean; outsidePress?: boolean } | undefined>;
+  bubbles?: MaybeAccessor<boolean | { escapeKey?: boolean; outsidePress?: boolean } | undefined>;
   /**
    * Determines whether to use capture phase event listeners.
    */
-  capture?: Accessor<boolean | { escapeKey?: boolean; outsidePress?: boolean } | undefined>;
+  capture?: MaybeAccessor<boolean | { escapeKey?: boolean; outsidePress?: boolean } | undefined>;
 }
 
 /**
@@ -124,12 +118,12 @@ export function useDismiss(
   context: FloatingRootContext,
   props: UseDismissProps = {},
 ): Accessor<ElementProps> {
-  const enabled = () => props.enabled?.() ?? true;
-  const escapeKey = () => props.escapeKey?.() ?? true;
-  const outsidePressEvent = createMemo(() => props.outsidePressEvent?.() ?? 'pointerdown');
-  const referencePress = () => props.referencePress?.() ?? false;
-  const referencePressEvent = () => props.referencePressEvent?.() ?? 'pointerdown';
-  const ancestorScroll = () => props.ancestorScroll?.() ?? false;
+  const enabled = () => access(props.enabled) ?? true;
+  const escapeKey = () => access(props.escapeKey) ?? true;
+  const outsidePressEvent = () => access(props.outsidePressEvent) ?? 'pointerdown';
+  const referencePress = () => access(props.referencePress) ?? false;
+  const referencePressEvent = () => access(props.referencePressEvent) ?? 'pointerdown';
+  const ancestorScroll = () => access(props.ancestorScroll) ?? false;
 
   const outsidePress = createMemo(() => {
     // If it's an accessor
@@ -148,20 +142,10 @@ export function useDismiss(
   const tree = useFloatingTree();
 
   let endedOrStartedInsideRef = false;
-  const bubbles = () => normalizeProp(props.bubbles?.());
-  const capture = () => normalizeProp(props.capture?.());
+  const bubbles = () => normalizeProp(access(props.bubbles));
+  const capture = () => normalizeProp(access(props.capture));
 
   let isComposingRef = false;
-
-  const isInsideSolidTree = (event: Event) => {
-    const insideFloating =
-      context.elements.floating() && isEventTargetWithin(event, context.elements.floating());
-    const insideDomReference =
-      context.elements.domReference() &&
-      isEventTargetWithin(event, context.elements.domReference());
-    const insidePortal = isEventTargetInsidePortal(event);
-    return insideFloating || insideDomReference || insidePortal;
-  };
 
   const closeOnEscapeKeyDown = (event: KeyboardEvent) => {
     if (!context.open() || !enabled() || !escapeKey() || event.key !== 'Escape') {

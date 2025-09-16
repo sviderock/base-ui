@@ -90,8 +90,8 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
     nodeId,
     open: isOpen,
     onOpenChange: setIsOpen,
-    placement: () => (isNested ? 'right-start' : 'bottom-start'),
-    middleware: () => [
+    placement: isNested ? 'right-start' : 'bottom-start',
+    middleware: [
       offset({ mainAxis: isNested ? 0 : 4, alignmentAxis: isNested ? -4 : 0 }),
       flip(),
       shift(),
@@ -101,17 +101,18 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
 
   const hover = useHover(context, {
     enabled: () => isNested && allowHover(),
-    delay: () => ({ open: 75 }),
+    delay: { open: 75 },
     handleClose: safePolygon({ blockPointerEvents: true }),
   });
-  const role = useRole(context, { role: () => 'menu' });
-  const dismiss = useDismiss(context, { bubbles: () => true });
+  const role = useRole(context, { role: 'menu' });
+  const dismiss = useDismiss(context, { bubbles: true });
   const listNavigation = useListNavigation(context, {
-    listRef: () => elements,
+    listRef: elements,
     activeIndex,
     nested: isNested,
     onNavigate: setActiveIndex,
-    virtual: () => true,
+    virtual: true,
+    // eslint-disable-next-line solid/reactivity
     virtualItemRef: local.virtualItemRef,
   });
 

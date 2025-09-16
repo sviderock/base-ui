@@ -3,6 +3,8 @@ import { createEffect, createMemo, on, onCleanup, type Accessor } from 'solid-js
 import { useTimeout } from '../../utils/useTimeout';
 import { contains, getDocument, isMouseLikePointerType } from '../utils';
 
+import type { MaybeAccessor } from '../../solid-helpers';
+import { access } from '../../solid-helpers';
 import { useFloatingParentNodeId, useFloatingTree } from '../components/FloatingTree';
 import type {
   Delay,
@@ -58,7 +60,7 @@ export interface UseHoverProps {
    * handlers.
    * @default true
    */
-  enabled?: Accessor<boolean>;
+  enabled?: MaybeAccessor<boolean>;
   /**
    * Accepts an event handler that runs on `mousemove` to control when the
    * floating element closes once the cursor leaves the reference element.
@@ -70,25 +72,25 @@ export interface UseHoverProps {
    * before changing the `open` state.
    * @default 0
    */
-  restMs?: Accessor<number>;
+  restMs?: MaybeAccessor<number>;
   /**
    * Waits for the specified time when the event listener runs before changing
    * the `open` state.
    * @default 0
    */
-  delay?: Delay | Accessor<Delay>;
+  delay?: MaybeAccessor<Delay>;
   /**
    * Whether the logic only runs for mouse input, ignoring touch input.
    * Note: due to a bug with Linux Chrome, "pen" inputs are considered "mouse".
    * @default false
    */
-  mouseOnly?: Accessor<boolean>;
+  mouseOnly?: MaybeAccessor<boolean>;
   /**
    * Whether moving the cursor over the floating element will open it, without a
    * regular hover event required.
    * @default true
    */
-  move?: Accessor<boolean>;
+  move?: MaybeAccessor<boolean>;
 }
 
 /**
@@ -100,11 +102,11 @@ export function useHover(
   context: FloatingRootContext,
   props: UseHoverProps = {},
 ): Accessor<ElementProps> {
-  const enabled = () => props.enabled?.() ?? true;
-  const delay = () => props.delay ?? 0;
-  const mouseOnly = () => props.mouseOnly?.() ?? false;
-  const restMs = () => props.restMs?.() ?? 0;
-  const move = () => props.move?.() ?? true;
+  const enabled = () => access(props.enabled) ?? true;
+  const delay = () => access(props.delay) ?? 0;
+  const mouseOnly = () => access(props.mouseOnly) ?? false;
+  const restMs = () => access(props.restMs) ?? 0;
+  const move = () => access(props.move) ?? true;
 
   const tree = useFloatingTree();
   const parentId = useFloatingParentNodeId();

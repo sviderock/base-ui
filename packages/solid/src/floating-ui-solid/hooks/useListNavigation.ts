@@ -21,8 +21,12 @@ import {
   stopEvent,
 } from '../utils';
 
-import type { MaybeAccessor, ReactLikeRef } from '../../solid-helpers';
-import { usePortalContext } from '../components/FloatingPortal';
+import {
+  access,
+  type MaybeAccessor,
+  type MaybeAccessorValue,
+  type ReactLikeRef,
+} from '../../solid-helpers';
 import { useFloatingParentNodeId, useFloatingTree } from '../components/FloatingTree';
 import type { Dimensions, ElementProps, FloatingRootContext } from '../types';
 import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP } from '../utils/constants';
@@ -31,11 +35,11 @@ import { enqueueFocus } from '../utils/enqueueFocus';
 export const ESCAPE = 'Escape';
 
 function doSwitch(
-  orientation: UseListNavigationProps['orientation'],
+  orientation: MaybeAccessorValue<UseListNavigationProps['orientation']>,
   vertical: boolean,
   horizontal: boolean,
 ) {
-  switch (orientation?.()) {
+  switch (orientation) {
     case 'vertical':
       return vertical;
     case 'horizontal':
@@ -45,7 +49,10 @@ function doSwitch(
   }
 }
 
-function isMainOrientationKey(key: string, orientation: UseListNavigationProps['orientation']) {
+function isMainOrientationKey(
+  key: string,
+  orientation: MaybeAccessorValue<UseListNavigationProps['orientation']>,
+) {
   const vertical = key === ARROW_UP || key === ARROW_DOWN;
   const horizontal = key === ARROW_LEFT || key === ARROW_RIGHT;
   return doSwitch(orientation, vertical, horizontal);
@@ -53,7 +60,7 @@ function isMainOrientationKey(key: string, orientation: UseListNavigationProps['
 
 function isMainOrientationToEndKey(
   key: string,
-  orientation: UseListNavigationProps['orientation'],
+  orientation: MaybeAccessorValue<UseListNavigationProps['orientation']>,
   rtl: boolean,
 ) {
   const vertical = key === ARROW_DOWN;
@@ -65,7 +72,7 @@ function isMainOrientationToEndKey(
 
 function isCrossOrientationOpenKey(
   key: string,
-  orientation: UseListNavigationProps['orientation'],
+  orientation: MaybeAccessorValue<UseListNavigationProps['orientation']>,
   rtl: boolean,
 ) {
   const vertical = rtl ? key === ARROW_LEFT : key === ARROW_RIGHT;
@@ -75,13 +82,13 @@ function isCrossOrientationOpenKey(
 
 function isCrossOrientationCloseKey(
   key: string,
-  orientation: UseListNavigationProps['orientation'],
+  orientation: MaybeAccessorValue<UseListNavigationProps['orientation']>,
   rtl: boolean,
   cols?: number,
 ) {
   const vertical = rtl ? key === ARROW_RIGHT : key === ARROW_LEFT;
   const horizontal = key === ARROW_UP;
-  if (orientation?.() === 'both' || (orientation?.() === 'horizontal' && cols && cols > 1)) {
+  if (orientation === 'both' || (orientation === 'horizontal' && cols && cols > 1)) {
     return key === ESCAPE;
   }
   return doSwitch(orientation, vertical, horizontal);
@@ -92,13 +99,13 @@ export interface UseListNavigationProps {
    * A ref that holds an array of list items.
    * @default empty list
    */
-  listRef: Accessor<Array<HTMLElement | null | undefined>>;
+  listRef: MaybeAccessor<Array<HTMLElement | null | undefined>>;
   /**
    * The index of the currently active (focused or highlighted) item, which may
    * or may not be selected.
    * @default null
    */
-  activeIndex: Accessor<number | null>;
+  activeIndex: MaybeAccessor<number | null>;
   /**
    * A callback that is called when the user navigates to a new active item,
    * passed in a new `activeIndex`.
@@ -109,30 +116,30 @@ export interface UseListNavigationProps {
    * handlers.
    * @default true
    */
-  enabled?: Accessor<boolean>;
+  enabled?: MaybeAccessor<boolean>;
   /**
    * The currently selected item index, which may or may not be active.
    * @default null
    */
-  selectedIndex?: Accessor<number | null>;
+  selectedIndex?: MaybeAccessor<number | null>;
   /**
    * Whether to focus the item upon opening the floating element. 'auto' infers
    * what to do based on the input type (keyboard vs. pointer), while a boolean
    * value will force the value.
    * @default 'auto'
    */
-  focusItemOnOpen?: Accessor<boolean | 'auto'>;
+  focusItemOnOpen?: MaybeAccessor<boolean | 'auto'>;
   /**
    * Whether hovering an item synchronizes the focus.
    * @default true
    */
-  focusItemOnHover?: Accessor<boolean>;
+  focusItemOnHover?: MaybeAccessor<boolean>;
   /**
    * Whether pressing an arrow key on the navigation’s main axis opens the
    * floating element.
    * @default true
    */
-  openOnArrowKeyDown?: Accessor<boolean>;
+  openOnArrowKeyDown?: MaybeAccessor<boolean>;
   /**
    * By default elements with either a `disabled` or `aria-disabled` attribute
    * are skipped in the list navigation — however, this requires the items to
@@ -152,13 +159,13 @@ export interface UseListNavigationProps {
    * `loop` must be `true`.
    * @default false
    */
-  allowEscape?: Accessor<boolean>;
+  allowEscape?: MaybeAccessor<boolean>;
   /**
    * Determines whether focus should loop around when navigating past the first
    * or last item.
    * @default false
    */
-  loop?: Accessor<boolean>;
+  loop?: MaybeAccessor<boolean>;
   /**
    * If the list is nested within another one (e.g. a nested submenu), the
    * navigation semantics change.
@@ -177,7 +184,7 @@ export interface UseListNavigationProps {
    * layout.
    * @default false
    */
-  rtl?: Accessor<boolean>;
+  rtl?: MaybeAccessor<boolean>;
   /**
    * Whether the focus is virtual (using `aria-activedescendant`).
    * Use this if you need focus to remain on the reference element
@@ -188,12 +195,12 @@ export interface UseListNavigationProps {
    * generated automatically.
    * @default false
    */
-  virtual?: Accessor<boolean>;
+  virtual?: MaybeAccessor<boolean>;
   /**
    * The orientation in which navigation occurs.
    * @default 'vertical'
    */
-  orientation?: Accessor<'vertical' | 'horizontal' | 'both'>;
+  orientation?: MaybeAccessor<'vertical' | 'horizontal' | 'both'>;
   /**
    * Specifies how many columns the list has (i.e., it’s a grid). Use an
    * orientation of 'horizontal' (e.g. for an emoji picker/date picker, where
@@ -202,12 +209,12 @@ export interface UseListNavigationProps {
    * and ArrowDown).
    * @default 1
    */
-  cols?: Accessor<number | undefined>;
+  cols?: MaybeAccessor<number | undefined>;
   /**
    * Whether to scroll the active item into view when navigating. The default
    * value uses nearest options.
    */
-  scrollItemIntoView?: Accessor<boolean | ScrollIntoViewOptions>;
+  scrollItemIntoView?: MaybeAccessor<boolean | ScrollIntoViewOptions>;
   /**
    * When using virtual focus management, this holds a ref to the
    * virtually-focused item. This allows nested virtual navigation to be
@@ -220,13 +227,13 @@ export interface UseListNavigationProps {
    * Only for `cols > 1`, specify sizes for grid items.
    * `{ width: 2, height: 2 }` means an item is 2 columns wide and 2 rows tall.
    */
-  itemSizes?: Accessor<Dimensions[]>;
+  itemSizes?: MaybeAccessor<Dimensions[]>;
   /**
    * Only relevant for `cols > 1` and items with different sizes, specify if
    * the grid is dense (as defined in the CSS spec for `grid-auto-flow`).
    * @default false
    */
-  dense?: Accessor<boolean>;
+  dense?: MaybeAccessor<boolean>;
 }
 
 /**
@@ -238,19 +245,19 @@ export function useListNavigation(
   context: FloatingRootContext,
   props: UseListNavigationProps,
 ): Accessor<ElementProps> {
-  const enabled = () => props.enabled?.() ?? true;
-  const selectedIndex = () => props.selectedIndex?.() ?? null;
-  const allowEscape = () => props.allowEscape?.() ?? false;
-  const loop = () => props.loop?.() ?? false;
+  const enabled = () => access(props.enabled) ?? true;
+  const selectedIndex = () => access(props.selectedIndex) ?? null;
+  const allowEscape = () => access(props.allowEscape) ?? false;
+  const loop = () => access(props.loop) ?? false;
   const nested = props.nested ?? false;
-  const rtl = () => props.rtl?.() ?? false;
-  const virtual = () => props.virtual?.() ?? false;
-  const focusItemOnHover = () => props.focusItemOnHover?.() ?? true;
-  const openOnArrowKeyDown = () => props.openOnArrowKeyDown?.() ?? true;
-  const orientation = () => props.orientation?.() ?? 'vertical';
-  const cols = () => props.cols?.() ?? 1;
-  const scrollItemIntoView = () => props.scrollItemIntoView?.() ?? true;
-  const dense = () => props.dense?.() ?? false;
+  const rtl = () => access(props.rtl) ?? false;
+  const virtual = () => access(props.virtual) ?? false;
+  const focusItemOnHover = () => access(props.focusItemOnHover) ?? true;
+  const openOnArrowKeyDown = () => access(props.openOnArrowKeyDown) ?? true;
+  const orientation = () => access(props.orientation) ?? 'vertical';
+  const cols = () => access(props.cols) ?? 1;
+  const scrollItemIntoView = () => access(props.scrollItemIntoView) ?? true;
+  const dense = () => access(props.dense) ?? false;
   const disabledIndices = createMemo(() => {
     if (typeof props.disabledIndices === 'function') {
       return props.disabledIndices.length > 0
@@ -259,7 +266,6 @@ export function useListNavigation(
     }
     return props.disabledIndices;
   });
-  const portalContext = usePortalContext();
 
   if (process.env.NODE_ENV !== 'production') {
     if (allowEscape()) {
@@ -308,7 +314,9 @@ export function useListNavigation(
   let forceSyncFocusRef = false;
   let forceScrollIntoViewRef = false;
 
-  const [focusItemOnOpen, setFocusItemOnOpen] = createSignal(props.focusItemOnOpen?.() ?? 'auto');
+  const [focusItemOnOpen, setFocusItemOnOpen] = createSignal(
+    access(props.focusItemOnOpen) ?? 'auto',
+  );
   const [activeId, setActiveId] = createSignal<string | undefined>();
   const [virtualId, setVirtualId] = createSignal<string | undefined>();
 
@@ -331,7 +339,7 @@ export function useListNavigation(
       }
     }
 
-    const initialItem = props.listRef()[indexRef];
+    const initialItem = access(props.listRef)[indexRef];
     const forceScrollIntoView = forceScrollIntoViewRef;
 
     if (initialItem) {
@@ -341,7 +349,7 @@ export function useListNavigation(
     const scheduler = forceSyncFocusRef ? (v: () => void) => v() : requestAnimationFrame;
 
     scheduler(() => {
-      const waitedItem = props.listRef()[indexRef] || initialItem;
+      const waitedItem = access(props.listRef)[indexRef] || initialItem;
 
       if (!waitedItem) {
         return;
@@ -406,7 +414,7 @@ export function useListNavigation(
       return;
     }
 
-    const activeIndex = props.activeIndex();
+    const activeIndex = access(props.activeIndex);
     if (activeIndex == null) {
       forceSyncFocusRef = false;
 
@@ -428,7 +436,7 @@ export function useListNavigation(
       ) {
         let runs = 0;
         const waitForListPopulated = () => {
-          if (props.listRef()[0] == null) {
+          if (access(props.listRef)[0] == null) {
             // Avoid letting the browser paint if possible on the first try,
             // otherwise use rAF. Don't try more than twice, since something
             // is wrong otherwise.
@@ -439,9 +447,9 @@ export function useListNavigation(
             runs += 1;
           } else {
             indexRef =
-              keyRef == null || isMainOrientationToEndKey(keyRef, orientation, rtl()) || nested
-                ? getMinListIndex(props.listRef(), disabledIndices())
-                : getMaxListIndex(props.listRef(), disabledIndices());
+              keyRef == null || isMainOrientationToEndKey(keyRef, orientation(), rtl()) || nested
+                ? getMinListIndex(access(props.listRef), disabledIndices())
+                : getMaxListIndex(access(props.listRef), disabledIndices());
             keyRef = null;
 
             onNavigate();
@@ -450,7 +458,7 @@ export function useListNavigation(
 
         waitForListPopulated();
       }
-    } else if (!isIndexOutOfListBounds(props.listRef(), activeIndex)) {
+    } else if (!isIndexOutOfListBounds(access(props.listRef), activeIndex)) {
       indexRef = activeIndex;
       focusItem();
       forceScrollIntoViewRef = false;
@@ -509,18 +517,18 @@ export function useListNavigation(
   createEffect(() => {
     if (!context.open()) {
       keyRef = null;
-      setFocusItemOnOpen(props.focusItemOnOpen?.() ?? 'auto');
+      setFocusItemOnOpen(access(props.focusItemOnOpen) ?? 'auto');
     }
   });
 
-  const hasActiveIndex = () => props.activeIndex() != null;
+  const hasActiveIndex = () => access(props.activeIndex) != null;
 
   const item = createMemo<ElementProps['item']>(() => {
     function syncCurrentTarget(currentTarget: HTMLElement | null) {
       if (!context.open()) {
         return;
       }
-      const index = props.listRef().indexOf(currentTarget);
+      const index = access(props.listRef).indexOf(currentTarget);
       if (index !== -1 && indexRef !== index) {
         indexRef = index;
 
@@ -566,9 +574,8 @@ export function useListNavigation(
 
   const getParentOrientation = () => {
     return (
-      props.parentOrientation?.() ??
-      (tree?.nodesRef?.find((node) => node.id === parentId)?.context?.dataRef
-        ?.orientation as ReturnType<Exclude<UseListNavigationProps['orientation'], undefined>>)
+      access(props.parentOrientation) ??
+      tree?.nodesRef?.find((node) => node.id === parentId)?.context?.dataRef?.orientation
     );
   };
 
@@ -591,10 +598,10 @@ export function useListNavigation(
       return;
     }
 
-    if (nested && isCrossOrientationCloseKey(event.key, orientation, rtl(), cols())) {
+    if (nested && isCrossOrientationCloseKey(event.key, orientation(), rtl(), cols())) {
       // If the nested list's close key is also the parent navigation key,
       // let the parent navigate. Otherwise, stop propagating the event.
-      if (!isMainOrientationKey(event.key, getParentOrientation)) {
+      if (!isMainOrientationKey(event.key, getParentOrientation())) {
         stopEvent(event);
       }
 
@@ -613,8 +620,8 @@ export function useListNavigation(
     }
 
     const currentIndex = indexRef;
-    const minIndex = getMinListIndex(props.listRef(), disabledIndices());
-    const maxIndex = getMaxListIndex(props.listRef(), disabledIndices());
+    const minIndex = getMinListIndex(access(props.listRef), disabledIndices());
+    const maxIndex = getMaxListIndex(access(props.listRef), disabledIndices());
 
     if (!typeableComboboxReference()) {
       if (event.key === 'Home') {
@@ -633,8 +640,8 @@ export function useListNavigation(
     // Grid navigation.
     if (cols() > 1) {
       const sizes =
-        props.itemSizes?.() ||
-        Array.from({ length: props.listRef().length }, () => ({
+        access(props.itemSizes) ||
+        Array.from({ length: access(props.listRef).length }, () => ({
           width: 1,
           height: 1,
         }));
@@ -643,12 +650,14 @@ export function useListNavigation(
 
       const cellMap = createGridCellMap(sizes, cols(), dense());
       const minGridIndex = cellMap.findIndex(
-        (index) => index != null && !isListIndexDisabled(props.listRef(), index, disabledIndices()),
+        (index) =>
+          index != null && !isListIndexDisabled(access(props.listRef), index, disabledIndices()),
       );
       // last enabled index
       const maxGridIndex = cellMap.reduce(
+        // eslint-disable-next-line solid/reactivity
         (foundIndex: number, index, cellIndex) =>
-          index != null && !isListIndexDisabled(props.listRef(), index, disabledIndices())
+          index != null && !isListIndexDisabled(access(props.listRef), index, disabledIndices())
             ? cellIndex
             : foundIndex,
         -1,
@@ -657,7 +666,9 @@ export function useListNavigation(
       const index =
         cellMap[
           getGridNavigatedIndex(
-            cellMap.map((itemIndex) => (itemIndex != null ? props.listRef()[itemIndex] : null)),
+            cellMap.map((itemIndex) =>
+              itemIndex != null ? access(props.listRef)[itemIndex] : null,
+            ),
             {
               event,
               orientation: orientation(),
@@ -670,13 +681,11 @@ export function useListNavigation(
               disabledIndices: () =>
                 getGridCellIndices(
                   [
-                    ...props
-                      .listRef()
-                      .map((_, listIndex) =>
-                        isListIndexDisabled(props.listRef(), listIndex, disabledIndices())
-                          ? listIndex
-                          : undefined,
-                      ),
+                    ...access(props.listRef).map((_, listIndex) =>
+                      isListIndexDisabled(access(props.listRef), listIndex, disabledIndices())
+                        ? listIndex
+                        : undefined,
+                    ),
                     undefined,
                   ],
                   cellMap,
@@ -713,7 +722,7 @@ export function useListNavigation(
       }
     }
 
-    if (isMainOrientationKey(event.key, orientation)) {
+    if (isMainOrientationKey(event.key, orientation())) {
       stopEvent(event);
 
       // Reset the index if no item is focused.
@@ -722,28 +731,28 @@ export function useListNavigation(
         !virtual() &&
         activeElement((event.currentTarget as any)?.ownerDocument) === event.currentTarget
       ) {
-        indexRef = isMainOrientationToEndKey(event.key, orientation, rtl()) ? minIndex : maxIndex;
+        indexRef = isMainOrientationToEndKey(event.key, orientation(), rtl()) ? minIndex : maxIndex;
 
         onNavigate();
         return;
       }
 
-      if (isMainOrientationToEndKey(event.key, orientation, rtl())) {
+      if (isMainOrientationToEndKey(event.key, orientation(), rtl())) {
         if (loop()) {
           indexRef =
             // eslint-disable-next-line no-nested-ternary
             currentIndex >= maxIndex
-              ? allowEscape() && currentIndex !== props.listRef().length
+              ? allowEscape() && currentIndex !== access(props.listRef).length
                 ? -1
                 : minIndex
-              : findNonDisabledListIndex(props.listRef(), {
+              : findNonDisabledListIndex(access(props.listRef), {
                   startingIndex: currentIndex,
                   disabledIndices: disabledIndices(),
                 });
         } else {
           indexRef = Math.min(
             maxIndex,
-            findNonDisabledListIndex(props.listRef(), {
+            findNonDisabledListIndex(access(props.listRef), {
               startingIndex: currentIndex,
               disabledIndices: disabledIndices(),
             }),
@@ -754,9 +763,9 @@ export function useListNavigation(
           // eslint-disable-next-line no-nested-ternary
           currentIndex <= minIndex
             ? allowEscape() && currentIndex !== -1
-              ? props.listRef().length
+              ? access(props.listRef).length
               : maxIndex
-            : findNonDisabledListIndex(props.listRef(), {
+            : findNonDisabledListIndex(access(props.listRef), {
                 startingIndex: currentIndex,
                 decrement: true,
                 disabledIndices: disabledIndices(),
@@ -764,7 +773,7 @@ export function useListNavigation(
       } else {
         indexRef = Math.max(
           minIndex,
-          findNonDisabledListIndex(props.listRef(), {
+          findNonDisabledListIndex(access(props.listRef), {
             startingIndex: currentIndex,
             decrement: true,
             disabledIndices: disabledIndices(),
@@ -772,7 +781,7 @@ export function useListNavigation(
         );
       }
 
-      if (isIndexOutOfListBounds(props.listRef(), indexRef)) {
+      if (isIndexOutOfListBounds(access(props.listRef), indexRef)) {
         indexRef = -1;
       }
 
@@ -846,14 +855,14 @@ export function useListNavigation(
         const isArrowKey = event.key.startsWith('Arrow');
         const isHomeOrEndKey = ['Home', 'End'].includes(event.key);
         const isMoveKey = isArrowKey || isHomeOrEndKey;
-        const isCrossOpenKey = isCrossOrientationOpenKey(event.key, orientation, rtl());
-        const isCrossCloseKey = isCrossOrientationCloseKey(event.key, orientation, rtl(), cols());
+        const isCrossOpenKey = isCrossOrientationOpenKey(event.key, orientation(), rtl());
+        const isCrossCloseKey = isCrossOrientationCloseKey(event.key, orientation(), rtl(), cols());
         const isParentCrossOpenKey = isCrossOrientationOpenKey(
           event.key,
-          getParentOrientation,
+          getParentOrientation(),
           rtl(),
         );
-        const isMainKey = isMainOrientationKey(event.key, orientation);
+        const isMainKey = isMainOrientationKey(event.key, orientation());
         const isNavigationKey =
           (nested ? isParentCrossOpenKey : isMainKey) ||
           event.key === 'Enter' ||
@@ -877,7 +886,7 @@ export function useListNavigation(
                 isCrossCloseKey && !isCurrentTarget
                   ? deepestNode.context?.elements.domReference()
                   : isCrossOpenKey
-                    ? props.listRef().find((currentItem) => currentItem?.id === activeId())
+                    ? access(props.listRef).find((currentItem) => currentItem?.id === activeId())
                     : null;
 
               if (dispatchItem) {
@@ -910,7 +919,7 @@ export function useListNavigation(
         }
 
         if (isNavigationKey) {
-          const isParentMainKey = isMainOrientationKey(event.key, getParentOrientation);
+          const isParentMainKey = isMainOrientationKey(event.key, getParentOrientation());
           keyRef = nested && isParentMainKey ? null : event.key;
         }
 
@@ -919,7 +928,7 @@ export function useListNavigation(
             stopEvent(event);
 
             if (openAtStart) {
-              indexRef = getMinListIndex(props.listRef(), disabledIndices());
+              indexRef = getMinListIndex(access(props.listRef), disabledIndices());
               onNavigate();
             } else {
               context.onOpenChange(true, event, 'list-navigation');

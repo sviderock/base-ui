@@ -2,6 +2,7 @@ import { createEffect, createMemo, type Accessor } from 'solid-js';
 import { useTimeout } from '../../utils/useTimeout';
 import { stopEvent } from '../utils';
 
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import type { ElementProps, FloatingRootContext } from '../types';
 
 export interface UseTypeaheadProps {
@@ -10,12 +11,12 @@ export interface UseTypeaheadProps {
    * elements of the list.
    * @default empty list
    */
-  listRef: Accessor<Array<string | null>>;
+  listRef: MaybeAccessor<Array<string | null>>;
   /**
    * The index of the active (focused or highlighted) item in the list.
    * @default null
    */
-  activeIndex: Accessor<number | null>;
+  activeIndex: MaybeAccessor<number | null>;
   /**
    * Callback invoked with the matching index if found as the user types.
    */
@@ -29,7 +30,7 @@ export interface UseTypeaheadProps {
    * handlers.
    * @default true
    */
-  enabled?: Accessor<boolean>;
+  enabled?: MaybeAccessor<boolean>;
   /**
    * A function that returns the matching string from the list.
    * @default lowercase-finder
@@ -39,17 +40,17 @@ export interface UseTypeaheadProps {
    * The number of milliseconds to wait before resetting the typed string.
    * @default 750
    */
-  resetMs?: Accessor<number>;
+  resetMs?: MaybeAccessor<number>;
   /**
    * An array of keys to ignore when typing.
    * @default []
    */
-  ignoreKeys?: Accessor<Array<string>>;
+  ignoreKeys?: MaybeAccessor<Array<string>>;
   /**
    * The index of the selected item in the list, if available.
    * @default null
    */
-  selectedIndex?: Accessor<number | null>;
+  selectedIndex?: MaybeAccessor<number | null>;
 }
 
 /**
@@ -61,14 +62,14 @@ export function useTypeahead(
   context: FloatingRootContext,
   props: UseTypeaheadProps,
 ): Accessor<ElementProps> {
-  const enabled = () => props.enabled?.() ?? true;
-  const resetMs = () => props.resetMs?.() ?? 750;
-  const ignoreKeys = () => props.ignoreKeys?.() ?? [];
-  const selectedIndex = () => props.selectedIndex?.() ?? null;
+  const enabled = () => access(props.enabled) ?? true;
+  const resetMs = () => access(props.resetMs) ?? 750;
+  const ignoreKeys = () => access(props.ignoreKeys) ?? [];
+  const selectedIndex = () => access(props.selectedIndex) ?? null;
 
   const timeout = useTimeout();
   let stringRef = '';
-  let prevIndexRef: number | null = selectedIndex() ?? props.activeIndex() ?? -1;
+  let prevIndexRef: number | null = selectedIndex() ?? access(props.activeIndex) ?? -1;
   let matchIndexRef: number | null = null;
 
   createEffect(() => {
@@ -82,7 +83,7 @@ export function useTypeahead(
   createEffect(() => {
     // Sync arrow key navigation but not typeahead navigation.
     if (context.open() && stringRef === '') {
-      prevIndexRef = selectedIndex() ?? props.activeIndex() ?? -1;
+      prevIndexRef = selectedIndex() ?? access(props.activeIndex) ?? -1;
     }
   });
 
@@ -113,7 +114,7 @@ export function useTypeahead(
       return str ? list.indexOf(str) : -1;
     }
 
-    const listContent = props.listRef();
+    const listContent = access(props.listRef);
 
     if (stringRef.length > 0 && stringRef[0] !== ' ') {
       if (getMatchingIndex(listContent, listContent, stringRef) === -1) {

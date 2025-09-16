@@ -1,6 +1,7 @@
 import { type VirtualElement } from '@floating-ui/dom';
 import { isElement } from '@floating-ui/utils/dom';
-import { type Accessor, createEffect, createMemo, createSignal, onCleanup } from 'solid-js';
+import { type Accessor, createEffect, createMemo, createSignal } from 'solid-js';
+import { access } from '../../solid-helpers';
 import { useFloatingTree } from '../components/FloatingTree';
 import type {
   FloatingContext,
@@ -17,7 +18,7 @@ import { useFloatingRootContext } from './useFloatingRootContext';
  * @see https://floating-ui.com/docs/useFloating
  */
 export function useFloating<RT extends ReferenceType = ReferenceType>(
-  options: UseFloatingOptions = {},
+  options: UseFloatingOptions,
 ): UseFloatingReturn<RT> {
   const rootContext =
     options.rootContext ||
@@ -81,10 +82,6 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     ) {
       position().refs.setReference(node);
     }
-
-    // onCleanup(() => {
-    //   setReference(null);
-    // });
   };
 
   const refs = {
@@ -105,7 +102,7 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     ...rootContext,
     refs,
     elements,
-    nodeId: () => options.nodeId?.(),
+    nodeId: () => access(options.nodeId),
   };
 
   createEffect(() => {
@@ -115,7 +112,8 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
       return;
     }
 
-    const nodeIdx = tree?.nodesRef.findIndex((n) => n.id === options.nodeId?.());
+    const nodeId = access(options.nodeId);
+    const nodeIdx = tree?.nodesRef.findIndex((n) => n.id === nodeId);
     if (nodeIdx !== -1) {
       tree?.setNodesRef(nodeIdx, 'context', context as unknown as FloatingContext);
     }

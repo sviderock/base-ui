@@ -1,6 +1,7 @@
 import type { VirtualElement } from '@floating-ui/dom';
 import type { Accessor, JSX } from 'solid-js';
 import type { SetStoreFunction, Store } from 'solid-js/store';
+import type { MaybeAccessor } from '../solid-helpers';
 import type { UsePositionFloatingReturn, UsePositionOptions } from './hooks/useFloatingOriginal';
 import type { ExtendedUserProps } from './hooks/useInteractions';
 
@@ -211,11 +212,11 @@ export interface UseFloatingOptions<RT extends ReferenceType = ReferenceType>
     /**
      * Externally passed reference element. Store in state.
      */
-    reference?: Accessor<Element | null>;
+    reference?: MaybeAccessor<Element | null>;
     /**
      * Externally passed floating element. Store in state.
      */
-    floating?: Accessor<HTMLElement | null>;
+    floating?: MaybeAccessor<HTMLElement | null>;
   };
   /**
    * An event callback that is invoked when the floating element is opened or
@@ -225,19 +226,15 @@ export interface UseFloatingOptions<RT extends ReferenceType = ReferenceType>
   /**
    * Unique node id when using `FloatingTree`.
    */
-  nodeId?: Accessor<string | undefined>;
-  /**
-   * When `true` reference/floating events will use default Solid event
-   * delegation using `on` events that are attached to document instead
-   * of dom elements. This will prevent events inside Portal/iframe from
-   * being captured by the parent elements.
-   * Setting this to `false` will bind events using `on:` event listeners
-   * which are attached to dom elements.
-   * @default true
-   */
-  delegateEvents?: boolean;
+  nodeId?: MaybeAccessor<string | undefined>;
 }
 
-export type Accessorify<T> = {
-  [K in keyof T]: T[K] extends Accessor<any> ? T[K] : T[K] extends Function ? T[K] : Accessor<T[K]>;
+export type Accessorify<T, Type extends 'accessor' | 'maybeAccessor' = 'accessor'> = {
+  [K in keyof T]: T[K] extends Accessor<any>
+    ? T[K]
+    : T[K] extends Function
+      ? T[K]
+      : Type extends 'accessor'
+        ? Accessor<T[K]>
+        : MaybeAccessor<T[K]>;
 };

@@ -25,21 +25,21 @@ export function Main(props: Props) {
   const { floatingStyles, refs, context } = useFloating({
     open,
     onOpenChange: setOpen,
-    placement: () => 'bottom-start',
+    placement: 'bottom-start',
   });
 
   const disabledIndices = [0, 1, 2, 3, 4, 5, 6, 7, 10, 15, 45, 48];
 
   const click = useClick(context);
   const listNavigation = useListNavigation(context, {
-    listRef: () => listRef,
+    listRef,
     activeIndex,
     onNavigate: setActiveIndex,
-    cols: () => 5,
+    cols: 5,
     orientation,
     loop,
-    openOnArrowKeyDown: () => false,
-    disabledIndices: () => disabledIndices,
+    openOnArrowKeyDown: false,
+    disabledIndices,
   });
   const dismiss = useDismiss(context);
 

@@ -21,6 +21,7 @@ import {
   isOutsideEvent,
 } from '../utils';
 
+import { access, type MaybeAccessor, type MaybeAccessorValue } from '../../solid-helpers';
 import { type OpenChangeReason } from '../types';
 import { createAttribute } from '../utils/createAttribute';
 
@@ -51,10 +52,10 @@ export const usePortalContext = () => useContext(PortalContext);
 const attr = createAttribute('portal');
 
 export interface UseFloatingPortalNodeProps {
-  id?: Accessor<string | undefined>;
-  root?: Accessor<HTMLElement | ShadowRoot | null | undefined>;
-  preserveTabOrder?: Accessor<boolean>;
-  modal?: Accessor<boolean | undefined>;
+  id?: MaybeAccessor<string | undefined>;
+  root?: MaybeAccessor<HTMLElement | ShadowRoot | null | undefined>;
+  preserveTabOrder?: MaybeAccessor<boolean>;
+  modal?: MaybeAccessor<boolean | undefined>;
 }
 
 /**
@@ -66,8 +67,8 @@ export function useFloatingPortalNode(props: UseFloatingPortalNodeProps = {}) {
   const portalContext = usePortalContext();
 
   const portalMount = createMemo<Parameters<typeof Portal>[0]['mount']>(() => {
-    const id = props.id?.();
-    const root = props.root?.();
+    const id = access(props.id);
+    const root = access(props.root);
 
     const existingIdRoot = id ? document.getElementById(id) : null;
     if (existingIdRoot) {
@@ -95,7 +96,7 @@ export function useFloatingPortalNode(props: UseFloatingPortalNodeProps = {}) {
       // portal has already been focused, either by tabbing into a focus trap
       // element outside or using the mouse.
       function onFocus(event: FocusEvent) {
-        if (!props.preserveTabOrder?.() || props.modal?.()) {
+        if (!access(props.preserveTabOrder) || access(props.modal)) {
           return;
         }
 
@@ -132,7 +133,7 @@ export interface FloatingPortalProps {
   /**
    * Specifies the root node the portal container will be appended to.
    */
-  root?: ReturnType<Exclude<UseFloatingPortalNodeProps['root'], undefined>>;
+  root?: MaybeAccessorValue<UseFloatingPortalNodeProps['root']>;
   /**
    * When using non-modal focus management using `FloatingFocusManager`, this
    * will preserve the tab order context based on the React tree instead of the

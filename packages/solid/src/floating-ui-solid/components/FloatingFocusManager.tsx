@@ -1,14 +1,5 @@
 import { getNodeName, isHTMLElement } from '@floating-ui/utils/dom';
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  on,
-  onCleanup,
-  onMount,
-  Show,
-  type JSX,
-} from 'solid-js';
+import { createEffect, createMemo, createSignal, on, onCleanup, Show, type JSX } from 'solid-js';
 import { focusable, isTabbable, tabbable, type FocusableElement } from 'tabbable';
 import { FocusGuard } from '../../utils/FocusGuard';
 import { useForkRef } from '../../utils/useForkRef';
@@ -31,13 +22,12 @@ import {
   stopEvent,
 } from '../utils';
 
-import { DelegatedEvents } from 'solid-js/web';
 import type { FloatingRootContext, OpenChangeReason } from '../types';
 import { createAttribute } from '../utils/createAttribute';
 import { enqueueFocus } from '../utils/enqueueFocus';
 import { markOthers, supportsInert } from '../utils/markOthers';
 import { usePortalContext } from './FloatingPortal';
-import { useFloatingParentNodeId, useFloatingTree } from './FloatingTree';
+import { useFloatingTree } from './FloatingTree';
 
 const LIST_LIMIT = 20;
 let previouslyFocusedElements: Element[] = [];
@@ -324,6 +314,7 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
           )))
     );
 
+    // eslint-disable-next-line solid/reactivity
     queueMicrotask(() => {
       if (currentTarget === domReference && floatingElement) {
         handleTabIndex(floatingElement, orderValue);
@@ -508,6 +499,7 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
     const previouslyFocusedElement = activeElement(doc);
 
     // Wait for any layout effect state setters to execute to set `tabIndex`.
+    // eslint-disable-next-line solid/reactivity
     queueMicrotask(() => {
       const open = props.context.open();
       const initialFocusIgnored = ignoreInitialFocus();

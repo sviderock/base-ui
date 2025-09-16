@@ -59,16 +59,16 @@ export function Main(props: Props) {
 
   const click = useClick(context);
   const listNavigation = useListNavigation(context, {
-    listRef: () => listRef,
+    listRef,
     activeIndex,
     onNavigate: setActiveIndex,
-    cols: () => 7,
+    cols: 7,
     orientation,
     loop,
     rtl,
-    openOnArrowKeyDown: () => false,
-    disabledIndices: () => disabledIndices,
-    itemSizes: () => itemSizes,
+    openOnArrowKeyDown: false,
+    disabledIndices,
+    itemSizes,
   });
   const dismiss = useDismiss(context);
 

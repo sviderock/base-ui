@@ -49,8 +49,8 @@ export function NavigationItem(props: ItemProps & JSX.HTMLAttributes<HTMLAnchorE
     open,
     nodeId,
     onOpenChange: setOpen,
-    middleware: () => [offset(8), flip(), shift()],
-    placement: () => 'right-start',
+    middleware: [offset(8), flip(), shift()],
+    placement: 'right-start',
   });
 
   const hover = useHover(context, {

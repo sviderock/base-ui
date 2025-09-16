@@ -125,7 +125,7 @@ function PopoverComponent(props: Props) {
     open,
     placement: () => props.placement,
     onOpenChange: setOpen,
-    middleware: () => [offset(10), flip(), shift()],
+    middleware: [offset(10), flip(), shift()],
     whileElementsMounted: autoUpdate,
   });
 

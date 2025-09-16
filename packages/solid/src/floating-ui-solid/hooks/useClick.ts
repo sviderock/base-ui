@@ -1,6 +1,6 @@
 'use client';
-import { screen } from '@solidjs/testing-library';
-import { createMemo, createSignal, onMount, type Accessor } from 'solid-js';
+import { createMemo, type Accessor } from 'solid-js';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useAnimationFrame } from '../../utils/useAnimationFrame';
 import type { ElementProps, FloatingRootContext } from '../types';
 import { isMouseLikePointerType } from '../utils';
@@ -11,31 +11,31 @@ export interface UseClickProps {
    * handlers.
    * @default true
    */
-  enabled?: Accessor<boolean>;
+  enabled?: MaybeAccessor<boolean>;
   /**
    * The type of event to use to determine a “click” with mouse input.
    * Keyboard clicks work as normal.
    * @default 'click'
    */
-  event?: Accessor<'click' | 'mousedown'>;
+  event?: MaybeAccessor<'click' | 'mousedown'>;
   /**
    * Whether to toggle the open state with repeated clicks.
    * @default true
    */
-  toggle?: Accessor<boolean>;
+  toggle?: MaybeAccessor<boolean>;
   /**
    * Whether to ignore the logic for mouse input (for example, if `useHover()`
    * is also being used).
    * @default false
    */
-  ignoreMouse?: Accessor<boolean>;
+  ignoreMouse?: MaybeAccessor<boolean>;
   /**
    * If already open from another event such as the `useHover()` Hook,
    * determines whether to keep the floating element open when clicking the
    * reference element for the first time.
    * @default true
    */
-  stickIfOpen?: Accessor<boolean>;
+  stickIfOpen?: MaybeAccessor<boolean>;
 }
 
 /**
@@ -46,11 +46,11 @@ export function useClick(
   context: FloatingRootContext,
   props: UseClickProps = {},
 ): Accessor<ElementProps> {
-  const enabled = () => props.enabled?.() ?? true;
-  const eventOption = () => props.event?.() ?? 'click';
-  const toggle = () => props.toggle?.() ?? true;
-  const ignoreMouse = () => props.ignoreMouse?.() ?? false;
-  const stickIfOpen = () => props.stickIfOpen?.() ?? true;
+  const enabled = () => access(props.enabled) ?? true;
+  const eventOption = () => access(props.event) ?? 'click';
+  const toggle = () => access(props.toggle) ?? true;
+  const ignoreMouse = () => access(props.ignoreMouse) ?? false;
+  const stickIfOpen = () => access(props.stickIfOpen) ?? true;
 
   let pointerTypeRef: 'mouse' | 'pen' | 'touch' | undefined | ({} & string);
   const frame = useAnimationFrame();

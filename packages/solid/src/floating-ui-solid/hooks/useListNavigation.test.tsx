@@ -1,7 +1,7 @@
 import { flushMicrotasks } from '#test-utils';
 import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import { createEffect, createSignal, For, Index, onCleanup, type JSX } from 'solid-js';
+import { createSignal, For, Index } from 'solid-js';
 import { describe, it, vi } from 'vitest';
 
 import { Main as ComplexGrid } from '../../../test/floating-ui-tests/ComplexGrid';
@@ -11,7 +11,6 @@ import { Main as ListboxFocus } from '../../../test/floating-ui-tests/ListboxFoc
 import { Main as NestedMenu } from '../../../test/floating-ui-tests/Menu';
 import { HorizontalMenu } from '../../../test/floating-ui-tests/MenuOrientation';
 import { Menu, MenuItem } from '../../../test/floating-ui-tests/MenuVirtual';
-import { createRefSignal, type ReactLikeRef } from '../../solid-helpers';
 import { isJSDOM } from '../../utils/detectBrowser';
 import { useClick, useDismiss, useFloating, useInteractions, useListNavigation } from '../index';
 import type { UseListNavigationProps } from '../types';
@@ -28,7 +27,7 @@ function App(props: Omit<Partial<UseListNavigationProps>, 'listRef'>) {
   const click = useClick(context);
   const listNavigation = useListNavigation(context, {
     ...props,
-    listRef: () => listRef,
+    listRef,
     activeIndex,
     onNavigate(index) {
       setActiveIndex(index);
@@ -273,7 +272,7 @@ describe('useListNavigation', () => {
 
   describe('loop', () => {
     it('ArrowDown looping', async () => {
-      render(() => <App loop={() => true} />);
+      render(() => <App loop />);
 
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowDown' });
       expect(screen.getByRole('menu')).toBeInTheDocument();
@@ -299,7 +298,7 @@ describe('useListNavigation', () => {
     });
 
     it('ArrowUp looping', async () => {
-      render(() => <App loop={() => true} />);
+      render(() => <App loop />);
 
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowUp' });
       expect(screen.getByRole('menu')).toBeInTheDocument();
@@ -327,7 +326,7 @@ describe('useListNavigation', () => {
 
   describe('orientation', () => {
     it('navigates down on ArrowRight', async () => {
-      render(() => <App orientation={() => 'horizontal'} />);
+      render(() => <App orientation="horizontal" />);
 
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowRight' });
       expect(screen.getByRole('menu')).toBeInTheDocument();
@@ -353,7 +352,7 @@ describe('useListNavigation', () => {
     });
 
     it('navigates up on ArrowLeft', async () => {
-      render(() => <App orientation={() => 'horizontal'} />);
+      render(() => <App orientation="horizontal" />);
 
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowLeft' });
       expect(screen.getByRole('menu')).toBeInTheDocument();
@@ -381,7 +380,7 @@ describe('useListNavigation', () => {
 
   describe('rtl', () => {
     it('navigates down on ArrowLeft', async () => {
-      render(() => <App rtl={() => true} orientation={() => 'horizontal'} />);
+      render(() => <App rtl orientation="horizontal" />);
 
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowLeft' });
       expect(screen.getByRole('menu')).toBeInTheDocument();
@@ -407,7 +406,7 @@ describe('useListNavigation', () => {
     });
 
     it('navigates up on ArrowRight', async () => {
-      render(() => <App rtl={() => true} orientation={() => 'horizontal'} />);
+      render(() => <App rtl orientation="horizontal" />);
 
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowRight' });
       expect(screen.getByRole('menu')).toBeInTheDocument();
@@ -435,7 +434,7 @@ describe('useListNavigation', () => {
 
   describe('focusItemOnOpen', () => {
     it('true click', async () => {
-      render(() => <App focusItemOnOpen={() => true} />);
+      render(() => <App focusItemOnOpen />);
       fireEvent.click(screen.getByRole('button'));
       await waitFor(() => {
         expect(screen.getByTestId('item-0')).toHaveFocus();
@@ -443,7 +442,7 @@ describe('useListNavigation', () => {
     });
 
     it('false click', async () => {
-      render(() => <App focusItemOnOpen={() => false} />);
+      render(() => <App focusItemOnOpen={false} />);
       fireEvent.click(screen.getByRole('button'));
       await waitFor(() => {
         expect(screen.getByTestId('item-0')).not.toHaveFocus();
@@ -465,7 +464,7 @@ describe('useListNavigation', () => {
         HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
       });
 
-      render(() => <App selectedIndex={() => 0} />);
+      render(() => <App selectedIndex={0} />);
       fireEvent.click(screen.getByRole('button'));
       expect(requestAnimationFrame).toHaveBeenCalled();
       // Run the timer
@@ -476,7 +475,7 @@ describe('useListNavigation', () => {
 
   describe('allowEscape + virtual', () => {
     it('true', () => {
-      render(() => <App allowEscape={() => true} virtual={() => true} loop={() => true} />);
+      render(() => <App allowEscape virtual loop />);
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowDown' });
       expect(screen.getByTestId('item-0').getAttribute('aria-selected')).toBe('true');
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowUp' });
@@ -492,7 +491,7 @@ describe('useListNavigation', () => {
     });
 
     it('false', () => {
-      render(() => <App allowEscape={() => false} virtual={() => true} loop={() => true} />);
+      render(() => <App allowEscape={false} virtual loop />);
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowDown' });
       expect(screen.getByTestId('item-0').getAttribute('aria-selected')).toBe('true');
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowDown' });
@@ -501,9 +500,7 @@ describe('useListNavigation', () => {
 
     it('true - onNavigate is called with `null` when escaped', () => {
       const spy = vi.fn();
-      render(() => (
-        <App allowEscape={() => true} virtual={() => true} loop={() => true} onNavigate={spy} />
-      ));
+      render(() => <App allowEscape virtual loop onNavigate={spy} />);
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowDown' });
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowUp' });
       expect(spy).toHaveBeenCalledTimes(2);
@@ -513,25 +510,25 @@ describe('useListNavigation', () => {
 
   describe('openOnArrowKeyDown', () => {
     it('true ArrowDown', () => {
-      render(() => <App openOnArrowKeyDown={() => true} />);
+      render(() => <App openOnArrowKeyDown />);
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowDown' });
       expect(screen.getByRole('menu')).toBeInTheDocument();
     });
 
     it('true ArrowUp', () => {
-      render(() => <App openOnArrowKeyDown={() => true} />);
+      render(() => <App openOnArrowKeyDown />);
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowUp' });
       expect(screen.getByRole('menu')).toBeInTheDocument();
     });
 
     it('false ArrowDown', () => {
-      render(() => <App openOnArrowKeyDown={() => false} />);
+      render(() => <App openOnArrowKeyDown={false} />);
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowDown' });
       expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     });
 
     it('false ArrowUp', () => {
-      render(() => <App openOnArrowKeyDown={() => false} />);
+      render(() => <App openOnArrowKeyDown={false} />);
       fireEvent.keyDown(screen.getByRole('button'), { key: 'ArrowUp' });
       expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     });
@@ -565,9 +562,7 @@ describe('useListNavigation', () => {
 
     it('false - does not focus item on hover and does not sync the active index', async () => {
       const spy = vi.fn();
-      render(() => (
-        <App onNavigate={spy} focusItemOnOpen={() => false} focusItemOnHover={() => false} />
-      ));
+      render(() => <App onNavigate={spy} focusItemOnOpen={false} focusItemOnHover={false} />);
       fireEvent.click(screen.getByRole('button'));
       fireEvent.mouseMove(screen.getByTestId('item-1'));
       expect(screen.getByTestId('item-1')).not.toHaveFocus();

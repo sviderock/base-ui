@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { flushMicrotasks } from '#test-utils';
 import { fireEvent, render, screen } from '@solidjs/testing-library';
-import { type Component, createEffect, createSignal, onMount } from 'solid-js';
+import { type Component, createEffect, createSignal } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { vi } from 'vitest';
 

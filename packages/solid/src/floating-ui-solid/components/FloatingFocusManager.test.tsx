@@ -6,16 +6,8 @@
 import { flushMicrotasks } from '#test-utils';
 import { fireEvent, render, screen, waitFor, within } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import {
-  batch,
-  createEffect,
-  createSignal,
-  onMount,
-  Show,
-  type Component,
-  type JSX,
-} from 'solid-js';
-import { DelegatedEvents, delegateEvents, Dynamic } from 'solid-js/web';
+import { batch, createSignal, onMount, Show, type Component, type JSX } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import { test } from 'vitest';
 import { Main as MenuVirtual } from '../../../test/floating-ui-tests/MenuVirtual';
 import { Main as Navigation } from '../../../test/floating-ui-tests/Navigation';
@@ -106,6 +98,7 @@ interface DialogProps {
 }
 
 function Dialog(props: DialogProps) {
+  // eslint-disable-next-line solid/reactivity
   const [open, setOpen] = createSignal(props.open ?? false);
   const nodeId = useFloatingNodeId();
 
@@ -115,10 +108,10 @@ function Dialog(props: DialogProps) {
     nodeId,
   });
 
-  const { getReferenceProps, getFloatingProps } = useInteractions(() => [
-    useClick(context)(),
-    useDismiss(context, { bubbles: () => false })(),
-  ]);
+  const click = useClick(context);
+  const dismiss = useDismiss(context, { bubbles: false });
+
+  const { getReferenceProps, getFloatingProps } = useInteractions(() => [click(), dismiss()]);
 
   return (
     <FloatingNode id={nodeId()}>
@@ -471,7 +464,6 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         configurable: true,
         writable: true,
         value(options: any) {
-          console.trace('focus', document.activeElement);
           // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           options && options.preventScroll;
           return originalFocus.call(this, options);
@@ -656,14 +648,17 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
       const user = userEvent.setup({ document: iframeDoc });
 
+      // eslint-disable-next-line testing-library/prefer-screen-queries
       await user.click(iframeWithin.getByRole('button', { name: 'Open' }));
 
+      // eslint-disable-next-line testing-library/prefer-screen-queries
       const popover = iframeWithin.getByTestId('popover');
       expect(iframeDoc!.body.contains(popover)).toBe(true);
 
       await user.tab();
       await user.tab();
 
+      // eslint-disable-next-line testing-library/prefer-screen-queries
       const el = iframeWithin.getByText('next iframe link');
       expect(iframeDoc?.activeElement).toBe(el);
     });
@@ -681,13 +676,16 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
         const user = userEvent.setup({ document: iframeDoc });
 
+        // eslint-disable-next-line testing-library/prefer-screen-queries
         await user.click(iframeWithin.getByRole('button', { name: 'Open' }));
 
+        // eslint-disable-next-line testing-library/prefer-screen-queries
         const popover = iframeWithin.getByTestId('popover');
         expect(iframeDoc!.body.contains(popover)).toBe(true);
 
         await user.tab({ shift: true });
 
+        // eslint-disable-next-line testing-library/prefer-screen-queries
         const el = iframeWithin.getByRole('button', { name: 'Open' });
         expect(iframeDoc?.activeElement).toBe(el);
       },
@@ -1777,6 +1775,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     function Drawer(props: { open: boolean; onOpenChange: (open: boolean) => void }) {
       const { refs, context } = useFloating({
         open: () => props.open,
+        // eslint-disable-next-line solid/reactivity
         onOpenChange: props.onOpenChange,
       });
       const dismiss = useDismiss(context);

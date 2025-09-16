@@ -1,5 +1,6 @@
 import { getWindow } from '@floating-ui/utils/dom';
 import { createEffect, createMemo, createSignal, onCleanup, type Accessor } from 'solid-js';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import type { ContextData, ElementProps, FloatingRootContext } from '../types';
 import { contains, getTarget, isMouseLikePointerType } from '../utils';
 
@@ -87,24 +88,24 @@ export interface UseClientPointProps {
    * handlers.
    * @default true
    */
-  enabled?: Accessor<boolean | undefined>;
+  enabled?: MaybeAccessor<boolean | undefined>;
   /**
    * Whether to restrict the client point to an axis and use the reference
    * element (if it exists) as the other axis. This can be useful if the
    * floating element is also interactive.
    * @default 'both'
    */
-  axis?: Accessor<'x' | 'y' | 'both' | undefined>;
+  axis?: MaybeAccessor<'x' | 'y' | 'both' | undefined>;
   /**
    * An explicitly defined `x` client coordinate.
    * @default null
    */
-  x?: Accessor<number | null | undefined>;
+  x?: MaybeAccessor<number | null | undefined>;
   /**
    * An explicitly defined `y` client coordinate.
    * @default null
    */
-  y?: Accessor<number | null | undefined>;
+  y?: MaybeAccessor<number | null | undefined>;
 }
 
 /**
@@ -116,10 +117,10 @@ export function useClientPoint(
   context: FloatingRootContext,
   props: UseClientPointProps = {},
 ): Accessor<ElementProps> {
-  const enabled = () => props.enabled?.() ?? true;
-  const axis = () => props.axis?.() ?? 'both';
-  const x = () => props.x?.() ?? null;
-  const y = () => props.y?.() ?? null;
+  const enabled = () => access(props.enabled) ?? true;
+  const axis = () => access(props.axis) ?? 'both';
+  const x = () => access(props.x) ?? null;
+  const y = () => access(props.y) ?? null;
   const floating = () => context.elements.floating?.();
   const domReference = () => context.elements.domReference?.();
 

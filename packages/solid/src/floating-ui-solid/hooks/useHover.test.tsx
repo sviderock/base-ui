@@ -53,7 +53,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
 
   describe('delay', () => {
     test('symmetric number', async () => {
-      render(() => <App delay={() => 1000} />);
+      render(() => <App delay={1000} />);
 
       fireEvent.mouseEnter(screen.getByRole('button'));
 
@@ -69,7 +69,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
     });
 
     test('open', async () => {
-      render(() => <App delay={() => ({ open: 500 })} />);
+      render(() => <App delay={{ open: 500 }} />);
 
       fireEvent.mouseEnter(screen.getByRole('button'));
 
@@ -85,7 +85,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
     });
 
     test('close', async () => {
-      render(() => <App delay={() => ({ close: 500 })} />);
+      render(() => <App delay={{ close: 500 }} />);
 
       fireEvent.mouseEnter(screen.getByRole('button'));
       fireEvent.mouseLeave(screen.getByRole('button'));
@@ -102,7 +102,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
     });
 
     test('open with close 0', async () => {
-      render(() => <App delay={() => ({ open: 500 })} />);
+      render(() => <App delay={{ open: 500 }} />);
 
       fireEvent.mouseEnter(screen.getByRole('button'));
 
@@ -118,7 +118,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
     });
 
     test('restMs + nullish open delay should respect restMs', async () => {
-      render(() => <App restMs={() => 100} delay={() => ({ close: 100 })} />);
+      render(() => <App restMs={100} delay={{ close: 100 }} />);
 
       fireEvent.mouseEnter(screen.getByRole('button'));
 
@@ -131,7 +131,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
   });
 
   test('restMs', async () => {
-    render(() => <App restMs={() => 100} />);
+    render(() => <App restMs={100} />);
 
     const button = screen.getByRole('button');
 
@@ -163,7 +163,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
   });
 
   test.skip('restMs is always 0 for touch input', async () => {
-    render(() => <App restMs={() => 100} />);
+    render(() => <App restMs={100} />);
 
     fireEvent.pointerDown(screen.getByRole('button'), { pointerType: 'touch' });
     fireEvent.mouseMove(screen.getByRole('button'));
@@ -176,7 +176,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
   });
 
   test('restMs does not cause floating element to open if mouseOnly is true', async () => {
-    render(() => <App restMs={() => 100} mouseOnly={() => true} />);
+    render(() => <App restMs={100} mouseOnly={true} />);
 
     fireEvent.pointerDown(screen.getByRole('button'), { pointerType: 'touch' });
     fireEvent.mouseMove(screen.getByRole('button'));
@@ -187,7 +187,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
   });
 
   test('restMs does not reset timer for minor mouse movement', async () => {
-    render(() => <App restMs={() => 100} />);
+    render(() => <App restMs={100} />);
 
     const button = screen.getByRole('button');
 
@@ -230,7 +230,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
 
   test('does not show after delay if domReference changes', async () => {
     const [showReference, setShowReference] = createSignal<boolean | undefined>(undefined);
-    render(() => <App delay={() => 1000} showReference={showReference()} />);
+    render(() => <App delay={1000} showReference={showReference()} />);
 
     fireEvent.mouseEnter(screen.getByRole('button'));
 

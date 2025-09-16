@@ -9,6 +9,7 @@ import {
   type JSX,
 } from 'solid-js';
 import { createStore } from 'solid-js/store';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import type {
   Accessorify,
   ComputePositionConfig,
@@ -21,7 +22,7 @@ import type {
 type UsePositionData = ComputePositionReturn & { isPositioned: boolean };
 
 export type UsePositionOptions<RT extends ReferenceType = ReferenceType> = Prettify<
-  Partial<Accessorify<ComputePositionConfig>> & {
+  Partial<Accessorify<ComputePositionConfig, 'maybeAccessor'>> & {
     /**
      * A callback invoked when both the reference and floating elements are
      * mounted, and cleaned up when either is unmounted. This is useful for
@@ -32,21 +33,21 @@ export type UsePositionOptions<RT extends ReferenceType = ReferenceType> = Prett
      * Object containing the reference and floating elements.
      */
     elements?: {
-      reference?: Accessor<RT | null>;
-      floating?: Accessor<HTMLElement | null>;
+      reference?: MaybeAccessor<RT | null>;
+      floating?: MaybeAccessor<HTMLElement | null>;
     };
     /**
      * The `open` state of the floating element to synchronize with the
      * `isPositioned` value.
      * @default false
      */
-    open?: Accessor<boolean | undefined>;
+    open?: MaybeAccessor<boolean | undefined>;
     /**
      * Whether to use `transform` for positioning instead of `top` and `left`
      * (layout) in the `floatingStyles` object.
      * @default true
      */
-    transform?: Accessor<boolean | undefined>;
+    transform?: MaybeAccessor<boolean | undefined>;
   }
 >;
 
@@ -99,17 +100,17 @@ export type UsePositionFloatingReturn<RT extends ReferenceType = ReferenceType> 
 export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   options: UseFloatingOptions = {},
 ): Accessor<UsePositionFloatingReturn<RT>> {
-  const placement = () => options.placement?.() ?? 'bottom';
-  const strategy = () => options.strategy?.() ?? 'absolute';
-  const middleware = () => options.middleware?.() ?? [];
+  const placement = () => access(options.placement) ?? 'bottom';
+  const strategy = () => access(options.strategy) ?? 'absolute';
+  const middleware = () => access(options.middleware) ?? [];
   const elementsProp = () => options.elements ?? {};
-  const transform = () => options.transform?.() ?? true;
+  const transform = () => access(options.transform) ?? true;
 
   const [data, setData] = createStore<UsePositionData>({
     x: 0,
     y: 0,
-    strategy: strategy(),
-    placement: placement(),
+    strategy: access(strategy()),
+    placement: access(placement()),
     middlewareData: {},
     isPositioned: false,
   });
@@ -117,12 +118,8 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   const [reference, setReference] = createSignal<RT | null>(null);
   const [floating, setFloating] = createSignal<HTMLElement | null>(null);
 
-  const referenceEl = createMemo(() => {
-    return elementsProp().reference?.() || reference();
-  });
-  const floatingEl = createMemo(() => {
-    return elementsProp().floating?.() || floating();
-  });
+  const referenceEl = createMemo(() => access(elementsProp().reference) || reference());
+  const floatingEl = createMemo(() => access(elementsProp().floating) || floating());
 
   let isMountedRef = false;
 
@@ -137,8 +134,9 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
       middleware: middleware(),
     };
 
-    if (options.platform?.()) {
-      config.platform = options.platform();
+    const platform = access(options.platform);
+    if (platform) {
+      config.platform = platform;
     }
 
     computePosition(reference()!, floating()!, config).then((computedData) => {
@@ -148,7 +146,7 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
         // but still mounted (such as when transitioning out). To ensure
         // `isPositioned` will be `false` initially on the next open, avoid
         // setting it to `true` when `open === false` (must be specified).
-        isPositioned: options.open?.() !== false,
+        isPositioned: access(options.open) !== false,
       };
       if (isMountedRef && !deepEqual(data, fullData)) {
         setData(fullData);
@@ -157,7 +155,7 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   }
 
   createEffect(() => {
-    if (options.open?.() === false && data.isPositioned) {
+    if (access(options.open) === false && data.isPositioned) {
       setData('isPositioned', false);
     }
   });
@@ -183,20 +181,10 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   const refs = {
     reference,
     floating,
-    setReference: (node: RT | null) => {
-      setReference(() => node);
-      // onCleanup(() => {
-      //   setReference(null);
-      // });
-    },
-    setFloating: (node: HTMLElement | null) => {
-      setFloating(() => node);
-      // TODO: This somehow fixes "useClientPoint > cleans up window listener when closing or disabling" test
-      // onCleanup(() => {
-      //   setFloating(null);
-      // });
-    },
+    setReference,
+    setFloating,
   };
+
   const elements = { reference: referenceEl, floating: floatingEl };
 
   const floatingStyles = createMemo<JSX.CSSProperties>(() => {
@@ -284,7 +272,10 @@ function deepEqual(a: any, b: any) {
   if (a && b && typeof a === 'object') {
     if (Array.isArray(a)) {
       length = a.length;
-      if (length !== b.length) return false;
+      if (length !== b.length) {
+        return false;
+      }
+      // eslint-disable-next-line no-plusplus
       for (i = length; i-- !== 0; ) {
         if (!deepEqual(a[i], b[i])) {
           return false;
@@ -300,12 +291,14 @@ function deepEqual(a: any, b: any) {
       return false;
     }
 
+    // eslint-disable-next-line no-plusplus
     for (i = length; i-- !== 0; ) {
       if (!{}.hasOwnProperty.call(b, keys[i])) {
         return false;
       }
     }
 
+    // eslint-disable-next-line no-plusplus
     for (i = length; i-- !== 0; ) {
       const key = keys[i];
       if (key === '_owner' && a.$$typeof) {
@@ -320,5 +313,6 @@ function deepEqual(a: any, b: any) {
     return true;
   }
 
+  // eslint-disable-next-line no-self-compare
   return a !== a && b !== b;
 }

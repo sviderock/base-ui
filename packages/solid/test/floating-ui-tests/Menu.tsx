@@ -5,7 +5,6 @@ import {
   createSignal,
   on,
   onCleanup,
-  onMount,
   Show,
   splitProps,
   useContext,
@@ -106,8 +105,8 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
     nodeId,
     open: isOpen,
     onOpenChange: setIsOpen,
-    placement: () => (isNested ? 'right-start' : 'bottom-start'),
-    middleware: () => [
+    placement: isNested ? 'right-start' : 'bottom-start',
+    middleware: [
       offset({ mainAxis: isNested ? 0 : 4, alignmentAxis: isNested ? -4 : 0 }),
       flip(),
       shift(),
@@ -117,27 +116,28 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
 
   const hover = useHover(context, {
     enabled: () => isNested && allowHover(),
-    delay: () => ({ open: 75 }),
+    delay: { open: 75 },
     handleClose: safePolygon({ blockPointerEvents: true }),
   });
   const click = useClick(context, {
-    event: () => 'mousedown',
+    event: 'mousedown',
     toggle: () => !isNested || !allowHover(),
-    ignoreMouse: () => isNested,
+    ignoreMouse: isNested,
   });
   const focus = useFocus(context, { enabled: openOnFocus });
-  const role = useRole(context, { role: () => 'menu' });
-  const dismiss = useDismiss(context, { bubbles: () => true });
+  const role = useRole(context, { role: 'menu' });
+  const dismiss = useDismiss(context, { bubbles: true });
   const listNavigation = useListNavigation(context, {
-    listRef: () => elements,
+    listRef: elements,
     activeIndex,
-    nested: () => isNested,
+    nested: isNested,
     onNavigate: setActiveIndex,
     orientation,
-    cols: () => local.cols,
+    // eslint-disable-next-line solid/reactivity
+    cols: local.cols,
   });
   const typeahead = useTypeahead(context, {
-    listRef: () => labels,
+    listRef: labels,
     onMatch: (index) => (isOpen() ? setActiveIndex(index) : undefined),
     activeIndex,
   });
@@ -256,7 +256,6 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
         )}
       </button>
       <MenuContext.Provider
-        // eslint-disable-next-line react/jsx-no-constructed-context-values
         value={{
           activeIndex,
           setActiveIndex,

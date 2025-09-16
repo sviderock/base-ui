@@ -1,4 +1,5 @@
 import { type Accessor, createMemo, type JSX } from 'solid-js';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useId } from '../../utils/useId';
 import { useFloatingParentNodeId } from '../components/FloatingTree';
 import type { ElementProps, FloatingRootContext } from '../types';
@@ -14,12 +15,12 @@ export interface UseRoleProps {
    * handlers.
    * @default true
    */
-  enabled?: Accessor<boolean>;
+  enabled?: MaybeAccessor<boolean>;
   /**
    * The role of the floating element.
    * @default 'dialog'
    */
-  role?: Accessor<AriaRole | ComponentRole>;
+  role?: MaybeAccessor<AriaRole | ComponentRole>;
 }
 
 const componentRoleToAriaRoleMap = new Map<AriaRole | ComponentRole, AriaRole | false>([
@@ -37,10 +38,8 @@ export function useRole(
   context: FloatingRootContext,
   props: UseRoleProps = {},
 ): Accessor<ElementProps> {
-  // const { open, elements, floatingId: defaultFloatingId } = context;
-  // const { enabled = true, role = 'dialog' } = props;
-  const enabled = () => props.enabled?.() ?? true;
-  const role = () => props.role?.() ?? 'dialog';
+  const enabled = () => access(props.enabled) ?? true;
+  const role = () => access(props.role) ?? 'dialog';
 
   const defaultReferenceId = useId();
   const referenceId = () => context.elements.domReference()?.id || defaultReferenceId();

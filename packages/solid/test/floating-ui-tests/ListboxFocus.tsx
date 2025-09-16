@@ -25,7 +25,7 @@ function Listbox(props: { children: JSX.Element }) {
   const [selectedIndex, setSelectedIndex] = createSignal<number | null>(null);
 
   const { refs, context } = useFloating({
-    open: () => true,
+    open: true,
   });
 
   const [elements, setElements] = createStore<Array<HTMLElement | null>>([]);
@@ -40,19 +40,19 @@ function Listbox(props: { children: JSX.Element }) {
   }
 
   const listNav = useListNavigation(context, {
-    listRef: () => elements,
+    listRef: elements,
     activeIndex,
     selectedIndex,
     onNavigate: setActiveIndex,
-    focusItemOnHover: () => false,
+    focusItemOnHover: false,
   });
   const typeahead = useTypeahead(context, {
-    listRef: () => labels,
+    listRef: labels,
     activeIndex,
     selectedIndex,
     onMatch: handleTypeaheadMatch,
   });
-  const role = useRole(context, { role: () => 'listbox' });
+  const role = useRole(context, { role: 'listbox' });
 
   const { getFloatingProps, getItemProps } = useInteractions(() => [
     listNav(),

@@ -7,13 +7,14 @@ import {
   type JSX,
 } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useId } from '../../utils/useId';
 import type { FloatingNodeType, FloatingTreeType, ReferenceType } from '../types';
 import { createEventEmitter } from '../utils/createEventEmitter';
 
 interface ContextFloatingNodeType {
-  id: Accessor<FloatingNodeType['id']>;
-  parentId: Accessor<FloatingNodeType['parentId']>;
+  id: MaybeAccessor<FloatingNodeType['id']>;
+  parentId: MaybeAccessor<FloatingNodeType['parentId']>;
   context?: FloatingNodeType['context'];
 }
 
@@ -24,7 +25,10 @@ const FloatingTreeContext = createContext<FloatingTreeType | null>(null);
  * Returns the parent node id for nested floating elements, if available.
  * Returns `null` for top-level floating elements.
  */
-export const useFloatingParentNodeId = () => useContext(FloatingNodeContext)?.id() || null;
+export const useFloatingParentNodeId = () => {
+  const context = useContext(FloatingNodeContext);
+  return access(context?.id) || null;
+};
 
 /**
  * Returns the nearest floating tree context, if available.

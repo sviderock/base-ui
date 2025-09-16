@@ -1,5 +1,6 @@
 import { isElement } from '@floating-ui/utils/dom';
-import { createSignal, type Accessor } from 'solid-js';
+import { createSignal } from 'solid-js';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useId } from '../../utils/useId';
 import { useFloatingParentNodeId } from '../components/FloatingTree';
 import type {
@@ -11,19 +12,19 @@ import type {
 import { createEventEmitter } from '../utils/createEventEmitter';
 
 export interface UseFloatingRootContextOptions {
-  open?: Accessor<boolean | undefined>;
+  open?: MaybeAccessor<boolean | undefined>;
   onOpenChange?: (open: boolean, event?: Event, reason?: OpenChangeReason) => void;
   elements: {
-    reference: Accessor<Element | null>;
-    floating: Accessor<HTMLElement | null>;
-    domReference: Accessor<Element | null>;
+    reference: MaybeAccessor<Element | null>;
+    floating: MaybeAccessor<HTMLElement | null>;
+    domReference: MaybeAccessor<Element | null>;
   };
 }
 
 export function useFloatingRootContext(
   options: UseFloatingRootContextOptions,
 ): FloatingRootContext {
-  const open = () => options.open?.() ?? false;
+  const open = () => access(options.open) ?? false;
   const floatingId = useId();
   const events = createEventEmitter();
   const parentId = useFloatingParentNodeId();
@@ -31,7 +32,7 @@ export function useFloatingRootContext(
   const dataRef: ContextData = {};
 
   if (process.env.NODE_ENV !== 'production') {
-    const optionDomReference = options.elements.reference();
+    const optionDomReference = access(options.elements.reference);
     if (optionDomReference && !isElement(optionDomReference)) {
       console.error(
         'Cannot pass a virtual element to the `elements.reference` option,',
@@ -42,10 +43,10 @@ export function useFloatingRootContext(
   }
 
   const [positionReference, setPositionReference] = createSignal<ReferenceElement | null>(
-    options.elements.reference(),
+    access(options.elements.reference),
   );
-  const [floating, setFloating] = createSignal(options.elements.floating());
-  const [domReference, setDomReference] = createSignal(options.elements.domReference());
+  const [floating, setFloating] = createSignal(access(options.elements.floating));
+  const [domReference, setDomReference] = createSignal(access(options.elements.domReference));
 
   const onOpenChange = (newOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
     dataRef.openEvent = newOpen ? event : undefined;
@@ -60,9 +61,9 @@ export function useFloatingRootContext(
   };
 
   const elements = {
-    reference: () => positionReference() || options.elements.reference(),
-    floating: () => floating() || options.elements.floating(),
-    domReference: () => domReference() || options.elements.domReference(),
+    reference: () => positionReference() || access(options.elements.reference),
+    floating: () => floating() || access(options.elements.floating),
+    domReference: () => domReference() || access(options.elements.domReference),
   };
 
   return {

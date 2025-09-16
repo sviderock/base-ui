@@ -11,6 +11,7 @@ import {
   matchesFocusVisible,
 } from '../utils';
 
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import type { ElementProps, FloatingRootContext, OpenChangeReason } from '../types';
 import { createAttribute } from '../utils/createAttribute';
 
@@ -22,13 +23,13 @@ export interface UseFocusProps {
    * handlers.
    * @default true
    */
-  enabled?: Accessor<boolean>;
+  enabled?: MaybeAccessor<boolean>;
   /**
    * Whether the open state only changes if the focus event is considered
    * visible (`:focus-visible` CSS selector).
    * @default true
    */
-  visibleOnly?: Accessor<boolean>;
+  visibleOnly?: MaybeAccessor<boolean>;
 }
 
 /**
@@ -40,8 +41,8 @@ export function useFocus(
   context: FloatingRootContext,
   props: UseFocusProps = {},
 ): Accessor<ElementProps> {
-  const enabled = () => props.enabled?.() ?? true;
-  const visibleOnly = () => props.visibleOnly?.() ?? true;
+  const enabled = () => access(props.enabled) ?? true;
+  const visibleOnly = () => access(props.visibleOnly) ?? true;
 
   let blockFocusRef = false;
   let keyboardModalityRef = true;

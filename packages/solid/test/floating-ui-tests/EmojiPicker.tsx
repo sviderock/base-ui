@@ -2,7 +2,6 @@ import c from 'clsx';
 import {
   createEffect,
   createSignal,
-  For,
   Index,
   Match,
   onCleanup,
@@ -10,7 +9,6 @@ import {
   Switch,
   type JSX,
 } from 'solid-js';
-import { createStore } from 'solid-js/store';
 import {
   arrow,
   autoUpdate,
@@ -109,7 +107,7 @@ export function Main() {
   const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
   const [placement, setPlacement] = createSignal<Placement | null>(null);
 
-  let arrowRef: Element | null = null;
+  let arrowRef: Element | undefined;
 
   const listRef: Array<HTMLElement | undefined> = [];
 
@@ -139,7 +137,7 @@ export function Main() {
 
   const click = useClick(context);
   const dismiss = useDismiss(context);
-  const role = useRole(context, { role: () => 'menu' });
+  const role = useRole(context, { role: 'menu' });
 
   // Handles opening the floating element via the Choose Emoji button.
   const { getReferenceProps, getFloatingProps } = useInteractions(() => [
@@ -149,15 +147,15 @@ export function Main() {
   ]);
 
   const listNavigation = useListNavigation(context, {
-    listRef: () => listRef,
+    listRef,
     onNavigate: (index) => (open() ? setActiveIndex(index) : undefined),
     activeIndex,
-    cols: () => 3,
-    orientation: () => 'horizontal',
-    loop: () => true,
-    focusItemOnOpen: () => false,
-    virtual: () => true,
-    allowEscape: () => true,
+    cols: 3,
+    orientation: 'horizontal',
+    loop: true,
+    focusItemOnOpen: false,
+    virtual: true,
+    allowEscape: true,
   });
   // Handles the list navigation where the reference is the inner input, not
   // the button that opens the floating element.
