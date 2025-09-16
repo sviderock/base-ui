@@ -301,7 +301,6 @@ export function useListNavigation(
   const isPointerModalityRef = React.useRef(true);
 
   const onNavigate = useEventCallback(() => {
-    console.trace('onNavigate', indexRef.current);
     onNavigateProp(indexRef.current === -1 ? null : indexRef.current);
   });
 
@@ -426,12 +425,6 @@ export function useListNavigation(
       }
 
       // Initial sync.
-      console.log({
-        previousOpenRef: previousOpenRef.current,
-        previousMountedRef: previousMountedRef.current,
-        focusItemOnOpenRef: focusItemOnOpenRef.current,
-        keyRef: keyRef.current,
-      });
       if (
         (!previousOpenRef.current || !previousMountedRef.current) &&
         focusItemOnOpenRef.current &&
@@ -439,7 +432,6 @@ export function useListNavigation(
       ) {
         let runs = 0;
         const waitForListPopulated = () => {
-          console.log(5);
           if (listRef.current[0] == null) {
             // Avoid letting the browser paint if possible on the first try,
             // otherwise use rAF. Don't try more than twice, since something
@@ -595,13 +587,6 @@ export function useListNavigation(
   }, [latestOpenRef, floatingFocusElementRef, focusItemOnHover, listRef, onNavigate, virtual]);
 
   const getParentOrientation = React.useCallback(() => {
-    console.log({
-      parentOrientation,
-      parentId,
-      treeRef: tree?.nodesRef.current,
-      tree: tree?.nodesRef.current.find((node) => node.id === parentId)?.context?.dataRef?.current
-        .orientation,
-    });
     return (
       parentOrientation ??
       (tree?.nodesRef.current.find((node) => node.id === parentId)?.context?.dataRef?.current
@@ -841,7 +826,6 @@ export function useListNavigation(
 
   const reference: ElementProps['reference'] = React.useMemo(() => {
     function checkVirtualMouse(event: React.PointerEvent) {
-      console.log('useListNavigation -> reference -> checkVirtualMouse');
       if (focusItemOnOpen === 'auto' && isVirtualClick(event.nativeEvent)) {
         focusItemOnOpenRef.current = true;
       }
@@ -858,7 +842,6 @@ export function useListNavigation(
     return {
       ...ariaActiveDescendantProp,
       onKeyDown(event) {
-        console.log('onKeyDown');
         isPointerModalityRef.current = false;
 
         const isArrowKey = event.key.startsWith('Arrow');
@@ -927,10 +910,8 @@ export function useListNavigation(
           return undefined;
         }
 
-        console.log('isNavigationKey', isNavigationKey);
         if (isNavigationKey) {
           const isParentMainKey = isMainOrientationKey(event.key, getParentOrientation());
-          console.log('keyRef', { isParentMainKey, nested });
           keyRef.current = nested && isParentMainKey ? null : event.key;
         }
 
@@ -940,10 +921,8 @@ export function useListNavigation(
 
             if (open) {
               indexRef.current = getMinListIndex(listRef, disabledIndicesRef.current);
-              console.log(1);
               onNavigate();
             } else {
-              console.log(2);
               onOpenChange(true, event.nativeEvent, 'list-navigation');
             }
           }
@@ -959,14 +938,12 @@ export function useListNavigation(
           stopEvent(event);
 
           if (!open && openOnArrowKeyDown) {
-            console.log(3);
             onOpenChange(true, event.nativeEvent, 'list-navigation');
           } else {
             commonOnKeyDown(event);
           }
 
           if (open) {
-            console.log(4);
             onNavigate();
           }
         }
@@ -974,7 +951,6 @@ export function useListNavigation(
         return undefined;
       },
       onFocus() {
-        console.log('useListNavigation -> reference -> onFocus', { open, virtual });
         if (open && !virtual) {
           indexRef.current = -1;
           onNavigate();

@@ -6,8 +6,8 @@ import {
   createSignal,
   createUniqueId,
   type JSX,
+  on,
   onCleanup,
-  onMount,
   Show,
   splitProps,
   useContext,
@@ -35,7 +35,7 @@ import {
   useListNavigation,
   useRole,
 } from '../../src/floating-ui-solid';
-import { callEventHandler, createRefSignal, type RefSignal } from '../../src/solid-helpers';
+import { callEventHandler, type ReactLikeRef } from '../../src/solid-helpers';
 import { useForkRefN } from '../../src/utils/useForkRef';
 
 type MenuContextType = {
@@ -64,7 +64,7 @@ interface MenuProps {
   label: string;
   nested?: boolean;
   children?: JSX.Element;
-  virtualItemRef: RefSignal<HTMLElement>;
+  virtualItemRef: ReactLikeRef<HTMLElement>;
 }
 
 /** @internal */
@@ -80,8 +80,8 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
 
   const tree = useFloatingTree();
   const nodeId = useFloatingNodeId();
-  const parentId = useFloatingParentNodeId();
-  const isNested = () => parentId() != null;
+  const parentId = useFloatingParentNodeId()();
+  const isNested = () => parentId != null;
 
   const parent = useContext(MenuContext);
   const item = useCompositeListItem();
@@ -135,7 +135,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
     }
 
     function onSubMenuOpen(event: { nodeId: string; parentId: string }) {
-      if (event.nodeId !== nodeId() && event.parentId === parentId()) {
+      if (event.nodeId !== nodeId() && event.parentId === parentId) {
         setIsOpen(false);
       }
     }
@@ -143,7 +143,6 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
     tree.events.on('click', handleTreeClick);
     tree.events.on('menuopen', onSubMenuOpen);
 
-    // eslint-disable-next-line consistent-return
     onCleanup(() => {
       tree.events.off('click', handleTreeClick);
       tree.events.off('menuopen', onSubMenuOpen);
@@ -152,36 +151,38 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
 
   createEffect(() => {
     if (isOpen() && tree) {
-      tree.events.emit('menuopen', { parentId: parentId(), nodeId: nodeId() });
+      tree.events.emit('menuopen', { parentId, nodeId: nodeId() });
     }
   });
 
   // Determine if "hover" logic can run based on the modality of input. This
   // prevents unwanted focus synchronization as menus open and close with
   // keyboard navigation and the cursor is resting on the menu.
-  createEffect(() => {
-    function onPointerMove({ pointerType }: PointerEvent) {
-      if (pointerType !== 'touch') {
-        setAllowHover(true);
+  createEffect(
+    on(allowHover, () => {
+      function onPointerMove({ pointerType }: PointerEvent) {
+        if (pointerType !== 'touch') {
+          setAllowHover(true);
+        }
       }
-    }
 
-    function onKeyDown() {
-      setAllowHover(false);
-    }
+      function onKeyDown() {
+        setAllowHover(false);
+      }
 
-    window.addEventListener('pointermove', onPointerMove, {
-      once: true,
-      capture: true,
-    });
-    window.addEventListener('keydown', onKeyDown, true);
-    onCleanup(() => {
-      window.removeEventListener('pointermove', onPointerMove, {
+      window.addEventListener('pointermove', onPointerMove, {
+        once: true,
         capture: true,
       });
-      window.removeEventListener('keydown', onKeyDown, true);
-    });
-  });
+      window.addEventListener('keydown', onKeyDown, true);
+      onCleanup(() => {
+        window.removeEventListener('pointermove', onPointerMove, {
+          capture: true,
+        });
+        window.removeEventListener('keydown', onKeyDown, true);
+      });
+    }),
+  );
 
   const id = createUniqueId();
 
@@ -251,7 +252,6 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
         />
       )}
       <MenuContext.Provider
-        // eslint-disable-next-line react/jsx-no-constructed-context-values
         value={{
           activeIndex,
           setActiveIndex,
@@ -276,7 +276,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
                   ref={refs.setFloating}
                   class="border-slate-900/10 flex flex-col rounded border bg-white bg-clip-padding p-1 shadow-lg outline-none"
                   style={floatingStyles()}
-                  {...getFloatingProps()}
+                  {...getFloatingProps({})}
                 >
                   {local.children}
                 </div>
@@ -369,7 +369,7 @@ export function Menu(props: MenuProps & JSX.HTMLAttributes<HTMLElement>) {
 
 /** @internal */
 export function Main() {
-  const virtualItemRef = createRefSignal<HTMLElement>(null);
+  const virtualItemRef: ReactLikeRef<HTMLElement> = { current: null };
 
   return (
     <>

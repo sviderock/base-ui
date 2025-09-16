@@ -3,7 +3,9 @@ import {
   createContext,
   createEffect,
   createSignal,
+  on,
   onCleanup,
+  onMount,
   Show,
   splitProps,
   useContext,
@@ -92,7 +94,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
   const [labels, setLabels] = createStore<Array<string | null>>([]);
 
   const tree = useFloatingTree();
-  const nodeId = useFloatingNodeId()();
+  const nodeId = useFloatingNodeId();
   const parentId = useFloatingParentNodeId()();
   const isNested = parentId != null;
   const orientation = () => local.orientation ?? (local.cols ? 'both' : 'vertical');
@@ -101,7 +103,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
   const item = useCompositeListItem();
 
   const { floatingStyles, refs, context } = useFloating<HTMLButtonElement>({
-    nodeId: () => nodeId,
+    nodeId,
     open: isOpen,
     onOpenChange: setIsOpen,
     placement: () => (isNested ? 'right-start' : 'bottom-start'),
@@ -163,7 +165,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
     }
 
     function onSubMenuOpen(event: { nodeId: string; parentId: string }) {
-      if (event.nodeId !== nodeId && event.parentId === parentId) {
+      if (event.nodeId !== nodeId() && event.parentId === parentId) {
         setIsOpen(false);
       }
     }
@@ -179,49 +181,41 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
 
   createEffect(() => {
     if (isOpen() && tree) {
-      tree.events.emit('menuopen', { parentId, nodeId });
+      tree.events.emit('menuopen', { parentId, nodeId: nodeId() });
     }
   });
 
   // Determine if "hover" logic can run based on the modality of input. This
   // prevents unwanted focus synchronization as menus open and close with
   // keyboard navigation and the cursor is resting on the menu.
-  createEffect(() => {
-    function onPointerMove({ pointerType }: PointerEvent) {
-      if (pointerType !== 'touch') {
-        setAllowHover(true);
+  createEffect(
+    on(allowHover, () => {
+      function onPointerMove({ pointerType }: PointerEvent) {
+        if (pointerType !== 'touch') {
+          setAllowHover(true);
+        }
       }
-    }
 
-    function onKeyDown() {
-      setAllowHover(false);
-    }
+      function onKeyDown() {
+        setAllowHover(false);
+      }
 
-    window.addEventListener('pointermove', onPointerMove, {
-      once: true,
-      capture: true,
-    });
-    window.addEventListener('keydown', onKeyDown, true);
-    onCleanup(() => {
-      window.removeEventListener('pointermove', onPointerMove, {
+      window.addEventListener('pointermove', onPointerMove, {
+        once: true,
         capture: true,
       });
-      window.removeEventListener('keydown', onKeyDown, true);
-    });
-  });
-
-  createEffect(() => {
-    console.log('isOpen', {
-      label: props.label,
-      isOpen: isOpen(),
-      nodeId,
-      parentId,
-      isNested,
-    });
-  });
+      window.addEventListener('keydown', onKeyDown, true);
+      onCleanup(() => {
+        window.removeEventListener('pointermove', onPointerMove, {
+          capture: true,
+        });
+        window.removeEventListener('keydown', onKeyDown, true);
+      });
+    }),
+  );
 
   return (
-    <FloatingNode id={nodeId}>
+    <FloatingNode id={nodeId()}>
       <button
         type="button"
         ref={useForkRefN([refs.setReference, item.ref, props.ref as any])}
@@ -277,7 +271,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
         <CompositeList
           elements={elements}
           labels={labels}
-          setElements={setElements}
+          setElements={setElements as any}
           setLabels={setLabels}
         >
           {(keepMounted() || isOpen()) && (
@@ -307,7 +301,15 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
                     visibility: !keepMounted() ? undefined : isOpen() ? 'visible' : 'hidden',
                   }}
                   aria-hidden={!isOpen()}
-                  {...getFloatingProps()}
+                  /**
+                   * TODO: I have absolutely no idea why, but passing an empty object
+                   * to getFloatingProps is necessary to get last 5 tests from
+                   * useListNavigation.test.tsx to pass. For some reason, calling
+                   * getFloatingProps without an empty object is triggering ocasional
+                   * keydown events to be emitted twice in a row.
+                   * This is probably due to the way combineProps works but I'm not sure.
+                   */
+                  {...getFloatingProps({})}
                 >
                   {local.children}
                 </div>
@@ -385,10 +387,10 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLButtonEle
 
 /** @internal */
 export function Menu(props: MenuProps & JSX.HTMLAttributes<HTMLButtonElement>) {
-  const parentId = useFloatingParentNodeId();
+  const parentId = useFloatingParentNodeId()();
 
   return (
-    <Show when={parentId() === null} fallback={<MenuComponent {...props} />}>
+    <Show when={parentId === null} fallback={<MenuComponent {...props} />}>
       <FloatingTree>
         <MenuComponent {...props} />
       </FloatingTree>

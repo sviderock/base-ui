@@ -34,6 +34,10 @@ export type Accessify<T, AccessorKeys extends keyof T> = {
 
 export type MaybeAccessor<T> = T | Accessor<T>;
 
+export type ReactLikeRef<T extends Element | null> = {
+  current: T | null;
+};
+
 export function withResolvers<T>(): {
   resolve: (value: T) => void;
   reject: (reason?: any) => void;

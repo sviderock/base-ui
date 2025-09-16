@@ -11,7 +11,7 @@ import { Main as ListboxFocus } from '../../../test/floating-ui-tests/ListboxFoc
 import { Main as NestedMenu } from '../../../test/floating-ui-tests/Menu';
 import { HorizontalMenu } from '../../../test/floating-ui-tests/MenuOrientation';
 import { Menu, MenuItem } from '../../../test/floating-ui-tests/MenuVirtual';
-import { createRefSignal } from '../../solid-helpers';
+import { createRefSignal, type ReactLikeRef } from '../../solid-helpers';
 import { isJSDOM } from '../../utils/detectBrowser';
 import { useClick, useDismiss, useFloating, useInteractions, useListNavigation } from '../index';
 import type { UseListNavigationProps } from '../types';
@@ -1029,28 +1029,27 @@ describe('useListNavigation', () => {
         return 0;
       },
     );
-    console.log(1);
-    render(() => <NestedMenu />);
-    console.log(2, document.activeElement.outerHTML);
-    await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
-    console.log(3, document.activeElement.outerHTML);
-    await userEvent.keyboard('{ArrowDown}');
-    console.log(4, document.activeElement.outerHTML);
-    await userEvent.keyboard('{ArrowDown}');
-    console.log(5, document.activeElement.outerHTML);
-    await userEvent.keyboard('{ArrowDown}');
-    console.log(6, document.activeElement.outerHTML);
-    await userEvent.keyboard('{ArrowRight}');
-    console.log(7, document.activeElement.outerHTML);
 
-    await waitFor(() => {
-      expect(screen.getByText('Text')).toHaveFocus();
-    });
+    render(() => <NestedMenu />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    await userEvent.keyboard('{ArrowDown}');
+    await userEvent.keyboard('{ArrowDown}');
+    await userEvent.keyboard('{ArrowDown}');
+    await userEvent.keyboard('{ArrowRight}');
+
     expect(screen.getByText('Text')).toHaveFocus();
   });
 
   // In JSDOM it will not focus the first item, but will in the browser
   it.skipIf(!isJSDOM)('keyboard navigation in nested menus lists', async () => {
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation(
+      (callback: FrameRequestCallback): number => {
+        callback(0);
+        return 0;
+      },
+    );
+
     render(() => <NestedMenu />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
@@ -1149,7 +1148,7 @@ describe('useListNavigation', () => {
   });
 
   it('domReference trigger in nested virtual menu is set as virtual item', async () => {
-    const ref = createRefSignal<HTMLElement>(null);
+    const ref = { current: null } as any;
     // eslint-disable-next-line @typescript-eslint/no-shadow
     function App() {
       return (
@@ -1189,7 +1188,7 @@ describe('useListNavigation', () => {
 
     await userEvent.keyboard('{ArrowLeft}'); // close Copy as submenu
 
-    expect(ref.ref()).toBe(screen.getByTestId('copy'));
+    expect(ref.current).toBe(screen.getByTestId('copy'));
   });
 
   it('Home or End key press is ignored for typeable combobox reference', async () => {

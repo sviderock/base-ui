@@ -3,6 +3,7 @@ import {
   createContext,
   createEffect,
   createSignal,
+  on,
   onCleanup,
   Show,
   splitProps,
@@ -94,8 +95,8 @@ export function MenuComponent(
 
   const tree = useFloatingTree();
   const nodeId = useFloatingNodeId();
-  const parentId = useFloatingParentNodeId();
-  const isNested = () => parentId() != null;
+  const parentId = useFloatingParentNodeId()();
+  const isNested = () => parentId != null;
   const orientation = () => local.orientation ?? (local.cols ? 'both' : 'vertical');
 
   const parent = useContext(MenuContext);
@@ -162,7 +163,7 @@ export function MenuComponent(
     }
 
     function onSubMenuOpen(event: { nodeId: string; parentId: string }) {
-      if (event.nodeId !== nodeId() && event.parentId === parentId()) {
+      if (event.nodeId !== nodeId() && event.parentId === parentId) {
         setIsOpen(false);
       }
     }
@@ -170,7 +171,6 @@ export function MenuComponent(
     tree.events.on('click', handleTreeClick);
     tree.events.on('menuopen', onSubMenuOpen);
 
-    // eslint-disable-next-line consistent-return
     onCleanup(() => {
       tree.events.off('click', handleTreeClick);
       tree.events.off('menuopen', onSubMenuOpen);
@@ -179,36 +179,39 @@ export function MenuComponent(
 
   createEffect(() => {
     if (isOpen() && tree) {
-      tree.events.emit('menuopen', { parentId: parentId(), nodeId: nodeId() });
+      tree.events.emit('menuopen', { parentId, nodeId: nodeId() });
     }
   });
 
   // Determine if "hover" logic can run based on the modality of input. This
   // prevents unwanted focus synchronization as menus open and close with
   // keyboard navigation and the cursor is resting on the menu.
-  createEffect(() => {
-    function onPointerMove({ pointerType }: PointerEvent) {
-      if (pointerType !== 'touch') {
-        setAllowHover(true);
+  createEffect(
+    on(allowHover, () => {
+      function onPointerMove({ pointerType }: PointerEvent) {
+        if (pointerType !== 'touch') {
+          setAllowHover(true);
+        }
       }
-    }
 
-    function onKeyDown() {
-      setAllowHover(false);
-    }
+      function onKeyDown(e) {
+        console.log('window event onKeyDown', e.target.textContent);
+        setAllowHover(false);
+      }
 
-    window.addEventListener('pointermove', onPointerMove, {
-      once: true,
-      capture: true,
-    });
-    window.addEventListener('keydown', onKeyDown, true);
-    onCleanup(() => {
-      window.removeEventListener('pointermove', onPointerMove, {
+      window.addEventListener('pointermove', onPointerMove, {
+        once: true,
         capture: true,
       });
-      window.removeEventListener('keydown', onKeyDown, true);
-    });
-  }, [allowHover]);
+      window.addEventListener('keydown', onKeyDown, true);
+      onCleanup(() => {
+        window.removeEventListener('pointermove', onPointerMove, {
+          capture: true,
+        });
+        window.removeEventListener('keydown', onKeyDown, true);
+      });
+    }),
+  );
 
   return (
     <FloatingNode id={nodeId()}>
@@ -252,7 +255,6 @@ export function MenuComponent(
         )}
       </button>
       <MenuContext.Provider
-        // eslint-disable-next-line react/jsx-no-constructed-context-values
         value={{
           activeIndex,
           setActiveIndex,
@@ -268,7 +270,7 @@ export function MenuComponent(
         <CompositeList
           elements={elements}
           labels={labels}
-          setElements={setElements}
+          setElements={setElements as any}
           setLabels={setLabels}
         >
           {(keepMounted() || isOpen()) && (
@@ -300,8 +302,8 @@ export function MenuComponent(
                     // eslint-disable-next-line no-nested-ternary
                     visibility: !keepMounted() ? undefined : isOpen() ? 'visible' : 'hidden',
                   }}
-                  aria-hidden={!isOpen}
-                  {...getFloatingProps()}
+                  aria-hidden={!isOpen()}
+                  {...getFloatingProps({})}
                 >
                   {local.children}
                 </div>
@@ -379,10 +381,10 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLButtonEle
 
 /** @internal */
 export function Menu(props: MenuProps & JSX.HTMLAttributes<HTMLButtonElement>) {
-  const parentId = useFloatingParentNodeId();
+  const parentId = useFloatingParentNodeId()();
 
   return (
-    <Show when={parentId() === null} fallback={<MenuComponent {...props} />}>
+    <Show when={parentId === null} fallback={<MenuComponent {...props} />}>
       <FloatingTree>
         <MenuComponent {...props} />
       </FloatingTree>

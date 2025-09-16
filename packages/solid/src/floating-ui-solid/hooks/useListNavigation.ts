@@ -1,5 +1,5 @@
 import { isHTMLElement } from '@floating-ui/utils/dom';
-import { batch, createEffect, createMemo, createSignal, onCleanup, type Accessor } from 'solid-js';
+import { createEffect, createMemo, createSignal, onCleanup, type Accessor } from 'solid-js';
 import {
   activeElement,
   contains,
@@ -21,7 +21,9 @@ import {
   stopEvent,
 } from '../utils';
 
-import type { MaybeAccessor, RefSignal } from '../../solid-helpers';
+import { delegateEvents } from 'solid-js/web';
+import type { MaybeAccessor, ReactLikeRef } from '../../solid-helpers';
+import { usePortalContext } from '../components/FloatingPortal';
 import { useFloatingParentNodeId, useFloatingTree } from '../components/FloatingTree';
 import type { Dimensions, ElementProps, FloatingRootContext } from '../types';
 import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP } from '../utils/constants';
@@ -34,7 +36,6 @@ function doSwitch(
   vertical: boolean,
   horizontal: boolean,
 ) {
-  console.log('doSwitch', { orientation: orientation?.(), vertical, horizontal });
   switch (orientation?.()) {
     case 'vertical':
       return vertical;
@@ -215,7 +216,7 @@ export interface UseListNavigationProps {
    * the root reference handling the events. Requires `FloatingTree` to be
    * setup.
    */
-  virtualItemRef?: RefSignal<HTMLElement>;
+  virtualItemRef?: ReactLikeRef<HTMLElement>;
   /**
    * Only for `cols > 1`, specify sizes for grid items.
    * `{ width: 2, height: 2 }` means an item is 2 columns wide and 2 rows tall.
@@ -259,6 +260,7 @@ export function useListNavigation(
     }
     return props.disabledIndices;
   });
+  const portalContext = usePortalContext();
 
   if (process.env.NODE_ENV !== 'production') {
     if (allowEscape()) {
@@ -298,12 +300,12 @@ export function useListNavigation(
   let isPointerModalityRef = true;
 
   const onNavigate = () => {
-    console.log('onNavigate', indexRef);
     props.onNavigate?.(indexRef === -1 ? null : indexRef);
   };
 
-  let previousMountedRef = !!context.elements.floating();
-  let previousOpenRef = context.open();
+  const previousMountedRef = () => !!context.elements.floating();
+
+  const previousOpenRef = context.open();
   let forceSyncFocusRef = false;
   let forceScrollIntoViewRef = false;
 
@@ -319,8 +321,8 @@ export function useListNavigation(
         }
         setActiveId(item.id);
         tree?.events.emit('virtualfocus', item);
-        if (props.virtualItemRef?.ref()) {
-          props.virtualItemRef.setRef(item);
+        if (props.virtualItemRef) {
+          props.virtualItemRef.current = item;
         }
       } else {
         enqueueFocus(item, {
@@ -383,7 +385,7 @@ export function useListNavigation(
         indexRef = selected;
         onNavigate();
       }
-    } else if (previousMountedRef) {
+    } else if (previousMountedRef()) {
       // Since the user can specify `onNavigate` conditionally
       // (onNavigate: open ? setActiveIndex : setSelectedIndex),
       // we store and call the previous function.
@@ -414,26 +416,19 @@ export function useListNavigation(
       }
 
       // Reset while the floating element was open (e.g. the list changed).
-      if (previousMountedRef) {
+      if (previousMountedRef()) {
         indexRef = -1;
         focusItem();
       }
 
       // Initial sync.
-      console.log({
-        previousOpenRef,
-        previousMountedRef,
-        focusItemOnOpen: focusItemOnOpen(),
-        keyRef,
-      });
       if (
-        (!previousOpenRef || !previousMountedRef) &&
+        (!previousOpenRef || !previousMountedRef()) &&
         focusItemOnOpen() &&
         (keyRef != null || (focusItemOnOpen() === true && keyRef == null))
       ) {
         let runs = 0;
         const waitForListPopulated = () => {
-          console.log(5);
           if (props.listRef()[0] == null) {
             // Avoid letting the browser paint if possible on the first try,
             // otherwise use rAF. Don't try more than twice, since something
@@ -466,7 +461,7 @@ export function useListNavigation(
   // Ensure the parent floating element has focus when a nested child closes
   // to allow arrow key navigation to work after the pointer leaves the child.
   createEffect(() => {
-    if (!enabled() || context.elements.floating() || !tree || virtual() || !previousMountedRef) {
+    if (!enabled() || context.elements.floating() || !tree || virtual() || !previousMountedRef()) {
       return;
     }
 
@@ -500,8 +495,8 @@ export function useListNavigation(
     function handleVirtualFocus(item: HTMLElement) {
       setVirtualId(item.id);
 
-      if (props.virtualItemRef?.ref()) {
-        props.virtualItemRef.setRef(item);
+      if (props.virtualItemRef) {
+        props.virtualItemRef.current = item;
       }
     }
 
@@ -510,11 +505,6 @@ export function useListNavigation(
     onCleanup(() => {
       tree.events.off('virtualfocus', handleVirtualFocus);
     });
-  });
-
-  createEffect(() => {
-    previousOpenRef = context.open();
-    previousMountedRef = !!context.elements.floating();
   });
 
   createEffect(() => {
@@ -534,6 +524,7 @@ export function useListNavigation(
       const index = props.listRef().indexOf(currentTarget);
       if (index !== -1 && indexRef !== index) {
         indexRef = index;
+
         onNavigate();
       }
     }
@@ -575,11 +566,6 @@ export function useListNavigation(
   });
 
   const getParentOrientation = () => {
-    console.log({
-      treeRef: tree?.nodesRef,
-      parentId,
-      parentOrientation: props.parentOrientation?.(),
-    });
     return (
       props.parentOrientation?.() ??
       (tree?.nodesRef?.find((node) => node.id === parentId)?.context?.dataRef
@@ -612,6 +598,7 @@ export function useListNavigation(
       if (!isMainOrientationKey(event.key, getParentOrientation)) {
         stopEvent(event);
       }
+
       context.onOpenChange(false, event, 'list-navigation');
 
       const domReference = context.elements.domReference();
@@ -737,6 +724,7 @@ export function useListNavigation(
         activeElement((event.currentTarget as any)?.ownerDocument) === event.currentTarget
       ) {
         indexRef = isMainOrientationToEndKey(event.key, orientation, rtl()) ? minIndex : maxIndex;
+
         onNavigate();
         return;
       }
@@ -808,7 +796,20 @@ export function useListNavigation(
     return {
       'aria-orientation': typesafeOrientation === 'both' ? undefined : typesafeOrientation,
       ...(!typeableComboboxReference() ? ariaActiveDescendantProp() : {}),
-      'on:keydown': commonOnKeyDown,
+      'on:keydown': (event) => {
+        commonOnKeyDown(event);
+
+        // Manually bubble across portals only if propagation wasn't stopped
+        // by commonOnKeyDown (mirrors React's natural bubbling behavior).
+        if (parentId != null && !(event as any).cancelBubble) {
+          const eventObject = new KeyboardEvent('keydown', { key: event.key, bubbles: true });
+          const parentNode =
+            tree && parentId != null ? tree?.nodesRef.find((node) => node.id === parentId) : null;
+          if (parentNode) {
+            parentNode.context?.elements.floating()?.dispatchEvent(eventObject);
+          }
+        }
+      },
       'on:pointermove': () => {
         isPointerModalityRef = true;
       },
@@ -818,7 +819,6 @@ export function useListNavigation(
   const reference = createMemo<ElementProps['reference']>(() => {
     // TODO: This is a hack to get the event type to work.
     function checkVirtualMouse(event: MouseEvent) {
-      console.log('useListNavigation -> reference -> checkVirtualMouse');
       if (focusItemOnOpen() === 'auto' && isVirtualClick(event)) {
         setFocusItemOnOpen(true);
       }
@@ -832,19 +832,17 @@ export function useListNavigation(
       }
     }
 
+    /**
+     * We need to store the open state at the start of the function
+     * because changes in Solid's state are synchronous, while the
+     * React's state is asynchronous.
+     */
     const openAtStart = context.open();
 
     return {
       ...ariaActiveDescendantProp(),
       'on:keydown': (event) => {
-        console.log('on:keydown', event.key);
         isPointerModalityRef = false;
-
-        /**
-         * We need to store the open state at the start of the function
-         * because changes in Solid's state are synchronous, while the
-         * React's state is asynchronous.
-         */
 
         const isArrowKey = event.key.startsWith('Arrow');
         const isHomeOrEndKey = ['Home', 'End'].includes(event.key);
@@ -866,7 +864,7 @@ export function useListNavigation(
           const rootNode = tree?.nodesRef.find((node) => node.parentId == null);
           const deepestNode = tree && rootNode ? getDeepestNode(tree.nodesRef, rootNode.id) : null;
 
-          if (isMoveKey && deepestNode && props.virtualItemRef?.ref()) {
+          if (isMoveKey && deepestNode && props.virtualItemRef) {
             const eventObject = new KeyboardEvent('keydown', {
               key: event.key,
               bubbles: true,
@@ -912,11 +910,8 @@ export function useListNavigation(
           return undefined;
         }
 
-        console.log('isNavigationKey', isNavigationKey);
         if (isNavigationKey) {
           const isParentMainKey = isMainOrientationKey(event.key, getParentOrientation);
-          console.log('keyRef', { isParentMainKey, nested: nested() });
-
           keyRef = nested() && isParentMainKey ? null : event.key;
         }
 
@@ -926,10 +921,8 @@ export function useListNavigation(
 
             if (openAtStart) {
               indexRef = getMinListIndex(props.listRef(), disabledIndices());
-              console.log(1);
               onNavigate();
             } else {
-              console.log(2);
               context.onOpenChange(true, event, 'list-navigation');
             }
           }
@@ -950,14 +943,12 @@ export function useListNavigation(
              * This will cause a synchronous change in the open state which
              * failes the next check for openAtStart.
              */
-            console.log(3);
             context.onOpenChange(true, event, 'list-navigation');
           } else {
             commonOnKeyDown(event);
           }
 
           if (openAtStart) {
-            console.log(4);
             onNavigate();
           }
         }
@@ -965,10 +956,6 @@ export function useListNavigation(
         return undefined;
       },
       'on:focus': () => {
-        console.log('useListNavigation -> reference -> on:focus', {
-          open: openAtStart,
-          virtual: virtual(),
-        });
         if (openAtStart && !virtual()) {
           indexRef = -1;
           onNavigate();

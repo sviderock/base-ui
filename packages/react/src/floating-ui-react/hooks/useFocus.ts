@@ -112,7 +112,6 @@ export function useFocus(context: FloatingRootContext, props: UseFocusProps = {}
         blockFocusRef.current = false;
       },
       onFocus(event) {
-        console.log('onFocus');
         if (blockFocusRef.current) {
           return;
         }

@@ -202,16 +202,6 @@ export const MenuComponent = React.forwardRef<
     };
   }, [allowHover]);
 
-  React.useEffect(() => {
-    console.log('isOpen', {
-      label,
-      isOpen,
-      nodeId,
-      parentId,
-      isNested,
-    });
-  }, [isOpen, nodeId, parentId, isNested, label]);
-
   return (
     <FloatingNode id={nodeId}>
       <button
