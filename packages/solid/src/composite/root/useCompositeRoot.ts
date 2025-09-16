@@ -1,8 +1,8 @@
 'use client';
-import { createEffect, createMemo, createSignal, mergeProps, type Accessor } from 'solid-js';
-import { createStore } from 'solid-js/store';
+import { createEffect, createMemo, createSignal, type Accessor } from 'solid-js';
 import type { TextDirection } from '../../direction-provider/DirectionContext';
 import { activeElement } from '../../floating-ui-solid/utils';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { isElementDisabled } from '../../utils/isElementDisabled';
 import { ownerDocument } from '../../utils/owner';
 import type { HTMLProps } from '../../utils/types';
@@ -35,76 +35,75 @@ import {
   type ModifierKey,
 } from '../composite';
 import { ACTIVE_COMPOSITE_ITEM } from '../constants';
-import { type CompositeMetadata } from '../list/CompositeList';
+import { type CompositeList, type CompositeMetadata } from '../list/CompositeList';
 
 export interface UseCompositeRootParameters {
-  orientation?: 'horizontal' | 'vertical' | 'both' | undefined;
-  cols?: number | undefined;
-  loop?: boolean | undefined;
-  highlightedIndex?: number | undefined;
+  orientation?: MaybeAccessor<'horizontal' | 'vertical' | 'both' | undefined>;
+  cols?: MaybeAccessor<number | undefined>;
+  loop?: MaybeAccessor<boolean | undefined>;
+  highlightedIndex?: MaybeAccessor<number | undefined>;
   onHighlightedIndexChange?: (index: number) => void;
-  dense?: boolean | undefined;
-  itemSizes?: Array<Dimensions> | undefined;
-  rootRef?: HTMLElement | null;
+  dense?: MaybeAccessor<boolean | undefined>;
+  itemSizes?: MaybeAccessor<Array<Dimensions> | undefined>;
+  rootRef?: MaybeAccessor<HTMLElement | null>;
   /**
    * When `true`, pressing the Home key moves focus to the first item,
    * and pressing the End key moves focus to the last item.
    * @default false
    */
-  enableHomeAndEndKeys?: boolean;
+  enableHomeAndEndKeys?: MaybeAccessor<boolean>;
   /**
    * When `true`, keypress events on Composite's navigation keys
    * be stopped with event.stopPropagation()
    * @default false
    */
-  stopEventPropagation?: boolean;
+  stopEventPropagation?: MaybeAccessor<boolean>;
   /**
    * Array of item indices to be considered disabled.
    * Used for composite items that are focusable when disabled.
    */
-  disabledIndices?: number[];
+  disabledIndices?: MaybeAccessor<number[]>;
   /**
    * Array of [modifier key values](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values#modifier_keys) that should allow normal keyboard actions
    * when pressed. By default, all modifier keys prevent normal actions.
    * @default []
    */
-  modifierKeys?: ModifierKey[];
+  modifierKeys?: MaybeAccessor<ModifierKey[]>;
 }
 
 const EMPTY_ARRAY: never[] = [];
 
-export function useCompositeRoot(
+export function useCompositeRoot<Metadata>(
   params: UseCompositeRootParameters,
   direction: Accessor<TextDirection>,
 ) {
-  const mergedParams = mergeProps(
-    {
-      cols: 1,
-      loop: true,
-      dense: false,
-      orientation: 'both',
-      enableHomeAndEndKeys: false,
-      stopEventPropagation: false,
-      modifierKeys: EMPTY_ARRAY,
-    } satisfies Partial<UseCompositeRootParameters>,
-    params,
-  );
+  const cols = () => access(params.cols) ?? 1;
+  const loop = () => access(params.loop) ?? true;
+  const dense = () => access(params.dense) ?? false;
+  const orientation = () => access(params.orientation) ?? 'both';
+  const enableHomeAndEndKeys = () => access(params.enableHomeAndEndKeys) ?? false;
+  const stopEventPropagation = () => access(params.stopEventPropagation) ?? false;
+  const modifierKeys = () => access(params.modifierKeys) ?? EMPTY_ARRAY;
 
   const [internalHighlightedIndex, internalSetHighlightedIndex] = createSignal(0);
 
-  const isGrid = () => mergedParams.cols! > 1;
+  const isGrid = () => cols() > 1;
 
   const [rootRef, setRootRef] = createSignal<HTMLElement | null>(null);
 
-  const [elements, setElements] = createStore<Array<HTMLDivElement | null>>([]);
+  const refs: CompositeList.Props<Metadata>['refs'] = {
+    elements: [],
+    labels: [],
+  };
+
   let hasSetDefaultIndexRef = false;
 
-  const highlightedIndex = () => mergedParams.highlightedIndex ?? internalHighlightedIndex();
+  const highlightedIndex = () => access(params.highlightedIndex) ?? internalHighlightedIndex();
   function onHighlightedIndexChange(index: number, shouldScrollIntoView = false) {
-    (mergedParams.onHighlightedIndexChange ?? internalSetHighlightedIndex)(index);
+    (params.onHighlightedIndexChange ?? internalSetHighlightedIndex)(index);
     if (shouldScrollIntoView) {
-      const newActiveItem = elements[index];
-      scrollIntoViewIfNeeded(rootRef(), newActiveItem, direction(), mergedParams.orientation);
+      const newActiveItem = refs.elements[index];
+      scrollIntoViewIfNeeded(rootRef(), newActiveItem, direction(), orientation());
     }
   }
 
@@ -114,8 +113,8 @@ export function useCompositeRoot(
   // TODO: Solid JS impolementation should be revisited. Patching with a signal for now.
   createEffect(() => {
     const activeEl = activeElement(ownerDocument(rootRef())) as HTMLDivElement | null;
-    if (elements.includes(activeEl)) {
-      const focusedItem = elements[highlightedIndex()];
+    if (refs.elements.includes(activeEl)) {
+      const focusedItem = refs.elements[highlightedIndex()];
       if (focusedItem && focusedItem !== activeEl) {
         focusedItem.focus();
       }
@@ -137,213 +136,206 @@ export function useCompositeRoot(
       onHighlightedIndexChange(activeIndex);
     }
 
-    scrollIntoViewIfNeeded(rootRef(), activeItem, direction(), mergedParams.orientation);
+    scrollIntoViewIfNeeded(rootRef(), activeItem, direction(), orientation());
   }
 
-  const props: Accessor<HTMLProps> = createMemo(() => ({
-    'aria-orientation': mergedParams.orientation === 'both' ? undefined : mergedParams.orientation,
-    // We need to capture the focus event in order to also trigger the focus event on the root element
-    'on:focus': {
-      capture: true,
-      handleEvent: (event) => {
-        if (!rootRef() || !isNativeInput(event.target)) {
-          return;
-        }
-        event.target.setSelectionRange(0, event.target.value.length ?? 0);
+  const props: Accessor<HTMLProps> = createMemo(() => {
+    const orientationValue = orientation();
+    return {
+      'aria-orientation': orientationValue === 'both' ? undefined : orientationValue,
+      // We need to capture the focus event in order to also trigger the focus event on the root element
+      'on:focus': {
+        capture: true,
+        handleEvent: (event) => {
+          if (!rootRef() || !isNativeInput(event.target)) {
+            return;
+          }
+          event.target.setSelectionRange(0, event.target.value.length ?? 0);
+        },
       },
-    },
-    onKeyDown(event) {
-      const RELEVANT_KEYS = mergedParams.enableHomeAndEndKeys ? ALL_KEYS : ARROW_KEYS;
-      if (!RELEVANT_KEYS.has(event.key)) {
-        return;
-      }
-
-      if (isModifierKeySet(event, mergedParams.modifierKeys)) {
-        return;
-      }
-
-      if (!rootRef()) {
-        return;
-      }
-      const isRtl = direction() === 'rtl';
-
-      const horizontalForwardKey = isRtl ? ARROW_LEFT : ARROW_RIGHT;
-      const forwardKey = {
-        horizontal: horizontalForwardKey,
-        vertical: ARROW_DOWN,
-        both: horizontalForwardKey,
-      }[mergedParams.orientation];
-      const horizontalBackwardKey = isRtl ? ARROW_RIGHT : ARROW_LEFT;
-      const backwardKey = {
-        horizontal: horizontalBackwardKey,
-        vertical: ARROW_UP,
-        both: horizontalBackwardKey,
-      }[mergedParams.orientation];
-
-      if (isNativeInput(event.target) && !isElementDisabled(event.target)) {
-        const selectionStart = event.target.selectionStart;
-        const selectionEnd = event.target.selectionEnd;
-        const textContent = event.target.value ?? '';
-        // return to native textbox behavior when
-        // 1 - Shift is held to make a text selection, or if there already is a text selection
-        if (selectionStart == null || event.shiftKey || selectionStart !== selectionEnd) {
+      onKeyDown(event) {
+        const RELEVANT_KEYS = enableHomeAndEndKeys() ? ALL_KEYS : ARROW_KEYS;
+        if (!RELEVANT_KEYS.has(event.key)) {
           return;
         }
-        // 2 - arrow-ing forward and not in the last position of the text
-        if (event.key !== backwardKey && selectionStart < textContent.length) {
+
+        if (isModifierKeySet(event, modifierKeys())) {
           return;
         }
-        // 3 -arrow-ing backward and not in the first position of the text
-        if (event.key !== forwardKey && selectionStart > 0) {
+
+        if (!rootRef()) {
           return;
         }
-      }
+        const isRtl = direction() === 'rtl';
 
-      let nextIndex = highlightedIndex();
-      const minIndex = getMinListIndex(elements, () => mergedParams.disabledIndices);
-      const maxIndex = getMaxListIndex(elements, () => mergedParams.disabledIndices);
+        const horizontalForwardKey = isRtl ? ARROW_LEFT : ARROW_RIGHT;
+        const forwardKey = {
+          horizontal: horizontalForwardKey,
+          vertical: ARROW_DOWN,
+          both: horizontalForwardKey,
+        }[orientationValue];
+        const horizontalBackwardKey = isRtl ? ARROW_RIGHT : ARROW_LEFT;
+        const backwardKey = {
+          horizontal: horizontalBackwardKey,
+          vertical: ARROW_UP,
+          both: horizontalBackwardKey,
+        }[orientationValue];
 
-      if (isGrid()) {
-        const sizes =
-          mergedParams.itemSizes ||
-          Array.from({ length: elements.length }, () => ({
-            width: 1,
-            height: 1,
-          }));
-        // To calculate movements on the grid, we use hypothetical cell indices
-        // as if every item was 1x1, then convert back to real indices.
-        const cellMap = createGridCellMap(sizes, mergedParams.cols, mergedParams.dense);
-        const minGridIndex = cellMap.findIndex(
-          (index) =>
-            index != null &&
-            !isListIndexDisabled(elements, index, () => mergedParams.disabledIndices),
-        );
-        // last enabled index
-        const maxGridIndex = cellMap.reduce(
-          (foundIndex: number, index, cellIndex) =>
-            index != null &&
-            !isListIndexDisabled(elements, index, () => mergedParams.disabledIndices)
-              ? cellIndex
-              : foundIndex,
-          -1,
-        );
-        nextIndex = cellMap[
-          getGridNavigatedIndex(
-            cellMap.map((itemIndex) => (itemIndex != null ? elements[itemIndex] : null)),
-            {
-              event,
-              orientation: mergedParams.orientation,
-              loop: mergedParams.loop,
-              cols: mergedParams.cols,
-              // treat undefined (empty grid spaces) as disabled indices so we
-              // don't end up in them
-              disabledIndices: getGridCellIndices(
-                [
-                  ...(mergedParams.disabledIndices ||
-                    elements.map((_, index) =>
-                      isListIndexDisabled(elements, index) ? index : undefined,
-                    )),
-                  undefined,
-                ],
-                cellMap,
-              ),
-              minIndex: minGridIndex,
-              maxIndex: maxGridIndex,
-              prevIndex: getGridCellIndexOfCorner(
-                highlightedIndex() > maxIndex ? minIndex : highlightedIndex(),
-                sizes,
-                cellMap,
-                mergedParams.cols,
-                // use a corner matching the edge closest to the direction we're
-                // moving in so we don't end up in the same item. Prefer
-                // top/left over bottom/right.
-
-                event.key === ARROW_DOWN ? 'bl' : event.key === ARROW_RIGHT ? 'tr' : 'tl',
-              ),
-              rtl: isRtl,
-            },
-          )
-        ] as number; // navigated cell will never be nullish
-      }
-
-      const forwardKeys = {
-        horizontal: [horizontalForwardKey],
-        vertical: [ARROW_DOWN],
-        both: [horizontalForwardKey, ARROW_DOWN],
-      }[mergedParams.orientation];
-
-      const backwardKeys = {
-        horizontal: [horizontalBackwardKey],
-        vertical: [ARROW_UP],
-        both: [horizontalBackwardKey, ARROW_UP],
-      }[mergedParams.orientation];
-
-      const preventedKeys = isGrid()
-        ? RELEVANT_KEYS
-        : {
-            horizontal: mergedParams.enableHomeAndEndKeys
-              ? HORIZONTAL_KEYS_WITH_EXTRA_KEYS
-              : HORIZONTAL_KEYS,
-            vertical: mergedParams.enableHomeAndEndKeys
-              ? VERTICAL_KEYS_WITH_EXTRA_KEYS
-              : VERTICAL_KEYS,
-            both: RELEVANT_KEYS,
-          }[mergedParams.orientation];
-
-      if (mergedParams.enableHomeAndEndKeys) {
-        if (event.key === HOME) {
-          nextIndex = minIndex;
-        } else if (event.key === END) {
-          nextIndex = maxIndex;
+        if (isNativeInput(event.target) && !isElementDisabled(event.target)) {
+          const selectionStart = event.target.selectionStart;
+          const selectionEnd = event.target.selectionEnd;
+          const textContent = event.target.value ?? '';
+          // return to native textbox behavior when
+          // 1 - Shift is held to make a text selection, or if there already is a text selection
+          if (selectionStart == null || event.shiftKey || selectionStart !== selectionEnd) {
+            return;
+          }
+          // 2 - arrow-ing forward and not in the last position of the text
+          if (event.key !== backwardKey && selectionStart < textContent.length) {
+            return;
+          }
+          // 3 -arrow-ing backward and not in the first position of the text
+          if (event.key !== forwardKey && selectionStart > 0) {
+            return;
+          }
         }
-      }
 
-      if (
-        nextIndex === highlightedIndex() &&
-        (forwardKeys.includes(event.key) || backwardKeys.includes(event.key))
-      ) {
-        if (mergedParams.loop && nextIndex === maxIndex && forwardKeys.includes(event.key)) {
-          nextIndex = minIndex;
-        } else if (
-          mergedParams.loop &&
-          nextIndex === minIndex &&
-          backwardKeys.includes(event.key)
+        let nextIndex = highlightedIndex();
+        const minIndex = getMinListIndex(refs.elements, params.disabledIndices);
+        const maxIndex = getMaxListIndex(refs.elements, params.disabledIndices);
+
+        if (isGrid()) {
+          const sizes =
+            access(params.itemSizes) ||
+            Array.from({ length: refs.elements.length }, () => ({
+              width: 1,
+              height: 1,
+            }));
+          // To calculate movements on the grid, we use hypothetical cell indices
+          // as if every item was 1x1, then convert back to real indices.
+          const cellMap = createGridCellMap(sizes, cols(), dense());
+          const minGridIndex = cellMap.findIndex(
+            (index) =>
+              index != null && !isListIndexDisabled(refs.elements, index, params.disabledIndices),
+          );
+          // last enabled index
+          const maxGridIndex = cellMap.reduce(
+            (foundIndex: number, index, cellIndex) =>
+              index != null && !isListIndexDisabled(refs.elements, index, params.disabledIndices)
+                ? cellIndex
+                : foundIndex,
+            -1,
+          );
+          nextIndex = cellMap[
+            getGridNavigatedIndex(
+              cellMap.map((itemIndex) => (itemIndex != null ? refs.elements[itemIndex] : null)),
+              {
+                event,
+                orientation: orientationValue,
+                loop: loop(),
+                cols: cols(),
+                // treat undefined (empty grid spaces) as disabled indices so we
+                // don't end up in them
+                disabledIndices: getGridCellIndices(
+                  [
+                    ...(access(params.disabledIndices) ||
+                      refs.elements.map((_, index) =>
+                        isListIndexDisabled(refs.elements, index) ? index : undefined,
+                      )),
+                    undefined,
+                  ],
+                  cellMap,
+                ),
+                minIndex: minGridIndex,
+                maxIndex: maxGridIndex,
+                prevIndex: getGridCellIndexOfCorner(
+                  highlightedIndex() > maxIndex ? minIndex : highlightedIndex(),
+                  sizes,
+                  cellMap,
+                  cols(),
+                  // use a corner matching the edge closest to the direction we're
+                  // moving in so we don't end up in the same item. Prefer
+                  // top/left over bottom/right.
+                  event.key === ARROW_DOWN ? 'bl' : event.key === ARROW_RIGHT ? 'tr' : 'tl',
+                ),
+                rtl: isRtl,
+              },
+            )
+          ] as number; // navigated cell will never be nullish
+        }
+
+        const forwardKeys = {
+          horizontal: [horizontalForwardKey],
+          vertical: [ARROW_DOWN],
+          both: [horizontalForwardKey, ARROW_DOWN],
+        }[orientationValue];
+
+        const backwardKeys = {
+          horizontal: [horizontalBackwardKey],
+          vertical: [ARROW_UP],
+          both: [horizontalBackwardKey, ARROW_UP],
+        }[orientationValue];
+
+        const preventedKeys = isGrid()
+          ? RELEVANT_KEYS
+          : {
+              horizontal: enableHomeAndEndKeys()
+                ? HORIZONTAL_KEYS_WITH_EXTRA_KEYS
+                : HORIZONTAL_KEYS,
+              vertical: enableHomeAndEndKeys() ? VERTICAL_KEYS_WITH_EXTRA_KEYS : VERTICAL_KEYS,
+              both: RELEVANT_KEYS,
+            }[orientationValue];
+
+        if (enableHomeAndEndKeys()) {
+          if (event.key === HOME) {
+            nextIndex = minIndex;
+          } else if (event.key === END) {
+            nextIndex = maxIndex;
+          }
+        }
+
+        if (
+          nextIndex === highlightedIndex() &&
+          (forwardKeys.includes(event.key) || backwardKeys.includes(event.key))
         ) {
-          nextIndex = maxIndex;
-        } else {
-          nextIndex = findNonDisabledListIndex(elements, {
-            startingIndex: nextIndex,
-            decrement: backwardKeys.includes(event.key),
-            disabledIndices: () => mergedParams.disabledIndices,
+          if (loop() && nextIndex === maxIndex && forwardKeys.includes(event.key)) {
+            nextIndex = minIndex;
+          } else if (loop() && nextIndex === minIndex && backwardKeys.includes(event.key)) {
+            nextIndex = maxIndex;
+          } else {
+            nextIndex = findNonDisabledListIndex(refs.elements, {
+              startingIndex: nextIndex,
+              decrement: backwardKeys.includes(event.key),
+              disabledIndices: params.disabledIndices,
+            });
+          }
+        }
+
+        if (nextIndex !== highlightedIndex() && !isIndexOutOfListBounds(refs.elements, nextIndex)) {
+          if (stopEventPropagation()) {
+            event.stopPropagation();
+          }
+
+          if (preventedKeys.has(event.key)) {
+            event.preventDefault();
+          }
+          onHighlightedIndexChange(nextIndex, true);
+
+          // Wait for FocusManager `returnFocus` to execute.
+          queueMicrotask(() => {
+            refs.elements[nextIndex]?.focus();
           });
         }
-      }
-
-      if (nextIndex !== highlightedIndex() && !isIndexOutOfListBounds(elements, nextIndex)) {
-        if (mergedParams.stopEventPropagation) {
-          event.stopPropagation();
-        }
-
-        if (preventedKeys.has(event.key)) {
-          event.preventDefault();
-        }
-        onHighlightedIndexChange(nextIndex, true);
-
-        // Wait for FocusManager `returnFocus` to execute.
-        queueMicrotask(() => {
-          elements[nextIndex]?.focus();
-        });
-      }
-    },
-  }));
+      },
+    };
+  });
 
   return {
     props,
     highlightedIndex,
     onHighlightedIndexChange,
-    elements,
-    setElements,
-    disabledIndices: () => mergedParams.disabledIndices,
+    refs,
+    disabledIndices: params.disabledIndices,
     onMapChange,
     rootRef,
     setRootRef: (el: HTMLElement | null) => {

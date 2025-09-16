@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-shadow */
-import * as React from 'react';
 import { createSignal, createUniqueId, Show, type Component, type JSX } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import {

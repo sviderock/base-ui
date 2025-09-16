@@ -1,12 +1,13 @@
 'use client';
-import type { CompositeMetadata } from '@base-ui-components/solid/composite/list/CompositeList';
 import { type Accessor, createEffect, createSignal, onCleanup } from 'solid-js';
+import { access, type MaybeAccessor } from '../../solid-helpers';
+import type { CompositeMetadata } from './CompositeList';
 import { useCompositeListContext } from './CompositeListContext';
 
-export interface UseCompositeListItemParameters<Metadata extends Accessor<unknown>> {
-  label?: string | null;
+export interface UseCompositeListItemParameters<Metadata extends MaybeAccessor<unknown>> {
+  label?: MaybeAccessor<string | null>;
   metadata?: Metadata;
-  textRef?: HTMLElement | null;
+  textRef?: MaybeAccessor<HTMLElement | null>;
   /** Enables guessing the indexes. This avoids a re-render after mount, which is useful for
    * large lists. This should be used for lists that are likely flat and vertical, other cases
    * might trigger a re-render anyway. */
@@ -39,7 +40,7 @@ function initialIndex(
 /**
  * Used to register a list item and its index (DOM position) in the `CompositeList`.
  */
-export function useCompositeListItem<Metadata extends Accessor<unknown>>(
+export function useCompositeListItem<Metadata extends MaybeAccessor<unknown>>(
   params: UseCompositeListItemParameters<Metadata> = {},
 ): UseCompositeListItemReturnValue {
   const context = useCompositeListContext();
@@ -59,14 +60,15 @@ export function useCompositeListItem<Metadata extends Accessor<unknown>>(
       setIndex(i);
 
       if (i !== -1 && itemRef) {
-        context.setElements(i, itemRef);
+        context.refs.elements[i] = itemRef as HTMLElement;
 
-        if (context.labels && context.setLabels) {
-          const isLabelDefined = params.label !== undefined;
-          context.setLabels(
-            i,
-            isLabelDefined ? params.label! : (params.textRef?.textContent ?? itemRef.textContent),
-          );
+        if (context.refs.labels) {
+          const textRef = access(params.textRef);
+          const label = access(params.label);
+          const isLabelDefined = label !== undefined;
+          context.refs.labels[i] = isLabelDefined
+            ? label
+            : (textRef?.textContent ?? itemRef.textContent);
         }
       }
     }

@@ -1,6 +1,6 @@
 'use client';
 import { createEffect, createMemo, createSignal, createUniqueId, type JSX } from 'solid-js';
-import { createStore, produce, type SetStoreFunction, type Store } from 'solid-js/store';
+import { createStore, produce } from 'solid-js/store';
 import { CompositeListContext } from './CompositeListContext';
 
 export type CompositeMetadata<CustomMetadata> = { index?: number | null } & CustomMetadata;
@@ -95,10 +95,8 @@ export function CompositeList<Metadata>(props: CompositeList.Props<Metadata>) {
         unregister,
         subscribeMapChange,
         unsubscribeMapChange,
-        elements: props.elements,
-        setElements: props.setElements,
-        labels: props.labels,
-        setLabels: props.setLabels,
+        // eslint-disable-next-line solid/reactivity
+        refs: props.refs,
         nextIndex,
         setNextIndex,
       }}
@@ -128,18 +126,19 @@ function sortByDocumentPosition(a: Element, b: Element) {
 export namespace CompositeList {
   export interface Props<Metadata> {
     children: JSX.Element;
-    /**
-     * A ref to the list of HTML elements, ordered by their index.
-     * `useListNavigation`'s `listRef` prop.
-     */
-    elements: Store<Array<HTMLElement | null>>;
-    setElements: SetStoreFunction<Array<HTMLElement | null>>;
-    /**
-     * A ref to the list of element labels, ordered by their index.
-     * `useTypeahead`'s `listRef` prop.
-     */
-    labels?: Store<Array<string | null> | undefined>;
-    setLabels: SetStoreFunction<Array<string | null>>;
+    refs: {
+      /**
+       * A ref to the list of HTML elements, ordered by their index.
+       * `useListNavigation`'s `listRef` prop.
+       */
+      elements: Array<HTMLElement | null>;
+      /**
+       * A ref to the list of element labels, ordered by their index.
+       * `useTypeahead`'s `listRef` prop.
+       */
+      labels?: Array<string | null>;
+    };
+
     onMapChange?: (newMap: Map<Element, CompositeMetadata<Metadata> | null>) => void;
   }
 }

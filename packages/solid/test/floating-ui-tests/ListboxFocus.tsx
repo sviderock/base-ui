@@ -1,5 +1,4 @@
 import { createContext, createSignal, useContext, type Accessor, type JSX } from 'solid-js';
-import { createStore } from 'solid-js/store';
 import { CompositeList } from '../../src/composite/list/CompositeList';
 import { useCompositeListItem } from '../../src/composite/list/useCompositeListItem';
 import {
@@ -28,8 +27,10 @@ function Listbox(props: { children: JSX.Element }) {
     open: true,
   });
 
-  const [elements, setElements] = createStore<Array<HTMLElement | null>>([]);
-  const [labels, setLabels] = createStore<Array<string | null>>([]);
+  const compositeListRefs = {
+    elements: [] as Array<HTMLElement | null>,
+    labels: [] as Array<string | null>,
+  };
 
   const handleSelect = (index: number | null) => {
     setSelectedIndex(index);
@@ -40,14 +41,14 @@ function Listbox(props: { children: JSX.Element }) {
   }
 
   const listNav = useListNavigation(context, {
-    listRef: elements,
+    listRef: compositeListRefs.elements,
     activeIndex,
     selectedIndex,
     onNavigate: setActiveIndex,
     focusItemOnHover: false,
   });
   const typeahead = useTypeahead(context, {
-    listRef: labels,
+    listRef: compositeListRefs.labels,
     activeIndex,
     selectedIndex,
     onMatch: handleTypeaheadMatch,
@@ -73,14 +74,7 @@ function Listbox(props: { children: JSX.Element }) {
         Select
       </button>
       <div ref={refs.setFloating} {...getFloatingProps()}>
-        <CompositeList
-          elements={elements}
-          setElements={setElements}
-          labels={labels}
-          setLabels={setLabels}
-        >
-          {props.children}
-        </CompositeList>
+        <CompositeList refs={compositeListRefs}>{props.children}</CompositeList>
       </div>
     </SelectContext.Provider>
   );
@@ -90,7 +84,7 @@ function Listbox(props: { children: JSX.Element }) {
 function Option(props: { label: string }) {
   const { activeIndex, selectedIndex, getItemProps, handleSelect } = useContext(SelectContext);
 
-  const { ref, index } = useCompositeListItem({ label: props.label });
+  const { ref, index } = useCompositeListItem({ label: () => props.label });
 
   const isActive = () => activeIndex() === index();
   const isSelected = () => selectedIndex() === index();

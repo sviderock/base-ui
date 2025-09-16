@@ -12,7 +12,6 @@ import {
   splitProps,
   useContext,
 } from 'solid-js';
-import { createStore } from 'solid-js/store';
 import { CompositeList } from '../../src/composite/list/CompositeList';
 import { useCompositeListItem } from '../../src/composite/list/useCompositeListItem';
 import {
@@ -75,8 +74,10 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
   const [allowHover, setAllowHover] = createSignal(false);
   const [hasFocusInside, setHasFocusInside] = createSignal(false);
 
-  const [elements, setElements] = createStore<Array<HTMLElement | null>>([]);
-  const [labels, setLabels] = createStore<Array<string | null>>([]);
+  const compositeListRefs = {
+    elements: [] as Array<HTMLElement | null>,
+    labels: [] as Array<string | null>,
+  };
 
   const tree = useFloatingTree();
   const nodeId = useFloatingNodeId();
@@ -107,7 +108,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
   const role = useRole(context, { role: 'menu' });
   const dismiss = useDismiss(context, { bubbles: true });
   const listNavigation = useListNavigation(context, {
-    listRef: elements,
+    listRef: compositeListRefs.elements,
     activeIndex,
     nested: isNested,
     onNavigate: setActiveIndex,
@@ -264,12 +265,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
           parent,
         }}
       >
-        <CompositeList
-          elements={elements}
-          setElements={setElements}
-          labels={labels}
-          setLabels={setLabels}
-        >
+        <CompositeList refs={compositeListRefs}>
           {isOpen() && (
             <FloatingPortal>
               <FloatingFocusManager context={context} initialFocus={-1} returnFocus={!isNested}>
@@ -300,7 +296,7 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLElement>)
   const [local, elementProps] = splitProps(props, ['label', 'disabled']);
 
   const menu = useContext(MenuContext);
-  const item = useCompositeListItem({ label: local.disabled ? null : local.label });
+  const item = useCompositeListItem({ label: () => (local.disabled ? null : local.label) });
   const tree = useFloatingTree();
   const isActive = () => item.index() === menu.activeIndex();
   const id = createUniqueId();

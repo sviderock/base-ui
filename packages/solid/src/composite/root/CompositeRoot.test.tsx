@@ -1,5 +1,5 @@
 import { createRenderer, flushMicrotasks, isJSDOM } from '#test-utils';
-import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
+import { fireEvent, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal, Index } from 'solid-js';
 import { DirectionProvider } from '../../direction-provider';

@@ -1,17 +1,4 @@
-import {
-  children,
-  createEffect,
-  createMemo,
-  createSignal,
-  getOwner,
-  onCleanup,
-  onMount,
-  type Accessor,
-  type JSX,
-  type ParentProps,
-  type Ref,
-} from 'solid-js';
-import { createStore, type SetStoreFunction, type Store } from 'solid-js/store';
+import { onMount, type Accessor, type JSX } from 'solid-js';
 
 export function callEventHandler<T, E extends Event>(
   eventHandler: JSX.EventHandlerUnion<T, E> | undefined,
@@ -43,92 +30,6 @@ export type MaybeAccessorValue<T extends MaybeAccessor<any>> = T extends () => a
 export type ReactLikeRef<T extends Element | null> = {
   current: T | null;
 };
-
-export function withResolvers<T>(): {
-  resolve: (value: T) => void;
-  reject: (reason?: any) => void;
-  promise: Promise<T>;
-} {
-  let resolve: (value: T) => void;
-  let reject: (reason?: any) => void;
-  const promise = new Promise((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-
-  return { resolve: resolve!, reject: reject!, promise: promise as Promise<T> };
-}
-
-/**
- * Simple implementation of a lazy and memoaized version of the
- * children() function.
- *
- */
-export function childrenLazy<T extends Record<string, any>>(
-  props: ParentProps<T>,
-  onReady: ((v: any) => any) | null = null,
-): any {
-  let s = Symbol('LAZY_CHILDREN');
-  let x: any = s;
-  let o = getOwner();
-  return function resolvedChildren() {
-    if (x === s) {
-      if (o === getOwner()) {
-        console.warn('childrenLazy same owner');
-      }
-
-      x = children(() => props.children);
-      onReady?.(x);
-    }
-    return x;
-  };
-}
-
-export interface RefSignal<T extends Element | null> {
-  ref: Accessor<T | null>;
-  setRef: (value: T | null) => void;
-}
-
-export interface StoreSignal<T extends object> {
-  store: Store<T>;
-  setStore: SetStoreFunction<T>;
-}
-
-export function createRefSignal<T extends Element | null>(initialValue: T | null): RefSignal<T> {
-  const [ref, setRef] = createSignal<T | null>(initialValue);
-  return { ref, setRef };
-}
-
-export function createStoreSignal<T extends object>(initialValue: T): StoreSignal<T> {
-  const [store, setStore] = createStore<T>(initialValue);
-  return { store, setStore };
-}
-
-export function debugActiveElement() {
-  let lastActiveElement = document.activeElement;
-  const handleFocusChange = () => {
-    queueMicrotask(() => {
-      const activeElement = document.activeElement;
-      if (lastActiveElement !== activeElement) {
-        console.trace('[Observer] activeElement changed', {
-          from: lastActiveElement,
-          to: activeElement,
-        });
-        lastActiveElement = activeElement;
-      }
-    });
-  };
-
-  onMount(() => {
-    document.addEventListener('focusin', handleFocusChange, true);
-    document.addEventListener('focusout', handleFocusChange, true);
-  });
-
-  onCleanup(() => {
-    document.removeEventListener('focusin', handleFocusChange, true);
-    document.removeEventListener('focusout', handleFocusChange, true);
-  });
-}
 
 export function autofocus(element: HTMLElement, autofocusProp: Accessor<boolean>) {
   if (autofocusProp?.() === false) {

@@ -1,14 +1,15 @@
 'use client';
-import { createMemo, createSignal, type Accessor } from 'solid-js';
+import { createMemo, createSignal } from 'solid-js';
+import type { MaybeAccessor } from '../../solid-helpers';
 import type { HTMLProps } from '../../utils/types';
 import { useCompositeListItem } from '../list/useCompositeListItem';
 import { useCompositeRootContext } from '../root/CompositeRootContext';
 
-export interface UseCompositeItemParameters<Metadata extends Accessor<unknown>> {
+export interface UseCompositeItemParameters<Metadata extends MaybeAccessor<unknown>> {
   metadata?: Metadata;
 }
 
-export function useCompositeItem<Metadata extends Accessor<unknown>>(
+export function useCompositeItem<Metadata extends MaybeAccessor<unknown>>(
   params: UseCompositeItemParameters<Metadata>,
 ) {
   const context = useCompositeRootContext();

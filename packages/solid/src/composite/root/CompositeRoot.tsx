@@ -1,5 +1,5 @@
 'use client';
-import { onMount, splitProps } from 'solid-js';
+import { splitProps } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
@@ -48,12 +48,7 @@ export function CompositeRoot<Metadata extends {}>(componentProps: CompositeRoot
 
   return (
     <CompositeRootContext.Provider value={contextValue}>
-      <CompositeList<Metadata>
-        elements={compositeRoot.elements}
-        // @ts-expect-error - TODO: fix typing
-        setElements={compositeRoot.setElements}
-        onMapChange={onMapChange}
-      >
+      <CompositeList<Metadata> refs={compositeRoot.refs} onMapChange={onMapChange}>
         <RenderElement
           element="div"
           ref={compositeRoot.setRootRef}
