@@ -1,5 +1,5 @@
 'use client';
-import { type Accessor } from 'solid-js';
+import { access, type MaybeAccessor } from '../solid-helpers';
 import { useAnimationFrame } from './useAnimationFrame';
 import { useTimeout } from './useTimeout';
 
@@ -10,7 +10,7 @@ import { useTimeout } from './useTimeout';
  */
 export function useAnimationsFinished<T extends HTMLElement>(
   ref: T | null | undefined,
-  waitForNextTick?: Accessor<boolean | undefined>,
+  waitForNextTick?: MaybeAccessor<boolean | undefined>,
 ) {
   const frame = useAnimationFrame();
   const timeout = useTimeout();
@@ -54,7 +54,7 @@ export function useAnimationsFinished<T extends HTMLElement>(
         }
 
         // `open: true` animations need to wait for the next tick to be detected
-        if (waitForNextTick?.()) {
+        if (access(waitForNextTick)) {
           timeout.start(0, exec);
         } else {
           exec();

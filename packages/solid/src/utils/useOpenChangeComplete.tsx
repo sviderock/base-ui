@@ -1,6 +1,7 @@
 'use client';
 
-import { Accessor, createEffect } from 'solid-js';
+import { createEffect } from 'solid-js';
+import { access, type MaybeAccessor } from '../solid-helpers';
 import { useAnimationsFinished } from './useAnimationsFinished';
 
 /**
@@ -9,9 +10,9 @@ import { useAnimationsFinished } from './useAnimationsFinished';
 export function useOpenChangeComplete<T extends HTMLElement>(
   parameters: useOpenChangeComplete.Parameters<T>,
 ) {
-  const enabled = () => parameters.enabled ?? true;
-  let openRef = parameters.open?.();
-  const runOnceAnimationsFinish = useAnimationsFinished(parameters.ref, parameters.open);
+  const enabled = () => access(parameters.enabled) ?? true;
+  const openRef = access(parameters.open);
+  const runOnceAnimationsFinish = useAnimationsFinished(access(parameters.ref), parameters.open);
 
   createEffect(() => {
     if (!enabled()) {
@@ -19,7 +20,7 @@ export function useOpenChangeComplete<T extends HTMLElement>(
     }
 
     runOnceAnimationsFinish(() => {
-      if (parameters.open?.() === openRef) {
+      if (access(parameters.open) === openRef) {
         parameters.onComplete();
       }
     });
@@ -32,15 +33,15 @@ export namespace useOpenChangeComplete {
      * Whether the hook is enabled.
      * @default true
      */
-    enabled?: boolean;
+    enabled?: MaybeAccessor<boolean | undefined>;
     /**
      * Whether the element is open.
      */
-    open?: Accessor<boolean | undefined>;
+    open?: MaybeAccessor<boolean | undefined>;
     /**
      * Ref to the element being closed.
      */
-    ref: T | null | undefined;
+    ref: MaybeAccessor<T | null | undefined>;
     /**
      * Function to call when the animation completes (or there is no animation).
      */

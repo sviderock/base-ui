@@ -1,124 +1,126 @@
-import { act, createRenderer } from '@mui/internal-test-utils';
+import { createRenderer } from '#test-utils';
 import { expect } from 'chai';
+import { createSignal, type Accessor, type JSX } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import { useControlled } from './useControlled';
 
 interface TestComponentChildrenArgument {
-  value: number | string;
-  setValue: React.Dispatch<React.SetStateAction<number | string>>;
+  value: Accessor<number | string>;
+  setValue: (value: number | string) => void;
 }
 
 interface TestComponentProps {
   value?: number | string;
   defaultValue?: number | string;
-  children: (parames: TestComponentChildrenArgument) => React.ReactNode;
+  children: (parames: TestComponentChildrenArgument) => JSX.Element;
 }
 
-const TestComponent = ({ value: valueProp, defaultValue, children }: TestComponentProps) => {
+const TestComponent = (props: TestComponentProps) => {
   const [value, setValue] = useControlled({
-    controlled: valueProp,
-    default: defaultValue,
+    controlled: () => props.value,
+    default: () => props.defaultValue,
     name: 'TestComponent',
   });
-  return children({ value, setValue });
+
+  return <Dynamic component={props.children} value={value} setValue={setValue} />;
 };
 
 describe('useControlled', () => {
   const { render } = createRenderer();
 
   it('works correctly when is not controlled', () => {
-    let valueState;
-    let setValueState: React.Dispatch<React.SetStateAction<number | string>>;
-    render(
+    let valueState!: Accessor<number | string>;
+    let setValueState!: TestComponentChildrenArgument['setValue'];
+
+    render(() => (
       <TestComponent defaultValue={1}>
         {({ value, setValue }) => {
           valueState = value;
           setValueState = setValue;
           return null;
         }}
-      </TestComponent>,
-    );
-    expect(valueState).to.equal(1);
+      </TestComponent>
+    ));
+    expect(valueState()).to.equal(1);
 
-    act(() => {
-      setValueState(2);
-    });
+    setValueState(2);
 
-    expect(valueState).to.equal(2);
+    expect(valueState()).to.equal(2);
   });
 
   it('works correctly when is controlled', () => {
-    let valueState;
-    render(
+    let valueState!: Accessor<number | string>;
+    render(() => (
       <TestComponent value={1}>
         {({ value }) => {
           valueState = value;
           return null;
         }}
-      </TestComponent>,
-    );
-    expect(valueState).to.equal(1);
+      </TestComponent>
+    ));
+    expect(valueState()).to.equal(1);
   });
 
   it('warns when switching from uncontrolled to controlled', () => {
-    let setProps: (newProps: any) => void;
+    const [value, setValue] = createSignal<string>();
     expect(() => {
-      ({ setProps } = render(<TestComponent>{() => null}</TestComponent>));
+      render(() => <TestComponent value={value()}>{() => null}</TestComponent>);
     }).not.toErrorDev();
 
     expect(() => {
-      setProps({ value: 'foobar' });
+      setValue('foobar');
     }).toErrorDev(
       'Base UI: A component is changing the uncontrolled value state of TestComponent to be controlled.',
     );
   });
 
   it('warns when switching from controlled to uncontrolled', () => {
-    let setProps: (newProps: any) => void;
+    const [value, setValue] = createSignal<string | undefined>('foobar');
 
     expect(() => {
-      ({ setProps } = render(<TestComponent value="foobar">{() => null}</TestComponent>));
+      render(() => <TestComponent value={value()}>{() => null}</TestComponent>);
     }).not.toErrorDev();
 
     expect(() => {
-      setProps({ value: undefined });
+      setValue(undefined);
     }).toErrorDev(
       'Base UI: A component is changing the controlled value state of TestComponent to be uncontrolled.',
     );
   });
 
   it('warns when changing the defaultValue prop after initial rendering', () => {
-    let setProps: (newProps: any) => void;
+    const [defaultValue, setDefaultValue] = createSignal<number>();
 
     expect(() => {
-      ({ setProps } = render(<TestComponent>{() => null}</TestComponent>));
+      render(() => <TestComponent defaultValue={defaultValue()}>{() => null}</TestComponent>);
     }).not.toErrorDev();
 
     expect(() => {
-      setProps({ defaultValue: 1 });
+      setDefaultValue(1);
     }).toErrorDev(
       'Base UI: A component is changing the default value state of an uncontrolled TestComponent after being initialized.',
     );
   });
 
   it('should not raise a warning if changing the defaultValue when controlled', () => {
-    let setProps: (newProps: any) => void;
+    const [defaultValue, setDefaultValue] = createSignal<number>(0);
 
     expect(() => {
-      ({ setProps } = render(
-        <TestComponent value={1} defaultValue={0}>
+      render(() => (
+        <TestComponent value={1} defaultValue={defaultValue()}>
           {() => null}
-        </TestComponent>,
+        </TestComponent>
       ));
     }).not.toErrorDev();
 
     expect(() => {
-      setProps({ defaultValue: 1 });
+      setDefaultValue(1);
     }).not.toErrorDev();
   });
 
   it('should not raise a warning if setting NaN as the defaultValue when uncontrolled', () => {
     expect(() => {
-      render(<TestComponent defaultValue={NaN}>{() => null}</TestComponent>);
+      render(() => <TestComponent defaultValue={NaN}>{() => null}</TestComponent>);
     }).not.toErrorDev();
   });
 });

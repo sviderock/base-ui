@@ -1,7 +1,10 @@
-import { createRenderer, MuiRenderResult, screen } from '@mui/internal-test-utils';
+import { createRenderer, type MuiRenderResult } from '#test-utils';
+import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { getReactElementRef } from './getReactElementRef';
+import { createSignal, onCleanup, splitProps, type Component } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
+import { type ReactLikeRef } from '../solid-helpers';
 import { useForkRef } from './useForkRef';
 
 describe('useForkRef', () => {
@@ -9,41 +12,41 @@ describe('useForkRef', () => {
 
   it('returns a single ref-setter function that forks the ref to its inputs', () => {
     interface TestComponentProps {
-      innerRef: React.Ref<HTMLDivElement | null>;
+      innerRef: ReactLikeRef<HTMLDivElement>;
     }
 
     function Component(props: TestComponentProps) {
-      const { innerRef } = props;
-      const [ownRefCurrent, ownRef] = React.useState<HTMLDivElement | null>(null);
+      const [ownRefCurrent, ownRef] = createSignal<HTMLDivElement | null>(null);
 
-      const handleRef = useForkRef(innerRef, ownRef);
-
-      return <div ref={handleRef}>{ownRefCurrent ? 'has a ref' : 'has no ref'}</div>;
+      return (
+        <div ref={useForkRef(props.innerRef, ownRef)}>
+          {ownRefCurrent() ? 'has a ref' : 'has no ref'}
+        </div>
+      );
     }
 
-    const outerRef = React.createRef<HTMLDivElement>();
+    let outerRef: ReactLikeRef<HTMLDivElement> = { current: null };
 
     expect(() => {
-      render(<Component innerRef={outerRef} />);
+      render(() => <Component innerRef={outerRef} />);
     }).not.toErrorDev();
     expect(outerRef.current!.textContent).to.equal('has a ref');
   });
 
   it('forks if only one of the branches requires a ref', () => {
-    const Component = React.forwardRef(function Component(props, ref) {
-      const [hasRef, setHasRef] = React.useState(false);
-      const handleOwnRef = React.useCallback(() => setHasRef(true), []);
-      const handleRef = useForkRef(handleOwnRef, ref);
+    function Component(props: any) {
+      const [hasRef, setHasRef] = createSignal(false);
+      const handleOwnRef = () => setHasRef(true);
 
       return (
-        <div ref={handleRef} data-testid="hasRef">
-          {String(hasRef)}
+        <div ref={useForkRef(handleOwnRef, props.ref)} data-testid="hasRef">
+          {String(hasRef())}
         </div>
       );
-    });
+    }
 
     expect(() => {
-      render(<Component />);
+      render(() => <Component />);
     }).not.toErrorDev();
 
     expect(screen.getByTestId('hasRef')).to.have.text('true');
@@ -51,72 +54,65 @@ describe('useForkRef', () => {
 
   it('does nothing if none of the forked branches requires a ref', () => {
     interface TestComponentProps {
-      children: React.ReactElement<any>;
+      children: Component;
     }
 
-    const Outer = React.forwardRef<HTMLDivElement, TestComponentProps>(function Outer(props, ref) {
-      const { children } = props;
-      const handleRef = useForkRef(getReactElementRef(children), ref);
-
-      return React.cloneElement(children, { ref: handleRef });
-    });
+    function Outer(props: TestComponentProps) {
+      return <Dynamic component={props.children} ref={useForkRef(null, (props as any).ref)} />;
+    }
 
     function Inner() {
       return <div />;
     }
 
     expect(() => {
-      render(
-        <Outer>
-          <Inner />
-        </Outer>,
-      );
+      render(() => <Outer>{() => <Inner />}</Outer>);
     }).not.toErrorDev();
   });
 
   describe('changing refs', () => {
     interface TestComponentProps {
-      leftRef?: React.Ref<HTMLDivElement | null>;
-      rightRef?: React.Ref<HTMLDivElement | null>;
+      leftRef?: ReactLikeRef<HTMLDivElement>;
+      rightRef?: ReactLikeRef<HTMLDivElement>;
       id?: string;
     }
 
     function Div(props: TestComponentProps) {
-      const { leftRef, rightRef, ...other } = props;
-      const handleRef = useForkRef(leftRef, rightRef);
+      const [local, other] = splitProps(props, ['leftRef', 'rightRef']);
 
-      return <div {...other} ref={handleRef} />;
+      return <div {...other} ref={useForkRef(local.leftRef, local.rightRef)} />;
     }
 
-    it('handles changing from no ref to some ref', () => {
-      let view: MuiRenderResult;
+    // TODO: in Solid the ref callback only gets called once on mount so this test is not valid
+    it.skip('handles changing from no ref to some ref', () => {
+      const leftRef: ReactLikeRef<HTMLDivElement> = { current: null };
 
       expect(() => {
-        view = render(<Div id="test" />);
+        render(() => <Div id="test" leftRef={leftRef} />);
       }).not.toErrorDev();
 
-      const ref = React.createRef<HTMLDivElement>();
+      const ref: ReactLikeRef<HTMLDivElement> = { current: null };
       expect(() => {
-        view.setProps({ leftRef: ref });
+        leftRef.current = ref.current;
       }).not.toErrorDev();
       expect(ref.current!.id).to.equal('test');
     });
 
-    it('cleans up detached refs', () => {
-      const firstLeftRef = React.createRef<HTMLDivElement>();
-      const firstRightRef = React.createRef<HTMLDivElement>();
-      const secondRightRef = React.createRef<HTMLDivElement>();
-      let view: MuiRenderResult;
+    // TODO: in Solid the ref callback only gets called once on mount so this test is not valid
+    it.skip('cleans up detached refs', () => {
+      const firstLeftRef: ReactLikeRef<HTMLDivElement> = { current: null };
+      const firstRightRef: ReactLikeRef<HTMLDivElement> = { current: null };
+      const secondRightRef: ReactLikeRef<HTMLDivElement> = { current: null };
 
       expect(() => {
-        view = render(<Div leftRef={firstLeftRef} rightRef={firstRightRef} id="test" />);
+        render(() => <Div leftRef={firstLeftRef} rightRef={firstRightRef} id="test" />);
       }).not.toErrorDev();
 
       expect(firstLeftRef.current!.id).to.equal('test');
       expect(firstRightRef.current!.id).to.equal('test');
       expect(secondRightRef.current).to.equal(null);
 
-      view!.setProps({ rightRef: secondRightRef });
+      firstRightRef.current = secondRightRef.current;
 
       expect(firstLeftRef.current!.id).to.equal('test');
       expect(firstRightRef.current).to.equal(null);
@@ -136,7 +132,7 @@ describe('useForkRef', () => {
       } else {
         nullHandler();
       }
-      return cleanUp;
+      onCleanup(cleanUp);
     }
 
     function onRefChangeWithoutCleanup(ref: HTMLDivElement | null) {
@@ -148,11 +144,10 @@ describe('useForkRef', () => {
     }
 
     function App() {
-      const ref = useForkRef(onRefChangeWithCleanup, onRefChangeWithoutCleanup);
-      return <div id="test" ref={ref} />;
+      return <div id="test" ref={useForkRef(onRefChangeWithCleanup, onRefChangeWithoutCleanup)} />;
     }
 
-    const { unmount } = render(<App />, { strict: false });
+    const { unmount } = render(() => <App />);
 
     expect(setup.args[0][0]).to.equal('test');
     expect(setup.callCount).to.equal(1);
@@ -169,6 +164,7 @@ describe('useForkRef', () => {
     // Setup was not called again
     expect(setup2.callCount).to.equal(1);
     // Null handler hit because no cleanup is returned
-    expect(nullHandler.callCount).to.equal(1);
+    // TODO: null handler will not be called as refs cannot be dynamically changed
+    expect(nullHandler.callCount).to.equal(0);
   });
 });

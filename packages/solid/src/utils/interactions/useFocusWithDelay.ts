@@ -1,7 +1,7 @@
 'use client';
 
 import { getWindow, isHTMLElement } from '@floating-ui/utils/dom';
-import { createEffect, createMemo, onCleanup } from 'solid-js';
+import { createEffect, createMemo, onCleanup, type Accessor } from 'solid-js';
 import type { ElementProps, FloatingRootContext } from '../../floating-ui-solid';
 import { activeElement, contains, getDocument } from '../../floating-ui-solid/utils';
 import { useTimeout } from '../useTimeout';
@@ -16,7 +16,7 @@ interface UseFocusWithDelayProps {
 export function useFocusWithDelay(
   context: FloatingRootContext,
   props: UseFocusWithDelayProps = {},
-): ElementProps {
+): Accessor<ElementProps> {
   const timeout = useTimeout();
   let blockFocusRef = false;
 
@@ -42,7 +42,7 @@ export function useFocusWithDelay(
     });
   });
 
-  const reference: ElementProps['reference'] = createMemo(() => ({
+  const reference = createMemo<ElementProps['reference']>(() => ({
     onFocus(event) {
       timeout.start(props.delay ?? 0, () => {
         context.onOpenChange(true, event, 'focus');
@@ -81,5 +81,7 @@ export function useFocusWithDelay(
     },
   }));
 
-  return { reference };
+  const returnValue = createMemo<ElementProps>(() => ({ reference: reference() }));
+
+  return returnValue;
 }

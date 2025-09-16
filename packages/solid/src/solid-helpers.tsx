@@ -27,7 +27,7 @@ export type MaybeAccessorValue<T extends MaybeAccessor<any>> = T extends () => a
   ? ReturnType<T>
   : T;
 
-export type ReactLikeRef<T extends Element | null> = {
+export type ReactLikeRef<T> = {
   current: T | null;
 };
 

@@ -1,5 +1,6 @@
 'use client';
-import { createEffect, createSignal, type Accessor, type Signal } from 'solid-js';
+import { createEffect, createSignal, type Signal } from 'solid-js';
+import { access, type MaybeAccessor } from '../solid-helpers';
 
 // TODO: uncomment once we enable eslint-plugin-react-compiler // eslint-disable-next-line react-compiler/react-compiler -- process.env never changes, dependency arrays are intentionally ignored
 
@@ -7,11 +8,11 @@ export interface UseControlledProps<T = unknown> {
   /**
    * Holds the component value when it's controlled.
    */
-  controlled: Accessor<T | undefined>;
+  controlled: MaybeAccessor<T | undefined>;
   /**
    * The default value when uncontrolled.
    */
-  default: T | undefined;
+  default: MaybeAccessor<T | undefined>;
   /**
    * The component name displayed in warnings.
    */
@@ -24,19 +25,20 @@ export interface UseControlledProps<T = unknown> {
 
 export function useControlled<T = unknown>(props: UseControlledProps<T>): Signal<T> {
   // isControlled is ignored in the hook dependency lists as it should never change.
-  const isControlled = () => props.controlled() !== undefined;
-  const [valueState, setValue] = createSignal(props.default);
-  const value = () => (isControlled() ? props.controlled() : valueState());
+  // eslint-disable-next-line solid/reactivity
+  const isControlled = access(props.controlled) !== undefined;
+  const [valueState, setValue] = createSignal(access(props.default));
+  const value = () => (isControlled ? access(props.controlled) : valueState());
   const state = () => props.state ?? 'value';
 
   if (process.env.NODE_ENV !== 'production') {
     createEffect(() => {
-      if (isControlled() !== (props.controlled() !== undefined)) {
+      if (isControlled !== (access(props.controlled) !== undefined)) {
         console.error(
           [
             `Base UI: A component is changing the ${
-              isControlled() ? '' : 'un'
-            }controlled ${state()} state of ${props.name} to be ${isControlled() ? 'un' : ''}controlled.`,
+              isControlled ? '' : 'un'
+            }controlled ${state()} state of ${props.name} to be ${isControlled ? 'un' : ''}controlled.`,
             'Elements should not switch from uncontrolled to controlled (or vice versa).',
             `Decide between using a controlled or uncontrolled ${props.name} ` +
               'element for the lifetime of the component.',
@@ -47,12 +49,12 @@ export function useControlled<T = unknown>(props: UseControlledProps<T>): Signal
       }
     });
 
-    const defaultValue = props.default;
+    const defaultValue = access(props.default);
 
     createEffect(() => {
       // Object.is() is not equivalent to the === operator.
       // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is for more details.
-      if (!isControlled() && !Object.is(defaultValue, props.default)) {
+      if (!isControlled && !Object.is(defaultValue, access(props.default))) {
         console.error(
           [
             `Base UI: A component is changing the default ${state()} state of an uncontrolled ${props.name} after being initialized. ` +
@@ -64,7 +66,7 @@ export function useControlled<T = unknown>(props: UseControlledProps<T>): Signal
   }
 
   function setValueIfUncontrolled(...args: Parameters<typeof setValue>) {
-    if (!isControlled()) {
+    if (!isControlled) {
       setValue(...args);
     }
   }

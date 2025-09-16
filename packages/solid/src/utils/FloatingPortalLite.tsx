@@ -1,5 +1,6 @@
 'use client';
-import * as ReactDOM from 'react-dom';
+import type { JSX } from 'solid-js';
+import { Portal } from 'solid-js/web';
 import { FloatingPortalProps, useFloatingPortalNode } from '../floating-ui-solid';
 
 /**
@@ -8,13 +9,18 @@ import { FloatingPortalProps, useFloatingPortalNode } from '../floating-ui-solid
  * @internal
  */
 export function FloatingPortalLite(props: FloatingPortalLite.Props) {
-  const node = useFloatingPortalNode({ root: props.root });
-  return node && ReactDOM.createPortal(props.children, node);
+  const { portalMount, portalRef } = useFloatingPortalNode({ root: () => props.root });
+
+  return (
+    <Portal mount={portalMount()} ref={portalRef}>
+      {props.children}
+    </Portal>
+  );
 }
 
 export namespace FloatingPortalLite {
   export interface Props {
-    children?: React.ReactNode;
+    children?: JSX.Element;
     root?: FloatingPortalProps['root'];
   }
 }

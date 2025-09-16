@@ -1,6 +1,7 @@
 'use client';
 
 import { createEffect, createSignal } from 'solid-js';
+import { access, type MaybeAccessor } from '../solid-helpers';
 import { InteractionType, useEnhancedClickHandler } from './useEnhancedClickHandler';
 
 /**
@@ -8,17 +9,18 @@ import { InteractionType, useEnhancedClickHandler } from './useEnhancedClickHand
  *
  * @param open The open state of the component.
  */
-export function useOpenInteractionType(open: boolean) {
+export function useOpenInteractionType(open: MaybeAccessor<boolean>) {
   const [openMethod, setOpenMethod] = createSignal<InteractionType | null>(null);
+  const openProp = () => access(open);
 
   createEffect(() => {
-    if (!open && openMethod() !== null) {
+    if (!openProp() && openMethod() !== null) {
       setOpenMethod(null);
     }
   });
 
   const handleTriggerClick = (_: MouseEvent, interactionType: InteractionType) => {
-    if (!open) {
+    if (!openProp()) {
       setOpenMethod(interactionType);
     }
   };

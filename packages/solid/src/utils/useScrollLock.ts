@@ -1,4 +1,5 @@
 import { createEffect, onCleanup } from 'solid-js';
+import { access, type MaybeAccessor } from '../solid-helpers';
 import { isIOS, isWebKit } from './detectBrowser';
 import { NOOP } from './noop';
 import { ownerDocument, ownerWindow } from './owner';
@@ -211,16 +212,19 @@ const SCROLL_LOCKER = new ScrollLocker();
  * @param enabled - Whether to enable the scroll lock.
  */
 export function useScrollLock(params: {
-  enabled: boolean;
-  mounted: boolean;
-  open: boolean;
-  referenceElement?: Element | null;
+  enabled: MaybeAccessor<boolean>;
+  mounted: MaybeAccessor<boolean>;
+  open: MaybeAccessor<boolean>;
+  referenceElement?: MaybeAccessor<Element | null | undefined>;
 }) {
-  const referenceElement = () => params.referenceElement;
+  const enabled = () => access(params.enabled) ?? true;
+  const mounted = () => access(params.mounted);
+  const open = () => access(params.open);
+  const referenceElement = () => access(params.referenceElement) ?? null;
 
   // https://github.com/mui/base-ui/issues/1135
   createEffect(() => {
-    if (isWebKit && params.mounted && !params.open) {
+    if (isWebKit && mounted() && !open()) {
       const doc = ownerDocument(referenceElement());
       const originalUserSelect = doc.body.style.userSelect;
       const originalWebkitUserSelect = doc.body.style.webkitUserSelect;
@@ -235,8 +239,7 @@ export function useScrollLock(params: {
   });
 
   createEffect(() => {
-    const enabled = params.enabled ?? true;
-    if (!enabled) {
+    if (!enabled()) {
       return;
     }
 

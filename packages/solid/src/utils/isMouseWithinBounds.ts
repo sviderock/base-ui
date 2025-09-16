@@ -1,5 +1,5 @@
 export function isMouseWithinBounds(event: MouseEvent) {
-  const targetRect = event.currentTarget?.getBoundingClientRect();
+  const targetRect = (event.currentTarget as HTMLElement)?.getBoundingClientRect();
 
   // Safari randomly fires `mouseleave` incorrectly when the item is
   // aligned to the trigger. This is a workaround to prevent the highlight

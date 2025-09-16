@@ -1,6 +1,5 @@
 // Public utils
 
-export * from './getReactElementRef';
 export * from './useControlled';
 export * from './useForkRef';
 export * from './useId';

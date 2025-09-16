@@ -1,4 +1,5 @@
 import { createMemo } from 'solid-js';
+import { access, type MaybeAccessor } from '../solid-helpers';
 import { EMPTY_OBJECT } from './constants';
 import { ownerDocument } from './owner';
 import { BaseUIEvent } from './types';
@@ -9,18 +10,22 @@ import { BaseUIEvent } from './types';
  * This hook prevents the popup from closing immediately after the mouse button is released.
  */
 export function useMixedToggleClickHandler(params: useMixedToggleClickHandler.Parameters) {
+  const enabled = () => access(params.enabled);
+  const mouseDownAction = () => access(params.mouseDownAction);
+  const open = () => access(params.open);
+
   let ignoreClickRef = false;
   const result = createMemo(
     (): {
       onMouseDown?: (event: MouseEvent) => void;
       onClick?: (event: BaseUIEvent<MouseEvent>) => void;
     } => {
-      if (params.enabled ?? true) {
+      if (enabled() ?? true) {
         return {
           onMouseDown: (event) => {
             if (
-              (params.mouseDownAction === 'open' && !params.open) ||
-              (params.mouseDownAction === 'close' && params.open)
+              (mouseDownAction() === 'open' && !open()) ||
+              (mouseDownAction() === 'close' && open())
             ) {
               ignoreClickRef = true;
 
@@ -55,14 +60,14 @@ export namespace useMixedToggleClickHandler {
      * Whether the mixed toggle click handler is enabled.
      * @default true
      */
-    enabled?: boolean;
+    enabled?: MaybeAccessor<boolean | undefined>;
     /**
      * Determines what action is performed on mousedown.
      */
-    mouseDownAction: 'open' | 'close';
+    mouseDownAction: MaybeAccessor<'open' | 'close'>;
     /**
      * The current open state of the popup.
      */
-    open: boolean;
+    open: MaybeAccessor<boolean>;
   }
 }

@@ -4,6 +4,7 @@ import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';
 import { NoHydration } from 'solid-js/web';
+import { access } from '../solid-helpers';
 
 interface TestComponentProps {
   id?: string;
@@ -17,7 +18,7 @@ describe('useId', () => {
 
     function TestComponent(props: TestComponentProps) {
       const id = useId(() => props.id);
-      return <span data-testid="target" id={id()} />;
+      return <span data-testid="target" id={access(id)} />;
     }
 
     render(() => <TestComponent id={id()} />);
@@ -34,7 +35,7 @@ describe('useId', () => {
 
     function TestComponent(props: TestComponentProps) {
       const id = useId(() => props.id);
-      return <span data-testid="target" id={id()} />;
+      return <span data-testid="target" id={access(id)} />;
     }
     render(() => <TestComponent id={id()} />);
 
@@ -46,7 +47,7 @@ describe('useId', () => {
   it('can be suffixed', () => {
     function Widget() {
       const id = useId();
-      const labelId = () => `${id()}-label`;
+      const labelId = () => `${access(id)}-label`;
 
       return (
         <>
@@ -72,11 +73,14 @@ describe('useId', () => {
 
       return (
         <>
-          <span data-testid="labelable" aria-labelledby={`${labelPartA()} ${labelPartB()}`} />
-          <span data-testid="labelA" id={labelPartA()}>
+          <span
+            data-testid="labelable"
+            aria-labelledby={`${access(labelPartA)} ${access(labelPartB)}`}
+          />
+          <span data-testid="labelA" id={access(labelPartA)}>
             A
           </span>
-          <span data-testid="labelB" id={labelPartB()}>
+          <span data-testid="labelB" id={access(labelPartB)}>
             B
           </span>
         </>
@@ -94,7 +98,7 @@ describe('useId', () => {
   it('provides an ID on server', () => {
     function TestComponent() {
       const id = useId();
-      return <span data-testid="target" id={id()} />;
+      return <span data-testid="target" id={access(id)} />;
     }
     render(() => (
       <NoHydration>
@@ -112,8 +116,8 @@ describe('useId', () => {
 
       return (
         <>
-          <span data-testid="labelable" aria-labelledby={id()} />
-          <span data-testid="label" id={id()}>
+          <span data-testid="labelable" aria-labelledby={access(id)} />
+          <span data-testid="label" id={access(id)}>
             Label
           </span>
         </>

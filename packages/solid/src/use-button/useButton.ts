@@ -1,22 +1,21 @@
 'use client';
-import { callEventHandler } from '@base-ui-components/solid/solid-helpers';
 import {
   createEffect,
   mergeProps as mergePropsSolid,
-  type Accessor,
   type ComponentProps,
   type JSX,
 } from 'solid-js';
 import { useCompositeRootContext } from '../composite/root/CompositeRootContext';
 import { makeEventPreventable, mergeProps } from '../merge-props';
+import { access, callEventHandler, type MaybeAccessor } from '../solid-helpers';
 import { HTMLProps } from '../utils/types';
 import { useFocusableWhenDisabled } from '../utils/useFocusableWhenDisabled';
 
 export function useButton(parameters: useButton.Parameters = {}): useButton.ReturnValue {
-  const merged = mergePropsSolid(
-    { disabled: () => false, tabIndex: () => 0, native: () => true } as useButton.Parameters,
-    parameters,
-  );
+  const disabled = () => access(parameters.disabled) ?? false;
+  const tabIndex = () => access(parameters.tabIndex) ?? 0;
+  const native = () => access(parameters.native) ?? true;
+  const focusableWhenDisabled = () => access(parameters.focusableWhenDisabled);
 
   let buttonRef = null as HTMLButtonElement | HTMLAnchorElement | HTMLElement | null;
 
@@ -28,8 +27,8 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
   };
 
   const { props: focusableWhenDisabledProps } = useFocusableWhenDisabled({
-    focusableWhenDisabled: () => merged.focusableWhenDisabled?.(),
-    disabled: () => merged.disabled?.() ?? false,
+    focusableWhenDisabled: () => focusableWhenDisabled?.(),
+    disabled: () => disabled?.() ?? false,
     composite: isCompositeItem,
     tabIndex: () => (merged.tabIndex?.() ?? undefined) as number | undefined,
     isNativeButton: () => merged.native?.() ?? true,
@@ -167,18 +166,18 @@ export namespace useButton {
      * Whether the component should ignore user interaction.
      * @default false
      */
-    disabled?: Accessor<boolean | undefined>;
+    disabled?: MaybeAccessor<boolean | undefined>;
     /**
      * Whether the button may receive focus even if it is disabled.
      * @default false
      */
-    focusableWhenDisabled?: Accessor<boolean | undefined>;
-    tabIndex?: Accessor<NonNullable<JSX.HTMLAttributes<any>['tabIndex']> | undefined>;
+    focusableWhenDisabled?: MaybeAccessor<boolean | undefined>;
+    tabIndex?: MaybeAccessor<NonNullable<JSX.HTMLAttributes<any>['tabIndex']> | undefined>;
     /**
      * Whether the component is being rendered as a native button.
      * @default true
      */
-    native?: Accessor<boolean | undefined>;
+    native?: MaybeAccessor<boolean | undefined>;
   }
 
   export interface ReturnValue {

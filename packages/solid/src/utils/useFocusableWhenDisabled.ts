@@ -1,18 +1,19 @@
 'use client';
 
-import { type Accessor, createMemo, mergeProps } from 'solid-js';
+import { type Accessor, createMemo } from 'solid-js';
+import { access, type MaybeAccessor } from '../solid-helpers';
 
 export function useFocusableWhenDisabled(
   parameters: useFocusableWhenDisabled.Parameters,
 ): useFocusableWhenDisabled.ReturnValue {
-  const merged = mergeProps(
-    { composite: () => false, tabIndex: () => 0 } as useFocusableWhenDisabled.Parameters,
-    parameters,
-  );
-  const isFocusableComposite = () =>
-    merged.composite?.() && merged.focusableWhenDisabled?.() !== false;
-  const isNonFocusableComposite = () =>
-    merged.composite?.() && merged.focusableWhenDisabled?.() === false;
+  const focusableWhenDisabled = () => access(parameters.focusableWhenDisabled);
+  const disabled = () => access(parameters.disabled);
+  const composite = () => access(parameters.composite) ?? false;
+  const tabIndexProp = () => access(parameters.tabIndex) ?? 0;
+  const isNativeButton = () => access(parameters.isNativeButton);
+
+  const isFocusableComposite = () => composite?.() && focusableWhenDisabled?.() !== false;
+  const isNonFocusableComposite = () => composite?.() && focusableWhenDisabled?.() === false;
 
   // we can't explicitly assign `undefined` to any of these props because it
   // would otherwise prevent subsequently merged props from setting them
@@ -20,32 +21,29 @@ export function useFocusableWhenDisabled(
     const additionalProps = {
       // allow Tabbing away from focusableWhenDisabled elements
       onKeyDown(event: KeyboardEvent) {
-        if (merged.disabled?.() && merged.focusableWhenDisabled?.() && event.key !== 'Tab') {
+        if (disabled() && focusableWhenDisabled() && event.key !== 'Tab') {
           event.preventDefault();
         }
       },
     } as FocusableWhenDisabledProps;
 
-    if (!merged.composite?.()) {
-      additionalProps.tabIndex = merged.tabIndex?.() ?? 0;
+    if (!composite()) {
+      additionalProps.tabIndex = tabIndexProp();
 
-      if (!merged.isNativeButton?.() && merged.disabled?.()) {
-        additionalProps.tabIndex = merged.focusableWhenDisabled?.() ? merged.tabIndex!()! : -1;
+      if (!isNativeButton() && disabled()) {
+        additionalProps.tabIndex = focusableWhenDisabled() ? tabIndexProp()! : -1;
       }
     }
 
     if (
-      (merged.isNativeButton?.() && (merged.focusableWhenDisabled?.() || isFocusableComposite())) ||
-      (!merged.isNativeButton?.() && merged.disabled?.())
+      (isNativeButton() && (focusableWhenDisabled() || isFocusableComposite())) ||
+      (!isNativeButton() && disabled())
     ) {
-      additionalProps['aria-disabled'] = merged.disabled?.();
+      additionalProps['aria-disabled'] = disabled();
     }
 
-    if (
-      merged.isNativeButton?.() &&
-      (!merged.focusableWhenDisabled?.() || isNonFocusableComposite())
-    ) {
-      additionalProps.disabled = merged.disabled?.();
+    if (isNativeButton() && (!focusableWhenDisabled() || isNonFocusableComposite())) {
+      additionalProps.disabled = disabled();
     }
 
     return additionalProps;
@@ -67,24 +65,24 @@ export namespace useFocusableWhenDisabled {
      * Whether the component should be focusable when disabled.
      * When `undefined`, composite items are focusable when disabled by default.
      */
-    focusableWhenDisabled?: Accessor<boolean | undefined>;
+    focusableWhenDisabled?: MaybeAccessor<boolean | undefined>;
     /**
      * The disabled state of the component.
      */
-    disabled: Accessor<boolean>;
+    disabled: MaybeAccessor<boolean>;
     /**
      * Whether this is a composite item or not.
      * @default false
      */
-    composite?: Accessor<boolean | undefined>;
+    composite?: MaybeAccessor<boolean | undefined>;
     /**
      * @default 0
      */
-    tabIndex?: Accessor<number | undefined>;
+    tabIndex?: MaybeAccessor<number | undefined>;
     /**
      * @default true
      */
-    isNativeButton: Accessor<boolean>;
+    isNativeButton: MaybeAccessor<boolean>;
   }
 
   export interface ReturnValue {

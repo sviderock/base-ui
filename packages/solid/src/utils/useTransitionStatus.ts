@@ -1,6 +1,7 @@
 'use client';
-import { createEffect, createRenderEffect, onCleanup, type Accessor } from 'solid-js';
+import { createEffect, createRenderEffect, onCleanup } from 'solid-js';
 import { createStore } from 'solid-js/store';
+import { access, type MaybeAccessor } from '../solid-helpers';
 import { AnimationFrame } from './useAnimationFrame';
 
 export type TransitionStatus = 'starting' | 'ending' | 'idle' | undefined;
@@ -11,26 +12,35 @@ export type TransitionStatus = 'starting' | 'ending' | 'idle' | undefined;
  * @param enableIdleState - a boolean that enables the `'idle'` state between `'starting'` and `'ending'`
  */
 export function useTransitionStatus(
-  open: Accessor<boolean>,
-  enableIdleState: boolean = false,
-  deferEndingState: boolean = false,
+  open: MaybeAccessor<boolean>,
+  enableIdleState: MaybeAccessor<boolean> = false,
+  deferEndingState: MaybeAccessor<boolean> = false,
 ) {
+  const openProp = () => access(open);
+  const enableIdleStateProp = () => access(enableIdleState);
+  const deferEndingStateProp = () => access(deferEndingState);
+
   const [state, setState] = createStore<{ mounted: boolean; transitionStatus: TransitionStatus }>({
-    mounted: open(),
-    transitionStatus: open() && enableIdleState ? 'idle' : undefined,
+    mounted: openProp(),
+    transitionStatus: openProp() && enableIdleStateProp() ? 'idle' : undefined,
   });
 
   createEffect(() => {
     setState((prev) => {
-      if (open() && !prev.mounted) {
+      if (openProp() && !prev.mounted) {
         return { mounted: true, transitionStatus: 'starting' };
       }
 
-      if (!open() && prev.mounted && prev.transitionStatus !== 'ending' && !deferEndingState) {
+      if (
+        !openProp() &&
+        prev.mounted &&
+        prev.transitionStatus !== 'ending' &&
+        !deferEndingStateProp()
+      ) {
         return { ...prev, transitionStatus: 'ending' };
       }
 
-      if (!open() && !prev.mounted && prev.transitionStatus === 'ending') {
+      if (!openProp() && !prev.mounted && prev.transitionStatus === 'ending') {
         return { ...prev, transitionStatus: undefined };
       }
 
@@ -39,7 +49,12 @@ export function useTransitionStatus(
   });
 
   createEffect(() => {
-    if (!open() && state.mounted && state.transitionStatus !== 'ending' && deferEndingState) {
+    if (
+      !openProp() &&
+      state.mounted &&
+      state.transitionStatus !== 'ending' &&
+      deferEndingStateProp()
+    ) {
       const frame = AnimationFrame.request(() => {
         setState('transitionStatus', 'ending');
       });
@@ -51,7 +66,7 @@ export function useTransitionStatus(
   });
 
   createEffect(() => {
-    if (!open() || enableIdleState) {
+    if (!openProp() || enableIdleStateProp()) {
       return undefined;
     }
 
@@ -67,11 +82,11 @@ export function useTransitionStatus(
   });
 
   createRenderEffect(() => {
-    if (!open() || !enableIdleState) {
+    if (!openProp() || !enableIdleStateProp()) {
       return undefined;
     }
 
-    if (open() && state.mounted && state.transitionStatus !== 'idle') {
+    if (openProp() && state.mounted && state.transitionStatus !== 'idle') {
       setState('transitionStatus', 'starting');
     }
 

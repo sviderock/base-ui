@@ -1,7 +1,8 @@
 import { type Ref } from 'solid-js';
+import { type ReactLikeRef } from '../solid-helpers';
 
 type Result<I> = (val: I | null) => void;
-type InputRef<I> = Ref<I | null> | undefined;
+type InputRef<I> = Ref<I | null> | ReactLikeRef<I> | undefined;
 
 /**
  * Merges refs into a single memoized callback ref or `null`.
@@ -41,9 +42,15 @@ export function createForkRef<I>(refs: InputRef<I>[]): Result<I> {
     for (let i = 0; i < refs.length; i++) {
       if (typeof refs[i] === 'function') {
         (refs[i] as (val: I | null) => void)(instance);
-      } else {
-        refs[i] = instance;
+        continue;
       }
+
+      if (refs[i] != null && 'current' in (refs[i] as ReactLikeRef<I>)) {
+        (refs[i] as ReactLikeRef<I>).current = instance;
+        continue;
+      }
+
+      refs[i] = instance;
     }
   };
 }

@@ -1,16 +1,15 @@
+import { createMemo, splitProps, type JSX } from 'solid-js';
+
 /**
  * @internal
  */
-export const InternalBackdrop = React.forwardRef(function InternalBackdrop(
-  props: InternalBackdrop.Props,
-  ref: React.ForwardedRef<HTMLDivElement>,
-) {
-  const { cutout, ...otherProps } = props;
+export function InternalBackdrop(props: InternalBackdrop.Props) {
+  const [local, otherProps] = splitProps(props, ['cutout']);
 
-  let clipPath: string | undefined;
-  if (cutout) {
-    const rect = cutout?.getBoundingClientRect();
-    clipPath = `polygon(
+  const clipPath = createMemo(() => {
+    if (local.cutout) {
+      const rect = local.cutout?.getBoundingClientRect();
+      return `polygon(
       0% 0%,
       100% 0%,
       100% 100%,
@@ -22,11 +21,14 @@ export const InternalBackdrop = React.forwardRef(function InternalBackdrop(
       ${rect.right}px ${rect.top}px,
       ${rect.left}px ${rect.top}px
     )`;
-  }
+    }
+
+    return undefined;
+  });
 
   return (
     <div
-      ref={ref}
+      ref={props.ref}
       role="presentation"
       // Ensures Floating UI's outside press detection runs, as it considers
       // it an element that existed when the popup rendered.
@@ -35,16 +37,16 @@ export const InternalBackdrop = React.forwardRef(function InternalBackdrop(
       style={{
         position: 'fixed',
         inset: 0,
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        clipPath,
+        'user-select': 'none',
+        '-webkit-user-select': 'none',
+        'clip-path': clipPath(),
       }}
     />
   );
-});
+}
 
 export namespace InternalBackdrop {
-  export interface Props extends React.HTMLAttributes<HTMLDivElement> {
+  export interface Props extends JSX.HTMLAttributes<HTMLDivElement> {
     /**
      * The element to cut out of the backdrop.
      * This is useful for allowing certain elements to be interactive while the backdrop is present.
