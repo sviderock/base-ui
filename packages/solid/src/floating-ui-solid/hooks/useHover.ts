@@ -428,6 +428,11 @@ export function useHover(
     }
 
     return {
+      ref: () => {
+        onCleanup(() => {
+          context.refs.setDomReference(null);
+        });
+      },
       'on:pointerdown': setPointerRef,
       'on:pointerenter': setPointerRef,
       'on:mousemove': (event) => {
@@ -462,9 +467,13 @@ export function useHover(
     };
   });
 
-  const returnValue = createMemo<ElementProps>(() => ({
-    reference: reference(),
-  }));
+  const returnValue = createMemo<ElementProps>(() => {
+    if (!enabled()) {
+      return {};
+    }
+
+    return { reference: reference() };
+  });
 
   return returnValue;
 }
