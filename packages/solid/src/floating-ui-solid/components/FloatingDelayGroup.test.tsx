@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable react/jsx-fragments */
-import * as React from 'react';
-import { act, fireEvent, render, screen } from '@mui/internal-test-utils';
+import { flushMicrotasks } from '#test-utils';
+import { fireEvent, render, screen } from '@solidjs/testing-library';
+import { type Component, createEffect, createSignal, onMount } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import { vi } from 'vitest';
 
+import { isJSDOM } from '../../utils/detectBrowser';
 import {
   FloatingDelayGroup,
   useDelayGroup,
@@ -11,17 +13,16 @@ import {
   useHover,
   useInteractions,
 } from '../index';
-import { isJSDOM } from '../../utils/detectBrowser';
 
 vi.useFakeTimers();
 
 interface Props {
   label: string;
-  children: React.JSX.Element;
+  children: Component;
 }
 
-function Tooltip({ children, label }: Props) {
-  const [open, setOpen] = React.useState(false);
+function Tooltip(props: Props) {
+  const [open, setOpen] = createSignal(false);
 
   const { x, y, refs, strategy, context } = useFloating({
     open,
@@ -29,41 +30,35 @@ function Tooltip({ children, label }: Props) {
   });
 
   const { delayRef } = useDelayGroup(context);
-  const hover = useHover(context, { delay: () => delayRef.current });
-  const { getReferenceProps } = useInteractions([hover]);
+  const hover = useHover(context, { delay: delayRef });
+  const { getReferenceProps } = useInteractions(() => [hover()]);
 
-  const renderCount = React.useRef(0);
-  const renderCountRef = React.useRef<HTMLSpanElement | null>(null);
+  let renderCount = 0;
+  let renderCountRef: HTMLSpanElement | undefined;
 
-  React.useEffect(() => {
+  createEffect(() => {
     // eslint-disable-next-line no-plusplus
-    renderCount.current++;
-    if (renderCountRef.current) {
-      renderCountRef.current.textContent = String(renderCount.current);
+    renderCount++;
+    if (renderCountRef) {
+      renderCountRef.textContent = String(renderCount);
     }
   });
 
   return (
     <>
-      {React.cloneElement(
-        children,
-        getReferenceProps({
-          ref: refs.setReference,
-          ...children.props,
-        }),
-      )}
-      <span data-testid={`render-count-${label}`} ref={renderCountRef} />
-      {open && (
+      <Dynamic component={props.children} {...getReferenceProps({ ref: refs.setReference })} />
+      <span data-testid={`render-count-${props.label}`} ref={renderCountRef} />
+      {open() && (
         <div
-          data-testid={`floating-${label}`}
+          data-testid={`floating-${props.label}`}
           ref={refs.setFloating}
           style={{
-            position: strategy,
-            top: y ?? '',
-            left: x ?? '',
+            position: strategy(),
+            top: `${y() ?? 0}px`,
+            left: `${x() ?? 0}px`,
           }}
         >
-          {label}
+          {props.label}
         </div>
       )}
     </>
@@ -73,66 +68,54 @@ function Tooltip({ children, label }: Props) {
 function App() {
   return (
     <FloatingDelayGroup delay={{ open: 1000, close: 200 }}>
-      <Tooltip label="one">
-        <button data-testid="reference-one" />
-      </Tooltip>
-      <Tooltip label="two">
-        <button data-testid="reference-two" />
-      </Tooltip>
-      <Tooltip label="three">
-        <button data-testid="reference-three" />
-      </Tooltip>
+      <Tooltip label="one">{(p) => <button data-testid="reference-one" {...p} />}</Tooltip>
+      <Tooltip label="two">{(p) => <button data-testid="reference-two" {...p} />}</Tooltip>
+      <Tooltip label="three">{(p) => <button data-testid="reference-three" {...p} />}</Tooltip>
     </FloatingDelayGroup>
   );
 }
 
 describe.skipIf(!isJSDOM)('FloatingDelayGroup', () => {
   test('groups delays correctly', async () => {
-    render(<App />);
+    render(() => <App />);
 
     fireEvent.mouseEnter(screen.getByTestId('reference-one'));
 
-    await act(async () => {
-      vi.advanceTimersByTime(1);
-    });
+    vi.advanceTimersByTime(1);
+    await flushMicrotasks();
 
     expect(screen.queryByTestId('floating-one')).not.toBeInTheDocument();
 
-    await act(async () => {
-      vi.advanceTimersByTime(999);
-    });
+    vi.advanceTimersByTime(999);
+    await flushMicrotasks();
 
     expect(screen.getByTestId('floating-one')).toBeInTheDocument();
 
     fireEvent.mouseEnter(screen.getByTestId('reference-two'));
 
-    await act(async () => {
-      vi.advanceTimersByTime(1);
-    });
+    vi.advanceTimersByTime(1);
+    await flushMicrotasks();
 
     expect(screen.queryByTestId('floating-one')).not.toBeInTheDocument();
     expect(screen.getByTestId('floating-two')).toBeInTheDocument();
 
     fireEvent.mouseEnter(screen.getByTestId('reference-three'));
 
-    await act(async () => {
-      vi.advanceTimersByTime(1);
-    });
+    vi.advanceTimersByTime(1);
+    await flushMicrotasks();
 
     expect(screen.queryByTestId('floating-two')).not.toBeInTheDocument();
     expect(screen.getByTestId('floating-three')).toBeInTheDocument();
 
     fireEvent.mouseLeave(screen.getByTestId('reference-three'));
 
-    await act(async () => {
-      vi.advanceTimersByTime(1);
-    });
+    vi.advanceTimersByTime(1);
+    await flushMicrotasks();
 
     expect(screen.getByTestId('floating-three')).toBeInTheDocument();
 
-    await act(async () => {
-      vi.advanceTimersByTime(199);
-    });
+    vi.advanceTimersByTime(199);
+    await flushMicrotasks();
 
     expect(screen.queryByTestId('floating-three')).not.toBeInTheDocument();
   });
@@ -141,65 +124,53 @@ describe.skipIf(!isJSDOM)('FloatingDelayGroup', () => {
     function App() {
       return (
         <FloatingDelayGroup delay={{ open: 1000, close: 100 }} timeoutMs={500}>
-          <Tooltip label="one">
-            <button data-testid="reference-one" />
-          </Tooltip>
-          <Tooltip label="two">
-            <button data-testid="reference-two" />
-          </Tooltip>
-          <Tooltip label="three">
-            <button data-testid="reference-three" />
-          </Tooltip>
+          <Tooltip label="one">{(p) => <button data-testid="reference-one" {...p} />}</Tooltip>
+          <Tooltip label="two">{(p) => <button data-testid="reference-two" {...p} />}</Tooltip>
+          <Tooltip label="three">{(p) => <button data-testid="reference-three" {...p} />}</Tooltip>
         </FloatingDelayGroup>
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     fireEvent.mouseEnter(screen.getByTestId('reference-one'));
 
-    await act(async () => {
-      vi.advanceTimersByTime(1000);
-    });
+    vi.advanceTimersByTime(1000);
+    await flushMicrotasks();
 
     fireEvent.mouseLeave(screen.getByTestId('reference-one'));
 
     expect(screen.getByTestId('floating-one')).toBeInTheDocument();
 
-    await act(async () => {
-      vi.advanceTimersByTime(499);
-    });
+    vi.advanceTimersByTime(499);
+    await flushMicrotasks();
 
     expect(screen.queryByTestId('floating-one')).not.toBeInTheDocument();
 
     fireEvent.mouseEnter(screen.getByTestId('reference-two'));
 
-    await act(async () => {
-      vi.advanceTimersByTime(1);
-    });
+    vi.advanceTimersByTime(1);
+    await flushMicrotasks();
 
     expect(screen.getByTestId('floating-two')).toBeInTheDocument();
 
     fireEvent.mouseEnter(screen.getByTestId('reference-three'));
 
-    await act(async () => {
-      vi.advanceTimersByTime(1);
-    });
+    vi.advanceTimersByTime(1);
+    await flushMicrotasks();
 
     expect(screen.queryByTestId('floating-two')).not.toBeInTheDocument();
     expect(screen.getByTestId('floating-three')).toBeInTheDocument();
 
     fireEvent.mouseLeave(screen.getByTestId('reference-three'));
 
-    await act(async () => {
-      vi.advanceTimersByTime(1);
-    });
+    vi.advanceTimersByTime(1);
+    await flushMicrotasks();
 
     expect(screen.getByTestId('floating-three')).toBeInTheDocument();
 
-    await act(async () => {
-      vi.advanceTimersByTime(99);
-    });
+    vi.advanceTimersByTime(99);
+    await flushMicrotasks();
 
     expect(screen.queryByTestId('floating-three')).not.toBeInTheDocument();
   });
@@ -208,46 +179,38 @@ describe.skipIf(!isJSDOM)('FloatingDelayGroup', () => {
     function App() {
       return (
         <FloatingDelayGroup delay={{ open: 1000, close: 100 }} timeoutMs={500}>
-          <Tooltip label="one">
-            <button data-testid="reference-one" />
-          </Tooltip>
-          <Tooltip label="two">
-            <button data-testid="reference-two" />
-          </Tooltip>
-          <Tooltip label="three">
-            <button data-testid="reference-three" />
-          </Tooltip>
+          <Tooltip label="one">{(p) => <button data-testid="reference-one" {...p} />}</Tooltip>
+          <Tooltip label="two">{(p) => <button data-testid="reference-two" {...p} />}</Tooltip>
+          <Tooltip label="three">{(p) => <button data-testid="reference-three" {...p} />}</Tooltip>
         </FloatingDelayGroup>
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     fireEvent.mouseEnter(screen.getByTestId('reference-one'));
 
-    await act(async () => {
-      vi.advanceTimersByTime(1000);
-    });
+    vi.advanceTimersByTime(1000);
+    await flushMicrotasks();
 
     fireEvent.mouseLeave(screen.getByTestId('reference-one'));
 
     expect(screen.getByTestId('floating-one')).toBeInTheDocument();
 
-    await act(async () => {
-      vi.advanceTimersByTime(499);
-    });
+    vi.advanceTimersByTime(499);
+    await flushMicrotasks();
 
     expect(screen.queryByTestId('floating-one')).not.toBeInTheDocument();
 
     fireEvent.mouseEnter(screen.getByTestId('reference-two'));
 
-    await act(async () => {
-      vi.advanceTimersByTime(1);
-    });
+    vi.advanceTimersByTime(1);
+    await flushMicrotasks();
 
     expect(screen.getByTestId('floating-two')).toBeInTheDocument();
-    expect(screen.queryByTestId('render-count-one')).toHaveTextContent('8');
-    expect(screen.queryByTestId('render-count-two')).toHaveTextContent('5');
-    expect(screen.queryByTestId('render-count-three')).toHaveTextContent('2');
+    // TODO: with fine-grained reactivity in Solid, we always expect 1 render count on 1 change
+    expect(screen.queryByTestId('render-count-one')).toHaveTextContent('1');
+    expect(screen.queryByTestId('render-count-two')).toHaveTextContent('1');
+    expect(screen.queryByTestId('render-count-three')).toHaveTextContent('1');
   });
 });

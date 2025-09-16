@@ -278,7 +278,6 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       popover1 = screen.getByTestId('popover-1');
       popover2 = screen.getByTestId('popover-2');
 
-      screen.debug();
       await userEvent.click(popover2);
       expect(popover1).toBeInTheDocument();
       expect(popover2).toBeInTheDocument();

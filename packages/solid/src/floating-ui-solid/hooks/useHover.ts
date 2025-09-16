@@ -33,16 +33,23 @@ export function getDelay(
   prop: 'open' | 'close',
   pointerType?: PointerEvent['pointerType'],
 ) {
-  const val = value?.();
   if (pointerType && !isMouseLikePointerType(pointerType)) {
     return 0;
   }
 
-  if (typeof val === 'number') {
-    return val;
+  if (typeof value === 'number') {
+    return value;
   }
 
-  return val?.[prop];
+  if (typeof value === 'function') {
+    const result = value();
+    if (typeof result === 'number') {
+      return result;
+    }
+    return result?.[prop];
+  }
+
+  return value?.[prop];
 }
 
 export interface UseHoverProps {
@@ -69,7 +76,7 @@ export interface UseHoverProps {
    * the `open` state.
    * @default 0
    */
-  delay?: Accessor<Delay>;
+  delay?: Delay | Accessor<Delay>;
   /**
    * Whether the logic only runs for mouse input, ignoring touch input.
    * Note: due to a bug with Linux Chrome, "pen" inputs are considered "mouse".
@@ -94,7 +101,7 @@ export function useHover(
   props: UseHoverProps = {},
 ): Accessor<ElementProps> {
   const enabled = () => props.enabled?.() ?? true;
-  const delay = () => props.delay?.() ?? 0;
+  const delay = () => props.delay ?? 0;
   const mouseOnly = () => props.mouseOnly?.() ?? false;
   const restMs = () => props.restMs?.() ?? 0;
   const move = () => props.move?.() ?? true;
@@ -115,20 +122,26 @@ export function useHover(
     return type?.includes('mouse') && type !== 'mousedown';
   };
 
+  function onOpenChangeLocal({ open: newOpen }: { open: boolean }) {
+    if (!newOpen) {
+      timeout.clear();
+      restTimeout.clear();
+      blockMouseMoveRef = true;
+      restTimeoutPendingRef = false;
+    }
+  }
+
+  function onLeave(event: MouseEvent) {
+    if (isHoverOpen()) {
+      context.onOpenChange(false, event, 'hover');
+    }
+  }
+
   // When closing before opening, clear the delay timeouts to cancel it
   // from showing.
   createEffect(() => {
     if (!enabled()) {
       return;
-    }
-
-    function onOpenChangeLocal({ open: newOpen }: { open: boolean }) {
-      if (!newOpen) {
-        timeout.clear();
-        restTimeout.clear();
-        blockMouseMoveRef = true;
-        restTimeoutPendingRef = false;
-      }
     }
 
     context.events.on('openchange', onOpenChangeLocal);
@@ -148,12 +161,6 @@ export function useHover(
       return;
     }
 
-    function onLeave(event: MouseEvent) {
-      if (isHoverOpen()) {
-        context.onOpenChange(false, event, 'hover');
-      }
-    }
-
     const floating = context.elements.floating();
     const html = getDocument(floating).documentElement;
     html.addEventListener('mouseleave', onLeave);
@@ -167,7 +174,7 @@ export function useHover(
     runElseBranch = true,
     reason: OpenChangeReason = 'hover',
   ) => {
-    const closeDelay = getDelay(delay, 'close', pointerTypeRef);
+    const closeDelay = getDelay(delay(), 'close', pointerTypeRef);
     if (closeDelay) {
       timeout.start(closeDelay, () => context.onOpenChange(false, event, reason));
     } else if (runElseBranch) {
@@ -196,103 +203,50 @@ export function useHover(
       : false;
   };
 
-  // Registering the mouse events on the reference directly to bypass React's
-  // delegation system. If the cursor was on a disabled element and then entered
-  // the reference (no gap), `mouseenter` doesn't fire in the delegation system.
-  createEffect(() => {
-    if (!enabled()) {
+  function onReferenceMouseEnter(event: MouseEvent) {
+    timeout.clear();
+    blockMouseMoveRef = false;
+
+    if (
+      (mouseOnly() && !isMouseLikePointerType(pointerTypeRef)) ||
+      (restMs() > 0 && !getDelay(delay(), 'open'))
+    ) {
       return;
     }
 
-    function onReferenceMouseEnter(event: MouseEvent) {
-      timeout.clear();
-      blockMouseMoveRef = false;
+    const openDelay = getDelay(delay(), 'open', pointerTypeRef);
 
-      if (
-        (mouseOnly() && !isMouseLikePointerType(pointerTypeRef)) ||
-        (restMs() > 0 && !getDelay(delay, 'open'))
-      ) {
-        return;
-      }
-
-      const openDelay = getDelay(delay, 'open', pointerTypeRef);
-
-      if (openDelay) {
-        timeout.start(openDelay, () => {
-          if (!context.open()) {
-            context.onOpenChange(true, event, 'hover');
-          }
-        });
-      } else if (!context.open()) {
-        context.onOpenChange(true, event, 'hover');
-      }
-    }
-
-    function onReferenceMouseLeave(event: MouseEvent) {
-      if (isClickLikeOpenEvent()) {
-        clearPointerEvents();
-        return;
-      }
-
-      unbindMouseMoveRef();
-
-      const floating = context.elements.floating();
-      const doc = getDocument(floating);
-      restTimeout.clear();
-      restTimeoutPendingRef = false;
-
-      if (props.handleClose && context.dataRef.floatingContext) {
-        // Prevent clearing `onScrollMouseLeave` timeout.
+    if (openDelay) {
+      timeout.start(openDelay, () => {
         if (!context.open()) {
-          timeout.clear();
+          context.onOpenChange(true, event, 'hover');
         }
+      });
+    } else if (!context.open()) {
+      context.onOpenChange(true, event, 'hover');
+    }
+  }
 
-        const handler = props.handleClose({
-          ...context.dataRef.floatingContext,
-          tree,
-          x: event.clientX,
-          y: event.clientY,
-          onClose() {
-            clearPointerEvents();
-            cleanupMouseMoveHandler();
-            if (!isClickLikeOpenEvent()) {
-              closeWithDelay(event, true, 'safe-polygon');
-            }
-          },
-        });
-
-        doc.addEventListener('mousemove', handler);
-        unbindMouseMoveRef = () => {
-          doc.removeEventListener('mousemove', handler);
-        };
-
-        return;
-      }
-
-      // Allow interactivity without `safePolygon` on touch devices. With a
-      // pointer, a short close delay is an alternative, so it should work
-      // consistently.
-      const shouldClose =
-        pointerTypeRef === 'touch'
-          ? !contains(context.elements.floating(), event.relatedTarget as Element | null)
-          : true;
-      if (shouldClose) {
-        closeWithDelay(event);
-      }
+  function onReferenceMouseLeave(event: MouseEvent) {
+    if (isClickLikeOpenEvent()) {
+      clearPointerEvents();
+      return;
     }
 
-    // Ensure the floating element closes after scrolling even if the pointer
-    // did not move.
-    // https://github.com/floating-ui/floating-ui/discussions/1692
-    function onScrollMouseLeave(event: MouseEvent) {
-      if (isClickLikeOpenEvent()) {
-        return;
-      }
-      if (!context.dataRef.floatingContext) {
-        return;
+    unbindMouseMoveRef();
+
+    const floating = context.elements.floating();
+    const doc = getDocument(floating);
+    restTimeout.clear();
+    restTimeoutPendingRef = false;
+
+    if (props.handleClose && context.dataRef.floatingContext) {
+      // Prevent clearing `onScrollMouseLeave` timeout.
+      if (!context.open()) {
+        timeout.clear();
       }
 
-      props.handleClose?.({
+      const handler = props.handleClose({
         ...context.dataRef.floatingContext,
         tree,
         x: event.clientX,
@@ -301,20 +255,73 @@ export function useHover(
           clearPointerEvents();
           cleanupMouseMoveHandler();
           if (!isClickLikeOpenEvent()) {
-            closeWithDelay(event);
+            closeWithDelay(event, true, 'safe-polygon');
           }
         },
-      })(event);
+      });
+
+      doc.addEventListener('mousemove', handler);
+      unbindMouseMoveRef = () => {
+        doc.removeEventListener('mousemove', handler);
+      };
+
+      return;
     }
 
-    function onFloatingMouseEnter() {
-      timeout.clear();
+    // Allow interactivity without `safePolygon` on touch devices. With a
+    // pointer, a short close delay is an alternative, so it should work
+    // consistently.
+    const shouldClose =
+      pointerTypeRef === 'touch'
+        ? !contains(context.elements.floating(), event.relatedTarget as Element | null)
+        : true;
+    if (shouldClose) {
+      closeWithDelay(event);
+    }
+  }
+
+  // Ensure the floating element closes after scrolling even if the pointer
+  // did not move.
+  // https://github.com/floating-ui/floating-ui/discussions/1692
+  function onScrollMouseLeave(event: MouseEvent) {
+    if (isClickLikeOpenEvent()) {
+      return;
+    }
+    if (!context.dataRef.floatingContext) {
+      return;
     }
 
-    function onFloatingMouseLeave(event: MouseEvent) {
-      if (!isClickLikeOpenEvent()) {
-        closeWithDelay(event, false);
-      }
+    props.handleClose?.({
+      ...context.dataRef.floatingContext,
+      tree,
+      x: event.clientX,
+      y: event.clientY,
+      onClose() {
+        clearPointerEvents();
+        cleanupMouseMoveHandler();
+        if (!isClickLikeOpenEvent()) {
+          closeWithDelay(event);
+        }
+      },
+    })(event);
+  }
+
+  function onFloatingMouseEnter() {
+    timeout.clear();
+  }
+
+  function onFloatingMouseLeave(event: MouseEvent) {
+    if (!isClickLikeOpenEvent()) {
+      closeWithDelay(event, false);
+    }
+  }
+
+  // Registering the mouse events on the reference directly to bypass React's
+  // delegation system. If the cursor was on a disabled element and then entered
+  // the reference (no gap), `mouseenter` doesn't fire in the delegation system.
+  createEffect(() => {
+    if (!enabled()) {
+      return;
     }
 
     if (isElement(context.elements.domReference())) {

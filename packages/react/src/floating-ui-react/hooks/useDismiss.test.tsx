@@ -178,7 +178,6 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       }
 
       render(<App />);
-      screen.debug();
       await flushMicrotasks();
 
       const thirdParty = document.createElement('div');
@@ -352,11 +351,9 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
       render(<App />);
 
-      screen.debug();
       fireEvent.pointerDown(screen.getByTestId('portaled-button'), {
         bubbles: true,
       });
-      screen.debug();
 
       expect(screen.getByTestId('portaled-button')).toBeInTheDocument();
 
@@ -803,7 +800,6 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
 
-        screen.debug();
         await user.click(screen.getByText('outer'));
 
         expect(screen.getByText('outer')).toBeInTheDocument();

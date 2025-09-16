@@ -46,7 +46,6 @@ describe.skipIf(!isJSDOM)('FloatingPortal', () => {
     render(<App id="custom-id" />);
     fireEvent.click(screen.getByTestId('reference'));
     await flushMicrotasks();
-    screen.debug(screen.getByTestId('floating').parentElement?.parentElement);
     expect(screen.getByTestId('floating').parentElement?.parentElement?.id).toBe('custom-id');
   });
 

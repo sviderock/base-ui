@@ -528,7 +528,6 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       await userEvent.tab();
 
       expect(document.activeElement).toHaveAttribute('inert', '');
-      // screen.debug();
     });
   });
 
@@ -1960,7 +1959,6 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
   test('aria-hidden is not applied on root combobox with virtual nested menu', async () => {
     render(<MenuVirtual />);
 
-    screen.debug();
     await userEvent.click(screen.getByRole('combobox'));
     await flushMicrotasks();
 
@@ -2171,11 +2169,8 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
     await userEvent.tab({ shift: true });
 
     expect(screen.getByTestId('reference')).toHaveFocus();
-    // console.log('ACTIVE 1', document.activeElement?.outerHTML);
-    // screen.debug();
     await userEvent.tab();
-    // console.log('ACTIVE 2', document.activeElement?.outerHTML);
-    // screen.debug();
+
     expect(screen.getByTestId('inner')).toHaveFocus();
   });
 });

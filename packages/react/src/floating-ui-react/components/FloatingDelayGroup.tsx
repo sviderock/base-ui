@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { useTimeout, Timeout } from '../../utils/useTimeout';
 import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
+import { Timeout, useTimeout } from '../../utils/useTimeout';
 
 import { getDelay } from '../hooks/useHover';
-import type { FloatingRootContext, Delay } from '../types';
+import type { Delay, FloatingRootContext } from '../types';
 
 interface ContextValue {
   hasProvider: boolean;

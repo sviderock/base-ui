@@ -29,7 +29,6 @@ export function testPropForwarding(
         React.cloneElement(element, { 'data-testid': 'root', ...otherProps }),
       );
 
-      screen.debug();
       await flushMicrotasks();
 
       const customRoot = getByTestId('root');

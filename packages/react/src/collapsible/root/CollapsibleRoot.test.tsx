@@ -114,7 +114,6 @@ describe('<Collapsible.Root />', () => {
       );
 
       const trigger = getByRole('button');
-      screen.debug(trigger);
 
       expect(trigger).to.not.have.attribute('aria-controls');
       expect(trigger).to.have.attribute('aria-expanded', 'false');

@@ -365,7 +365,6 @@ describe.skipIf(!isJSDOM)('useHover', () => {
     fireEvent.mouseLeave(screen.getByRole('dialog', { name: 'Child title' }));
     expect(screen.getByText('Child title')).toBeInTheDocument();
     await user.click(screen.getByText('Parent title'));
-    // screen.debug();
     expect(screen.getByText('Parent title')).toBeInTheDocument();
 
     vi.useFakeTimers();

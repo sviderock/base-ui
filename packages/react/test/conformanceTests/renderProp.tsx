@@ -80,7 +80,6 @@ export function testRenderProp(
       }
 
       await render(<Test />);
-      screen.debug();
       expect(instanceFromRef!.tagName).to.equal(Element.toUpperCase());
       expect(instanceFromRef!).to.have.attribute('data-testid', 'wrapped');
     });

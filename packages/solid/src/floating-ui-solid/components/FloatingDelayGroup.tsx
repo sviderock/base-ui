@@ -3,6 +3,7 @@ import {
   createEffect,
   createSignal,
   onCleanup,
+  onMount,
   useContext,
   type Accessor,
   type JSX,
@@ -69,10 +70,10 @@ export interface FloatingDelayGroupProps {
  * @internal
  */
 export function FloatingDelayGroup(props: FloatingDelayGroupProps): JSX.Element {
-  let initialDelayRef = props.delay;
+  const initialDelayRef = props.delay;
   const [hasProvider, setHasProvider] = createSignal(false);
   const [timeoutMs, setTimeoutMs] = createSignal(props.timeoutMs ?? 0);
-  const [delayRef, setDelayRef] = createSignal<Delay>(0);
+  const [delayRef, setDelayRef] = createSignal<Delay>(props.delay);
   const [currentIdRef, setCurrentIdRef] = createSignal<any>(null);
   const currentContextRef: ContextValue['currentContextRef'] = null;
   const timeout = useTimeout();
@@ -162,6 +163,7 @@ export function useDelayGroup(
         onCleanup(() => {
           groupContext.timeout.clear();
         });
+        return;
       }
 
       unset();
