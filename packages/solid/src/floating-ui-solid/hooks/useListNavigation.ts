@@ -21,7 +21,6 @@ import {
   stopEvent,
 } from '../utils';
 
-import { delegateEvents } from 'solid-js/web';
 import type { MaybeAccessor, ReactLikeRef } from '../../solid-helpers';
 import { usePortalContext } from '../components/FloatingPortal';
 import { useFloatingParentNodeId, useFloatingTree } from '../components/FloatingTree';
@@ -165,7 +164,7 @@ export interface UseListNavigationProps {
    * navigation semantics change.
    * @default false
    */
-  nested?: Accessor<boolean>;
+  nested?: boolean;
   /**
    * Allows to specify the orientation of the parent list, which is used to
    * determine the direction of the navigation.
@@ -243,7 +242,7 @@ export function useListNavigation(
   const selectedIndex = () => props.selectedIndex?.() ?? null;
   const allowEscape = () => props.allowEscape?.() ?? false;
   const loop = () => props.loop?.() ?? false;
-  const nested = () => props.nested?.() ?? false;
+  const nested = props.nested ?? false;
   const rtl = () => props.rtl?.() ?? false;
   const virtual = () => props.virtual?.() ?? false;
   const focusItemOnHover = () => props.focusItemOnHover?.() ?? true;
@@ -440,7 +439,7 @@ export function useListNavigation(
             runs += 1;
           } else {
             indexRef =
-              keyRef == null || isMainOrientationToEndKey(keyRef, orientation, rtl()) || nested()
+              keyRef == null || isMainOrientationToEndKey(keyRef, orientation, rtl()) || nested
                 ? getMinListIndex(props.listRef(), disabledIndices())
                 : getMaxListIndex(props.listRef(), disabledIndices());
             keyRef = null;
@@ -592,7 +591,7 @@ export function useListNavigation(
       return;
     }
 
-    if (nested() && isCrossOrientationCloseKey(event.key, orientation, rtl(), cols())) {
+    if (nested && isCrossOrientationCloseKey(event.key, orientation, rtl(), cols())) {
       // If the nested list's close key is also the parent navigation key,
       // let the parent navigate. Otherwise, stop propagating the event.
       if (!isMainOrientationKey(event.key, getParentOrientation)) {
@@ -856,7 +855,7 @@ export function useListNavigation(
         );
         const isMainKey = isMainOrientationKey(event.key, orientation);
         const isNavigationKey =
-          (nested() ? isParentCrossOpenKey : isMainKey) ||
+          (nested ? isParentCrossOpenKey : isMainKey) ||
           event.key === 'Enter' ||
           event.key.trim() === '';
 
@@ -912,10 +911,10 @@ export function useListNavigation(
 
         if (isNavigationKey) {
           const isParentMainKey = isMainOrientationKey(event.key, getParentOrientation);
-          keyRef = nested() && isParentMainKey ? null : event.key;
+          keyRef = nested && isParentMainKey ? null : event.key;
         }
 
-        if (nested()) {
+        if (nested) {
           if (isParentCrossOpenKey) {
             stopEvent(event);
 

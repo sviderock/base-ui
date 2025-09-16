@@ -81,7 +81,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
   const tree = useFloatingTree();
   const nodeId = useFloatingNodeId();
   const parentId = useFloatingParentNodeId();
-  const isNested = () => parentId != null;
+  const isNested = parentId != null;
 
   const parent = useContext(MenuContext);
   const item = useCompositeListItem();
@@ -90,9 +90,9 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
     nodeId,
     open: isOpen,
     onOpenChange: setIsOpen,
-    placement: () => (isNested() ? 'right-start' : 'bottom-start'),
+    placement: () => (isNested ? 'right-start' : 'bottom-start'),
     middleware: () => [
-      offset({ mainAxis: isNested() ? 0 : 4, alignmentAxis: isNested() ? -4 : 0 }),
+      offset({ mainAxis: isNested ? 0 : 4, alignmentAxis: isNested ? -4 : 0 }),
       flip(),
       shift(),
     ],
@@ -100,7 +100,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
   });
 
   const hover = useHover(context, {
-    enabled: () => isNested() && allowHover(),
+    enabled: () => isNested && allowHover(),
     delay: () => ({ open: 75 }),
     handleClose: safePolygon({ blockPointerEvents: true }),
   });
@@ -188,7 +188,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
 
   return (
     <FloatingNode id={nodeId()}>
-      {isNested() ? (
+      {isNested ? (
         // eslint-disable-next-line jsx-a11y/role-supports-aria-props
         <div
           id={id}
@@ -202,9 +202,9 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
               'flex cursor-default items-center justify-between gap-4 rounded px-2 py-1 text-left',
             {
               'bg-red-500 text-white': parent.activeIndex() === item.index(),
-              'focus:bg-red-500 outline-none': isNested(),
-              'bg-red-100 text-red-900': isOpen() && isNested() && !hasFocusInside(),
-              'bg-red-100 rounded px-2 py-1': isNested() && isOpen() && hasFocusInside(),
+              'focus:bg-red-500 outline-none': isNested,
+              'bg-red-100 text-red-900': isOpen() && isNested && !hasFocusInside(),
+              'bg-red-100 rounded px-2 py-1': isNested && isOpen() && hasFocusInside(),
             },
           )}
           {...getReferenceProps({
@@ -225,7 +225,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
           })}
         >
           {local.label}
-          {isNested() && (
+          {isNested && (
             <span aria-hidden class="ml-4">
               Icon
             </span>
@@ -237,7 +237,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
           ref={useForkRefN([refs.setReference, item.ref, props.ref as any])}
           id={id}
           data-open={isOpen() ? '' : undefined}
-          tabIndex={isNested() ? -1 : 0}
+          tabIndex={isNested ? -1 : 0}
           // eslint-disable-next-line jsx-a11y/role-has-required-aria-props
           role="combobox"
           aria-autocomplete="list"
@@ -271,7 +271,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
         >
           {isOpen() && (
             <FloatingPortal>
-              <FloatingFocusManager context={context} initialFocus={-1} returnFocus={!isNested()}>
+              <FloatingFocusManager context={context} initialFocus={-1} returnFocus={!isNested}>
                 <div
                   ref={refs.setFloating}
                   class="border-slate-900/10 flex flex-col rounded border bg-white bg-clip-padding p-1 shadow-lg outline-none"

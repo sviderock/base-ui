@@ -52,7 +52,7 @@ export function useRole(
     (componentRoleToAriaRoleMap.get(role()) ?? role()) as AriaRole | false | undefined;
 
   const parentId = useFloatingParentNodeId();
-  const isNested = () => parentId != null;
+  const isNested = parentId != null;
 
   const reference = createMemo<ElementProps['reference']>(() => {
     if (ariaRole() === 'tooltip' || role() === 'label') {
@@ -69,7 +69,7 @@ export function useRole(
       'aria-controls': context.open() ? floatingId() : undefined,
       ...(ariaRole() === 'listbox' && { role: 'combobox' }),
       ...(ariaRole() === 'menu' && { id: referenceId() }),
-      ...(ariaRole() === 'menu' && isNested() && { role: 'menuitem' }),
+      ...(ariaRole() === 'menu' && isNested && { role: 'menuitem' }),
       ...(role() === 'select' && { 'aria-autocomplete': 'none' }),
       ...(role() === 'combobox' && { 'aria-autocomplete': 'list' }),
     } as JSX.HTMLAttributes<Element>;

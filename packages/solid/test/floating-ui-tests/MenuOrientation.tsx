@@ -96,7 +96,7 @@ export function MenuComponent(
   const tree = useFloatingTree();
   const nodeId = useFloatingNodeId();
   const parentId = useFloatingParentNodeId();
-  const isNested = () => parentId != null;
+  const isNested = parentId != null;
   const orientation = () => local.orientation ?? (local.cols ? 'both' : 'vertical');
 
   const parent = useContext(MenuContext);
@@ -106,9 +106,9 @@ export function MenuComponent(
     nodeId,
     open: isOpen,
     onOpenChange: setIsOpen,
-    placement: () => (isNested() ? 'right-start' : 'bottom-start'),
+    placement: () => (isNested ? 'right-start' : 'bottom-start'),
     middleware: () => [
-      offset({ mainAxis: isNested() ? 0 : 4, alignmentAxis: isNested() ? -4 : 0 }),
+      offset({ mainAxis: isNested ? 0 : 4, alignmentAxis: isNested ? -4 : 0 }),
       flip(),
       shift(),
     ],
@@ -116,14 +116,14 @@ export function MenuComponent(
   });
 
   const hover = useHover(context, {
-    enabled: () => isNested() && allowHover(),
+    enabled: () => isNested && allowHover(),
     delay: () => ({ open: 75 }),
     handleClose: safePolygon({ blockPointerEvents: true }),
   });
   const click = useClick(context, {
     event: () => 'mousedown',
-    toggle: () => !isNested() || !allowHover(),
-    ignoreMouse: isNested,
+    toggle: () => !isNested || !allowHover(),
+    ignoreMouse: () => isNested,
   });
   const role = useRole(context, { role: () => 'menu' });
   const dismiss = useDismiss(context, { bubbles: () => true });
@@ -194,8 +194,7 @@ export function MenuComponent(
         }
       }
 
-      function onKeyDown(e) {
-        console.log('window event onKeyDown', e.target.textContent);
+      function onKeyDown() {
         setAllowHover(false);
       }
 
@@ -220,14 +219,14 @@ export function MenuComponent(
         ref={useForkRefN([refs.setReference, item.ref, props.ref as any])}
         data-open={isOpen() ? '' : undefined}
         // eslint-disable-next-line no-nested-ternary
-        tabIndex={!isNested() ? props.tabIndex : parent.activeIndex() === item.index() ? 0 : -1}
+        tabIndex={!isNested ? props.tabIndex : parent.activeIndex() === item.index() ? 0 : -1}
         class={c(
           props.class || 'flex items-center justify-between gap-4 rounded px-2 py-1 text-left',
           {
-            'focus:bg-blue-500 outline-none focus:text-white': isNested(),
-            'bg-blue-500 text-white': isOpen() && isNested() && !hasFocusInside(),
-            'bg-slate-200 rounded px-2 py-1': isNested() && isOpen() && hasFocusInside(),
-            'bg-slate-200': !isNested() && isOpen(),
+            'focus:bg-blue-500 outline-none focus:text-white': isNested,
+            'bg-blue-500 text-white': isOpen() && isNested && !hasFocusInside(),
+            'bg-slate-200 rounded px-2 py-1': isNested && isOpen() && hasFocusInside(),
+            'bg-slate-200': !isNested && isOpen(),
           },
         )}
         {...getReferenceProps(
@@ -248,7 +247,7 @@ export function MenuComponent(
         )}
       >
         {props.label}
-        {isNested() && (
+        {isNested && (
           <span aria-hidden class="ml-4">
             Icon
           </span>
@@ -278,8 +277,8 @@ export function MenuComponent(
               <FloatingFocusManager
                 context={context}
                 modal={false}
-                initialFocus={isNested() ? -1 : 0}
-                returnFocus={!isNested()}
+                initialFocus={isNested ? -1 : 0}
+                returnFocus={!isNested}
               >
                 <div
                   ref={refs.setFloating}

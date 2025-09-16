@@ -27,7 +27,7 @@ export function useFloatingRootContext(
   const floatingId = useId();
   const events = createEventEmitter();
   const parentId = useFloatingParentNodeId();
-  const nested = () => parentId != null;
+  const nested = parentId != null;
   const dataRef: ContextData = {};
 
   if (process.env.NODE_ENV !== 'production') {
@@ -49,7 +49,7 @@ export function useFloatingRootContext(
 
   const onOpenChange = (newOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
     dataRef.openEvent = newOpen ? event : undefined;
-    events.emit('openchange', { open: newOpen, event, reason, nested: nested() });
+    events.emit('openchange', { open: newOpen, event, reason, nested });
     options.onOpenChange?.(newOpen, event, reason);
   };
 
