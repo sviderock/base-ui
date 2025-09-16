@@ -1,7 +1,6 @@
 import type { VirtualElement } from '@floating-ui/dom';
 import type { Accessor, JSX } from 'solid-js';
 import type { SetStoreFunction, Store } from 'solid-js/store';
-import type { RefSignal, StoreSignal } from '../solid-helpers';
 import type { UsePositionFloatingReturn, UsePositionOptions } from './hooks/useFloatingOriginal';
 import type { ExtendedUserProps } from './hooks/useInteractions';
 

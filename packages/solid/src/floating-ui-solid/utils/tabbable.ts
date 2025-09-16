@@ -1,4 +1,3 @@
-import { screen } from '@solidjs/testing-library';
 import { tabbable, type FocusableElement } from 'tabbable';
 import { activeElement, contains, getDocument } from './element';
 
