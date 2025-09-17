@@ -35,12 +35,12 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
 
   const rootId = useBaseUiId();
 
-  const [viewportRef, setViewportRef] = createSignal<HTMLDivElement>();
-  const [scrollbarYRef, setScrollbarYRef] = createSignal<HTMLDivElement>();
-  const [scrollbarXRef, setScrollbarXRef] = createSignal<HTMLDivElement>();
-  const [thumbYRef, setThumbYRef] = createSignal<HTMLDivElement>();
-  const [thumbXRef, setThumbXRef] = createSignal<HTMLDivElement>();
-  const [cornerRef, setCornerRef] = createSignal<HTMLDivElement>();
+  const [viewportRef, setViewportRef] = createSignal<HTMLDivElement | null>(null);
+  const [scrollbarYRef, setScrollbarYRef] = createSignal<HTMLDivElement | null>(null);
+  const [scrollbarXRef, setScrollbarXRef] = createSignal<HTMLDivElement | null>(null);
+  const [thumbYRef, setThumbYRef] = createSignal<HTMLDivElement | null>(null);
+  const [thumbXRef, setThumbXRef] = createSignal<HTMLDivElement | null>(null);
+  const [cornerRef, setCornerRef] = createSignal<HTMLDivElement | null>(null);
 
   const [scrollPositionRef, setScrollPositionRef] = createSignal({ x: 0, y: 0 });
 

@@ -17,7 +17,7 @@ describe('useButton', () => {
       function TestButton(props: JSX.ButtonHTMLAttributes<HTMLButtonElement>) {
         const [local, otherProps] = splitProps(props, ['disabled']);
         const { getButtonProps } = useButton({
-          disabled: local.disabled,
+          disabled: () => local.disabled,
           focusableWhenDisabled: true,
         });
 

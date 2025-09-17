@@ -157,7 +157,7 @@ const fullSuite = {
 };
 
 function describeConformanceFn(
-  minimalElement: Component<ConformantComponentProps>,
+  minimalElement: Component,
   getOptions: () => BaseUiConformanceTestsOptions,
 ) {
   const { after: runAfterHook = () => {}, only = Object.keys(fullSuite), skip = [] } = getOptions();

@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, on, onCleanup, onMount, splitProps } from 'solid-js';
+import { createEffect, on, onCleanup, splitProps } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { clamp } from '../../utils/clamp';
 import { styleDisableScrollbar } from '../../utils/styles';

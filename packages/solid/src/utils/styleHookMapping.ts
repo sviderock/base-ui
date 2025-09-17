@@ -1,4 +1,4 @@
-import type { Accessor } from 'solid-js';
+import { access, type MaybeAccessor } from '../solid-helpers';
 import type { CustomStyleHookMapping } from './getStyleHookProps';
 import type { TransitionStatus } from './useTransitionStatus';
 
@@ -18,12 +18,12 @@ const ENDING_HOOK = { [TransitionStatusDataAttributes.endingStyle]: '' };
 
 export const transitionStatusMapping = {
   transitionStatus(value): Record<string, string> | null {
-    if (value() === 'starting') {
+    if (access(value) === 'starting') {
       return STARTING_HOOK;
     }
-    if (value() === 'ending') {
+    if (access(value) === 'ending') {
       return ENDING_HOOK;
     }
     return null;
   },
-} satisfies CustomStyleHookMapping<{ transitionStatus: Accessor<TransitionStatus> }>;
+} satisfies CustomStyleHookMapping<{ transitionStatus: MaybeAccessor<TransitionStatus> }>;

@@ -56,7 +56,7 @@ interface FocusableWhenDisabledProps {
   'aria-disabled'?: boolean;
   disabled?: boolean;
   onKeyDown: (event: KeyboardEvent) => void;
-  tabIndex: number;
+  tabIndex: string | number;
 }
 
 export namespace useFocusableWhenDisabled {
@@ -78,7 +78,7 @@ export namespace useFocusableWhenDisabled {
     /**
      * @default 0
      */
-    tabIndex?: MaybeAccessor<number | undefined>;
+    tabIndex?: MaybeAccessor<string | number | undefined>;
     /**
      * @default true
      */

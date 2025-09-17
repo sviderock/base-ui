@@ -58,7 +58,7 @@ export type BaseUIComponentProps<
   render?: ComponentRenderFn<RenderFunctionProps, State>;
 } & (ElementType extends keyof HTMLElementTagNameMap
     ? {
-        ref?: Ref<HTMLElementTagNameMap[ElementType] | null>;
+        ref?: Ref<HTMLElementTagNameMap[ElementType] | null | undefined>;
       }
     : {});
 

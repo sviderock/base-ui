@@ -1,10 +1,5 @@
 'use client';
-import {
-  createEffect,
-  mergeProps as mergePropsSolid,
-  type ComponentProps,
-  type JSX,
-} from 'solid-js';
+import { createEffect, type ComponentProps, type JSX } from 'solid-js';
 import { useCompositeRootContext } from '../composite/root/CompositeRootContext';
 import { makeEventPreventable, mergeProps } from '../merge-props';
 import { access, callEventHandler, type MaybeAccessor } from '../solid-helpers';
@@ -14,7 +9,7 @@ import { useFocusableWhenDisabled } from '../utils/useFocusableWhenDisabled';
 export function useButton(parameters: useButton.Parameters = {}): useButton.ReturnValue {
   const disabled = () => access(parameters.disabled) ?? false;
   const tabIndex = () => access(parameters.tabIndex) ?? 0;
-  const native = () => access(parameters.native) ?? true;
+  const isNativeButton = () => access(parameters.native) ?? true;
   const focusableWhenDisabled = () => access(parameters.focusableWhenDisabled);
 
   let buttonRef = null as HTMLButtonElement | HTMLAnchorElement | HTMLElement | null;
@@ -27,11 +22,11 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
   };
 
   const { props: focusableWhenDisabledProps } = useFocusableWhenDisabled({
-    focusableWhenDisabled: () => focusableWhenDisabled?.(),
-    disabled: () => disabled?.() ?? false,
+    focusableWhenDisabled,
+    disabled,
     composite: isCompositeItem,
-    tabIndex: () => (merged.tabIndex?.() ?? undefined) as number | undefined,
-    isNativeButton: () => merged.native?.() ?? true,
+    tabIndex,
+    isNativeButton,
   });
 
   // handles a disabled composite button rendering another button, e.g.
@@ -46,7 +41,7 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
 
     if (
       isCompositeItem() &&
-      merged.disabled?.() &&
+      disabled() &&
       focusableWhenDisabledProps().disabled === undefined &&
       element.disabled
     ) {
@@ -64,25 +59,25 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
       ...otherExternalProps
     } = externalProps;
 
-    const type = merged.native?.() ? 'button' : undefined;
+    const type = isNativeButton() ? 'button' : undefined;
 
     return mergeProps<'button'>(
       {
         type,
         onClick(event) {
-          if (merged.disabled?.()) {
+          if (disabled()) {
             event.preventDefault();
             return;
           }
           externalOnClick?.(event);
         },
         onMouseDown(event) {
-          if (!merged.disabled?.()) {
+          if (!disabled()) {
             callEventHandler(externalOnMouseDown, event);
           }
         },
         onKeyDown(event) {
-          if (!merged.disabled?.()) {
+          if (!disabled()) {
             makeEventPreventable(event);
             callEventHandler(externalOnKeyDown, event);
           }
@@ -94,10 +89,10 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
           // Keyboard accessibility for non interactive elements
           if (
             event.target === event.currentTarget &&
-            !merged.native?.() &&
+            !isNativeButton() &&
             !isValidLink() &&
             event.key === 'Enter' &&
-            !merged.disabled?.()
+            !disabled()
           ) {
             // TODO: fix this
             externalOnClick?.(event as unknown as MouseEvent);
@@ -108,7 +103,7 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
           // calling preventDefault in keyUp on a <button> will not dispatch a click event if Space is pressed
           // https://codesandbox.io/p/sandbox/button-keyup-preventdefault-dn7f0
           // Keyboard accessibility for non interactive elements
-          if (!merged.disabled?.()) {
+          if (!disabled()) {
             makeEventPreventable(event);
             callEventHandler(externalOnKeyUp, event);
           }
@@ -119,8 +114,8 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
 
           if (
             event.target === event.currentTarget &&
-            !merged.native?.() &&
-            !merged.disabled?.() &&
+            !isNativeButton() &&
+            !disabled() &&
             event.key === ' '
           ) {
             // TODO: fix this
@@ -128,14 +123,14 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
           }
         },
         onPointerDown(event) {
-          if (merged.disabled?.()) {
+          if (disabled()) {
             event.preventDefault();
             return;
           }
           callEventHandler(externalOnPointerDown, event);
         },
       },
-      !merged.native?.() ? { role: 'button' } : undefined,
+      !isNativeButton() ? { role: 'button' } : undefined,
       focusableWhenDisabledProps(),
       otherExternalProps,
     );

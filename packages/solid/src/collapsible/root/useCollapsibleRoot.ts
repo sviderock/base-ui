@@ -1,5 +1,6 @@
 'use client';
 import { createEffect, createSignal, on, type Accessor, type JSX, type Setter } from 'solid-js';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useAnimationsFinished } from '../../utils/useAnimationsFinished';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
@@ -15,11 +16,14 @@ export interface Dimensions {
 export function useCollapsibleRoot(
   parameters: useCollapsibleRoot.Parameters,
 ): useCollapsibleRoot.ReturnValue {
-  const isControlled = () => parameters.open?.() !== undefined;
+  const openParam = () => access(parameters.open);
+  const defaultOpen = () => access(parameters.defaultOpen);
+  const disabled = () => access(parameters.disabled);
+  const isControlled = () => openParam() !== undefined;
 
   const [open, setOpen] = useControlled({
-    controlled: () => parameters.open?.(),
-    default: parameters.defaultOpen,
+    controlled: openParam,
+    default: defaultOpen,
     name: 'Collapsible',
     state: 'open',
   });
@@ -83,7 +87,7 @@ export function useCollapsibleRoot(
   }
 
   createEffect(
-    on([open, keepMounted, () => parameters.open?.(), isControlled, animationType], () => {
+    on([open, keepMounted, openParam, isControlled, animationType], () => {
       /**
        * Unmount immediately when closing in controlled mode and keepMounted={false}
        * and no CSS animations or transitions are applied
@@ -98,7 +102,7 @@ export function useCollapsibleRoot(
     abortControllerRef,
     animationType,
     setAnimationType,
-    disabled: parameters.disabled,
+    disabled,
     handleTrigger,
     height: () => dimensions().height,
     mounted: () => state.mounted,
@@ -128,14 +132,14 @@ export namespace useCollapsibleRoot {
      *
      * To render an uncontrolled collapsible, use the `defaultOpen` prop instead.
      */
-    open?: Accessor<boolean | undefined>;
+    open?: MaybeAccessor<boolean | undefined>;
     /**
      * Whether the collapsible panel is initially open.
      *
      * To render a controlled collapsible, use the `open` prop instead.
      * @default false
      */
-    defaultOpen?: boolean | undefined;
+    defaultOpen?: MaybeAccessor<boolean | undefined>;
     /**
      * Event handler called when the panel is opened or closed.
      */
@@ -144,7 +148,7 @@ export namespace useCollapsibleRoot {
      * Whether the component should ignore user interaction.
      * @default false
      */
-    disabled: Accessor<boolean>;
+    disabled: MaybeAccessor<boolean>;
   }
 
   export interface ReturnValue {

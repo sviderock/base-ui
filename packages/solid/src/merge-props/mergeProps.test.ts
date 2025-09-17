@@ -1,7 +1,8 @@
-import { callHandler, mergeProps } from '@base-ui-components/solid/merge-props';
 import { expect } from 'chai';
 import { spy } from 'sinon';
+import { callEventHandler } from '../solid-helpers';
 import type { BaseUIEvent } from '../utils/types';
+import { mergeProps } from './mergeProps';
 
 describe('mergeProps', () => {
   it('merges event handlers', () => {
@@ -15,9 +16,9 @@ describe('mergeProps', () => {
     };
     const mergedProps = mergeProps<'button'>(ourProps, theirProps);
 
-    callHandler(new MouseEvent('click') as any, mergedProps.onClick as any);
-    callHandler(new KeyboardEvent('keydown') as any, mergedProps.onKeyDown as any);
-    callHandler(new Event('paste') as any, mergedProps.onPaste as any);
+    callEventHandler(mergedProps.onClick as any, new MouseEvent('click') as any);
+    callEventHandler(mergedProps.onKeyDown as any, new KeyboardEvent('keydown') as any);
+    callEventHandler(mergedProps.onPaste as any, new Event('paste') as any);
 
     expect(theirProps.onClick.calledBefore(ourProps.onClick)).to.equal(true);
     expect(theirProps.onClick.callCount).to.equal(1);
@@ -47,7 +48,7 @@ describe('mergeProps', () => {
       },
     );
 
-    callHandler(new MouseEvent('click') as any, mergedProps.onClick as any);
+    callEventHandler(mergedProps.onClick as any, new MouseEvent('click') as any);
     expect(log).to.deep.equal(['1', '2', '3']);
   });
 
@@ -70,7 +71,7 @@ describe('mergeProps', () => {
       },
     );
 
-    callHandler(new MouseEvent('click') as any, mergedProps.onClick as any);
+    callEventHandler(mergedProps.onClick as any, new MouseEvent('click') as any);
     expect(log).to.deep.equal(['1', '3']);
   });
 
@@ -124,7 +125,7 @@ describe('mergeProps', () => {
       },
     );
 
-    callHandler(new MouseEvent('click') as any, mergedProps.onClick as any);
+    callEventHandler(mergedProps.onClick as any, new MouseEvent('click') as any);
 
     expect(ran).to.equal(true);
   });
@@ -151,7 +152,7 @@ describe('mergeProps', () => {
     );
 
     const event = new MouseEvent('click') as any;
-    callHandler(event, mergedProps.onClick as any);
+    callEventHandler(mergedProps.onClick as any, event);
 
     expect(ran).to.equal(false);
   });
@@ -178,7 +179,7 @@ describe('mergeProps', () => {
       },
     );
 
-    callHandler(new MouseEvent('click') as any, mergedProps.onClick as any);
+    callEventHandler(mergedProps.onClick as any, new MouseEvent('click') as any);
 
     expect(log).to.deep.equal(['0', '1']);
   });

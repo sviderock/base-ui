@@ -8,6 +8,7 @@ export function callEventHandler<T, E extends Event>(
     if (typeof eventHandler === 'function') {
       eventHandler(event);
     } else {
+      console.log('eventHandler', eventHandler);
       eventHandler[0](eventHandler[1], event);
     }
   }

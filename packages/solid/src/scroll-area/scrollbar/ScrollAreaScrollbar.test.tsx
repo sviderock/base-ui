@@ -42,8 +42,8 @@ describe('<ScrollArea.Scrollbar />', () => {
     const horizontalScrollbar = screen.getByTestId('horizontal');
     const viewport = screen.getByTestId('viewport');
 
-    expect(verticalScrollbar).not.to.have.attribute('data-scrolling');
-    expect(horizontalScrollbar).not.to.have.attribute('data-scrolling');
+    expect(verticalScrollbar).not.toHaveAttribute('data-scrolling');
+    expect(horizontalScrollbar).not.toHaveAttribute('data-scrolling');
 
     fireEvent.pointerEnter(viewport);
     fireEvent.scroll(viewport, {
@@ -52,13 +52,13 @@ describe('<ScrollArea.Scrollbar />', () => {
       },
     });
 
-    expect(verticalScrollbar).to.have.attribute('data-scrolling', '');
-    expect(horizontalScrollbar).not.to.have.attribute('data-scrolling', '');
+    expect(verticalScrollbar).toHaveAttribute('data-scrolling', '');
+    expect(horizontalScrollbar).not.toHaveAttribute('data-scrolling', '');
 
     clock.tick(SCROLL_TIMEOUT - 1);
 
-    expect(verticalScrollbar).to.have.attribute('data-scrolling', '');
-    expect(horizontalScrollbar).not.to.have.attribute('data-scrolling', '');
+    expect(verticalScrollbar).toHaveAttribute('data-scrolling', '');
+    expect(horizontalScrollbar).not.toHaveAttribute('data-scrolling', '');
 
     fireEvent.pointerEnter(viewport);
     fireEvent.scroll(viewport, {
@@ -69,17 +69,17 @@ describe('<ScrollArea.Scrollbar />', () => {
 
     clock.tick(1); // vertical just finished
 
-    expect(verticalScrollbar).not.to.have.attribute('data-scrolling');
-    expect(horizontalScrollbar).to.have.attribute('data-scrolling');
+    expect(verticalScrollbar).not.toHaveAttribute('data-scrolling');
+    expect(horizontalScrollbar).toHaveAttribute('data-scrolling');
 
     clock.tick(SCROLL_TIMEOUT - 2); // already ticked 1ms above
 
-    expect(verticalScrollbar).not.to.have.attribute('data-scrolling');
-    expect(horizontalScrollbar).to.have.attribute('data-scrolling');
+    expect(verticalScrollbar).not.toHaveAttribute('data-scrolling');
+    expect(horizontalScrollbar).toHaveAttribute('data-scrolling');
 
     clock.tick(1);
 
-    expect(verticalScrollbar).not.to.have.attribute('data-scrolling');
-    expect(horizontalScrollbar).not.to.have.attribute('data-scrolling');
+    expect(verticalScrollbar).not.toHaveAttribute('data-scrolling');
+    expect(horizontalScrollbar).not.toHaveAttribute('data-scrolling');
   });
 });
