@@ -14,6 +14,7 @@ import {
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { mergePropsN } from '../merge-props';
+import { access, type MaybeAccessor } from '../solid-helpers';
 import { EMPTY_OBJECT } from './constants';
 import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
 import { resolveClassName } from './resolveClassName';
@@ -27,37 +28,41 @@ export function RenderElement<
   TagName extends IntrinsicTagName | undefined,
   Enabled extends boolean | undefined = undefined,
 >(props: {
-  element: TagName;
+  element: MaybeAccessor<TagName>;
   // TODO: needed as a separate prop to properly reassign refs https://stackoverflow.com/a/71137252
   ref: Ref<RenderedElementType | null | undefined>;
   componentProps: RenderElement.ComponentProps<State>;
   params: RenderElement.Parameters<State, TagName, Enabled>;
 }): JSX.Element {
-  const state = () => props.params.state ?? (EMPTY_OBJECT as State);
-  const enabled = () => props.params.enabled ?? true;
+  const element = () => access(props.element);
+  const state = () => access(props.params.state) ?? (EMPTY_OBJECT as State);
+  const enabled = () => access(props.params.enabled) ?? true;
+  const classProp = () => access(props.componentProps.class);
+  const renderProp = () => access(props.componentProps.render);
+  const disableStyleHooks = () => access(props.params.disableStyleHooks);
+  const customStyleHookMapping = () => access(props.params.customStyleHookMapping);
+  const paramsProps = () => access(props.params.props);
 
   const styleHooks = createMemo((): Record<string, string> | undefined => {
-    if (props.params.disableStyleHooks !== true) {
+    if (disableStyleHooks() !== true) {
       return enabled()
-        ? getStyleHookProps(state(), props.params.customStyleHookMapping)
+        ? getStyleHookProps(state(), customStyleHookMapping() as CustomStyleHookMapping<State>)
         : EMPTY_OBJECT;
     }
     return undefined;
   });
 
-  const flattenedPropsParams = createMemo(() =>
-    Array.isArray(props.params.props) ? mergePropsN(props.params.props) : props.params.props,
-  );
-
   const propsParams = createMemo(() => {
-    const mergedParams = flattenedPropsParams();
+    const p = paramsProps();
+    const mergedParams = Array.isArray(p) ? mergePropsN(p) : p;
+
     if (mergedParams === undefined) {
       return undefined;
     }
 
     const [local, rest] = splitProps(mergedParams, ['children']);
     const safeChildren = children(() => {
-      if (typeof props.element === 'string') {
+      if (typeof element() === 'string') {
         return local.children;
       }
 
@@ -73,7 +78,7 @@ export function RenderElement<
   const outProps = createMemo((): JSX.HTMLAttributes<any> => {
     if (enabled()) {
       const mergedProps = mergeProps(styleHooks(), propsParams(), {
-        class: resolveClassName(props.componentProps.class, state()),
+        class: resolveClassName(classProp(), state()),
         ref: props.ref,
       });
 
@@ -87,20 +92,17 @@ export function RenderElement<
     <Switch>
       <Match when={enabled() === false}>{null}</Match>
 
-      <Match when={props.componentProps.render}>
-        <Show
-          when={typeof props.componentProps.render === 'function'}
-          fallback={props.componentProps.render as JSX.Element}
-        >
-          {(props.componentProps.render as Function)(outProps() as any, state())}
+      <Match when={renderProp()}>
+        <Show when={typeof renderProp() === 'function'} fallback={renderProp() as JSX.Element}>
+          {(renderProp() as Function)(outProps() as any, state())}
         </Show>
       </Match>
 
-      <Match when={props.element && typeof props.element === 'string'}>
+      <Match when={element() && typeof element() === 'string'}>
         <Dynamic
-          component={props.element as keyof JSX.IntrinsicElements}
-          {...(props.element === 'button' ? { type: 'button' } : {})}
-          {...(props.element === 'img' ? { alt: '' } : {})}
+          component={element() as keyof JSX.IntrinsicElements}
+          {...(element() === 'button' ? { type: 'button' } : {})}
+          {...(element() === 'img' ? { alt: '' } : {})}
           {...outProps()}
         />
       </Match>
@@ -119,7 +121,7 @@ export namespace RenderElement {
      * This is useful for rendering a component conditionally.
      * @default true
      */
-    enabled?: Enabled;
+    enabled?: MaybeAccessor<Enabled | undefined>;
     /**
      * @deprecated
      */
@@ -127,35 +129,36 @@ export namespace RenderElement {
     /**
      * The state of the component.
      */
-    state?: State;
+    state?: MaybeAccessor<State | undefined>;
 
     /**
      * Intrinsic props to be spread on the rendered element.
      */
-    props?:
+    props?: MaybeAccessor<
       | RenderFunctionProps<TagName>
       | Array<
           | RenderFunctionProps<TagName>
           | undefined
           | ((props: RenderFunctionProps<TagName>) => RenderFunctionProps<TagName>)
-        >;
+        >
+    >;
 
     /**
      * A mapping of state to style hooks.
      */
-    customStyleHookMapping?: CustomStyleHookMapping<State>;
+    customStyleHookMapping?: MaybeAccessor<CustomStyleHookMapping<State>>;
   } /* This typing ensures `disableStyleHookMapping` is constantly defined or undefined */ & (
     | {
         /**
          * Disable style hook mapping.
          */
-        disableStyleHooks: true;
+        disableStyleHooks: MaybeAccessor<true>;
       }
     | {
         /**
          * Disable style hook mapping.
          */
-        disableStyleHooks?: false;
+        disableStyleHooks?: MaybeAccessor<false | undefined>;
       }
   );
 
@@ -164,10 +167,10 @@ export namespace RenderElement {
      * The class name to apply to the rendered element.
      * Can be a string or a function that accepts the state and returns a string.
      */
-    class?: string | ((state: State) => string);
+    class?: MaybeAccessor<string | ((state: State) => string)>;
     /**
      * The render prop or Solid element to override the default element.
      */
-    render?: ComponentRenderFn<Record<string, unknown>, State> | JSX.Element;
+    render?: MaybeAccessor<ComponentRenderFn<Record<string, unknown>, State> | JSX.Element>;
   }
 }

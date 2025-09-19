@@ -16,6 +16,7 @@ export function DialogPortal(props: DialogPortal.Props) {
   const { mounted } = useDialogRootContext();
 
   const shouldRender = mounted || keepMounted;
+
   if (!shouldRender) {
     return null;
   }

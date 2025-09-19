@@ -1,20 +1,28 @@
-import * as React from 'react';
+import { Dialog } from '@base-ui-components/solid/dialog';
 import { expect } from 'chai';
-import { Dialog } from '@base-ui-components/react/dialog';
-import { AlertDialog } from '@base-ui-components/react/alert-dialog';
-import { act, waitFor, screen } from '@mui/internal-test-utils';
-import { describeConformance, createRenderer, isJSDOM } from '#test-utils';
+// import { AlertDialog } from '@base-ui-components/solid/alert-dialog';
+import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#test-utils';
+import type { ReactLikeRef } from '@base-ui-components/solid/solid-helpers';
+import { screen, waitFor } from '@solidjs/testing-library';
+import { userEvent } from '@testing-library/user-event';
+import { createSignal, onMount } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Dialog.Popup />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Dialog.Popup />, () => ({
+  describeConformance(Dialog.Popup, () => ({
     refInstanceof: window.HTMLDivElement,
-    render: (node) => {
+    render: (node, elementProps = {}) => {
       return render(
-        <Dialog.Root open modal={false}>
-          <Dialog.Portal>{node}</Dialog.Portal>
-        </Dialog.Root>,
+        () => (
+          <Dialog.Root open modal={false}>
+            <Dialog.Portal>
+              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+            </Dialog.Portal>
+          </Dialog.Root>
+        ),
+        elementProps,
       );
     },
   }));
@@ -25,16 +33,16 @@ describe('<Dialog.Popup />', () => {
       [false, false],
       [undefined, false],
     ].forEach(([keepMounted, expectedIsMounted]) => {
-      it(`should ${!expectedIsMounted ? 'not ' : ''}keep the dialog mounted when keepMounted=${keepMounted}`, async () => {
-        const { queryByRole } = await render(
+      it(`should ${!expectedIsMounted ? 'not ' : ''}keep the dialog mounted when keepMounted=${keepMounted}`, () => {
+        render(() => (
           <Dialog.Root open={false} modal={false}>
             <Dialog.Portal keepMounted={keepMounted}>
               <Dialog.Popup />
             </Dialog.Portal>
-          </Dialog.Root>,
-        );
+          </Dialog.Root>
+        ));
 
-        const dialog = queryByRole('dialog', { hidden: true });
+        const dialog = screen.queryByRole('dialog', { hidden: true });
         if (expectedIsMounted) {
           expect(dialog).not.to.equal(null);
           expect(dialog).toBeInaccessible();
@@ -47,7 +55,7 @@ describe('<Dialog.Popup />', () => {
 
   describe('prop: initial focus', () => {
     it('should focus the first focusable element within the popup', async () => {
-      const { getByText, getByTestId } = await render(
+      const { user } = render(() => (
         <div>
           <input />
           <Dialog.Root modal={false}>
@@ -60,23 +68,19 @@ describe('<Dialog.Popup />', () => {
             </Dialog.Portal>
           </Dialog.Root>
           <input />
-        </div>,
-      );
+        </div>
+      ));
 
-      const trigger = getByText('Open');
-      await act(async () => {
-        trigger.click();
-      });
+      await user.click(screen.getByText('Open'));
 
-      await waitFor(() => {
-        const dialogInput = getByTestId('dialog-input');
-        expect(dialogInput).to.toHaveFocus();
-      });
+      const dialogInput = screen.getByTestId('dialog-input');
+      expect(dialogInput).to.toHaveFocus();
     });
 
     it('should focus the element provided to `initialFocus` as a ref when open', async () => {
       function TestComponent() {
-        const input2Ref = React.useRef<HTMLInputElement>(null);
+        const [input2Ref, setInput2Ref] = createSignal<HTMLElement | null>(null);
+
         return (
           <div>
             <input />
@@ -85,7 +89,7 @@ describe('<Dialog.Popup />', () => {
               <Dialog.Portal>
                 <Dialog.Popup data-testid="dialog" initialFocus={input2Ref}>
                   <input data-testid="input-1" />
-                  <input data-testid="input-2" ref={input2Ref} />
+                  <input data-testid="input-2" ref={setInput2Ref} />
                   <input data-testid="input-3" />
                   <button>Close</button>
                 </Dialog.Popup>
@@ -96,24 +100,19 @@ describe('<Dialog.Popup />', () => {
         );
       }
 
-      const { getByText, getByTestId } = await render(<TestComponent />);
+      const { user } = render(() => <TestComponent />);
 
-      const trigger = getByText('Open');
-      await act(async () => {
-        trigger.click();
-      });
+      await user.click(screen.getByText('Open'));
 
-      await waitFor(() => {
-        const input2 = getByTestId('input-2');
-        expect(input2).to.toHaveFocus();
-      });
+      const input2 = screen.getByTestId('input-2');
+      expect(input2).to.toHaveFocus();
     });
 
     it('should focus the element provided to `initialFocus` as a function when open', async () => {
       function TestComponent() {
-        const input2Ref = React.useRef<HTMLInputElement>(null);
+        const [input2Ref, setInput2Ref] = createSignal<HTMLElement | null>(null);
 
-        const getRef = React.useCallback(() => input2Ref, []);
+        const getRef = () => input2Ref();
 
         return (
           <div>
@@ -123,7 +122,7 @@ describe('<Dialog.Popup />', () => {
               <Dialog.Portal>
                 <Dialog.Popup data-testid="dialog" initialFocus={getRef}>
                   <input data-testid="input-1" />
-                  <input data-testid="input-2" ref={input2Ref} />
+                  <input data-testid="input-2" ref={setInput2Ref} />
                   <input data-testid="input-3" />
                   <button>Close</button>
                 </Dialog.Popup>
@@ -134,23 +133,18 @@ describe('<Dialog.Popup />', () => {
         );
       }
 
-      const { getByText, getByTestId } = await render(<TestComponent />);
+      const { user } = render(() => <TestComponent />);
 
-      const trigger = getByText('Open');
-      await act(async () => {
-        trigger.click();
-      });
+      await user.click(screen.getByText('Open'));
 
-      await waitFor(() => {
-        const input2 = getByTestId('input-2');
-        expect(input2).to.toHaveFocus();
-      });
+      const input2 = screen.getByTestId('input-2');
+      expect(input2).to.toHaveFocus();
     });
   });
 
   describe('prop: final focus', () => {
     it('should focus the trigger by default when closed', async () => {
-      const { getByText, user } = await render(
+      const { user } = render(() => (
         <div>
           <input />
           <Dialog.Root>
@@ -163,13 +157,13 @@ describe('<Dialog.Popup />', () => {
             </Dialog.Portal>
           </Dialog.Root>
           <input />
-        </div>,
-      );
+        </div>
+      ));
 
-      const trigger = getByText('Open');
+      const trigger = screen.getByText('Open');
       await user.click(trigger);
 
-      const closeButton = getByText('Close');
+      const closeButton = screen.getByText('Close');
       await user.click(closeButton);
 
       await waitFor(() => {
@@ -179,7 +173,7 @@ describe('<Dialog.Popup />', () => {
 
     it('should focus the element provided to the prop when closed', async () => {
       function TestComponent() {
-        const inputRef = React.useRef<HTMLInputElement>(null);
+        const [inputRef, setInputRef] = createSignal<HTMLElement | null>(null);
         return (
           <div>
             <input />
@@ -193,31 +187,29 @@ describe('<Dialog.Popup />', () => {
               </Dialog.Portal>
             </Dialog.Root>
             <input />
-            <input data-testid="input-to-focus" ref={inputRef} />
+            <input data-testid="input-to-focus" ref={setInputRef} />
             <input />
           </div>
         );
       }
 
-      const { getByText, getByTestId, user } = await render(<TestComponent />);
+      const { user } = render(() => <TestComponent />);
 
-      const trigger = getByText('Open');
+      const trigger = screen.getByText('Open');
       await user.click(trigger);
 
-      const closeButton = getByText('Close');
+      const closeButton = screen.getByText('Close');
       await user.click(closeButton);
 
-      const inputToFocus = getByTestId('input-to-focus');
+      const inputToFocus = screen.getByTestId('input-to-focus');
 
-      await waitFor(() => {
-        expect(inputToFocus).toHaveFocus();
-      });
+      expect(inputToFocus).toHaveFocus();
     });
   });
 
   describe.skipIf(isJSDOM)('nested dialog count', () => {
     it('provides the number of open nested dialogs as a CSS variable', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <Dialog.Root>
           <Dialog.Trigger>Trigger 0</Dialog.Trigger>
           <Dialog.Portal>
@@ -240,8 +232,8 @@ describe('<Dialog.Popup />', () => {
               </Dialog.Root>
             </Dialog.Popup>
           </Dialog.Portal>
-        </Dialog.Root>,
-      );
+        </Dialog.Root>
+      ));
 
       await user.click(screen.getByRole('button', { name: 'Trigger 0' }));
 
@@ -280,15 +272,15 @@ describe('<Dialog.Popup />', () => {
 
     it('decrements the count when an open nested dialog is unmounted', async () => {
       function App() {
-        const [showNested, setShowNested] = React.useState(true);
+        const [showNested, setShowNested] = createSignal(true);
         return (
-          <React.Fragment>
+          <>
             <button onClick={() => setShowNested(!showNested)}>toggle</button>
             <Dialog.Root>
               <Dialog.Trigger>Trigger 0</Dialog.Trigger>
               <Dialog.Portal>
                 <Dialog.Popup data-testid="popup0">
-                  {showNested && (
+                  {showNested() && (
                     <Dialog.Root>
                       <Dialog.Trigger>Trigger 1</Dialog.Trigger>
                       <Dialog.Portal>
@@ -302,11 +294,11 @@ describe('<Dialog.Popup />', () => {
                 </Dialog.Popup>
               </Dialog.Portal>
             </Dialog.Root>
-          </React.Fragment>
+          </>
         );
       }
 
-      const { user } = await render(<App />);
+      const { user } = render(() => <App />);
 
       await user.click(screen.getByRole('button', { name: 'Trigger 0' }));
 
@@ -333,13 +325,13 @@ describe('<Dialog.Popup />', () => {
 
     it('does not change the count when a closed nested dialog is unmounted', async () => {
       function App() {
-        const [showNested, setShowNested] = React.useState(true);
+        const [showNested, setShowNested] = createSignal(true);
         return (
           <Dialog.Root>
             <Dialog.Trigger>Trigger 0</Dialog.Trigger>
             <Dialog.Portal>
               <Dialog.Popup data-testid="popup0">
-                {showNested && (
+                {showNested() && (
                   <Dialog.Root>
                     <Dialog.Trigger />
                     <Dialog.Portal>
@@ -347,7 +339,7 @@ describe('<Dialog.Popup />', () => {
                     </Dialog.Portal>
                   </Dialog.Root>
                 )}
-                <button onClick={() => setShowNested(!showNested)}>toggle</button>
+                <button onClick={() => setShowNested(!showNested())}>toggle</button>
                 <Dialog.Close>Close 0</Dialog.Close>
               </Dialog.Popup>
             </Dialog.Portal>
@@ -355,7 +347,7 @@ describe('<Dialog.Popup />', () => {
         );
       }
 
-      const { user } = await render(<App />);
+      const { user } = render(() => <App />);
 
       await user.click(screen.getByRole('button', { name: 'Trigger 0' }));
 
@@ -374,8 +366,8 @@ describe('<Dialog.Popup />', () => {
   });
 
   describe('style hooks', () => {
-    it('adds the `nested` and `nested-dialog-open` style hooks if a dialog has a parent dialog', async () => {
-      await render(
+    it('adds the `nested` and `nested-dialog-open` style hooks if a dialog has a parent dialog', () => {
+      render(() => (
         <Dialog.Root open>
           <Dialog.Portal>
             <Dialog.Popup data-testid="parent-dialog" />
@@ -391,8 +383,8 @@ describe('<Dialog.Popup />', () => {
               </Dialog.Portal>
             </Dialog.Root>
           </Dialog.Portal>
-        </Dialog.Root>,
-      );
+        </Dialog.Root>
+      ));
 
       const parentDialog = screen.getByTestId('parent-dialog');
       const nestedDialog = screen.getByTestId('nested-dialog');
@@ -404,34 +396,34 @@ describe('<Dialog.Popup />', () => {
       expect(nestedDialog).not.to.have.attribute('data-nested-dialog-open');
     });
 
-    it('adds the `nested` and `nested-dialog-open` style hooks if a dialog has a parent alert dialog', async () => {
-      await render(
-        <AlertDialog.Root open>
-          <AlertDialog.Portal>
-            <AlertDialog.Popup data-testid="parent-dialog" />
-            <Dialog.Root open>
-              <Dialog.Portal>
-                <Dialog.Popup data-testid="nested-dialog">
-                  <Dialog.Root>
-                    <Dialog.Portal>
-                      <Dialog.Popup />
-                    </Dialog.Portal>
-                  </Dialog.Root>
-                </Dialog.Popup>
-              </Dialog.Portal>
-            </Dialog.Root>
-          </AlertDialog.Portal>
-        </AlertDialog.Root>,
-      );
+    // it('adds the `nested` and `nested-dialog-open` style hooks if a dialog has a parent alert dialog', async () => {
+    //   await render(
+    //     <AlertDialog.Root open>
+    //       <AlertDialog.Portal>
+    //         <AlertDialog.Popup data-testid="parent-dialog" />
+    //         <Dialog.Root open>
+    //           <Dialog.Portal>
+    //             <Dialog.Popup data-testid="nested-dialog">
+    //               <Dialog.Root>
+    //                 <Dialog.Portal>
+    //                   <Dialog.Popup />
+    //                 </Dialog.Portal>
+    //               </Dialog.Root>
+    //             </Dialog.Popup>
+    //           </Dialog.Portal>
+    //         </Dialog.Root>
+    //       </AlertDialog.Portal>
+    //     </AlertDialog.Root>,
+    //   );
 
-      const parentDialog = screen.getByTestId('parent-dialog');
-      const nestedDialog = screen.getByTestId('nested-dialog');
+    //   const parentDialog = screen.getByTestId('parent-dialog');
+    //   const nestedDialog = screen.getByTestId('nested-dialog');
 
-      expect(parentDialog).not.to.have.attribute('data-nested');
-      expect(nestedDialog).to.have.attribute('data-nested');
+    //   expect(parentDialog).not.to.have.attribute('data-nested');
+    //   expect(nestedDialog).to.have.attribute('data-nested');
 
-      expect(parentDialog).to.have.attribute('data-nested-dialog-open');
-      expect(nestedDialog).not.to.have.attribute('data-nested-dialog-open');
-    });
+    //   expect(parentDialog).to.have.attribute('data-nested-dialog-open');
+    //   expect(nestedDialog).not.to.have.attribute('data-nested-dialog-open');
+    // });
   });
 });

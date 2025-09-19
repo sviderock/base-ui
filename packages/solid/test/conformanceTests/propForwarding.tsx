@@ -1,4 +1,5 @@
 import { randomStringValue } from '@mui/internal-test-utils';
+import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import type { Component } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
@@ -25,9 +26,9 @@ export function testPropForwarding(
         'data-foobar': randomStringValue(),
       };
 
-      const { getByTestId } = render(element, { 'data-testid': 'root', ...otherProps });
+      render(element, { 'data-testid': 'root', ...otherProps });
 
-      const customRoot = getByTestId('root');
+      const customRoot = screen.getByTestId('root');
       expect(customRoot).to.have.attribute('lang', otherProps.lang);
       expect(customRoot).to.have.attribute('data-foobar', otherProps['data-foobar']);
     });
@@ -38,12 +39,12 @@ export function testPropForwarding(
         'data-foobar': randomStringValue(),
       };
 
-      const { getByTestId } = render(element, {
+      render(element, {
         render: (props) => <Dynamic component={Element} {...props} data-testid="custom-root" />,
         ...otherProps,
       });
 
-      const customRoot = getByTestId('custom-root');
+      const customRoot = screen.getByTestId('custom-root');
       expect(customRoot).to.have.attribute('lang', otherProps.lang);
       expect(customRoot).to.have.attribute('data-foobar', otherProps['data-foobar']);
     });
@@ -58,30 +59,30 @@ export function testPropForwarding(
         'data-foobar': randomStringValue(),
       };
 
-      const { getByTestId } = render(element, {
+      render(element, {
         // @ts-expect-error
         render: <Dynamic component={Element} data-testid="custom-root" />,
         ...otherProps,
       });
 
-      const customRoot = getByTestId('custom-root');
+      const customRoot = screen.getByTestId('custom-root');
       expect(customRoot).to.have.attribute('lang', otherProps.lang);
       expect(customRoot).to.have.attribute('data-foobar', otherProps['data-foobar']);
     });
 
     it('forwards the custom `style` attribute defined on the component', () => {
-      const { getByTestId } = render(element, {
+      render(element, {
         style: { color: 'green' },
         'data-testid': 'custom-root',
       });
 
-      const customRoot = getByTestId('custom-root');
+      const customRoot = screen.getByTestId('custom-root');
       expect(customRoot).to.have.attribute('style');
       expect(customRoot.getAttribute('style')).to.contain('color: green');
     });
 
     it('forwards the custom `style` attribute defined on the render function', () => {
-      const { getByTestId } = render(element, {
+      render(element, {
         render: (props) => (
           <Dynamic
             component={Element}
@@ -92,7 +93,7 @@ export function testPropForwarding(
         ),
       });
 
-      const customRoot = getByTestId('custom-root');
+      const customRoot = screen.getByTestId('custom-root');
       expect(customRoot).to.have.attribute('style');
       expect(customRoot.getAttribute('style')).to.contain('color: green');
     });
@@ -102,12 +103,12 @@ export function testPropForwarding(
      * This is skipped as when the element is a JSX element – Solid has already resolved the element
      */
     it.skip('forwards the custom `style` attribute defined on the render function', () => {
-      const { getByTestId } = render(element, {
+      render(element, {
         // @ts-expect-error
         render: <Element style={{ color: 'green' }} data-testid="custom-root" />,
       });
 
-      const customRoot = getByTestId('custom-root');
+      const customRoot = screen.getByTestId('custom-root');
       expect(customRoot).to.have.attribute('style');
       expect(customRoot.getAttribute('style')).to.contain('color: green');
     });

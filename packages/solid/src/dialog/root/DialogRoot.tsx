@@ -1,8 +1,9 @@
 'use client';
-import * as React from 'react';
-import { DialogRootContext, useOptionalDialogRootContext } from './DialogRootContext';
+import { onCleanup, onMount, type JSX } from 'solid-js';
+import { access } from '../../solid-helpers';
 import { DialogContext } from '../utils/DialogContext';
-import { type DialogOpenChangeReason, useDialogRoot } from './useDialogRoot';
+import { DialogRootContext, useOptionalDialogRootContext } from './DialogRootContext';
+import { useDialogRoot, type DialogOpenChangeReason } from './useDialogRoot';
 
 /**
  * Groups all parts of the dialog.
@@ -10,56 +11,50 @@ import { type DialogOpenChangeReason, useDialogRoot } from './useDialogRoot';
  *
  * Documentation: [Base UI Dialog](https://base-ui.com/react/components/dialog)
  */
-export const DialogRoot: React.FC<DialogRoot.Props> = function DialogRoot(props) {
-  const {
-    children,
-    defaultOpen = false,
-    dismissible = true,
-    modal = true,
-    onOpenChange,
-    open,
-    actionsRef,
-    onOpenChangeComplete,
-  } = props;
+export function DialogRoot(props: DialogRoot.Props) {
+  const defaultOpen = () => access(props.defaultOpen) ?? false;
+  const dismissible = () => access(props.dismissible) ?? true;
+  const modal = () => access(props.modal) ?? true;
+  const open = () => access(props.open);
 
   const parentDialogRootContext = useOptionalDialogRootContext();
 
   const dialogRoot = useDialogRoot({
     open,
     defaultOpen,
-    onOpenChange,
+    onOpenChange: (...args) => props.onOpenChange?.(...args),
     modal,
     dismissible,
-    actionsRef,
-    onOpenChangeComplete,
+    actionsRef: props.actionsRef,
+    onOpenChangeComplete: (...args) => props.onOpenChangeComplete?.(...args),
     onNestedDialogClose: parentDialogRootContext?.onNestedDialogClose,
     onNestedDialogOpen: parentDialogRootContext?.onNestedDialogOpen,
   });
 
-  const nested = Boolean(parentDialogRootContext);
+  const nested = () => Boolean(parentDialogRootContext);
 
-  const dialogContextValue = React.useMemo(
-    () => ({
-      ...dialogRoot,
-      nested,
-      onOpenChangeComplete,
-    }),
-    [dialogRoot, nested, onOpenChangeComplete],
-  );
-  const dialogRootContextValue = React.useMemo(() => ({ dismissible }), [dismissible]);
+  const dialogContextValue: DialogContext = {
+    ...dialogRoot,
+    nested,
+    onOpenChangeComplete: (...args) => props.onOpenChangeComplete?.(...args),
+  };
+
+  const dialogRootContextValue: DialogRootContext = {
+    dismissible,
+  };
 
   return (
     <DialogContext.Provider value={dialogContextValue}>
       <DialogRootContext.Provider value={dialogRootContextValue}>
-        {children}
+        {props.children}
       </DialogRootContext.Provider>
     </DialogContext.Provider>
   );
-};
+}
 
 export namespace DialogRoot {
   export interface Props extends useDialogRoot.SharedParameters {
-    children?: React.ReactNode;
+    children?: JSX.Element;
   }
 
   export type Actions = useDialogRoot.Actions;

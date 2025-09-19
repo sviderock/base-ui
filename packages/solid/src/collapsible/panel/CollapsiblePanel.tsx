@@ -1,5 +1,5 @@
 'use client';
-import { type Accessor, createEffect, onCleanup, Show, splitProps } from 'solid-js';
+import { type Accessor, createEffect, type JSX, onCleanup, Show, splitProps } from 'solid-js';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useForkRef } from '../../utils/useForkRef';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
@@ -121,8 +121,7 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
                   context.width() === undefined ? 'auto' : `${context.width()}px`,
               },
             },
-            // TODO: fix typing
-            elementProps as any,
+            elementProps as JSX.HTMLAttributes<HTMLDivElement>,
           ],
           customStyleHookMapping: collapsibleStyleHookMapping,
         }}

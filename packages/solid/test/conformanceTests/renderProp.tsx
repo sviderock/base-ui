@@ -1,4 +1,5 @@
 import { randomStringValue } from '@mui/internal-test-utils';
+import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import type { Component, ParentComponent } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
@@ -29,13 +30,13 @@ export function testRenderProp(
   describe('prop: render', () => {
     it('renders a customized root element with a function', () => {
       const testValue = randomStringValue();
-      const { queryByTestId } = render(element, {
+      render(element, {
         render: (props) => <Wrapper {...props} data-test-value={testValue} />,
       });
 
-      expect(queryByTestId('base-ui-wrapper')).not.to.equal(null);
-      expect(queryByTestId('wrapped')).not.to.equal(null);
-      expect(queryByTestId('wrapped')).to.have.attribute('data-test-value', testValue);
+      expect(screen.queryByTestId('base-ui-wrapper')).not.to.equal(null);
+      expect(screen.queryByTestId('wrapped')).not.to.equal(null);
+      expect(screen.queryByTestId('wrapped')).to.have.attribute('data-test-value', testValue);
     });
 
     /**
@@ -44,14 +45,14 @@ export function testRenderProp(
      */
     it.skip('renders a customized root element with an element', () => {
       const testValue = randomStringValue();
-      const { queryByTestId } = render(element, {
+      render(element, {
         // @ts-expect-error
         render: <Wrapper data-test-value={testValue} />,
       });
 
-      expect(queryByTestId('base-ui-wrapper')).not.to.equal(null);
-      expect(queryByTestId('wrapped')).not.to.equal(null);
-      expect(queryByTestId('wrapped')).to.have.attribute('data-test-value', testValue);
+      expect(screen.queryByTestId('base-ui-wrapper')).not.to.equal(null);
+      expect(screen.queryByTestId('wrapped')).not.to.equal(null);
+      expect(screen.queryByTestId('wrapped')).to.have.attribute('data-test-value', testValue);
     });
 
     /**
@@ -137,9 +138,9 @@ export function testRenderProp(
         );
       }
 
-      const { getByTestId } = render(Test);
+      render(Test);
 
-      const component = getByTestId('test-component');
+      const component = screen.getByTestId('test-component');
       expect(component.classList.contains('component-classname')).to.equal(true);
       expect(component.classList.contains('render-prop-classname')).to.equal(true);
     });
@@ -161,9 +162,9 @@ export function testRenderProp(
         );
       }
 
-      const { getByTestId } = render(Test);
+      render(Test);
 
-      const component = getByTestId('test-component');
+      const component = screen.getByTestId('test-component');
       expect(component.classList.contains('conditional-component-classname')).to.equal(true);
       expect(component.classList.contains('render-prop-classname')).to.equal(true);
     });

@@ -1,31 +1,36 @@
 'use client';
-import * as React from 'react';
+import { type JSX } from 'solid-js';
 import { mergeProps } from '../../merge-props';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import type { HTMLProps } from '../../utils/types';
-import { useEventCallback } from '../../utils/useEventCallback';
 import { DialogOpenChangeReason } from '../root/useDialogRoot';
 
 export function useDialogClose(params: useDialogClose.Parameters): useDialogClose.ReturnValue {
-  const { open, setOpen, disabled, nativeButton } = params;
+  const open = () => access(params.open);
+  const disabled = () => access(params.disabled);
+  const native = () => access(params.nativeButton);
 
-  const handleClick = useEventCallback((event: React.MouseEvent) => {
-    if (open) {
-      setOpen(false, event.nativeEvent, 'close-press');
+  const handleClick = (event: MouseEvent) => {
+    if (open()) {
+      params.setOpen(false, event, 'close-press');
     }
-  });
+  };
 
   const { getButtonProps, buttonRef } = useButton({
     disabled,
-    native: nativeButton,
+    native,
   });
 
-  const getRootProps = (externalProps: HTMLProps) =>
-    mergeProps({ onClick: handleClick }, externalProps, getButtonProps);
+  const getRootProps = (externalProps: HTMLProps) => {
+    // Pass getButtonProps as a props-getter so it can wrap the previously merged
+    // onClick and correctly suppress it when disabled, matching React behavior.
+    return mergeProps({ onClick: handleClick }, externalProps, getButtonProps);
+  };
 
   return {
     getRootProps,
-    ref: buttonRef,
+    dialogCloseRef: buttonRef,
   };
 }
 
@@ -34,11 +39,11 @@ export namespace useDialogClose {
     /**
      * Whether the button is currently disabled.
      */
-    disabled: boolean;
+    disabled: MaybeAccessor<boolean>;
     /**
      * Whether the dialog is currently open.
      */
-    open: boolean;
+    open: MaybeAccessor<boolean>;
     /**
      * Event handler called when the dialog is opened or closed.
      */
@@ -53,14 +58,14 @@ export namespace useDialogClose {
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default true
      */
-    nativeButton: boolean;
+    nativeButton: MaybeAccessor<boolean>;
   }
 
   export interface ReturnValue {
     /**
      * Resolver for the root element props.
      */
-    getRootProps: (externalProps: React.HTMLAttributes<any>) => React.HTMLAttributes<any>;
-    ref: React.RefObject<HTMLElement | null>;
+    getRootProps: (externalProps: JSX.HTMLAttributes<any>) => JSX.HTMLAttributes<any>;
+    dialogCloseRef: (el: HTMLElement | undefined | null) => void;
   }
 }

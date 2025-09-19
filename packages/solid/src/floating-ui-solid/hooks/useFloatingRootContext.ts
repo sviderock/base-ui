@@ -17,7 +17,7 @@ export interface UseFloatingRootContextOptions {
   elements: {
     reference: MaybeAccessor<Element | null>;
     floating: MaybeAccessor<HTMLElement | null>;
-    domReference: MaybeAccessor<Element | null>;
+    domReference?: MaybeAccessor<Element | null>;
   };
 }
 
@@ -46,7 +46,9 @@ export function useFloatingRootContext(
     access(options.elements.reference),
   );
   const [floating, setFloating] = createSignal(access(options.elements.floating));
-  const [domReference, setDomReference] = createSignal(access(options.elements.domReference));
+  const [domReference, setDomReference] = createSignal(
+    access(options.elements.domReference) ?? null,
+  );
 
   const onOpenChange = (newOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
     dataRef.openEvent = newOpen ? event : undefined;
@@ -63,7 +65,7 @@ export function useFloatingRootContext(
   const elements = {
     reference: () => positionReference() || access(options.elements.reference),
     floating: () => floating() || access(options.elements.floating),
-    domReference: () => domReference() || access(options.elements.domReference),
+    domReference: () => (domReference() || access(options.elements.domReference)) ?? null,
   };
 
   return {
@@ -72,7 +74,7 @@ export function useFloatingRootContext(
     onOpenChange,
     elements,
     events,
-    floatingId,
+    floatingId: () => access(floatingId),
     refs,
   };
 }

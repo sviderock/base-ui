@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { expect } from 'chai';
-import { Dialog } from '@base-ui-components/react/dialog';
+import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { AlertDialog } from '@base-ui-components/react/alert-dialog';
-import { act, waitFor, screen } from '@mui/internal-test-utils';
-import { describeConformance, createRenderer, isJSDOM } from '#test-utils';
+import { Dialog } from '@base-ui-components/react/dialog';
+import { act, screen, waitFor } from '@mui/internal-test-utils';
+import { expect } from 'chai';
+import * as React from 'react';
 
 describe('<Dialog.Popup />', () => {
   const { render } = createRenderer();
@@ -172,6 +172,7 @@ describe('<Dialog.Popup />', () => {
       const closeButton = getByText('Close');
       await user.click(closeButton);
 
+      screen.debug();
       await waitFor(() => {
         expect(trigger).toHaveFocus();
       });

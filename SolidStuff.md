@@ -14,3 +14,4 @@
 - all the hooks in floating-ui-solid/hooks are ported to `on:` events for the sake of iframe compatibility
 - most likely jest-dom versions of react and solid differ as for some reason toBeInTheDocument doesn't work for Solid version when checking against iframe and toBeTruthy needs to be used
 - in Solid the empty attributes like `aria-hidden` should be passed as `aria-hidden="true"` contrary to the simplified React's version as Solid renders empty attrivutes with an empty string value (`aria-hidden=""`)
+- `use-button` required some amount of rework as in Solid we have three kinds of the same handler, e.g. for click we have `onClick`, `onclick` and `on:click`

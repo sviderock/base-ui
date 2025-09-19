@@ -1,10 +1,12 @@
 'use client';
-import * as React from 'react';
-import { useDialogRootContext } from '../root/DialogRootContext';
+import { useForkRef } from '@base-ui-components/solid/utils';
+import { splitProps, type JSX } from 'solid-js';
+import type { MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
-import { useRenderElement } from '../../utils/useRenderElement';
-import type { BaseUIComponentProps } from '../../utils/types';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
+import type { BaseUIComponentProps } from '../../utils/types';
+import { RenderElement } from '../../utils/useRenderElement';
+import { useDialogRootContext } from '../root/DialogRootContext';
 
 /**
  * A button that opens the dialog.
@@ -12,40 +14,45 @@ import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
  *
  * Documentation: [Base UI Dialog](https://base-ui.com/react/components/dialog)
  */
-export const DialogTrigger = React.forwardRef(function DialogTrigger(
-  componentProps: DialogTrigger.Props,
-  forwardedRef: React.ForwardedRef<HTMLButtonElement>,
-) {
-  const {
-    render,
-    className,
-    disabled = false,
-    nativeButton = true,
-    ...elementProps
-  } = componentProps;
+export function DialogTrigger(componentProps: DialogTrigger.Props) {
+  const [local, elementProps] = splitProps(componentProps, [
+    'render',
+    'class',
+    'disabled',
+    'nativeButton',
+  ]);
+  const disabled = () => local.disabled ?? false;
+  const native = () => local.nativeButton ?? true;
 
   const { open, setTriggerElement, triggerProps } = useDialogRootContext();
 
-  const state: DialogTrigger.State = React.useMemo(
-    () => ({
-      disabled,
-      open,
-    }),
-    [disabled, open],
-  );
+  const state: DialogTrigger.State = {
+    disabled,
+    open,
+  };
 
   const { getButtonProps, buttonRef } = useButton({
     disabled,
-    native: nativeButton,
+    native,
   });
 
-  return useRenderElement('button', componentProps, {
-    state,
-    ref: [buttonRef, forwardedRef, setTriggerElement],
-    props: [triggerProps, elementProps, getButtonProps],
-    customStyleHookMapping: triggerOpenStateMapping,
-  });
-});
+  return (
+    <RenderElement
+      element="button"
+      componentProps={componentProps}
+      ref={useForkRef(buttonRef, componentProps.ref, setTriggerElement)}
+      params={{
+        state,
+        props: [
+          triggerProps,
+          elementProps as JSX.HTMLAttributes<HTMLButtonElement>,
+          getButtonProps,
+        ],
+        customStyleHookMapping: triggerOpenStateMapping,
+      }}
+    />
+  );
+}
 
 export namespace DialogTrigger {
   export interface Props extends BaseUIComponentProps<'button', State> {
@@ -62,10 +69,10 @@ export namespace DialogTrigger {
     /**
      * Whether the dialog is currently disabled.
      */
-    disabled: boolean;
+    disabled: MaybeAccessor<boolean>;
     /**
      * Whether the dialog is currently open.
      */
-    open: boolean;
+    open: MaybeAccessor<boolean>;
   }
 }

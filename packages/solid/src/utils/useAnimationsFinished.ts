@@ -9,7 +9,7 @@ import { useTimeout } from './useTimeout';
  * @param waitForNextTick - Whether to wait for the next tick before checking for animations.
  */
 export function useAnimationsFinished<T extends HTMLElement>(
-  ref: T | null | undefined,
+  ref: MaybeAccessor<T | null | undefined>,
   waitForNextTick?: MaybeAccessor<boolean | undefined>,
 ) {
   const frame = useAnimationFrame();
@@ -29,21 +29,22 @@ export function useAnimationsFinished<T extends HTMLElement>(
   ) => {
     frame.cancel();
     timeout.clear();
+    const element = access(ref);
 
-    if (!ref) {
+    if (!element) {
       return;
     }
 
-    if (typeof ref!.getAnimations !== 'function' || globalThis.BASE_UI_ANIMATIONS_DISABLED) {
+    if (typeof element.getAnimations !== 'function' || globalThis.BASE_UI_ANIMATIONS_DISABLED) {
       fnToExecute();
     } else {
       frame.request(() => {
         function exec() {
-          if (!ref) {
+          if (!element) {
             return;
           }
 
-          Promise.allSettled(ref!.getAnimations().map((anim) => anim.finished)).then(() => {
+          Promise.allSettled(element.getAnimations().map((anim) => anim.finished)).then(() => {
             if (signal != null && signal.aborted) {
               return;
             }

@@ -1,10 +1,9 @@
 'use client';
-import * as React from 'react';
-import { useDialogRootContext } from '../root/DialogRootContext';
-import { useRenderElement } from '../../utils/useRenderElement';
-import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
-import { useBaseUiId } from '../../utils/useBaseUiId';
+import { createEffect, onCleanup, splitProps, type JSX } from 'solid-js';
 import type { BaseUIComponentProps } from '../../utils/types';
+import { useBaseUiId } from '../../utils/useBaseUiId';
+import { RenderElement } from '../../utils/useRenderElement';
+import { useDialogRootContext } from '../root/DialogRootContext';
 
 /**
  * A paragraph with additional information about the dialog.
@@ -12,27 +11,28 @@ import type { BaseUIComponentProps } from '../../utils/types';
  *
  * Documentation: [Base UI Dialog](https://base-ui.com/react/components/dialog)
  */
-export const DialogDescription = React.forwardRef(function DialogDescription(
-  componentProps: DialogDescription.Props,
-  forwardedRef: React.ForwardedRef<HTMLParagraphElement>,
-) {
-  const { render, className, id: idProp, ...elementProps } = componentProps;
+export function DialogDescription(componentProps: DialogDescription.Props) {
+  const [local, elementProps] = splitProps(componentProps, ['render', 'class', 'id']);
   const { setDescriptionElementId } = useDialogRootContext();
 
-  const id = useBaseUiId(idProp);
+  const id = useBaseUiId(() => local.id);
 
-  useModernLayoutEffect(() => {
-    setDescriptionElementId(id);
-    return () => {
+  createEffect(() => {
+    setDescriptionElementId(id());
+    onCleanup(() => {
       setDescriptionElementId(undefined);
-    };
-  }, [id, setDescriptionElementId]);
-
-  return useRenderElement('p', componentProps, {
-    ref: forwardedRef,
-    props: [{ id }, elementProps],
+    });
   });
-});
+
+  return (
+    <RenderElement
+      element="p"
+      componentProps={componentProps}
+      ref={componentProps.ref}
+      params={{ props: [{ id: id() }, elementProps as JSX.HTMLAttributes<HTMLParagraphElement>] }}
+    />
+  );
+}
 
 export namespace DialogDescription {
   export interface Props extends BaseUIComponentProps<'p', State> {}

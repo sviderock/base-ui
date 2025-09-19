@@ -1,4 +1,4 @@
-import { createRenderer, type MuiRenderResult } from '#test-utils';
+import { createRenderer } from '#test-utils';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
@@ -83,8 +83,7 @@ describe('useForkRef', () => {
       return <div {...other} ref={useForkRef(local.leftRef, local.rightRef)} />;
     }
 
-    // TODO: in Solid the ref callback only gets called once on mount so this test is not valid
-    it.skip('handles changing from no ref to some ref', () => {
+    it('handles changing from no ref to some ref', () => {
       const leftRef: ReactLikeRef<HTMLDivElement> = { current: null };
 
       expect(() => {
@@ -93,26 +92,27 @@ describe('useForkRef', () => {
 
       const ref: ReactLikeRef<HTMLDivElement> = { current: null };
       expect(() => {
-        leftRef.current = ref.current;
+        ref.current = leftRef.current;
       }).not.toErrorDev();
       expect(ref.current!.id).to.equal('test');
     });
 
-    // TODO: in Solid the ref callback only gets called once on mount so this test is not valid
+    // TODO: not sure if this is needed is Solid
     it.skip('cleans up detached refs', () => {
       const firstLeftRef: ReactLikeRef<HTMLDivElement> = { current: null };
       const firstRightRef: ReactLikeRef<HTMLDivElement> = { current: null };
       const secondRightRef: ReactLikeRef<HTMLDivElement> = { current: null };
+      const [ref, setRef] = createSignal<ReactLikeRef<HTMLDivElement>>(firstRightRef);
 
       expect(() => {
-        render(() => <Div leftRef={firstLeftRef} rightRef={firstRightRef} id="test" />);
+        render(() => <Div leftRef={firstLeftRef} rightRef={ref()} id="test" />);
       }).not.toErrorDev();
 
       expect(firstLeftRef.current!.id).to.equal('test');
       expect(firstRightRef.current!.id).to.equal('test');
       expect(secondRightRef.current).to.equal(null);
 
-      firstRightRef.current = secondRightRef.current;
+      setRef(secondRightRef);
 
       expect(firstLeftRef.current!.id).to.equal('test');
       expect(firstRightRef.current).to.equal(null);

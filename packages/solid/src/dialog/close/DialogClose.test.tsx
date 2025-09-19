@@ -1,22 +1,27 @@
-import * as React from 'react';
+import { createRenderer, describeConformance } from '#test-utils';
+import { Dialog } from '@base-ui-components/solid/dialog';
+import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { Dialog } from '@base-ui-components/react/dialog';
-import { screen } from '@mui/internal-test-utils';
-import { createRenderer, describeConformance } from '#test-utils';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Dialog.Close />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Dialog.Close />, () => ({
+  describeConformance(Dialog.Close, () => ({
     refInstanceof: window.HTMLButtonElement,
-    render: (node) => {
+    render: (node, elementProps = {}) => {
       return render(
-        <Dialog.Root open modal={false}>
-          <Dialog.Portal>
-            <Dialog.Popup>{node}</Dialog.Popup>
-          </Dialog.Portal>
-        </Dialog.Root>,
+        () => (
+          <Dialog.Root open modal={false}>
+            <Dialog.Portal>
+              <Dialog.Popup>
+                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+              </Dialog.Popup>
+            </Dialog.Portal>
+          </Dialog.Root>
+        ),
+        elementProps,
       );
     },
   }));
@@ -25,7 +30,7 @@ describe('<Dialog.Close />', () => {
     it('disables the button', async () => {
       const handleOpenChange = spy();
 
-      const { user } = await render(
+      const { user } = render(() => (
         <Dialog.Root onOpenChange={handleOpenChange}>
           <Dialog.Trigger>Open</Dialog.Trigger>
           <Dialog.Portal>
@@ -33,8 +38,8 @@ describe('<Dialog.Close />', () => {
               <Dialog.Close disabled>Close</Dialog.Close>
             </Dialog.Popup>
           </Dialog.Portal>
-        </Dialog.Root>,
-      );
+        </Dialog.Root>
+      ));
 
       expect(handleOpenChange.callCount).to.equal(0);
 
@@ -55,18 +60,18 @@ describe('<Dialog.Close />', () => {
     it('custom element', async () => {
       const handleOpenChange = spy();
 
-      const { user } = await render(
+      const { user } = render(() => (
         <Dialog.Root onOpenChange={handleOpenChange}>
           <Dialog.Trigger>Open</Dialog.Trigger>
           <Dialog.Portal>
             <Dialog.Popup>
-              <Dialog.Close disabled render={<span />} nativeButton={false}>
+              <Dialog.Close disabled render={(props) => <span {...props} />} nativeButton={false}>
                 Close
               </Dialog.Close>
             </Dialog.Popup>
           </Dialog.Portal>
-        </Dialog.Root>,
-      );
+        </Dialog.Root>
+      ));
 
       expect(handleOpenChange.callCount).to.equal(0);
 
@@ -89,7 +94,7 @@ describe('<Dialog.Close />', () => {
   it('closes the dialog when undefined is passed to the `onClick` prop', async () => {
     const handleOpenChange = spy();
 
-    const { user } = await render(
+    const { user } = render(() => (
       <Dialog.Root onOpenChange={handleOpenChange}>
         <Dialog.Trigger>Open</Dialog.Trigger>
         <Dialog.Portal>
@@ -97,8 +102,8 @@ describe('<Dialog.Close />', () => {
             <Dialog.Close onClick={undefined}>Close</Dialog.Close>
           </Dialog.Popup>
         </Dialog.Portal>
-      </Dialog.Root>,
-    );
+      </Dialog.Root>
+    ));
 
     expect(handleOpenChange.callCount).to.equal(0);
 

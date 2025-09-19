@@ -1,79 +1,71 @@
 'use client';
-import * as React from 'react';
+import { useForkRef } from '@base-ui-components/solid/utils';
+import { createMemo, type Accessor } from 'solid-js';
 import { COMPOSITE_KEYS } from '../../composite/composite';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { HTMLProps } from '../../utils/types';
 import { type InteractionType } from '../../utils/useEnhancedClickHandler';
-import { useForkRef } from '../../utils/useForkRef';
 import type { DialogOpenChangeReason } from '../root/useDialogRoot';
 
 export function useDialogPopup(parameters: useDialogPopup.Parameters): useDialogPopup.ReturnValue {
-  const {
-    descriptionElementId,
-    initialFocus,
-    modal,
-    mounted,
-    openMethod,
-    ref,
-    setPopupElement,
-    titleElementId,
-  } = parameters;
+  const descriptionElementId = () => access(parameters.descriptionElementId);
+  const modal = () => access(parameters.modal);
+  const mounted = () => access(parameters.mounted);
+  const openMethod = () => access(parameters.openMethod);
+  const titleElementId = () => access(parameters.titleElementId);
+  const initialFocus = () => access(parameters.initialFocus);
 
-  const popupRef = React.useRef<HTMLElement>(null);
-
-  const handleRef = useForkRef(ref, popupRef, setPopupElement);
+  let popupRef: HTMLElement | undefined;
 
   // Default initial focus logic:
   // If opened by touch, focus the popup element to prevent the virtual keyboard from opening
   // (this is required for Android specifically as iOS handles this automatically).
-  const defaultInitialFocus = React.useCallback((interactionType: InteractionType) => {
+  const defaultInitialFocus = (interactionType: InteractionType) => {
     if (interactionType === 'touch') {
       return popupRef;
     }
 
     return 0;
-  }, []);
+  };
 
-  const resolvedInitialFocus = React.useMemo(() => {
-    if (initialFocus == null) {
-      return defaultInitialFocus(openMethod ?? '');
+  const resolvedInitialFocus = createMemo(() => {
+    const initialFocusValue = initialFocus();
+    if (initialFocusValue == null) {
+      return defaultInitialFocus(openMethod() ?? '');
     }
 
-    if (typeof initialFocus === 'function') {
-      return initialFocus(openMethod ?? '');
+    if (typeof initialFocusValue === 'function') {
+      return initialFocusValue(openMethod() ?? '');
     }
 
-    return initialFocus;
-  }, [defaultInitialFocus, initialFocus, openMethod]);
+    return initialFocusValue;
+  });
 
-  const popupProps: HTMLProps = {
-    'aria-labelledby': titleElementId ?? undefined,
-    'aria-describedby': descriptionElementId ?? undefined,
-    'aria-modal': mounted && modal === true ? true : undefined,
+  const popupProps = createMemo<HTMLProps>(() => ({
+    'aria-labelledby': titleElementId() ?? undefined,
+    'aria-describedby': descriptionElementId() ?? undefined,
+    'aria-modal': mounted() && modal() === true ? true : undefined,
     role: 'dialog',
     tabIndex: -1,
-    ref: handleRef,
-    hidden: !mounted,
+    hidden: !mounted(),
     onKeyDown(event) {
       if (COMPOSITE_KEYS.has(event.key)) {
         event.stopPropagation();
       }
     },
-  };
+  }));
 
   return {
     popupProps,
     resolvedInitialFocus,
+    dialogPopupRef: useForkRef(popupRef, parameters.setPopupElement),
   };
 }
 
 export namespace useDialogPopup {
   export interface Parameters {
-    /**
-     * The ref to the dialog element.
-     */
-    ref: React.Ref<HTMLElement>;
-    modal: boolean | 'trap-focus';
-    openMethod: InteractionType | null;
+    modal: MaybeAccessor<boolean | 'trap-focus' | undefined>;
+    openMethod: MaybeAccessor<InteractionType | null>;
     /**
      * Event handler called when the dialog is opened or closed.
      */
@@ -85,30 +77,32 @@ export namespace useDialogPopup {
     /**
      * The id of the title element associated with the dialog.
      */
-    titleElementId: string | undefined;
+    titleElementId: MaybeAccessor<string | undefined>;
     /**
      * The id of the description element associated with the dialog.
      */
-    descriptionElementId: string | undefined;
+    descriptionElementId: MaybeAccessor<string | undefined>;
     /**
      * Determines the element to focus when the dialog is opened.
      * By default, the first focusable element is focused.
      */
     initialFocus?:
-      | React.RefObject<HTMLElement | null>
-      | ((interactionType: InteractionType) => React.RefObject<HTMLElement | null>);
+      | MaybeAccessor<HTMLElement | null | undefined>
+      | ((interactionType: InteractionType) => HTMLElement | null | undefined);
+
     /**
      * Determines if the dialog should be mounted.
      */
-    mounted: boolean;
+    mounted: MaybeAccessor<boolean>;
     /**
      * Callback to register the popup element.
      */
-    setPopupElement: React.Dispatch<React.SetStateAction<HTMLElement | null>>;
+    setPopupElement: (element: HTMLElement | null | undefined) => void;
   }
 
   export interface ReturnValue {
-    popupProps: HTMLProps;
-    resolvedInitialFocus: React.RefObject<HTMLElement | null> | number;
+    popupProps: Accessor<HTMLProps>;
+    resolvedInitialFocus: Accessor<HTMLElement | null | undefined | number>;
+    dialogPopupRef: (el: HTMLElement | undefined | null) => void;
   }
 }

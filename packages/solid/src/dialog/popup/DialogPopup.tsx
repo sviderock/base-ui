@@ -1,28 +1,30 @@
 'use client';
-import * as React from 'react';
-import { FloatingFocusManager } from '../../floating-ui-react';
-import { useDialogPopup } from './useDialogPopup';
-import { useDialogRootContext } from '../root/DialogRootContext';
-import { useRenderElement } from '../../utils/useRenderElement';
-import { type BaseUIComponentProps } from '../../utils/types';
-import { type TransitionStatus } from '../../utils/useTransitionStatus';
+import type { JSX } from 'solid-js';
+import { createEffect, onCleanup, onMount, splitProps } from 'solid-js';
+import { FloatingFocusManager } from '../../floating-ui-solid';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
+import { inertValue } from '../../utils/inertValue';
+import { InternalBackdrop } from '../../utils/InternalBackdrop';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
-import { useForkRef } from '../../utils/useForkRef';
-import { InteractionType } from '../../utils/useEnhancedClickHandler';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
+import { type BaseUIComponentProps } from '../../utils/types';
+import { InteractionType } from '../../utils/useEnhancedClickHandler';
+import { useForkRef } from '../../utils/useForkRef';
+import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
+import { RenderElement } from '../../utils/useRenderElement';
+import { type TransitionStatus } from '../../utils/useTransitionStatus';
+import { useDialogPortalContext } from '../portal/DialogPortalContext';
+import { useDialogRootContext } from '../root/DialogRootContext';
 import { DialogPopupCssVars } from './DialogPopupCssVars';
 import { DialogPopupDataAttributes } from './DialogPopupDataAttributes';
-import { InternalBackdrop } from '../../utils/InternalBackdrop';
-import { useDialogPortalContext } from '../portal/DialogPortalContext';
-import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { inertValue } from '../../utils/inertValue';
+import { useDialogPopup } from './useDialogPopup';
 
 const customStyleHookMapping: CustomStyleHookMapping<DialogPopup.State> = {
   ...baseMapping,
   ...transitionStatusMapping,
   nestedDialogOpen(value) {
-    return value ? { [DialogPopupDataAttributes.nestedDialogOpen]: '' } : null;
+    return access(value) ? { [DialogPopupDataAttributes.nestedDialogOpen]: '' } : null;
   },
 };
 
@@ -32,11 +34,15 @@ const customStyleHookMapping: CustomStyleHookMapping<DialogPopup.State> = {
  *
  * Documentation: [Base UI Dialog](https://base-ui.com/react/components/dialog)
  */
-export const DialogPopup = React.forwardRef(function DialogPopup(
-  componentProps: DialogPopup.Props,
-  forwardedRef: React.ForwardedRef<HTMLDivElement>,
-) {
-  const { className, finalFocus, initialFocus, render, ...elementProps } = componentProps;
+export function DialogPopup(componentProps: DialogPopup.Props) {
+  const [local, elementProps] = splitProps(componentProps, [
+    'class',
+    'finalFocus',
+    'initialFocus',
+    'render',
+  ]);
+
+  const finalFocus = () => access(local.finalFocus);
 
   const {
     descriptionElementId,
@@ -50,85 +56,90 @@ export const DialogPopup = React.forwardRef(function DialogPopup(
     setOpen,
     open,
     openMethod,
-    popupRef,
+    refs,
     setPopupElement,
     titleElementId,
     transitionStatus,
     onOpenChangeComplete,
-    internalBackdropRef,
   } = useDialogRootContext();
 
-  useDialogPortalContext();
+  // TODO: not sure if this is needed as the component is not re-rendered on every change like in react
+  // useDialogPortalContext();
 
   useOpenChangeComplete({
     open,
-    ref: popupRef,
+    ref: () => refs.popupRef,
     onComplete() {
-      if (open) {
+      if (open()) {
         onOpenChangeComplete?.(true);
       }
     },
   });
 
-  const mergedRef = useForkRef(forwardedRef, popupRef);
-
-  const { popupProps, resolvedInitialFocus } = useDialogPopup({
+  const { popupProps, resolvedInitialFocus, dialogPopupRef } = useDialogPopup({
     descriptionElementId,
-    initialFocus,
+    initialFocus: local.initialFocus,
     modal,
     mounted,
     setOpen,
     openMethod,
-    ref: mergedRef,
     setPopupElement,
     titleElementId,
   });
 
-  const nestedDialogOpen = nestedOpenDialogCount > 0;
+  const nestedDialogOpen = () => nestedOpenDialogCount() > 0;
 
-  const state: DialogPopup.State = React.useMemo(
-    () => ({
-      open,
-      nested,
-      transitionStatus,
-      nestedDialogOpen,
-    }),
-    [open, nested, transitionStatus, nestedDialogOpen],
-  );
-
-  const element = useRenderElement('div', componentProps, {
-    state,
-    props: [
-      getPopupProps(),
-      popupProps,
-      {
-        style: {
-          [DialogPopupCssVars.nestedDialogs]: nestedOpenDialogCount,
-        } as React.CSSProperties,
-      },
-      elementProps,
-    ],
-    customStyleHookMapping,
-  });
+  const state: DialogPopup.State = {
+    open,
+    nested,
+    transitionStatus,
+    nestedDialogOpen,
+  };
 
   return (
-    <React.Fragment>
-      {mounted && modal === true && (
-        <InternalBackdrop ref={internalBackdropRef} inert={inertValue(!open)} />
+    <>
+      {mounted() && modal() === true && (
+        <InternalBackdrop
+          ref={(el) => {
+            refs.internalBackdropRef = el;
+          }}
+          inert={inertValue(!open())}
+        />
       )}
       <FloatingFocusManager
         context={floatingRootContext}
-        disabled={!mounted}
-        closeOnFocusOut={dismissible}
-        initialFocus={resolvedInitialFocus}
-        returnFocus={finalFocus}
-        modal={modal !== false}
+        disabled={!mounted()}
+        closeOnFocusOut={dismissible?.()}
+        initialFocus={resolvedInitialFocus()}
+        returnFocus={finalFocus()}
+        modal={modal() !== false}
       >
-        {element}
+        <RenderElement
+          element="div"
+          componentProps={componentProps}
+          ref={(el) => {
+            refs.popupRef = el;
+            useForkRef(componentProps.ref, dialogPopupRef)(el);
+          }}
+          params={{
+            state,
+            props: [
+              getPopupProps(),
+              popupProps(),
+              {
+                style: {
+                  [DialogPopupCssVars.nestedDialogs]: nestedOpenDialogCount(),
+                } as JSX.CSSProperties,
+              },
+              elementProps as JSX.HTMLAttributes<HTMLDivElement>,
+            ],
+            customStyleHookMapping,
+          }}
+        />
       </FloatingFocusManager>
-    </React.Fragment>
+    </>
   );
-});
+}
 
 export namespace DialogPopup {
   export interface Props extends BaseUIComponentProps<'div', State> {
@@ -137,28 +148,28 @@ export namespace DialogPopup {
      * By default, the first focusable element is focused.
      */
     initialFocus?:
-      | React.RefObject<HTMLElement | null>
-      | ((interactionType: InteractionType) => React.RefObject<HTMLElement | null>);
+      | MaybeAccessor<HTMLElement | null | undefined>
+      | ((interactionType: InteractionType) => HTMLElement | null | undefined);
     /**
      * Determines the element to focus when the dialog is closed.
      * By default, focus returns to the trigger.
      */
-    finalFocus?: React.RefObject<HTMLElement | null>;
+    finalFocus?: MaybeAccessor<HTMLElement | null | undefined>;
   }
 
   export interface State {
     /**
      * Whether the dialog is currently open.
      */
-    open: boolean;
-    transitionStatus: TransitionStatus;
+    open: MaybeAccessor<boolean>;
+    transitionStatus: MaybeAccessor<TransitionStatus>;
     /**
      * Whether the dialog is nested within a parent dialog.
      */
-    nested: boolean;
+    nested: MaybeAccessor<boolean>;
     /**
      * Whether the dialog has nested dialogs open.
      */
-    nestedDialogOpen: boolean;
+    nestedDialogOpen: MaybeAccessor<boolean>;
   }
 }

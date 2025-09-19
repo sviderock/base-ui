@@ -1,22 +1,22 @@
 'use client';
 import * as React from 'react';
 import { FloatingFocusManager } from '../../floating-ui-react';
-import { useDialogPopup } from './useDialogPopup';
-import { useDialogRootContext } from '../root/DialogRootContext';
-import { useRenderElement } from '../../utils/useRenderElement';
-import { type BaseUIComponentProps } from '../../utils/types';
-import { type TransitionStatus } from '../../utils/useTransitionStatus';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
+import { inertValue } from '../../utils/inertValue';
+import { InternalBackdrop } from '../../utils/InternalBackdrop';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
-import { useForkRef } from '../../utils/useForkRef';
-import { InteractionType } from '../../utils/useEnhancedClickHandler';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
+import { type BaseUIComponentProps } from '../../utils/types';
+import { InteractionType } from '../../utils/useEnhancedClickHandler';
+import { useForkRef } from '../../utils/useForkRef';
+import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
+import { useRenderElement } from '../../utils/useRenderElement';
+import { type TransitionStatus } from '../../utils/useTransitionStatus';
+import { useDialogPortalContext } from '../portal/DialogPortalContext';
+import { useDialogRootContext } from '../root/DialogRootContext';
 import { DialogPopupCssVars } from './DialogPopupCssVars';
 import { DialogPopupDataAttributes } from './DialogPopupDataAttributes';
-import { InternalBackdrop } from '../../utils/InternalBackdrop';
-import { useDialogPortalContext } from '../portal/DialogPortalContext';
-import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { inertValue } from '../../utils/inertValue';
+import { useDialogPopup } from './useDialogPopup';
 
 const customStyleHookMapping: CustomStyleHookMapping<DialogPopup.State> = {
   ...baseMapping,

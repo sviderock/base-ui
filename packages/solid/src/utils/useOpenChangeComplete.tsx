@@ -10,17 +10,19 @@ import { useAnimationsFinished } from './useAnimationsFinished';
 export function useOpenChangeComplete<T extends HTMLElement>(
   parameters: useOpenChangeComplete.Parameters<T>,
 ) {
+  const open = () => access(parameters.open);
   const enabled = () => access(parameters.enabled) ?? true;
-  const openRef = access(parameters.open);
-  const runOnceAnimationsFinish = useAnimationsFinished(access(parameters.ref), parameters.open);
+  const openRef = open();
+  const runOnceAnimationsFinish = useAnimationsFinished(parameters.ref, parameters.open);
 
   createEffect(() => {
     if (!enabled()) {
       return;
     }
 
+    const currentOpen = open();
     runOnceAnimationsFinish(() => {
-      if (access(parameters.open) === openRef) {
+      if (currentOpen === openRef) {
         parameters.onComplete();
       }
     });

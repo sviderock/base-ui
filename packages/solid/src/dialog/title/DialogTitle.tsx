@@ -1,10 +1,9 @@
 'use client';
-import * as React from 'react';
-import { useDialogRootContext } from '../root/DialogRootContext';
-import { useRenderElement } from '../../utils/useRenderElement';
-import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
-import { useBaseUiId } from '../../utils/useBaseUiId';
+import { createEffect, onCleanup, splitProps, type JSX } from 'solid-js';
 import { type BaseUIComponentProps } from '../../utils/types';
+import { useBaseUiId } from '../../utils/useBaseUiId';
+import { RenderElement } from '../../utils/useRenderElement';
+import { useDialogRootContext } from '../root/DialogRootContext';
 
 /**
  * A heading that labels the dialog.
@@ -12,27 +11,27 @@ import { type BaseUIComponentProps } from '../../utils/types';
  *
  * Documentation: [Base UI Dialog](https://base-ui.com/react/components/dialog)
  */
-export const DialogTitle = React.forwardRef(function DialogTitle(
-  componentProps: DialogTitle.Props,
-  forwardedRef: React.ForwardedRef<HTMLParagraphElement>,
-) {
-  const { render, className, id: idProp, ...elementProps } = componentProps;
+export function DialogTitle(componentProps: DialogTitle.Props) {
+  const [local, elementProps] = splitProps(componentProps, ['render', 'class', 'id']);
   const { setTitleElementId } = useDialogRootContext();
 
-  const id = useBaseUiId(idProp);
+  const id = useBaseUiId(() => local.id);
 
-  useModernLayoutEffect(() => {
-    setTitleElementId(id);
-    return () => {
+  createEffect(() => {
+    setTitleElementId(id());
+    onCleanup(() => {
       setTitleElementId(undefined);
-    };
-  }, [id, setTitleElementId]);
-
-  return useRenderElement('h2', componentProps, {
-    ref: forwardedRef,
-    props: [{ id }, elementProps],
+    });
   });
-});
+
+  return (
+    <RenderElement
+      element="h2"
+      componentProps={componentProps}
+      params={{ props: [{ id: id() }, elementProps as JSX.HTMLAttributes<HTMLHeadingElement>] }}
+    />
+  );
+}
 
 export namespace DialogTitle {
   export interface Props extends BaseUIComponentProps<'h2', State> {}

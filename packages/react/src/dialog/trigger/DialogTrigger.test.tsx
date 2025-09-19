@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { expect } from 'chai';
+import { createRenderer, describeConformance } from '#test-utils';
 import { Dialog } from '@base-ui-components/react/dialog';
 import { screen } from '@mui/internal-test-utils';
-import { createRenderer, describeConformance } from '#test-utils';
+import { expect } from 'chai';
+import * as React from 'react';
 
 describe('<Dialog.Trigger />', () => {
   const { render } = createRenderer();
@@ -62,6 +62,7 @@ describe('<Dialog.Trigger />', () => {
       expect(trigger).to.have.attribute('aria-disabled', 'true');
 
       await user.click(trigger);
+      screen.debug(trigger);
       expect(screen.queryByText('title text')).to.equal(null);
 
       await user.keyboard('[Tab]');

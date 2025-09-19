@@ -1,9 +1,11 @@
 'use client';
-import * as React from 'react';
-import { useDialogClose } from './useDialogClose';
-import { useDialogRootContext } from '../root/DialogRootContext';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { createEffect, onCleanup, onMount, splitProps, type JSX } from 'solid-js';
+import { type MaybeAccessor } from '../../solid-helpers';
+import { useForkRef } from '../../utils';
 import type { BaseUIComponentProps } from '../../utils/types';
+import { RenderElement } from '../../utils/useRenderElement';
+import { useDialogRootContext } from '../root/DialogRootContext';
+import { useDialogClose } from './useDialogClose';
 
 /**
  * A button that closes the dialog.
@@ -11,28 +13,38 @@ import type { BaseUIComponentProps } from '../../utils/types';
  *
  * Documentation: [Base UI Dialog](https://base-ui.com/react/components/dialog)
  */
-export const DialogClose = React.forwardRef(function DialogClose(
-  componentProps: DialogClose.Props,
-  forwardedRef: React.ForwardedRef<HTMLButtonElement>,
-) {
-  const {
-    render,
-    className,
-    disabled = false,
-    nativeButton = true,
-    ...elementProps
-  } = componentProps;
+export function DialogClose(componentProps: DialogClose.Props) {
+  const [local, elementProps] = splitProps(componentProps, [
+    'render',
+    'class',
+    'disabled',
+    'nativeButton',
+  ]);
+  const disabled = () => local.disabled ?? false;
+  const nativeButton = () => local.nativeButton ?? true;
+
   const { open, setOpen } = useDialogRootContext();
-  const { getRootProps, ref } = useDialogClose({ disabled, open, setOpen, nativeButton });
-
-  const state: DialogClose.State = React.useMemo(() => ({ disabled }), [disabled]);
-
-  return useRenderElement('button', componentProps, {
-    state,
-    ref: [forwardedRef, ref],
-    props: [elementProps, getRootProps],
+  const { getRootProps, dialogCloseRef } = useDialogClose({
+    disabled,
+    open,
+    setOpen,
+    nativeButton,
   });
-});
+
+  const state: DialogClose.State = { disabled };
+
+  return (
+    <RenderElement
+      element="button"
+      componentProps={componentProps}
+      ref={useForkRef(componentProps.ref, dialogCloseRef)}
+      params={{
+        state,
+        props: [elementProps as JSX.HTMLAttributes<HTMLButtonElement>, getRootProps],
+      }}
+    />
+  );
+}
 
 export namespace DialogClose {
   export interface Props extends BaseUIComponentProps<'button', State> {
@@ -49,6 +61,6 @@ export namespace DialogClose {
     /**
      * Whether the button is currently disabled.
      */
-    disabled: boolean;
+    disabled: MaybeAccessor<boolean>;
   }
 }

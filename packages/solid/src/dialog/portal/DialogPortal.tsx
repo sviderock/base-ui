@@ -1,6 +1,7 @@
 'use client';
-import * as React from 'react';
-import { FloatingPortal, FloatingPortalProps } from '../../floating-ui-react';
+import type { JSX } from 'solid-js';
+import { Show } from 'solid-js';
+import { FloatingPortal, FloatingPortalProps } from '../../floating-ui-solid';
 import { useDialogRootContext } from '../root/DialogRootContext';
 import { DialogPortalContext } from './DialogPortalContext';
 
@@ -11,25 +12,24 @@ import { DialogPortalContext } from './DialogPortalContext';
  * Documentation: [Base UI Dialog](https://base-ui.com/react/components/dialog)
  */
 export function DialogPortal(props: DialogPortal.Props) {
-  const { children, keepMounted = false, container } = props;
+  const keepMounted = () => props.keepMounted ?? false;
 
   const { mounted } = useDialogRootContext();
 
-  const shouldRender = mounted || keepMounted;
-  if (!shouldRender) {
-    return null;
-  }
+  const shouldRender = () => mounted() || keepMounted();
 
   return (
-    <DialogPortalContext.Provider value={keepMounted}>
-      <FloatingPortal root={container}>{children}</FloatingPortal>
-    </DialogPortalContext.Provider>
+    <Show when={shouldRender()} fallback={null}>
+      <DialogPortalContext.Provider value={keepMounted}>
+        <FloatingPortal root={props.container}>{props.children}</FloatingPortal>
+      </DialogPortalContext.Provider>
+    </Show>
   );
 }
 
 export namespace DialogPortal {
   export interface Props {
-    children?: React.ReactNode;
+    children?: JSX.Element;
     /**
      * Whether to keep the portal mounted in the DOM while the popup is hidden.
      * @default false

@@ -8,7 +8,6 @@ export function callEventHandler<T, E extends Event>(
     if (typeof eventHandler === 'function') {
       eventHandler(event);
     } else {
-      console.log('eventHandler', eventHandler);
       eventHandler[0](eventHandler[1], event);
     }
   }
@@ -29,7 +28,7 @@ export type MaybeAccessorValue<T extends MaybeAccessor<any>> = T extends () => a
   : T;
 
 export type ReactLikeRef<T> = {
-  current: T | null;
+  current: T | null | undefined;
 };
 
 export function autofocus(element: HTMLElement, autofocusProp: Accessor<boolean>) {

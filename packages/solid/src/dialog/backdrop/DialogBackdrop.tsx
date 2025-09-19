@@ -1,12 +1,14 @@
 'use client';
-import * as React from 'react';
-import { useDialogRootContext } from '../root/DialogRootContext';
-import { useRenderElement } from '../../utils/useRenderElement';
-import { type TransitionStatus } from '../../utils/useTransitionStatus';
-import { type BaseUIComponentProps } from '../../utils/types';
+import { useForkRef } from '@base-ui-components/solid/utils';
+import { splitProps, type JSX } from 'solid-js';
+import { type MaybeAccessor } from '../../solid-helpers';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
+import { type BaseUIComponentProps } from '../../utils/types';
+import { RenderElement } from '../../utils/useRenderElement';
+import { type TransitionStatus } from '../../utils/useTransitionStatus';
+import { useDialogRootContext } from '../root/DialogRootContext';
 
 const customStyleHookMapping: CustomStyleHookMapping<DialogBackdrop.State> = {
   ...baseMapping,
@@ -19,40 +21,39 @@ const customStyleHookMapping: CustomStyleHookMapping<DialogBackdrop.State> = {
  *
  * Documentation: [Base UI Dialog](https://base-ui.com/react/components/dialog)
  */
-export const DialogBackdrop = React.forwardRef(function DialogBackdrop(
-  componentProps: DialogBackdrop.Props,
-  forwardedRef: React.ForwardedRef<HTMLDivElement>,
-) {
-  const { render, className, ...elementProps } = componentProps;
-  const { open, nested, mounted, transitionStatus, backdropRef } = useDialogRootContext();
+export function DialogBackdrop(componentProps: DialogBackdrop.Props) {
+  const [, elementProps] = splitProps(componentProps, ['render', 'class']);
+  const { open, nested, mounted, transitionStatus, refs } = useDialogRootContext();
 
-  const state: DialogBackdrop.State = React.useMemo(
-    () => ({
-      open,
-      transitionStatus,
-    }),
-    [open, transitionStatus],
+  const state: DialogBackdrop.State = {
+    open,
+    transitionStatus,
+  };
+
+  return (
+    <RenderElement
+      element="div"
+      componentProps={componentProps}
+      ref={useForkRef(refs.backdropRef, elementProps.ref)}
+      params={{
+        state,
+        customStyleHookMapping,
+        props: [
+          {
+            role: 'presentation',
+            hidden: !mounted(),
+            style: {
+              'user-select': 'none',
+              '-webkit-user-select': 'none',
+            },
+          },
+          elementProps as JSX.HTMLAttributes<HTMLDivElement>,
+        ],
+        enabled: !nested(),
+      }}
+    />
   );
-
-  return useRenderElement('div', componentProps, {
-    state,
-    ref: [backdropRef, forwardedRef],
-    customStyleHookMapping,
-    props: [
-      {
-        role: 'presentation',
-        hidden: !mounted,
-        style: {
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-        },
-      },
-      elementProps,
-    ],
-    // no need to render nested backdrops
-    enabled: !nested,
-  });
-});
+}
 
 export namespace DialogBackdrop {
   export interface Props extends BaseUIComponentProps<'div', State> {}
@@ -61,7 +62,7 @@ export namespace DialogBackdrop {
     /**
      * Whether the dialog is currently open.
      */
-    open: boolean;
-    transitionStatus: TransitionStatus;
+    open: MaybeAccessor<boolean>;
+    transitionStatus: MaybeAccessor<TransitionStatus>;
   }
 }
