@@ -34,7 +34,7 @@ export function DialogBackdrop(componentProps: DialogBackdrop.Props) {
     <RenderElement
       element="div"
       componentProps={componentProps}
-      ref={useForkRef(refs.backdropRef, elementProps.ref)}
+      ref={useForkRef(refs.backdropRef, componentProps.ref)}
       params={{
         state,
         customStyleHookMapping,

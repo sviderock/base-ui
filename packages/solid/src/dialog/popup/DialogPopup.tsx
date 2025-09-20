@@ -1,6 +1,6 @@
 'use client';
 import type { JSX } from 'solid-js';
-import { createEffect, onCleanup, onMount, splitProps } from 'solid-js';
+import { splitProps } from 'solid-js';
 import { FloatingFocusManager } from '../../floating-ui-solid';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
@@ -40,6 +40,7 @@ export function DialogPopup(componentProps: DialogPopup.Props) {
     'finalFocus',
     'initialFocus',
     'render',
+    'children',
   ]);
 
   const finalFocus = () => access(local.finalFocus);
@@ -63,9 +64,6 @@ export function DialogPopup(componentProps: DialogPopup.Props) {
     onOpenChangeComplete,
   } = useDialogRootContext();
 
-  // TODO: not sure if this is needed as the component is not re-rendered on every change like in react
-  // useDialogPortalContext();
-
   useOpenChangeComplete({
     open,
     ref: () => refs.popupRef,
@@ -87,6 +85,8 @@ export function DialogPopup(componentProps: DialogPopup.Props) {
     titleElementId,
   });
 
+  const dialogPortalContext = useDialogPortalContext();
+
   const nestedDialogOpen = () => nestedOpenDialogCount() > 0;
 
   const state: DialogPopup.State = {
@@ -100,10 +100,11 @@ export function DialogPopup(componentProps: DialogPopup.Props) {
     <>
       {mounted() && modal() === true && (
         <InternalBackdrop
+          managed
+          inert={inertValue(!open())}
           ref={(el) => {
             refs.internalBackdropRef = el;
           }}
-          inert={inertValue(!open())}
         />
       )}
       <FloatingFocusManager

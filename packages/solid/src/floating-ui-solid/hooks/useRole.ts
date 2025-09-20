@@ -1,4 +1,4 @@
-import { type Accessor, createMemo, type JSX } from 'solid-js';
+import { type Accessor, createEffect, createMemo, createSignal, type JSX } from 'solid-js';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useId } from '../../utils/useId';
 import { useFloatingParentNodeId } from '../components/FloatingTree';
@@ -42,10 +42,15 @@ export function useRole(
   const role = () => access(props.role) ?? 'dialog';
 
   const defaultReferenceId = useId();
-  const referenceId = () => context.elements.domReference()?.id || defaultReferenceId();
-  const floatingId = createMemo(
-    () => getFloatingFocusElement(context.elements.floating())?.id || context.floatingId(),
-  );
+  const referenceId = () => context.elements.domReference()?.id || access(defaultReferenceId);
+
+  // Track the actual floating element id (including user-provided custom id) after mount.
+  const [resolvedFloatingId, setResolvedFloatingId] = createSignal<string | undefined>(undefined);
+  createEffect(() => {
+    const element = getFloatingFocusElement(context.elements.floating());
+    setResolvedFloatingId(element?.id);
+  });
+  const floatingId = createMemo(() => resolvedFloatingId() || context.floatingId());
 
   const ariaRole = () =>
     (componentRoleToAriaRoleMap.get(role()) ?? role()) as AriaRole | false | undefined;

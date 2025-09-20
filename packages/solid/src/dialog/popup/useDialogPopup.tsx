@@ -1,6 +1,6 @@
 'use client';
 import { useForkRef } from '@base-ui-components/solid/utils';
-import { createMemo, type Accessor } from 'solid-js';
+import { createEffect, createMemo, on, onMount, type Accessor } from 'solid-js';
 import { COMPOSITE_KEYS } from '../../composite/composite';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import { HTMLProps } from '../../utils/types';
@@ -41,19 +41,21 @@ export function useDialogPopup(parameters: useDialogPopup.Parameters): useDialog
     return initialFocusValue;
   });
 
-  const popupProps = createMemo<HTMLProps>(() => ({
-    'aria-labelledby': titleElementId() ?? undefined,
-    'aria-describedby': descriptionElementId() ?? undefined,
-    'aria-modal': mounted() && modal() === true ? true : undefined,
-    role: 'dialog',
-    tabIndex: -1,
-    hidden: !mounted(),
-    onKeyDown(event) {
-      if (COMPOSITE_KEYS.has(event.key)) {
-        event.stopPropagation();
-      }
-    },
-  }));
+  const popupProps = createMemo<HTMLProps>(() => {
+    return {
+      'aria-labelledby': titleElementId() ?? undefined,
+      'aria-describedby': descriptionElementId() ?? undefined,
+      'aria-modal': mounted() && modal() === true ? true : undefined,
+      role: 'dialog',
+      tabIndex: -1,
+      hidden: !mounted(),
+      onKeyDown(event) {
+        if (COMPOSITE_KEYS.has(event.key)) {
+          event.stopPropagation();
+        }
+      },
+    };
+  });
 
   return {
     popupProps,

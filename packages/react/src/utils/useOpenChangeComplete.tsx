@@ -20,6 +20,7 @@ export function useOpenChangeComplete(parameters: useOpenChangeComplete.Paramete
     }
 
     runOnceAnimationsFinish(() => {
+      console.log('useOpenChangeComplete', { open, openRef: openRef.current });
       if (open === openRef.current) {
         onComplete();
       }

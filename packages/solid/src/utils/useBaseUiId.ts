@@ -1,6 +1,6 @@
 'use client';
 import { type Accessor } from 'solid-js';
-import { access, type MaybeAccessor } from '../solid-helpers';
+import { type MaybeAccessor } from '../solid-helpers';
 import { useId } from './useId';
 
 /**
@@ -12,5 +12,5 @@ export function useBaseUiId(
   idOverride?: MaybeAccessor<string | undefined>,
 ): Accessor<string | undefined> {
   const id = useId(idOverride, 'base-ui');
-  return () => access(id);
+  return id;
 }

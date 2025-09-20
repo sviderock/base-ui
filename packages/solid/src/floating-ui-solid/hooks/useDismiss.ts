@@ -200,9 +200,16 @@ export function useDismiss(
       return;
     }
 
-    if (!tree && isEventTargetInsidePortal(event)) {
-      context.dataRef.insideDanglingPortal = true;
-      return;
+    if (isEventTargetInsidePortal(event)) {
+      context.dataRef.insidePortal = true;
+      /**
+       * TODO: explain this properly
+       * If the target is inside a portal OR its dismisal is managed externally then don't dismiss here
+       */
+      const managed = (event.target as HTMLElement)?.hasAttribute(createAttribute('managed'));
+      if (!tree && !managed) {
+        return;
+      }
     }
 
     const resolvedOutsidePress = outsidePress();

@@ -1,5 +1,5 @@
 'use client';
-import { createMemo, createUniqueId } from 'solid-js';
+import { createMemo, createUniqueId, type Accessor } from 'solid-js';
 import { access, type MaybeAccessor } from '../solid-helpers';
 
 /**
@@ -14,7 +14,7 @@ import { access, type MaybeAccessor } from '../solid-helpers';
 export function useId(
   idOverride?: MaybeAccessor<string | undefined>,
   prefix: string = 'mui',
-): MaybeAccessor<string | undefined> {
+): Accessor<string | undefined> {
   const id = createMemo(() => access(idOverride) || `${prefix}-${createUniqueId()}`);
   return id;
 }

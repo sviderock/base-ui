@@ -18,6 +18,7 @@ export function DialogTitle(componentProps: DialogTitle.Props) {
   const id = useBaseUiId(() => local.id);
 
   createEffect(() => {
+    // track(() => id());
     setTitleElementId(id());
     onCleanup(() => {
       setTitleElementId(undefined);
@@ -28,6 +29,7 @@ export function DialogTitle(componentProps: DialogTitle.Props) {
     <RenderElement
       element="h2"
       componentProps={componentProps}
+      ref={componentProps.ref}
       params={{ props: [{ id: id() }, elementProps as JSX.HTMLAttributes<HTMLHeadingElement>] }}
     />
   );

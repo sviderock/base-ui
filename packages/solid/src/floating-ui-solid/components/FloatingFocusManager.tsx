@@ -346,8 +346,8 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
         }
       }
 
-      if (props.context.dataRef.insideDanglingPortal) {
-        props.context.dataRef.insideDanglingPortal = false;
+      if (props.context.dataRef.insidePortal) {
+        props.context.dataRef.insidePortal = false;
         return;
       }
 
@@ -705,7 +705,10 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
       <Show when={shouldRenderGuards()}>
         <FocusGuard
           data-type="inside"
-          ref={useForkRef(setBeforeGuardRef, portalContext?.setBeforeInsideRef)}
+          ref={(el) => {
+            setBeforeGuardRef(el);
+            portalContext?.setBeforeInsideRef(el);
+          }}
           onFocus={(event) => {
             if (modal()) {
               const els = getTabbableElements();
@@ -733,7 +736,10 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
       <Show when={shouldRenderGuards()}>
         <FocusGuard
           data-type="inside"
-          ref={useForkRef(setAfterGuardRef, portalContext?.setAfterInsideRef)}
+          ref={(el) => {
+            setAfterGuardRef(el);
+            portalContext?.setAfterInsideRef(el);
+          }}
           onFocus={(event) => {
             if (modal()) {
               enqueueFocus(getTabbableElements()[0]);

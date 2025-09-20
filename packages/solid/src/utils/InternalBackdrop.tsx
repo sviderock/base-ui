@@ -1,10 +1,11 @@
 import { createMemo, splitProps, type JSX } from 'solid-js';
+import { createAttribute } from '../floating-ui-solid/utils/createAttribute';
 
 /**
  * @internal
  */
 export function InternalBackdrop(props: InternalBackdrop.Props) {
-  const [local, otherProps] = splitProps(props, ['cutout']);
+  const [local, otherProps] = splitProps(props, ['cutout', 'managed']);
 
   const clipPath = createMemo(() => {
     if (local.cutout) {
@@ -26,6 +27,8 @@ export function InternalBackdrop(props: InternalBackdrop.Props) {
     return undefined;
   });
 
+  const ownerProps = () => (local.managed ? { [createAttribute('managed')]: local.managed } : {});
+
   return (
     <div
       ref={props.ref}
@@ -34,6 +37,7 @@ export function InternalBackdrop(props: InternalBackdrop.Props) {
       // it an element that existed when the popup rendered.
       data-base-ui-inert=""
       {...otherProps}
+      {...ownerProps()}
       style={{
         position: 'fixed',
         inset: 0,
@@ -52,5 +56,9 @@ export namespace InternalBackdrop {
      * This is useful for allowing certain elements to be interactive while the backdrop is present.
      */
     cutout?: Element | null;
+    /**
+     * Whether the backdrop is managed by Base UI.
+     */
+    managed?: boolean;
   }
 }

@@ -51,10 +51,8 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
     internalBackdropRef: null,
   };
 
-  const [titleElementId, setTitleElementId] = createSignal<string | undefined>(undefined);
-  const [descriptionElementId, setDescriptionElementId] = createSignal<string | undefined>(
-    undefined,
-  );
+  const [titleElementId, setTitleElementId] = createSignal<string>();
+  const [descriptionElementId, setDescriptionElementId] = createSignal<string>();
   const [triggerElement, setTriggerElement] = createSignal<Element | null>(null);
   const [popupElement, setPopupElement] = createSignal<HTMLElement | null>(null);
 
@@ -75,7 +73,7 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
   };
 
   useOpenChangeComplete({
-    enabled: !params.actionsRef,
+    enabled: () => !params.actionsRef,
     open,
     ref: () => refs.popupRef,
     onComplete() {
@@ -127,6 +125,7 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
             ? refs.internalBackdropRef === backdrop || refs.backdropRef === backdrop
             : false;
         }
+
         return true;
       }
       return false;

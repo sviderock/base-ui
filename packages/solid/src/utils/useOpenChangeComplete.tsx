@@ -1,6 +1,6 @@
 'use client';
 
-import { createEffect } from 'solid-js';
+import { createEffect, on } from 'solid-js';
 import { access, type MaybeAccessor } from '../solid-helpers';
 import { useAnimationsFinished } from './useAnimationsFinished';
 
@@ -12,21 +12,19 @@ export function useOpenChangeComplete<T extends HTMLElement>(
 ) {
   const open = () => access(parameters.open);
   const enabled = () => access(parameters.enabled) ?? true;
-  const openRef = open();
   const runOnceAnimationsFinish = useAnimationsFinished(parameters.ref, parameters.open);
 
-  createEffect(() => {
-    if (!enabled()) {
-      return;
-    }
-
-    const currentOpen = open();
-    runOnceAnimationsFinish(() => {
-      if (currentOpen === openRef) {
-        parameters.onComplete();
+  createEffect(
+    on([open, enabled], () => {
+      if (!enabled()) {
+        return;
       }
-    });
-  });
+
+      runOnceAnimationsFinish(() => {
+        parameters.onComplete();
+      });
+    }),
+  );
 }
 
 export namespace useOpenChangeComplete {

@@ -17,6 +17,7 @@ export function DialogPortal(props: DialogPortal.Props) {
 
   const shouldRender = mounted || keepMounted;
 
+  console.log('shouldRender', { mounted, keepMounted });
   if (!shouldRender) {
     return null;
   }
