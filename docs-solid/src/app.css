@@ -35,12 +35,12 @@
 /* @import './components/HeadingLink.css'; */
 /* @import './components/Kbd/Kbd.css'; */
 @import './components/Link.css';
-@import './components/MobileNav.css';
+@import './components/MobileNav/MobileNav.css';
 /* @import './components/Popup.css'; */
 /* @import './components/QuickNav/QuickNav.css'; */
 /* @import './components/ScrollArea.css'; */
 /* @import './components/Select.css'; */
-@import './components/SideNav.css';
+@import './components/SideNav/SideNav.css';
 @import './components/SkipNav.css';
 /* @import './components/Subtitle/Subtitle.css'; */
 /* @import './components/Table.css'; */

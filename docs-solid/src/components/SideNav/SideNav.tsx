@@ -1,10 +1,9 @@
-'use client';
 import { ScrollArea } from '@base-ui-components/solid/scroll-area';
 import { A, useLocation } from '@solidjs/router';
 import clsx from 'clsx';
 import scrollIntoView from 'scroll-into-view-if-needed';
 import { createEffect, onMount, splitProps, type ComponentProps } from 'solid-js';
-import { HEADER_HEIGHT } from './Header';
+import { HEADER_HEIGHT } from '../Header';
 
 export function Root(props: ComponentProps<'nav'>) {
   return (
@@ -41,7 +40,7 @@ export function Badge(props: ComponentProps<'span'>) {
   return <span {...props} class={clsx('SideNavBadge', props.class)} />;
 }
 
-interface ItemProps extends ComponentProps<'li'> {
+export interface ItemProps extends ComponentProps<'li'> {
   active?: boolean;
   href: string;
   isNew?: boolean;

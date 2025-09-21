@@ -1,9 +1,16 @@
-'use client';
 import { Dialog } from '@base-ui-components/solid/dialog';
 import { useScrollLock } from '@base-ui-components/solid/utils';
+import { A } from '@solidjs/router';
 import clsx from 'clsx';
-import { createContext, createSignal } from 'solid-js';
-import { HEADER_HEIGHT } from './Header';
+import {
+  createContext,
+  createSignal,
+  onMount,
+  useContext,
+  type ComponentProps,
+  type ParentProps,
+} from 'solid-js';
+import { HEADER_HEIGHT } from '../Header';
 
 const MobileNavStateCallback = createContext<(open: boolean) => void>(() => undefined);
 
@@ -20,37 +27,38 @@ export function Root(props: Dialog.Root.Props) {
 export const Trigger = Dialog.Trigger;
 
 export function Backdrop(props: Dialog.Backdrop.Props) {
-  return <Dialog.Backdrop {...props} className={clsx('MobileNavBackdrop', props.className)} />;
+  return <Dialog.Backdrop {...props} class={clsx('MobileNavBackdrop', props.class)} />;
 }
 
 export const Portal = Dialog.Portal;
 
 export function Popup(props: Dialog.Popup.Props) {
   return (
-    <Dialog.Popup {...props} className={clsx('MobileNavPopup', props.className)}>
+    <Dialog.Popup {...props} class={clsx('MobileNavPopup', props.class)}>
       <PopupImpl>{props.children}</PopupImpl>
     </Dialog.Popup>
   );
 }
 
-function PopupImpl(props: React.PropsWithChildren) {
-  const [forceScrollLock, setForceScrollLock] = React.useState(false);
-  const setOpen = React.useContext(MobileNavStateCallback);
-  const rem = React.useRef(16);
+function PopupImpl(props: ParentProps) {
+  const [forceScrollLock, setForceScrollLock] = createSignal(false);
+  const [rem, setRem] = createSignal(16);
+  const setOpen = useContext(MobileNavStateCallback);
+
   useScrollLock({ enabled: forceScrollLock, open: forceScrollLock, mounted: forceScrollLock });
 
-  React.useEffect(() => {
-    rem.current = parseFloat(getComputedStyle(document.documentElement).fontSize);
-  }, []);
+  onMount(() => {
+    setRem(parseFloat(getComputedStyle(document.documentElement).fontSize));
+  });
 
   return (
-    <React.Fragment>
-      <div className="MobileNavBottomOverscroll" />
+    <>
+      <div class="MobileNavBottomOverscroll" />
       <div
-        className="MobileNavViewport"
+        class="MobileNavViewport"
         onScroll={(event) => {
           const viewport = event.currentTarget;
-          if (viewport.scrollTop > (HEADER_HEIGHT * rem.current) / 16) {
+          if (viewport.scrollTop > (HEADER_HEIGHT * rem()) / 16) {
             viewport.setAttribute('data-clipped', '');
           } else {
             viewport.removeAttribute('data-clipped');
@@ -100,16 +108,20 @@ function PopupImpl(props: React.PropsWithChildren) {
           }
         }}
       >
-        <div className="MobileNavViewportInner">
+        <div class="MobileNavViewportInner">
           {/* We need the area behind the panel to close on tap but also to scroll the viewport. */}
-          <Dialog.Close className="MobileNavBackdropTapArea" tabIndex={-1} render={<div />} />
+          <Dialog.Close
+            class="MobileNavBackdropTapArea"
+            tabIndex={-1}
+            render={(props) => <div {...props} />}
+          />
 
-          <nav className="MobileNavPanel">
+          <nav class="MobileNavPanel">
             {/* Reverse order to place the close button at the end of the DOM, but at sticky top visually */}
-            <div className="flex flex-col-reverse">
+            <div class="flex flex-col-reverse">
               <div>{props.children}</div>
-              <div className="MobileNavCloseContainer">
-                <Dialog.Close aria-label="Close the navigation" className="MobileNavClose">
+              <div class="MobileNavCloseContainer">
+                <Dialog.Close aria-label="Close the navigation" class="MobileNavClose">
                   <svg
                     width="12"
                     height="12"
@@ -120,9 +132,9 @@ function PopupImpl(props: React.PropsWithChildren) {
                     <path
                       d="M0.75 0.75L6 6M11.25 11.25L6 6M6 6L0.75 11.25M6 6L11.25 0.75"
                       stroke="currentcolor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
                     />
                   </svg>
                 </Dialog.Close>
@@ -131,51 +143,51 @@ function PopupImpl(props: React.PropsWithChildren) {
           </nav>
         </div>
       </div>
-    </React.Fragment>
+    </>
   );
 }
 
-export function Section(props: React.ComponentProps<'div'>) {
-  return <div {...props} className={clsx('MobileNavSection', props.className)} />;
+export function Section(props: ComponentProps<'div'>) {
+  return <div {...props} class={clsx('MobileNavSection', props.class)} />;
 }
 
-export function Heading(props: React.ComponentProps<'div'>) {
+export function Heading(props: ComponentProps<'div'>) {
   return (
-    <div {...props} className={clsx('MobileNavHeading', props.className)}>
-      <div className="MobileNavHeadingInner">{props.children}</div>
+    <div {...props} class={clsx('MobileNavHeading', props.class)}>
+      <div class="MobileNavHeadingInner">{props.children}</div>
     </div>
   );
 }
 
-export function List(props: React.ComponentProps<'ul'>) {
-  return <ul {...props} className={clsx('MobileNavList', props.className)} />;
+export function List(props: ComponentProps<'ul'>) {
+  return <ul {...props} class={clsx('MobileNavList', props.class)} />;
 }
 
-export function Badge(props: React.ComponentProps<'span'>) {
-  return <span {...props} className={clsx('MobileNavBadge', props.className)} />;
+export function Badge(props: ComponentProps<'span'>) {
+  return <span {...props} class={clsx('MobileNavBadge', props.class)} />;
 }
 
-export function Label(props: React.ComponentProps<'span'>) {
-  return <span {...props} className={clsx('MobileNavLabel', props.className)} />;
+export function Label(props: ComponentProps<'span'>) {
+  return <span {...props} class={clsx('MobileNavLabel', props.class)} />;
 }
 
-interface ItemProps extends React.ComponentPropsWithoutRef<'li'> {
+export interface ItemProps extends ComponentProps<'li'> {
   active?: boolean;
   href: string;
   rel?: string;
 }
 
 export function Item(props: ItemProps) {
-  const setOpen = React.useContext(MobileNavStateCallback);
+  const setOpen = useContext(MobileNavStateCallback);
   return (
-    <li {...props} className={clsx('MobileNavItem', props.className)}>
-      <NextLink
+    <li {...props} class={clsx('MobileNavItem', props.class)}>
+      <A
         aria-current={props.active ? 'page' : undefined}
-        className="MobileNavLink"
+        class="MobileNavLink"
         href={props.href}
         rel={props.rel}
         // We handle scroll manually
-        scroll={false}
+        noScroll
         onClick={() => {
           if (props.href === window.location.pathname) {
             // If the URL is the same, close, wait a little, and scroll to top smoothly
@@ -186,14 +198,14 @@ export function Item(props: ItemProps) {
           } else {
             // Otherwise, wait for the URL change before closing and scroll up instantly
             onUrlChange(() => {
-              ReactDOM.flushSync(() => setOpen(false));
+              setOpen(false);
               window.scrollTo({ top: 0, behavior: 'instant' });
             });
           }
         }}
       >
         {props.children}
-      </NextLink>
+      </A>
     </li>
   );
 }

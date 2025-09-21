@@ -1,8 +1,8 @@
 {
-  "name": "example-with-mdx",
+  "name": "docs-solid",
   "type": "module",
   "scripts": {
-    "dev": "vinxi dev --port 3005",
+    "dev": "vinxi dev --port 3006",
     "build": "vinxi build",
     "start": "vinxi start"
   },

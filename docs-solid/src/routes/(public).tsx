@@ -3,7 +3,8 @@ import 'docs-solid/src/app.css';
 import type { ParentProps } from 'solid-js';
 import './(public).css';
 
-export default function Layout(props: ParentProps) {
+export default function PublicLayout(props: ParentProps) {
+  console.log({ props });
   return (
     // <DocsProviders>
     <div class="RootLayout">
