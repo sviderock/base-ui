@@ -1,11 +1,9 @@
 import {
   children,
-  createEffect,
   createMemo,
+  createSignal,
   Match,
   mergeProps,
-  on,
-  onCleanup,
   onMount,
   Show,
   splitProps,
@@ -15,25 +13,26 @@ import {
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { mergePropsN } from '../merge-props';
-import { access, type MaybeAccessor } from '../solid-helpers';
 import { EMPTY_OBJECT } from './constants';
 import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
 import { resolveClassName } from './resolveClassName';
 import type { ComponentRenderFn, HTMLProps } from './types';
 
-type IntrinsicTagName = keyof JSX.IntrinsicElements;
+type IntrinsicTagName = keyof HTMLElementTagNameMap;
 
 export function RenderElement<
   State extends Record<string, any>,
-  RenderedElementType extends HTMLElement,
   TagName extends IntrinsicTagName | undefined,
+  RenderedElementType extends TagName extends keyof HTMLElementTagNameMap
+    ? HTMLElementTagNameMap[TagName]
+    : HTMLElement,
   Enabled extends boolean | undefined = undefined,
 >(props: {
   element: TagName;
   // TODO: needed as a separate prop to properly reassign refs https://stackoverflow.com/a/71137252
   ref: Ref<RenderedElementType | null | undefined>;
   componentProps: RenderElement.ComponentProps<State>;
-  params: RenderElement.Parameters<State, TagName, Enabled>;
+  params: RenderElement.Parameters<State, TagName, RenderedElementType, Enabled>;
 }): JSX.Element {
   const state = () => props.params.state ?? (EMPTY_OBJECT as State);
   const enabled = () => props.params.enabled ?? true;
@@ -71,7 +70,9 @@ export function RenderElement<
       return undefined;
     }
 
-    const [, rest] = splitProps(mergedParams, ['children']);
+    const [, rest] = splitProps(mergedParams as JSX.HTMLAttributes<RenderedElementType>, [
+      'children',
+    ]);
 
     return {
       ...rest,
@@ -115,15 +116,22 @@ export function RenderElement<
   );
 }
 
-type RenderFunctionProps<TagName> = Omit<
-  TagName extends keyof JSX.IntrinsicElements
-    ? JSX.IntrinsicElements[TagName]
-    : JSX.HTMLAttributes<any>,
-  'children'
->;
+type RenderFunctionProps<
+  TagName,
+  RenderedElementType extends TagName extends keyof HTMLElementTagNameMap
+    ? HTMLElementTagNameMap[TagName]
+    : HTMLElement,
+> = Omit<JSX.HTMLAttributes<RenderedElementType>, 'children'>;
 
 export namespace RenderElement {
-  export type Parameters<State, TagName, Enabled extends boolean | undefined> = {
+  export type Parameters<
+    State,
+    TagName,
+    RenderedElementType extends TagName extends keyof HTMLElementTagNameMap
+      ? HTMLElementTagNameMap[TagName]
+      : HTMLElement,
+    Enabled extends boolean | undefined,
+  > = {
     /**
      * If `false`, the hook will skip most of its internal logic and return `null`.
      * This is useful for rendering a component conditionally.
@@ -143,11 +151,13 @@ export namespace RenderElement {
      * Intrinsic props to be spread on the rendered element.
      */
     props?:
-      | RenderFunctionProps<TagName>
+      | RenderFunctionProps<TagName, RenderedElementType>
       | Array<
-          | RenderFunctionProps<TagName>
+          | RenderFunctionProps<TagName, RenderedElementType>
           | undefined
-          | ((props: RenderFunctionProps<TagName>) => RenderFunctionProps<TagName>)
+          | ((
+              props: RenderFunctionProps<TagName, RenderedElementType>,
+            ) => RenderFunctionProps<TagName, RenderedElementType>)
         >;
 
     /**

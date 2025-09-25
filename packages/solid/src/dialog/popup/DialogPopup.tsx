@@ -2,7 +2,7 @@
 import type { JSX } from 'solid-js';
 import { splitProps } from 'solid-js';
 import { FloatingFocusManager } from '../../floating-ui-solid';
-import { access, type MaybeAccessor } from '../../solid-helpers';
+import { access, handleRef, type MaybeAccessor } from '../../solid-helpers';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { inertValue } from '../../utils/inertValue';
 import { InternalBackdrop } from '../../utils/InternalBackdrop';
@@ -10,7 +10,6 @@ import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping'
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import { type BaseUIComponentProps } from '../../utils/types';
 import { InteractionType } from '../../utils/useEnhancedClickHandler';
-import { useForkRef } from '../../utils/useForkRef';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
 import { RenderElement } from '../../utils/useRenderElement';
 import { type TransitionStatus } from '../../utils/useTransitionStatus';
@@ -85,8 +84,6 @@ export function DialogPopup(componentProps: DialogPopup.Props) {
     titleElementId,
   });
 
-  const dialogPortalContext = useDialogPortalContext();
-
   const nestedDialogOpen = () => nestedOpenDialogCount() > 0;
 
   const state: DialogPopup.State = {
@@ -120,7 +117,8 @@ export function DialogPopup(componentProps: DialogPopup.Props) {
           componentProps={componentProps}
           ref={(el) => {
             refs.popupRef = el;
-            useForkRef(componentProps.ref, dialogPopupRef)(el);
+            handleRef(componentProps.ref, el);
+            dialogPopupRef(el);
           }}
           params={{
             state,

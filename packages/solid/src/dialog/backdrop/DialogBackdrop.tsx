@@ -1,7 +1,6 @@
 'use client';
-import { useForkRef } from '@base-ui-components/solid/utils';
 import { splitProps, type JSX } from 'solid-js';
-import { type MaybeAccessor } from '../../solid-helpers';
+import { handleRef, type MaybeAccessor } from '../../solid-helpers';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
@@ -34,7 +33,10 @@ export function DialogBackdrop(componentProps: DialogBackdrop.Props) {
     <RenderElement
       element="div"
       componentProps={componentProps}
-      ref={useForkRef(refs.backdropRef, componentProps.ref)}
+      ref={(el) => {
+        handleRef(componentProps.ref, el);
+        refs.backdropRef = el;
+      }}
       params={{
         state,
         customStyleHookMapping,
@@ -47,7 +49,7 @@ export function DialogBackdrop(componentProps: DialogBackdrop.Props) {
               '-webkit-user-select': 'none',
             },
           },
-          elementProps as JSX.HTMLAttributes<HTMLDivElement>,
+          elementProps,
         ],
         enabled: !nested(),
       }}

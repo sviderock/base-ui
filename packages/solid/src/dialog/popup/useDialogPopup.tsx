@@ -1,6 +1,5 @@
 'use client';
-import { useForkRef } from '@base-ui-components/solid/utils';
-import { createEffect, createMemo, on, onMount, type Accessor } from 'solid-js';
+import { createMemo, type Accessor } from 'solid-js';
 import { COMPOSITE_KEYS } from '../../composite/composite';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import { HTMLProps } from '../../utils/types';
@@ -15,7 +14,7 @@ export function useDialogPopup(parameters: useDialogPopup.Parameters): useDialog
   const titleElementId = () => access(parameters.titleElementId);
   const initialFocus = () => access(parameters.initialFocus);
 
-  let popupRef: HTMLElement | undefined;
+  let popupRef: HTMLElement | null | undefined;
 
   // Default initial focus logic:
   // If opened by touch, focus the popup element to prevent the virtual keyboard from opening
@@ -60,7 +59,10 @@ export function useDialogPopup(parameters: useDialogPopup.Parameters): useDialog
   return {
     popupProps,
     resolvedInitialFocus,
-    dialogPopupRef: useForkRef(popupRef, parameters.setPopupElement),
+    dialogPopupRef: (el) => {
+      popupRef = el;
+      parameters.setPopupElement(el);
+    },
   };
 }
 

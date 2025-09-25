@@ -1,7 +1,6 @@
 'use client';
-import { useForkRef } from '@base-ui-components/solid/utils';
 import { splitProps, type JSX } from 'solid-js';
-import type { MaybeAccessor } from '../../solid-helpers';
+import { handleRef, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -40,7 +39,11 @@ export function DialogTrigger(componentProps: DialogTrigger.Props) {
     <RenderElement
       element="button"
       componentProps={componentProps}
-      ref={useForkRef(buttonRef, componentProps.ref, setTriggerElement)}
+      ref={(el) => {
+        handleRef(componentProps.ref, el);
+        buttonRef(el);
+        setTriggerElement(el);
+      }}
       params={{
         state,
         props: [

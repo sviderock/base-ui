@@ -1,7 +1,6 @@
 'use client';
-import { createEffect, onCleanup, onMount, splitProps, type JSX } from 'solid-js';
-import { type MaybeAccessor } from '../../solid-helpers';
-import { useForkRef } from '../../utils';
+import { splitProps, type JSX } from 'solid-js';
+import { handleRef, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useDialogRootContext } from '../root/DialogRootContext';
@@ -37,10 +36,13 @@ export function DialogClose(componentProps: DialogClose.Props) {
     <RenderElement
       element="button"
       componentProps={componentProps}
-      ref={useForkRef(componentProps.ref, dialogCloseRef)}
+      ref={(el) => {
+        handleRef(componentProps.ref, el);
+        dialogCloseRef(el);
+      }}
       params={{
         state,
-        props: [elementProps as JSX.HTMLAttributes<HTMLButtonElement>, getRootProps],
+        props: [elementProps, getRootProps],
       }}
     />
   );
