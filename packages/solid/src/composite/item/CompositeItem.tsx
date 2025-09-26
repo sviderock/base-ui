@@ -1,7 +1,7 @@
 'use client';
 import { splitProps } from 'solid-js';
+import { handleRef } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useForkRef } from '../../utils/useForkRef';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useCompositeItem } from './useCompositeItem';
 
@@ -21,12 +21,13 @@ export function CompositeItem<Metadata>(componentProps: CompositeItem.Props<Meta
   return (
     <RenderElement
       element="div"
-      ref={useForkRef(local.itemRef, compositeItem.setRef)}
-      componentProps={componentProps}
-      params={{
-        // TODO: fix typing
-        props: [compositeItem.props(), elementProps as any],
+      ref={(el) => {
+        handleRef(componentProps.ref, el);
+        componentProps.itemRef = el;
+        compositeItem.setRef(el);
       }}
+      componentProps={componentProps}
+      params={{ props: [compositeItem.props(), elementProps] }}
     />
   );
 }
@@ -36,7 +37,7 @@ export namespace CompositeItem {
 
   export interface Props<Metadata> extends Omit<BaseUIComponentProps<'div', State>, 'itemRef'> {
     // the itemRef name collides with https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/itemref
-    itemRef?: HTMLElement | null;
+    itemRef?: HTMLElement | null | undefined;
     metadata?: Metadata;
   }
 }

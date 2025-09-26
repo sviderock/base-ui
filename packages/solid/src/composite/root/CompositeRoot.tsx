@@ -30,6 +30,7 @@ export function CompositeRoot<Metadata extends {}>(componentProps: CompositeRoot
     'disabledIndices',
     'modifierKeys',
     'highlightItemOnHover',
+    'children',
   ]);
 
   const direction = useDirection();
@@ -55,8 +56,7 @@ export function CompositeRoot<Metadata extends {}>(componentProps: CompositeRoot
           componentProps={componentProps}
           params={{
             state: COMPOSITE_ROOT_STATE,
-            // TODO: fix typing
-            props: [compositeRoot.props(), elementProps as any],
+            props: [compositeRoot.props(), elementProps],
           }}
         />
       </CompositeList>

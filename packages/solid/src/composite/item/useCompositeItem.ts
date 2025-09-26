@@ -39,7 +39,7 @@ export function useCompositeItem<Metadata extends MaybeAccessor<unknown>>(
     ref: itemRef,
     setRef: (el: HTMLElement | null) => {
       setItemRef(el);
-      listItem.ref(el);
+      listItem.setRef(el);
     },
     index: listItem.index,
   };

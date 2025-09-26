@@ -50,7 +50,7 @@ export function access<T extends MaybeAccessor<any>>(v: T): MaybeAccessorValue<T
 
 export function handleRef<T extends HTMLElement | null | undefined>(
   ref: Ref<T> | undefined,
-  el: T,
+  el: Exclude<T, null | undefined>,
 ) {
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   typeof ref === 'function' ? ref(el) : (ref = el);
