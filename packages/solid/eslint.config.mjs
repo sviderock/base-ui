@@ -1,5 +1,5 @@
 import solid from 'eslint-plugin-solid/configs/typescript';
-// @ts-ignore
+// @ts-expect-error
 // eslint-disable-next-line import/no-relative-packages
 import defaultConfig from '../../eslint.config.mjs';
 
@@ -17,6 +17,11 @@ const configWithDisabledReactRules = defaultConfig
 /**
  * @type {import('eslint').Linter.Config[]}
  */
-const config = [...defaultConfig, { rules: configWithDisabledReactRules }, { ...solid }];
+const config = [
+  ...defaultConfig,
+  // TODO: really annoying suddenly
+  { rules: { ...configWithDisabledReactRules, '@typescript-eslint/no-namespace': 'off' } },
+  { ...solid },
+];
 
 export default config;
