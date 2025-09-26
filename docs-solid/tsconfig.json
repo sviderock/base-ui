@@ -1,6 +1,12 @@
 {
   "extends": "../tsconfig.base.json",
-  "include": ["data", "scripts/*.mts", "src", "src/global.d.ts"],
+  "include": [
+    "data",
+    "scripts/*.mts",
+    "src",
+    "src/global.d.ts",
+    "../node_modules/solid-mdx/**/*.d.ts"
+  ],
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",

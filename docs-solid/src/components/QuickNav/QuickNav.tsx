@@ -8,6 +8,7 @@ export function Container(props: ComponentProps<'div'>) {
 }
 
 export function Root(props: ComponentProps<'nav'>) {
+  console.log(123);
   const [local, rest] = splitProps(props, ['class', 'children']);
   let ref: HTMLElement | undefined;
 

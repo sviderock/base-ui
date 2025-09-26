@@ -1,5 +1,5 @@
 // @ts-check
-import { createMdxElement } from 'docs-solid/src/mdx/createMdxElement.mjs';
+import { createMdxElement } from '../../../src/mdx/createMdxElement.mjs';
 
 const ROOT = 'QuickNav.Root';
 const TITLE = 'QuickNav.Title';

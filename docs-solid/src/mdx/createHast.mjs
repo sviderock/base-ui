@@ -1,6 +1,6 @@
-import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
+import { unified } from 'unified';
 
 /** @param {string} markdown */
 export function createHast(markdown) {

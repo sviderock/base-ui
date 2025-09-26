@@ -33,6 +33,8 @@
     "./merge-props": "./src/merge-props/index.ts",
     "./scroll-area": "./src/scroll-area/index.ts",
     "./solid-helpers": "./src/solid-helpers.ts",
+    "./unstable-no-ssr": "./src/unstable-no-ssr/index.ts",
+    "./unstable-use-media-query": "./src/unstable-use-media-query/index.ts",
     "./utils": "./src/utils/index.ts"
   },
   "imports": {
