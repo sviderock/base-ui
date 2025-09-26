@@ -1,7 +1,7 @@
 'use client';
 import { type Accessor, createEffect, type JSX, onCleanup, Show, splitProps } from 'solid-js';
+import { handleRef } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useForkRef } from '../../utils/useForkRef';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
 import { RenderElement } from '../../utils/useRenderElement';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
@@ -108,7 +108,11 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
       <RenderElement
         element="div"
         componentProps={componentProps}
-        ref={useForkRef(componentProps.ref as HTMLDivElement, context.panelRef, panel.ref)}
+        ref={(el) => {
+          handleRef(componentProps.ref, el);
+          context.panelRef = el;
+          panel.ref = el;
+        }}
         params={{
           state: panelState,
           props: [

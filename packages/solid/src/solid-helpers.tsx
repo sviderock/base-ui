@@ -1,4 +1,4 @@
-import { onMount, type Accessor, type JSX } from 'solid-js';
+import { onMount, type Accessor, type JSX, type Ref } from 'solid-js';
 
 export function callEventHandler<T, E extends Event>(
   eventHandler: JSX.EventHandlerUnion<T, E> | undefined,
@@ -46,4 +46,12 @@ export function autofocus(element: HTMLElement, autofocusProp: Accessor<boolean>
 // https://github.com/solidjs-community/solid-primitives/blob/461ab9edda2ffa6666d7ed2d5deed8b6b77f65a6/packages/utils/src/index.ts#L106C1-L107C59
 export function access<T extends MaybeAccessor<any>>(v: T): MaybeAccessorValue<T> {
   return typeof v === 'function' && !v.length ? v() : (v as any);
+}
+
+export function handleRef<T extends HTMLElement | null | undefined>(
+  ref: Ref<T> | undefined,
+  el: T,
+) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  typeof ref === 'function' ? ref(el) : (ref = el);
 }

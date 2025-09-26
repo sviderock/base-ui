@@ -20,6 +20,7 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
     'onOpenChange',
     'open',
     'ref',
+    'children',
   ]);
 
   const onOpenChange = (open: boolean) => {
@@ -47,15 +48,14 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
 
   return (
     <CollapsibleRootContextProvider value={contextValue}>
-      <Show when={componentProps.render !== null} fallback={elementProps.children}>
+      <Show when={componentProps.render !== null} fallback={componentProps.children}>
         <RenderElement
           element="div"
           componentProps={componentProps}
           ref={componentProps.ref}
           params={{
             state,
-            // TODO: fix typing
-            props: elementProps as any,
+            props: elementProps,
             customStyleHookMapping: collapsibleStyleHookMapping,
           }}
         />
