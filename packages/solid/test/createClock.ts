@@ -126,6 +126,7 @@ export function createClock(
 
   return {
     tick(timeoutMS: number) {
+      console.log('tick', timeoutMS);
       if (clock === null) {
         throw new Error(`Can't advance the real clock. Did you mean to call this on fake clock?`);
       }

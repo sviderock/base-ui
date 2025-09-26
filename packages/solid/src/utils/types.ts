@@ -1,4 +1,4 @@
-import type { ComponentProps, JSX, Ref, ValidComponent } from 'solid-js';
+import type { ComponentProps, JSX, Ref } from 'solid-js';
 
 export type HTMLProps<T = any> = JSX.HTMLAttributes<T> & {
   ref?: Ref<T | null | undefined>;
@@ -10,7 +10,7 @@ export type BaseUIEvent<E extends Event> = E & {
 };
 
 type WithPreventBaseUIHandler<T> = T extends (event: infer E) => any
-  ? E extends Event
+  ? E extends Parameters<JSX.EventHandler<Element, Event>>[0]
     ? (event: BaseUIEvent<E>) => ReturnType<T>
     : T
   : T extends undefined
@@ -37,7 +37,7 @@ export type ComponentRenderFn<Props, State> = (props: Props, state: State) => JS
  * Contains `class` (string or callback taking the component's state as an argument) and `render` (function to customize rendering).
  */
 export type BaseUIComponentProps<
-  ElementType extends ValidComponent,
+  ElementType extends keyof HTMLElementTagNameMap,
   State,
   RenderFunctionProps = HTMLProps,
 > = Omit<
@@ -56,11 +56,7 @@ export type BaseUIComponentProps<
    * Accepts a `ReactElement` or a function that returns the element to render.
    */
   render?: ComponentRenderFn<RenderFunctionProps, State>;
-} & (ElementType extends keyof HTMLElementTagNameMap
-    ? {
-        ref?: Ref<HTMLElementTagNameMap[ElementType] | null | undefined>;
-      }
-    : {});
+} & { ref?: Ref<HTMLElementTagNameMap[ElementType] | null | undefined> };
 
 /**
  * Simplifies the display of a type (without modifying it).

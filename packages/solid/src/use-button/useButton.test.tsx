@@ -6,7 +6,6 @@ import { expect } from 'chai';
 import { spy } from 'sinon';
 import type { JSX } from 'solid-js';
 import { splitProps } from 'solid-js';
-import { useForkRef } from '../utils';
 import { useButton } from './useButton';
 
 vi.mock('solid-js/web', { spy: true });
@@ -102,9 +101,7 @@ describe('useButton', () => {
 
     it('returns tabIndex in getButtonProps when host component is not BUTTON', async () => {
       function TestButton() {
-        const ref = null;
-        const { getButtonProps, buttonRef } = useButton({ native: false });
-        useForkRef(ref, buttonRef);
+        const { getButtonProps } = useButton({ native: false });
 
         expect(getButtonProps().tabIndex).to.equal(0);
 

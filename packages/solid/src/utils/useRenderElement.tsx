@@ -30,7 +30,7 @@ export function RenderElement<
 >(props: {
   element: TagName;
   // TODO: needed as a separate prop to properly reassign refs https://stackoverflow.com/a/71137252
-  ref: Ref<RenderedElementType | null | undefined>;
+  ref: Ref<RenderedElementType>;
   componentProps: RenderElement.ComponentProps<State>;
   params: RenderElement.Parameters<State, TagName, RenderedElementType, Enabled>;
 }): JSX.Element {
@@ -109,7 +109,6 @@ export function RenderElement<
           {...(props.element === 'button' ? { type: 'button' } : {})}
           {...(props.element === 'img' ? { alt: '' } : {})}
           {...outProps()}
-          // ref={props.ref}
         />
       </Match>
     </Switch>
@@ -121,7 +120,7 @@ type RenderFunctionProps<
   RenderedElementType extends TagName extends keyof HTMLElementTagNameMap
     ? HTMLElementTagNameMap[TagName]
     : HTMLElement,
-> = Omit<JSX.HTMLAttributes<RenderedElementType>, 'children'>;
+> = JSX.HTMLAttributes<RenderedElementType>;
 
 export namespace RenderElement {
   export type Parameters<

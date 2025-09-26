@@ -84,7 +84,7 @@ function Listbox(props: { children: JSX.Element }) {
 function Option(props: { label: string }) {
   const { activeIndex, selectedIndex, getItemProps, handleSelect } = useContext(SelectContext);
 
-  const { ref, index } = useCompositeListItem({ label: () => props.label });
+  const { setRef, index } = useCompositeListItem({ label: () => props.label });
 
   const isActive = () => activeIndex() === index();
   const isSelected = () => selectedIndex() === index();
@@ -95,7 +95,7 @@ function Option(props: { label: string }) {
 
   return (
     <button
-      ref={ref}
+      ref={setRef}
       type="button"
       role="option"
       aria-selected={isActive() && isSelected()}

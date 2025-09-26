@@ -35,8 +35,7 @@ import {
   useRole,
   useTypeahead,
 } from '../../src/floating-ui-solid';
-import { callEventHandler } from '../../src/solid-helpers';
-import { useForkRefN } from '../../src/utils/useForkRef';
+import { callEventHandler, handleRef } from '../../src/solid-helpers';
 
 type MenuContextType = {
   getItemProps: ReturnType<typeof useInteractions>['getItemProps'];
@@ -218,7 +217,11 @@ export function MenuComponent(
     <FloatingNode id={nodeId()}>
       <button
         type="button"
-        ref={useForkRefN([refs.setReference, item.ref, props.ref as any])}
+        ref={(el) => {
+          refs.setReference(el);
+          item.setRef(el);
+          handleRef(props.ref, el);
+        }}
         data-open={isOpen() ? '' : undefined}
         // eslint-disable-next-line no-nested-ternary
         tabIndex={!isNested ? props.tabIndex : parent.activeIndex() === item.index() ? 0 : -1}
@@ -293,7 +296,6 @@ export function MenuComponent(
                   )}
                   style={{
                     ...floatingStyles(),
-                    // @ts-ignore
                     '--cols': local.cols,
                     // eslint-disable-next-line no-nested-ternary
                     visibility: !keepMounted() ? undefined : isOpen() ? 'visible' : 'hidden',
@@ -328,7 +330,10 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLButtonEle
   return (
     <button
       {...elementProps}
-      ref={useForkRefN([item.ref, props.ref as any])}
+      ref={(el) => {
+        item.setRef(el);
+        handleRef(props.ref, el);
+      }}
       type="button"
       role="menuitem"
       disabled={local.disabled}

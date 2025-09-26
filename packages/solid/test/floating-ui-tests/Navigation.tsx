@@ -14,7 +14,7 @@ import {
   useHover,
   useInteractions,
 } from '../../src/floating-ui-solid';
-import { useForkRef } from '../../src/utils/useForkRef';
+import { handleRef } from '../../src/solid-helpers';
 
 interface SubItemProps {
   label: string;
@@ -76,7 +76,10 @@ export function NavigationItem(props: ItemProps & JSX.HTMLAttributes<HTMLAnchorE
       <li>
         <a
           href={local.href}
-          ref={useForkRef(elementProps.ref as any, refs.setReference)}
+          ref={(el) => {
+            handleRef(elementProps.ref, el);
+            refs.setReference(el);
+          }}
           class="bg-slate-100 my-1 flex w-48 items-center justify-between rounded p-2"
           {...getReferenceProps(elementProps as any)}
         >

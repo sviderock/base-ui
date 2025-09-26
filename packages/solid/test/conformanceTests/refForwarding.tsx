@@ -1,21 +1,16 @@
 import { expect } from 'chai';
-import type { Component, Ref } from 'solid-js';
+import type { Component } from 'solid-js';
 import type {
   BaseUiConformanceTestsOptions,
   ConformantComponentProps,
 } from '../describeConformance';
-import { throwMissingPropError } from './utils';
 
 async function verifyRef(
   element: Component<ConformantComponentProps>,
   render: BaseUiConformanceTestsOptions['render'],
   onRef: (instance: unknown, element: HTMLElement | null) => void,
 ) {
-  if (!render) {
-    throwMissingPropError('render');
-  }
-
-  const props = { ref: null as Ref<any> | undefined };
+  const props = { ref: null };
 
   const { container } = render(element, props);
 

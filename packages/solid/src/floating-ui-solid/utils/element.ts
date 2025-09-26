@@ -69,7 +69,7 @@ export function isRootElement(element: Element): boolean {
   return element.matches('html,body');
 }
 
-export function getDocument(node: Element | null) {
+export function getDocument(node: Element | null | undefined) {
   return node?.ownerDocument || document;
 }
 
@@ -77,7 +77,7 @@ export function isTypeableElement(element: unknown): boolean {
   return isHTMLElement(element) && element.matches(TYPEABLE_SELECTOR);
 }
 
-export function isTypeableCombobox(element: Element | null) {
+export function isTypeableCombobox(element: Element | null | undefined) {
   if (!element) {
     return false;
   }

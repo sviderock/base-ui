@@ -34,8 +34,7 @@ import {
   useListNavigation,
   useRole,
 } from '../../src/floating-ui-solid';
-import { callEventHandler, type ReactLikeRef } from '../../src/solid-helpers';
-import { useForkRefN } from '../../src/utils/useForkRef';
+import { callEventHandler, handleRef, type ReactLikeRef } from '../../src/solid-helpers';
 
 type MenuContextType = {
   getItemProps: (userProps?: JSX.HTMLAttributes<HTMLElement>) => Record<string, unknown>;
@@ -194,7 +193,11 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
         // eslint-disable-next-line jsx-a11y/role-supports-aria-props
         <div
           id={id}
-          ref={useForkRefN([refs.setReference, item.ref, props.ref as any])}
+          ref={(el) => {
+            refs.setReference(el);
+            item.setRef(el);
+            handleRef(props.ref, el);
+          }}
           data-open={isOpen() ? '' : undefined}
           tabIndex={-1}
           role="menuitem"
@@ -236,7 +239,11 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
       ) : (
         <input
           class="border-slate-500 border"
-          ref={useForkRefN([refs.setReference, item.ref, props.ref as any])}
+          ref={(el) => {
+            refs.setReference(el);
+            item.setRef(el);
+            handleRef(props.ref, el);
+          }}
           id={id}
           data-open={isOpen() ? '' : undefined}
           tabIndex={isNested ? -1 : 0}
@@ -305,7 +312,10 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLElement>)
     <div
       {...elementProps}
       id={id}
-      ref={useForkRefN([item.ref, props.ref as any])}
+      ref={(el) => {
+        item.setRef(el);
+        handleRef(props.ref, el);
+      }}
       role="option"
       tabIndex={-1}
       aria-selected={isActive()}

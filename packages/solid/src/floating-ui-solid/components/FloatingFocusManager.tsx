@@ -2,7 +2,6 @@ import { getNodeName, isHTMLElement } from '@floating-ui/utils/dom';
 import { createEffect, createMemo, createSignal, on, onCleanup, Show, type JSX } from 'solid-js';
 import { focusable, isTabbable, tabbable, type FocusableElement } from 'tabbable';
 import { FocusGuard } from '../../utils/FocusGuard';
-import { useForkRef } from '../../utils/useForkRef';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import {
   activeElement,
