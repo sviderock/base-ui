@@ -1,8 +1,8 @@
 'use client';
 import { Accessor, createEffect, onCleanup, Show, splitProps } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
+import { handleRef } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useForkRef } from '../../utils/useForkRef';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
 import { ScrollAreaRootCssVars } from '../root/ScrollAreaRootCssVars';
@@ -37,9 +37,9 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
   const direction = useDirection();
 
   createEffect(() => {
-    const viewportEl = context.viewportRef();
+    const viewportEl = context.refs.viewportRef;
     const scrollbarEl =
-      orientation() === 'vertical' ? context.scrollbarYRef() : context.scrollbarXRef();
+      orientation() === 'vertical' ? context.refs.scrollbarYRef : context.refs.scrollbarXRef;
 
     if (!scrollbarEl) {
       return;
@@ -103,10 +103,14 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
         <RenderElement
           element="div"
           componentProps={componentProps}
-          ref={useForkRef(
-            componentProps.ref,
-            orientation() === 'vertical' ? context.setScrollbarYRef : context.setScrollbarXRef,
-          )}
+          ref={(el) => {
+            handleRef(componentProps.ref, el);
+            if (orientation() === 'vertical') {
+              context.refs.scrollbarYRef = el;
+            } else {
+              context.refs.scrollbarXRef = el;
+            }
+          }}
           params={{
             state,
             props: [
@@ -118,11 +122,11 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
                     return;
                   }
 
-                  const viewportEl = context.viewportRef();
-                  const thumbYEl = context.thumbYRef();
-                  const scrollbarYEl = context.scrollbarYRef();
-                  const thumbXEl = context.thumbXRef();
-                  const scrollbarXEl = context.scrollbarXRef();
+                  const viewportEl = context.refs.viewportRef;
+                  const thumbYEl = context.refs.thumbYRef;
+                  const scrollbarYEl = context.refs.scrollbarYRef;
+                  const thumbXEl = context.refs.thumbXRef;
+                  const scrollbarXEl = context.refs.scrollbarXRef;
 
                   if (!viewportEl) {
                     return;
@@ -207,8 +211,7 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
                   }),
                 },
               },
-              // TODO: fix typing
-              elementProps as any,
+              elementProps,
             ],
           }}
         />

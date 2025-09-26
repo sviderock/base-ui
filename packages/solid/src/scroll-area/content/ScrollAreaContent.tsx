@@ -1,7 +1,7 @@
 'use client';
 import { onCleanup, onMount, splitProps } from 'solid-js';
+import { handleRef } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useForkRef } from '../../utils/useForkRef';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useScrollAreaViewportContext } from '../viewport/ScrollAreaViewportContext';
 
@@ -14,7 +14,7 @@ import { useScrollAreaViewportContext } from '../viewport/ScrollAreaViewportCont
 export function ScrollAreaContent(componentProps: ScrollAreaContent.Props) {
   const [, elementProps] = splitProps(componentProps, ['render', 'class']);
 
-  let contentWrapperRef!: HTMLDivElement;
+  let contentWrapperRef: HTMLDivElement | null | undefined;
 
   const context = useScrollAreaViewportContext();
 
@@ -38,17 +38,19 @@ export function ScrollAreaContent(componentProps: ScrollAreaContent.Props) {
     <RenderElement
       element="div"
       componentProps={componentProps}
-      ref={useForkRef(componentProps.ref, contentWrapperRef)}
+      ref={(el) => {
+        handleRef(componentProps.ref, el);
+        contentWrapperRef = el;
+      }}
       params={{
         props: [
           {
             role: 'presentation',
             style: {
-              minWidth: 'fit-content',
+              'min-width': 'fit-content',
             },
           },
-          // TODO: fix typing
-          elementProps as any,
+          elementProps,
         ],
       }}
     />

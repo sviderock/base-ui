@@ -1,10 +1,10 @@
 'use client';
 import { createEffect, on, onCleanup, splitProps } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
+import { handleRef } from '../../solid-helpers';
 import { clamp } from '../../utils/clamp';
 import { styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useForkRef } from '../../utils/useForkRef';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useTimeout } from '../../utils/useTimeout';
 import { MIN_THUMB_SIZE } from '../constants';
@@ -21,6 +21,7 @@ import { ScrollAreaViewportContext } from './ScrollAreaViewportContext';
  */
 export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
   const [, elementProps] = splitProps(componentProps, ['render', 'class']);
+  let viewportEl: HTMLDivElement | undefined | null;
 
   const context = useScrollAreaRootContext();
 
@@ -30,12 +31,12 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
   const scrollEndTimeout = useTimeout();
 
   function computeThumbPosition() {
-    const viewportEl = context.viewportRef();
-    const scrollbarXEl = context.scrollbarXRef();
-    const scrollbarYEl = context.scrollbarYRef();
-    const thumbXEl = context.thumbXRef();
-    const thumbYEl = context.thumbYRef();
-    const cornerEl = context.cornerRef();
+    const viewportEl = context.refs.viewportRef;
+    const scrollbarXEl = context.refs.scrollbarXRef;
+    const scrollbarYEl = context.refs.scrollbarYRef;
+    const thumbXEl = context.refs.thumbXRef;
+    const thumbYEl = context.refs.thumbYRef;
+    const cornerEl = context.refs.cornerRef;
 
     if (!viewportEl) {
       return;
@@ -147,7 +148,7 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
   }
 
   createEffect(() => {
-    const viewportEl = context.viewportRef();
+    const viewportEl = context.refs.viewportRef;
     if (viewportEl) {
       onCleanup(() => {
         onVisible(viewportEl, computeThumbPosition)();
@@ -165,7 +166,7 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
   createEffect(() => {
     // `onMouseEnter` doesn't fire upon load, so we need to check if the viewport is already
     // being hovered.
-    const viewportEl = context.viewportRef();
+    const viewportEl = context.refs.viewportRef;
     if (viewportEl?.matches(':hover')) {
       context.setHovering(true);
     }
@@ -176,7 +177,7 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
       return;
     }
 
-    const viewportEl = context.viewportRef();
+    const viewportEl = context.refs.viewportRef;
     const ro = new ResizeObserver(computeThumbPosition);
 
     if (viewportEl) {
@@ -189,6 +190,7 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
   });
 
   function handleUserInteraction() {
+    console.log('handleUserInteraction');
     programmaticScrollRef = false;
   }
 
@@ -201,7 +203,11 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
       <RenderElement
         element="div"
         componentProps={componentProps}
-        ref={useForkRef(componentProps.ref, context.setViewportRef)}
+        ref={(el) => {
+          viewportEl = el;
+          handleRef(componentProps.ref, el);
+          context.refs.viewportRef = el;
+        }}
         params={{
           props: [
             {
@@ -218,7 +224,6 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
               },
 
               onScroll: () => {
-                const viewportEl = context.viewportRef();
                 if (!viewportEl) {
                   return;
                 }
@@ -227,8 +232,8 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
 
                 if (!programmaticScrollRef) {
                   context.handleScroll({
-                    x: viewportEl.scrollLeft,
-                    y: viewportEl.scrollTop,
+                    x: viewportEl?.scrollLeft,
+                    y: viewportEl?.scrollTop,
                   });
                 }
 

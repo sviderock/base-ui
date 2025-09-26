@@ -13,18 +13,14 @@ export interface ScrollAreaRootContext {
   setScrollingX: Setter<boolean>;
   scrollingY: Accessor<boolean>;
   setScrollingY: Setter<boolean>;
-  viewportRef: Accessor<HTMLDivElement | null>;
-  setViewportRef: (ref: HTMLDivElement | null) => void;
-  scrollbarYRef: Accessor<HTMLDivElement | null>;
-  setScrollbarYRef: (ref: HTMLDivElement | null) => void;
-  scrollbarXRef: Accessor<HTMLDivElement | null>;
-  setScrollbarXRef: (ref: HTMLDivElement | null) => void;
-  thumbYRef: Accessor<HTMLDivElement | null>;
-  setThumbYRef: (ref: HTMLDivElement | null) => void;
-  thumbXRef: Accessor<HTMLDivElement | null>;
-  setThumbXRef: (ref: HTMLDivElement | null) => void;
-  cornerRef: Accessor<HTMLDivElement | null>;
-  setCornerRef: (ref: HTMLDivElement | null) => void;
+  refs: {
+    viewportRef: HTMLDivElement | null | undefined;
+    scrollbarYRef: HTMLDivElement | null | undefined;
+    scrollbarXRef: HTMLDivElement | null | undefined;
+    thumbYRef: HTMLDivElement | null | undefined;
+    thumbXRef: HTMLDivElement | null | undefined;
+    cornerRef: HTMLDivElement | null | undefined;
+  };
   handlePointerDown: (event: PointerEvent) => void;
   handlePointerMove: (event: PointerEvent) => void;
   handlePointerUp: (event: PointerEvent) => void;

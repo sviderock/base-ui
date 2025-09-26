@@ -26,7 +26,7 @@ describe('<ScrollArea.Scrollbar />', () => {
     }),
   );
 
-  it('adds [data-scrolling] attribute when viewport is scrolled in the correct direction', () => {
+  it('adds [data-scrolling] attribute when viewport is scrolled in the correct direction', async () => {
     render(() => (
       <ScrollArea.Root style={{ width: '200px', height: '200px' }}>
         <ScrollArea.Viewport data-testid="viewport" style={{ width: '100%', height: '100%' }}>
