@@ -71,7 +71,7 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
     mounted: context.mounted,
     onOpenChange: context.onOpenChange,
     open: context.open,
-    panelRef: context.panelRef,
+    panelRef: context.refs.panelRef,
     runOnceAnimationsFinish: context.runOnceAnimationsFinish,
     setDimensions: context.setDimensions,
     setMounted: context.setMounted,
@@ -85,7 +85,7 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
 
   useOpenChangeComplete({
     open: context.open,
-    ref: context.panelRef,
+    ref: context.refs.panelRef,
     onComplete() {
       if (!context.open()) {
         return;
@@ -110,7 +110,7 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
         componentProps={componentProps}
         ref={(el) => {
           handleRef(componentProps.ref, el);
-          context.panelRef = el;
+          context.refs.panelRef = el;
           panel.ref = el;
         }}
         params={{

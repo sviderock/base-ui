@@ -1,9 +1,10 @@
-import * as React from 'react';
-import { expect } from 'chai';
-import { spy } from 'sinon';
-import { DirectionProvider } from '@base-ui-components/react/direction-provider';
-import { Accordion } from '@base-ui-components/react/accordion';
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+import { Accordion } from '@base-ui-components/react/accordion';
+import { DirectionProvider } from '@base-ui-components/react/direction-provider';
+import { screen } from '@mui/internal-test-utils';
+import { expect } from 'chai';
+import * as React from 'react';
+import { spy } from 'sinon';
 
 const PANEL_CONTENT_1 = 'Panel contents 1';
 const PANEL_CONTENT_2 = 'Panel contents 2';
@@ -28,6 +29,8 @@ describe('<Accordion.Root />', () => {
           </Accordion.Item>
         </Accordion.Root>,
       );
+
+      screen.debug();
 
       const root = container.firstElementChild as HTMLElement;
       const trigger = getByRole('button');

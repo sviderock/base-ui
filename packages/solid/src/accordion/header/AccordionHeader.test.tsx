@@ -1,16 +1,21 @@
-import * as React from 'react';
-import { Accordion } from '@base-ui-components/react/accordion';
-import { describeConformance, createRenderer } from '#test-utils';
+import { createRenderer, describeConformance } from '#test-utils';
+import { Accordion } from '@base-ui-components/solid/accordion';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Accordion.Header />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Accordion.Header />, () => ({
-    render: (node) =>
+  describeConformance(Accordion.Header, () => ({
+    render: (node, elementProps = {}) =>
       render(
-        <Accordion.Root>
-          <Accordion.Item>{node}</Accordion.Item>
-        </Accordion.Root>,
+        () => (
+          <Accordion.Root>
+            <Accordion.Item>
+              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+            </Accordion.Item>
+          </Accordion.Root>
+        ),
+        elementProps,
       ),
     refInstanceof: window.HTMLHeadingElement,
   }));

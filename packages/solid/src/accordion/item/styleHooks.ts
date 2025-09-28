@@ -1,3 +1,4 @@
+import { access } from '../../solid-helpers';
 import { collapsibleOpenStateMapping as baseMapping } from '../../utils/collapsibleOpenStateMapping';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
@@ -7,7 +8,9 @@ import { AccordionItemDataAttributes } from './AccordionItemDataAttributes';
 export const accordionStyleHookMapping: CustomStyleHookMapping<AccordionItem.State> = {
   ...baseMapping,
   index: (value) => {
-    return Number.isInteger(value) ? { [AccordionItemDataAttributes.index]: String(value) } : null;
+    return Number.isInteger(access(value))
+      ? { [AccordionItemDataAttributes.index]: String(access(value)) }
+      : null;
   },
   ...transitionStatusMapping,
   value: () => null,

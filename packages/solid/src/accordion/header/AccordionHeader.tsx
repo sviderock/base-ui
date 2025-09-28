@@ -1,7 +1,7 @@
 'use client';
 import { splitProps } from 'solid-js';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { RenderElement } from '../../utils/useRenderElement';
 import type { AccordionItem } from '../item/AccordionItem';
 import { useAccordionItemContext } from '../item/AccordionItemContext';
 import { accordionStyleHookMapping } from '../item/styleHooks';
@@ -13,19 +13,21 @@ import { accordionStyleHookMapping } from '../item/styleHooks';
  * Documentation: [Base UI Accordion](https://base-ui.com/solid/components/accordion)
  */
 export function AccordionHeader(componentProps: AccordionHeader.Props) {
-  const [local, elementProps] = splitProps(componentProps, ['render', 'class', 'ref']);
+  const [, elementProps] = splitProps(componentProps, ['render', 'class', 'ref', 'children']);
 
   const { state } = useAccordionItemContext();
-
-  const element = () =>
-    useRenderElement('h3', componentProps, {
-      state,
-      ref: local.ref,
-      props: elementProps,
-      customStyleHookMapping: accordionStyleHookMapping,
-    });
-
-  return element;
+  return (
+    <RenderElement
+      element="h3"
+      componentProps={componentProps}
+      ref={componentProps.ref}
+      params={{
+        state: state(),
+        props: elementProps,
+        customStyleHookMapping: accordionStyleHookMapping,
+      }}
+    />
+  );
 }
 
 export namespace AccordionHeader {

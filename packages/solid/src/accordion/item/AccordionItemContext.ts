@@ -1,20 +1,18 @@
 'use client';
-import * as React from 'react';
+import { createContext, useContext, type Accessor } from 'solid-js';
 import type { AccordionItem } from './AccordionItem';
 
 export interface AccordionItemContext {
-  open: boolean;
-  state: AccordionItem.State;
+  open: Accessor<boolean>;
+  state: Accessor<AccordionItem.State>;
   setTriggerId: (id: string | undefined) => void;
-  triggerId?: string;
+  triggerId?: Accessor<string | undefined>;
 }
 
-export const AccordionItemContext = React.createContext<AccordionItemContext | undefined>(
-  undefined,
-);
+export const AccordionItemContext = createContext<AccordionItemContext>();
 
 export function useAccordionItemContext() {
-  const context = React.useContext(AccordionItemContext);
+  const context = useContext(AccordionItemContext);
   if (context === undefined) {
     throw new Error(
       'Base UI: AccordionItemContext is missing. Accordion parts must be placed within <Accordion.Item>.',

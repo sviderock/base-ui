@@ -1,14 +1,14 @@
 'use client';
 import * as React from 'react';
-import { useForkRef } from '../../utils/useForkRef';
+import type { CollapsibleRoot } from '../../collapsible/root/CollapsibleRoot';
+import { CollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
+import { useCollapsibleRoot } from '../../collapsible/root/useCollapsibleRoot';
+import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useEventCallback } from '../../utils/useEventCallback';
+import { useForkRef } from '../../utils/useForkRef';
 import { useRenderElement } from '../../utils/useRenderElement';
-import { useCollapsibleRoot } from '../../collapsible/root/useCollapsibleRoot';
-import type { CollapsibleRoot } from '../../collapsible/root/CollapsibleRoot';
-import { CollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
-import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import type { AccordionRoot } from '../root/AccordionRoot';
 import { useAccordionRootContext } from '../root/AccordionRootContext';
 import { AccordionItemContext } from './AccordionItemContext';
@@ -42,6 +42,7 @@ export const AccordionItem = React.forwardRef(function AccordionItem(
     state: rootState,
     value: openValues,
   } = useAccordionRootContext();
+  console.log({ openValues });
 
   const value = valueProp ?? index;
 

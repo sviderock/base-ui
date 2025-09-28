@@ -131,7 +131,7 @@ export namespace CompositeList {
        * A ref to the list of HTML elements, ordered by their index.
        * `useListNavigation`'s `listRef` prop.
        */
-      elements: Array<HTMLElement | null>;
+      elements: Array<HTMLElement | null | undefined>;
       /**
        * A ref to the list of element labels, ordered by their index.
        * `useTypeahead`'s `listRef` prop.

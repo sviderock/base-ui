@@ -1,27 +1,25 @@
 'use client';
-import * as React from 'react';
+import { createContext, useContext, type Accessor } from 'solid-js';
 import type { TextDirection } from '../../direction-provider';
 import type { Orientation } from '../../utils/types';
 import type { AccordionRoot, AccordionValue } from './AccordionRoot';
 
 export interface AccordionRootContext {
-  accordionItemRefs: React.RefObject<(HTMLElement | null)[]>;
-  direction: TextDirection;
-  disabled: boolean;
+  accordionItemElements: (HTMLElement | null | undefined)[];
+  direction: Accessor<TextDirection>;
+  disabled: Accessor<boolean>;
   handleValueChange: (newValue: number | string, nextOpen: boolean) => void;
-  hiddenUntilFound: boolean;
-  keepMounted: boolean;
-  orientation: Orientation;
-  state: AccordionRoot.State;
-  value: AccordionValue;
+  hiddenUntilFound: Accessor<boolean>;
+  keepMounted: Accessor<boolean>;
+  orientation: Accessor<Orientation>;
+  state: Accessor<AccordionRoot.State>;
+  value: Accessor<AccordionValue>;
 }
 
-export const AccordionRootContext = React.createContext<AccordionRootContext | undefined>(
-  undefined,
-);
+export const AccordionRootContext = createContext<AccordionRootContext>();
 
 export function useAccordionRootContext() {
-  const context = React.useContext(AccordionRootContext);
+  const context = useContext(AccordionRootContext);
   if (context === undefined) {
     throw new Error(
       'Base UI: AccordionRootContext is missing. Accordion parts must be placed within <Accordion.Root>.',

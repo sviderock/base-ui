@@ -1,10 +1,8 @@
 import {
   children,
   createMemo,
-  createSignal,
   Match,
   mergeProps,
-  onMount,
   Show,
   splitProps,
   Switch,
@@ -30,7 +28,7 @@ export function RenderElement<
 >(props: {
   element: TagName;
   // TODO: needed as a separate prop to properly reassign refs https://stackoverflow.com/a/71137252
-  ref: Ref<RenderedElementType>;
+  ref: Ref<RenderedElementType | null | undefined>;
   componentProps: RenderElement.ComponentProps<State>;
   params: RenderElement.Parameters<State, TagName, RenderedElementType, Enabled>;
 }): JSX.Element {

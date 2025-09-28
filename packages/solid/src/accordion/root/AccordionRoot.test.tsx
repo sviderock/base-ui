@@ -1,9 +1,10 @@
-import * as React from 'react';
+import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+import { Accordion } from '@base-ui-components/solid/accordion';
+import { DirectionProvider } from '@base-ui-components/solid/direction-provider';
+import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { DirectionProvider } from '@base-ui-components/react/direction-provider';
-import { Accordion } from '@base-ui-components/react/accordion';
-import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+import { createSignal } from 'solid-js';
 
 const PANEL_CONTENT_1 = 'Panel contents 1';
 const PANEL_CONTENT_2 = 'Panel contents 2';
@@ -11,14 +12,14 @@ const PANEL_CONTENT_2 = 'Panel contents 2';
 describe('<Accordion.Root />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Accordion.Root />, () => ({
+  describeConformance(Accordion.Root, () => ({
     render,
     refInstanceof: window.HTMLDivElement,
   }));
 
   describe('ARIA attributes', () => {
     it('renders correct ARIA attributes', async () => {
-      const { getByRole, queryByText, container } = await render(
+      const { container } = render(() => (
         <Accordion.Root defaultValue={[0]}>
           <Accordion.Item>
             <Accordion.Header>
@@ -26,12 +27,14 @@ describe('<Accordion.Root />', () => {
             </Accordion.Header>
             <Accordion.Panel>{PANEL_CONTENT_1}</Accordion.Panel>
           </Accordion.Item>
-        </Accordion.Root>,
-      );
+        </Accordion.Root>
+      ));
+
+      screen.debug();
 
       const root = container.firstElementChild as HTMLElement;
-      const trigger = getByRole('button');
-      const panel = queryByText(PANEL_CONTENT_1) as HTMLElement;
+      const trigger = screen.getByRole('button');
+      const panel = screen.queryByText(PANEL_CONTENT_1) as HTMLElement;
 
       expect(root).to.have.attribute('role', 'region');
       expect(trigger).to.have.attribute('aria-controls');
@@ -41,7 +44,7 @@ describe('<Accordion.Root />', () => {
     });
 
     it('references manual panel id in trigger aria-controls', async () => {
-      const { getByRole, queryByText } = await render(
+      const { getByRole, queryByText } = render(() => (
         <Accordion.Root defaultValue={[0]}>
           <Accordion.Item>
             <Accordion.Header>
@@ -49,8 +52,8 @@ describe('<Accordion.Root />', () => {
             </Accordion.Header>
             <Accordion.Panel id="custom-panel-id">{PANEL_CONTENT_1}</Accordion.Panel>
           </Accordion.Item>
-        </Accordion.Root>,
-      );
+        </Accordion.Root>
+      ));
 
       const trigger = getByRole('button');
       const panel = queryByText(PANEL_CONTENT_1) as HTMLElement;
@@ -62,7 +65,7 @@ describe('<Accordion.Root />', () => {
 
   describe('uncontrolled', () => {
     it.skipIf(isJSDOM)('open state', async () => {
-      const { getByRole, queryByText, user } = await render(
+      const { getByRole, queryByText, user } = render(() => (
         <Accordion.Root>
           <Accordion.Item>
             <Accordion.Header>
@@ -70,8 +73,8 @@ describe('<Accordion.Root />', () => {
             </Accordion.Header>
             <Accordion.Panel>{PANEL_CONTENT_1}</Accordion.Panel>
           </Accordion.Item>
-        </Accordion.Root>,
-      );
+        </Accordion.Root>
+      ));
 
       const trigger = getByRole('button');
 
@@ -94,7 +97,7 @@ describe('<Accordion.Root />', () => {
 
     describe('prop: defaultValue', () => {
       it('default item value', async () => {
-        const { queryByText } = await render(
+        const { queryByText } = render(() => (
           <Accordion.Root defaultValue={[1]}>
             <Accordion.Item>
               <Accordion.Header>
@@ -108,8 +111,8 @@ describe('<Accordion.Root />', () => {
               </Accordion.Header>
               <Accordion.Panel>{PANEL_CONTENT_2}</Accordion.Panel>
             </Accordion.Item>
-          </Accordion.Root>,
-        );
+          </Accordion.Root>
+        ));
 
         expect(queryByText(PANEL_CONTENT_1)).to.equal(null);
 
@@ -118,7 +121,7 @@ describe('<Accordion.Root />', () => {
       });
 
       it('custom item value', async () => {
-        const { queryByText } = await render(
+        const { queryByText } = render(() => (
           <Accordion.Root defaultValue={['first']}>
             <Accordion.Item value="first">
               <Accordion.Header>
@@ -132,8 +135,8 @@ describe('<Accordion.Root />', () => {
               </Accordion.Header>
               <Accordion.Panel>{PANEL_CONTENT_2}</Accordion.Panel>
             </Accordion.Item>
-          </Accordion.Root>,
-        );
+          </Accordion.Root>
+        ));
 
         expect(queryByText(PANEL_CONTENT_1)).to.not.equal(null);
         expect(queryByText(PANEL_CONTENT_1)).toBeVisible();
@@ -146,23 +149,24 @@ describe('<Accordion.Root />', () => {
 
   describe('controlled', () => {
     it.skipIf(isJSDOM)('open state', async () => {
-      const { getByRole, queryByText, setProps } = await render(
-        <Accordion.Root value={[]}>
+      const [value, setValue] = createSignal<any[]>([]);
+      const { getByRole, queryByText } = render(() => (
+        <Accordion.Root value={value()}>
           <Accordion.Item>
             <Accordion.Header>
               <Accordion.Trigger>Trigger 1</Accordion.Trigger>
             </Accordion.Header>
             <Accordion.Panel>{PANEL_CONTENT_1}</Accordion.Panel>
           </Accordion.Item>
-        </Accordion.Root>,
-      );
+        </Accordion.Root>
+      ));
 
       const trigger = getByRole('button');
 
       expect(trigger).to.have.attribute('aria-expanded', 'false');
       expect(queryByText(PANEL_CONTENT_1)).to.equal(null);
 
-      await setProps({ value: [0] });
+      setValue([0]);
 
       expect(trigger).to.have.attribute('aria-expanded', 'true');
       expect(trigger).to.have.attribute('data-panel-open');
@@ -170,7 +174,7 @@ describe('<Accordion.Root />', () => {
       expect(queryByText(PANEL_CONTENT_1)).toBeVisible();
       expect(queryByText(PANEL_CONTENT_1)).to.have.attribute('data-open');
 
-      await setProps({ value: [] });
+      setValue([]);
 
       expect(trigger).to.have.attribute('aria-expanded', 'false');
       expect(queryByText(PANEL_CONTENT_1)).to.equal(null);
@@ -178,7 +182,7 @@ describe('<Accordion.Root />', () => {
 
     describe('prop: value', () => {
       it('default item value', async () => {
-        const { queryByText } = await render(
+        const { queryByText } = render(() => (
           <Accordion.Root value={[1]}>
             <Accordion.Item>
               <Accordion.Header>
@@ -192,8 +196,8 @@ describe('<Accordion.Root />', () => {
               </Accordion.Header>
               <Accordion.Panel>{PANEL_CONTENT_2}</Accordion.Panel>
             </Accordion.Item>
-          </Accordion.Root>,
-        );
+          </Accordion.Root>
+        ));
 
         expect(queryByText(PANEL_CONTENT_1)).to.equal(null);
 
@@ -202,7 +206,7 @@ describe('<Accordion.Root />', () => {
       });
 
       it('custom item value', async () => {
-        const { queryByText } = await render(
+        const { queryByText } = render(() => (
           <Accordion.Root value={['one']}>
             <Accordion.Item value="one">
               <Accordion.Header>
@@ -216,8 +220,8 @@ describe('<Accordion.Root />', () => {
               </Accordion.Header>
               <Accordion.Panel>{PANEL_CONTENT_2}</Accordion.Panel>
             </Accordion.Item>
-          </Accordion.Root>,
-        );
+          </Accordion.Root>
+        ));
 
         expect(queryByText(PANEL_CONTENT_1)).to.not.equal(null);
         expect(queryByText(PANEL_CONTENT_1)).toBeVisible();
@@ -230,7 +234,7 @@ describe('<Accordion.Root />', () => {
 
   describe('prop: disabled', () => {
     it('can disable the whole accordion', async () => {
-      const { getByTestId, getAllByRole, queryByText } = await render(
+      const { getByTestId, getAllByRole, queryByText } = render(() => (
         <Accordion.Root defaultValue={[0]} disabled>
           <Accordion.Item data-testid="item1">
             <Accordion.Header>
@@ -244,8 +248,8 @@ describe('<Accordion.Root />', () => {
             </Accordion.Header>
             <Accordion.Panel>{PANEL_CONTENT_2}</Accordion.Panel>
           </Accordion.Item>
-        </Accordion.Root>,
-      );
+        </Accordion.Root>
+      ));
 
       const item1 = getByTestId('item1');
       const panel1 = queryByText(PANEL_CONTENT_1);
@@ -259,7 +263,7 @@ describe('<Accordion.Root />', () => {
     });
 
     it('can disable one accordion item', async () => {
-      const { getAllByRole, getByTestId, queryByText } = await render(
+      const { getAllByRole, getByTestId, queryByText } = render(() => (
         <Accordion.Root defaultValue={[0]}>
           <Accordion.Item data-testid="item1" disabled>
             <Accordion.Header>
@@ -273,8 +277,8 @@ describe('<Accordion.Root />', () => {
             </Accordion.Header>
             <Accordion.Panel>{PANEL_CONTENT_2}</Accordion.Panel>
           </Accordion.Item>
-        </Accordion.Root>,
-      );
+        </Accordion.Root>
+      ));
 
       const item1 = getByTestId('item1');
       const panel1 = queryByText(PANEL_CONTENT_1);
@@ -294,7 +298,7 @@ describe('<Accordion.Root />', () => {
   describe.skipIf(isJSDOM)('keyboard interactions', () => {
     ['Enter', 'Space'].forEach((key) => {
       it(`key: ${key} toggles the Accordion open state`, async () => {
-        const { getByRole, queryByText, user } = await render(
+        const { getByRole, queryByText, user } = render(() => (
           <Accordion.Root>
             <Accordion.Item>
               <Accordion.Header>
@@ -302,8 +306,8 @@ describe('<Accordion.Root />', () => {
               </Accordion.Header>
               <Accordion.Panel>{PANEL_CONTENT_1}</Accordion.Panel>
             </Accordion.Item>
-          </Accordion.Root>,
-        );
+          </Accordion.Root>
+        ));
 
         const trigger = getByRole('button');
 
@@ -329,7 +333,7 @@ describe('<Accordion.Root />', () => {
     });
 
     it('ArrowUp and ArrowDown moves focus between triggers and loops by default', async () => {
-      const { getAllByRole, user } = await render(
+      const { getAllByRole, user } = render(() => (
         <Accordion.Root>
           <Accordion.Item>
             <Accordion.Header>
@@ -343,8 +347,8 @@ describe('<Accordion.Root />', () => {
             </Accordion.Header>
             <Accordion.Panel>2</Accordion.Panel>
           </Accordion.Item>
-        </Accordion.Root>,
-      );
+        </Accordion.Root>
+      ));
 
       const [trigger1, trigger2] = getAllByRole('button');
 
@@ -365,7 +369,7 @@ describe('<Accordion.Root />', () => {
     });
 
     it('Arrow keys should not put focus on disabled accordion items', async () => {
-      const { getAllByRole, user } = await render(
+      const { getAllByRole, user } = render(() => (
         <Accordion.Root>
           <Accordion.Item>
             <Accordion.Header>
@@ -385,8 +389,8 @@ describe('<Accordion.Root />', () => {
             </Accordion.Header>
             <Accordion.Panel>This is the contents of Accordion.Panel 3</Accordion.Panel>
           </Accordion.Item>
-        </Accordion.Root>,
-      );
+        </Accordion.Root>
+      ));
 
       const [trigger1, , trigger3] = getAllByRole('button');
 
@@ -402,7 +406,7 @@ describe('<Accordion.Root />', () => {
 
     describe('key: End/Home', () => {
       it('End key moves focus the last trigger', async () => {
-        const { getAllByRole, user } = await render(
+        const { getAllByRole, user } = render(() => (
           <Accordion.Root>
             <Accordion.Item>
               <Accordion.Header>
@@ -428,8 +432,8 @@ describe('<Accordion.Root />', () => {
               </Accordion.Header>
               <Accordion.Panel>This is the contents of Accordion.Panel 4</Accordion.Panel>
             </Accordion.Item>
-          </Accordion.Root>,
-        );
+          </Accordion.Root>
+        ));
 
         const [trigger1, , , trigger4] = getAllByRole('button');
 
@@ -441,7 +445,7 @@ describe('<Accordion.Root />', () => {
       });
 
       it('Home key moves focus to the first trigger', async () => {
-        const { getAllByRole, user } = await render(
+        const { getAllByRole, user } = render(() => (
           <Accordion.Root>
             <Accordion.Item>
               <Accordion.Header>
@@ -467,8 +471,8 @@ describe('<Accordion.Root />', () => {
               </Accordion.Header>
               <Accordion.Panel>This is the contents of Accordion.Panel 4</Accordion.Panel>
             </Accordion.Item>
-          </Accordion.Root>,
-        );
+          </Accordion.Root>
+        ));
 
         const [trigger1, , , trigger4] = getAllByRole('button');
 
@@ -482,7 +486,7 @@ describe('<Accordion.Root />', () => {
 
     describe('prop: loop', () => {
       it('can disable focus looping between triggers', async () => {
-        const { getAllByRole, user } = await render(
+        const { getAllByRole, user } = render(() => (
           <Accordion.Root loop={false}>
             <Accordion.Item>
               <Accordion.Header>
@@ -496,8 +500,8 @@ describe('<Accordion.Root />', () => {
               </Accordion.Header>
               <Accordion.Panel>2</Accordion.Panel>
             </Accordion.Item>
-          </Accordion.Root>,
-        );
+          </Accordion.Root>
+        ));
 
         const [trigger1, trigger2] = getAllByRole('button');
 
@@ -515,7 +519,7 @@ describe('<Accordion.Root />', () => {
 
   describe.skipIf(isJSDOM)('prop: openMultiple', () => {
     it('multiple items can be open by default', async () => {
-      const { getAllByRole, queryByText, user } = await render(
+      const { getAllByRole, queryByText, user } = render(() => (
         <Accordion.Root>
           <Accordion.Item>
             <Accordion.Header>
@@ -529,8 +533,8 @@ describe('<Accordion.Root />', () => {
             </Accordion.Header>
             <Accordion.Panel>{PANEL_CONTENT_2}</Accordion.Panel>
           </Accordion.Item>
-        </Accordion.Root>,
-      );
+        </Accordion.Root>
+      ));
 
       const [trigger1, trigger2] = getAllByRole('button');
 
@@ -549,7 +553,7 @@ describe('<Accordion.Root />', () => {
     });
 
     it('when false only one item can be open', async () => {
-      const { getAllByRole, queryByText, user } = await render(
+      const { getAllByRole, queryByText, user } = render(() => (
         <Accordion.Root openMultiple={false}>
           <Accordion.Item>
             <Accordion.Header>
@@ -563,8 +567,8 @@ describe('<Accordion.Root />', () => {
             </Accordion.Header>
             <Accordion.Panel>{PANEL_CONTENT_2}</Accordion.Panel>
           </Accordion.Item>
-        </Accordion.Root>,
-      );
+        </Accordion.Root>
+      ));
 
       const [trigger1, trigger2] = getAllByRole('button');
 
@@ -589,7 +593,7 @@ describe('<Accordion.Root />', () => {
 
   describe.skipIf(isJSDOM)('horizontal orientation', () => {
     it('ArrowLeft/Right moves focus in horizontal orientation', async () => {
-      const { getAllByRole, user } = await render(
+      const { getAllByRole, user } = render(() => (
         <Accordion.Root orientation="horizontal">
           <Accordion.Item>
             <Accordion.Header>
@@ -603,8 +607,8 @@ describe('<Accordion.Root />', () => {
             </Accordion.Header>
             <Accordion.Panel>2</Accordion.Panel>
           </Accordion.Item>
-        </Accordion.Root>,
-      );
+        </Accordion.Root>
+      ));
 
       const [trigger1, trigger2] = getAllByRole('button');
 
@@ -626,7 +630,7 @@ describe('<Accordion.Root />', () => {
 
     describe.skipIf(isJSDOM)('RTL', () => {
       it('ArrowLeft/Right is reversed for horizontal accordions in RTL mode', async () => {
-        const { getAllByRole, user } = await render(
+        const { getAllByRole, user } = render(() => (
           <DirectionProvider direction="rtl">
             <Accordion.Root orientation="horizontal">
               <Accordion.Item>
@@ -642,8 +646,8 @@ describe('<Accordion.Root />', () => {
                 <Accordion.Panel>2</Accordion.Panel>
               </Accordion.Item>
             </Accordion.Root>
-          </DirectionProvider>,
-        );
+          </DirectionProvider>
+        ));
 
         const [trigger1, trigger2] = getAllByRole('button');
 
@@ -669,7 +673,7 @@ describe('<Accordion.Root />', () => {
     it('default item value', async () => {
       const onValueChange = spy();
 
-      const { getAllByRole, user } = await render(
+      const { getAllByRole, user } = render(() => (
         <Accordion.Root onValueChange={onValueChange}>
           <Accordion.Item>
             <Accordion.Header>
@@ -683,8 +687,8 @@ describe('<Accordion.Root />', () => {
             </Accordion.Header>
             <Accordion.Panel>2</Accordion.Panel>
           </Accordion.Item>
-        </Accordion.Root>,
-      );
+        </Accordion.Root>
+      ));
 
       const [trigger1, trigger2] = getAllByRole('button');
 
@@ -704,7 +708,7 @@ describe('<Accordion.Root />', () => {
     it('custom item value', async () => {
       const onValueChange = spy();
 
-      const { getAllByRole, user } = await render(
+      const { getAllByRole, user } = render(() => (
         <Accordion.Root onValueChange={onValueChange}>
           <Accordion.Item value="one">
             <Accordion.Header>
@@ -718,8 +722,8 @@ describe('<Accordion.Root />', () => {
             </Accordion.Header>
             <Accordion.Panel>2</Accordion.Panel>
           </Accordion.Item>
-        </Accordion.Root>,
-      );
+        </Accordion.Root>
+      ));
 
       const [trigger1, trigger2] = getAllByRole('button');
 
@@ -739,7 +743,7 @@ describe('<Accordion.Root />', () => {
     it('openMultiple is false', async () => {
       const onValueChange = spy();
 
-      const { getAllByRole, user } = await render(
+      const { getAllByRole, user } = render(() => (
         <Accordion.Root onValueChange={onValueChange} openMultiple={false}>
           <Accordion.Item value="one">
             <Accordion.Header>
@@ -753,8 +757,8 @@ describe('<Accordion.Root />', () => {
             </Accordion.Header>
             <Accordion.Panel>2</Accordion.Panel>
           </Accordion.Item>
-        </Accordion.Root>,
-      );
+        </Accordion.Root>
+      ));
 
       const [trigger1, trigger2] = getAllByRole('button');
 

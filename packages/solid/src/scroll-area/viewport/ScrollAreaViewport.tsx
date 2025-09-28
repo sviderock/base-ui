@@ -190,7 +190,6 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
   });
 
   function handleUserInteraction() {
-    console.log('handleUserInteraction');
     programmaticScrollRef = false;
   }
 

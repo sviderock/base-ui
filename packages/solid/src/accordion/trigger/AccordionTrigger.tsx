@@ -1,11 +1,11 @@
 'use client';
-import * as React from 'react';
+import { createEffect, createMemo, onCleanup, splitProps, type JSX } from 'solid-js';
 import { useCollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
+import { access, handleRef, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { RenderElement } from '../../utils/useRenderElement';
 import type { AccordionItem } from '../item/AccordionItem';
 import { useAccordionItemContext } from '../item/AccordionItemContext';
 
@@ -16,60 +16,64 @@ import { useAccordionItemContext } from '../item/AccordionItemContext';
  * Documentation: [Base UI Accordion](https://base-ui.com/react/components/accordion)
  */
 
-export const AccordionTrigger = React.forwardRef(function AccordionTrigger(
-  componentProps: AccordionTrigger.Props,
-  forwardedRef: React.ForwardedRef<Element>,
-) {
-  const {
-    disabled: disabledProp,
-    className,
-    id: idProp,
-    render,
-    nativeButton = true,
-    ...elementProps
-  } = componentProps;
+export function AccordionTrigger(componentProps: AccordionTrigger.Props) {
+  const [local, elementProps] = splitProps(componentProps, [
+    'class',
+    'disabled',
+    'id',
+    'render',
+    'nativeButton',
+  ]);
+  const disabledProp = () => access(local.disabled) ?? false;
+  const idProp = () => access(local.id);
+  const native = () => access(local.nativeButton) ?? true;
 
   const { panelId, open, handleTrigger, disabled: contextDisabled } = useCollapsibleRootContext();
 
-  const disabled = disabledProp ?? contextDisabled;
+  const disabled = () => disabledProp() ?? contextDisabled();
 
   const { getButtonProps, buttonRef } = useButton({
     disabled,
     focusableWhenDisabled: true,
-    native: nativeButton,
+    native,
   });
 
   const { state, setTriggerId, triggerId: id } = useAccordionItemContext();
 
-  useModernLayoutEffect(() => {
-    if (idProp) {
-      setTriggerId(idProp);
+  createEffect(() => {
+    if (idProp()) {
+      setTriggerId(idProp());
     }
-    return () => {
+
+    onCleanup(() => {
       setTriggerId(undefined);
-    };
-  }, [idProp, setTriggerId]);
-
-  const props = React.useMemo(
-    () => ({
-      'aria-controls': open ? panelId : undefined,
-      'aria-expanded': open,
-      disabled,
-      id,
-      onClick: handleTrigger,
-    }),
-    [panelId, disabled, id, open, handleTrigger],
-  );
-
-  const element = useRenderElement('button', componentProps, {
-    state,
-    ref: [forwardedRef, buttonRef],
-    props: [props, elementProps, getButtonProps],
-    customStyleHookMapping: triggerOpenStateMapping,
+    });
   });
 
-  return element;
-});
+  const props = createMemo<JSX.HTMLAttributes<HTMLButtonElement>>(() => ({
+    'aria-controls': open() ? panelId() : undefined,
+    'aria-expanded': open(),
+    disabled: disabled(),
+    id: id?.(),
+    onClick: handleTrigger,
+  }));
+
+  return (
+    <RenderElement
+      element="button"
+      componentProps={componentProps}
+      ref={(el) => {
+        handleRef(componentProps.ref, el);
+        buttonRef(el);
+      }}
+      params={{
+        state: state(),
+        props: [props(), elementProps, getButtonProps],
+        customStyleHookMapping: triggerOpenStateMapping,
+      }}
+    />
+  );
+}
 
 export namespace AccordionTrigger {
   export interface Props extends BaseUIComponentProps<'button', AccordionItem.State> {
@@ -79,6 +83,6 @@ export namespace AccordionTrigger {
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default true
      */
-    nativeButton?: boolean;
+    nativeButton?: MaybeAccessor<boolean | undefined>;
   }
 }

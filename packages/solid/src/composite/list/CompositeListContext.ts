@@ -7,7 +7,7 @@ export interface CompositeListContextValue<Metadata> {
   subscribeMapChange: (fn: (map: Map<Element, Metadata | null>) => void) => void;
   unsubscribeMapChange: (fn: Function) => void;
   refs: {
-    elements: Array<HTMLElement | null>;
+    elements: Array<HTMLElement | null | undefined>;
     labels?: Array<string | null>;
   };
   nextIndex: Accessor<number>;

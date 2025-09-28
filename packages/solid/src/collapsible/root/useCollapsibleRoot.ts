@@ -43,20 +43,22 @@ export function useCollapsibleRoot(
   const [keepMounted, setKeepMounted] = createSignal(false);
 
   let abortControllerRef = null as AbortController | null;
-  let panelRef = null as HTMLElement | null;
+  const refs: useCollapsibleRoot.ReturnValue['refs'] = {
+    panelRef: null,
+  };
 
   const [animationType, setAnimationType] = createSignal<AnimationType>(null);
   const [transitionDimension, setTransitionDimension] = createSignal<'width' | 'height' | null>(
     null,
   );
 
-  const runOnceAnimationsFinish = useAnimationsFinished(panelRef, () => false);
+  const runOnceAnimationsFinish = useAnimationsFinished(refs.panelRef, () => false);
 
   function handleTrigger() {
     const nextOpen = !open();
 
-    if (animationType() === 'css-animation' && panelRef != null) {
-      panelRef!.style.removeProperty('animation-name');
+    if (animationType() === 'css-animation' && refs.panelRef != null) {
+      refs.panelRef!.style.removeProperty('animation-name');
     }
 
     if (!hiddenUntilFound() && !keepMounted()) {
@@ -108,7 +110,7 @@ export function useCollapsibleRoot(
     mounted: () => state.mounted,
     open,
     panelId,
-    panelRef,
+    refs,
     runOnceAnimationsFinish,
     setDimensions,
     setHiddenUntilFound,
@@ -173,7 +175,9 @@ export namespace useCollapsibleRoot {
      */
     open: Accessor<boolean>;
     panelId: Accessor<JSX.HTMLAttributes<Element>['id']>;
-    panelRef: HTMLElement | null | undefined;
+    refs: {
+      panelRef: HTMLElement | null | undefined;
+    };
     runOnceAnimationsFinish: (fnToExecute: () => void, signal?: AbortSignal | null) => void;
     setDimensions: Setter<Dimensions>;
     setHiddenUntilFound: Setter<boolean>;

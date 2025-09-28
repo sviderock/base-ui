@@ -15,7 +15,7 @@ export interface UseCompositeListItemParameters<Metadata extends MaybeAccessor<u
 }
 
 interface UseCompositeListItemReturnValue {
-  setRef: (node: HTMLElement | null) => void;
+  setRef: (node: HTMLElement | null | undefined) => void;
   index: Accessor<number>;
 }
 
@@ -51,7 +51,7 @@ export function useCompositeListItem<Metadata extends MaybeAccessor<unknown>>(
       : -1,
   );
 
-  const [componentRef, setComponentRef] = createSignal<Element | null>();
+  const [componentRef, setComponentRef] = createSignal<Element | null | undefined>();
 
   function onMapChange(map: Map<Element, CompositeMetadata<Metadata> | null>) {
     const itemRef = componentRef();

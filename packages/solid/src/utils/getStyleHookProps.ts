@@ -1,5 +1,9 @@
+import { access, type MaybeAccessor } from '../solid-helpers';
+
 export type CustomStyleHookMapping<State> = {
-  [Property in keyof State]?: (state: State[Property]) => Record<string, string> | null;
+  [Property in keyof State]?: (
+    state: State[Property],
+  ) => Record<string, MaybeAccessor<string>> | null;
 };
 
 export function getStyleHookProps<State extends Record<string, any>>(
@@ -11,7 +15,7 @@ export function getStyleHookProps<State extends Record<string, any>>(
   /* eslint-disable-next-line guard-for-in */
   for (const key in state) {
     const value = state[key];
-    const resolvedValue = typeof value === 'function' ? value() : value;
+    const resolvedValue = access(value);
 
     if (customMapping?.hasOwnProperty(key)) {
       const customProps = customMapping[key]!(resolvedValue);

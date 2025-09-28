@@ -1,13 +1,13 @@
 'use client';
+import { createEffect, createMemo, createSignal, splitProps } from 'solid-js';
 import type { CollapsibleRoot } from '../../collapsible/root/CollapsibleRoot';
 import { CollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
 import { useCollapsibleRoot } from '../../collapsible/root/useCollapsibleRoot';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
+import { type MaybeAccessor, access, handleRef } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useEventCallback } from '../../utils/useEventCallback';
-import { useForkRef } from '../../utils/useForkRef';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { RenderElement } from '../../utils/useRenderElement';
 import type { AccordionRoot } from '../root/AccordionRoot';
 import { useAccordionRootContext } from '../root/AccordionRootContext';
 import { AccordionItemContext } from './AccordionItemContext';
@@ -19,21 +19,18 @@ import { accordionStyleHookMapping } from './styleHooks';
  *
  * Documentation: [Base UI Accordion](https://base-ui.com/solid/components/accordion)
  */
-export const AccordionItem = React.forwardRef(function AccordionItem(
-  componentProps: AccordionItem.Props,
-  forwardedRef: React.ForwardedRef<HTMLDivElement>,
-) {
-  const {
-    className,
-    disabled: disabledProp = false,
-    onOpenChange: onOpenChangeProp,
-    render,
-    value: valueProp,
-    ...elementProps
-  } = componentProps;
+export function AccordionItem(componentProps: AccordionItem.Props) {
+  const [local, elementProps] = splitProps(componentProps, [
+    'class',
+    'disabled',
+    'onOpenChange',
+    'render',
+    'value',
+  ]);
+  const disabledProp = () => access(local.disabled) ?? false;
+  const valueProp = () => access(local.value);
 
-  const { ref: listItemRef, index } = useCompositeListItem();
-  const mergedRef = useForkRef(forwardedRef, listItemRef);
+  const { setRef: setListItemRef, index } = useCompositeListItem();
 
   const {
     disabled: contextDisabled,
@@ -42,28 +39,28 @@ export const AccordionItem = React.forwardRef(function AccordionItem(
     value: openValues,
   } = useAccordionRootContext();
 
-  const value = valueProp ?? index;
+  const value = () => valueProp() ?? index();
 
-  const disabled = disabledProp || contextDisabled;
+  const disabled = () => disabledProp() || contextDisabled();
 
-  const isOpen = React.useMemo(() => {
-    if (!openValues) {
+  const isOpen = createMemo(() => {
+    if (!openValues()) {
       return false;
     }
 
-    for (let i = 0; i < openValues.length; i += 1) {
-      if (openValues[i] === value) {
+    for (let i = 0; i < openValues().length; i += 1) {
+      if (openValues()[i] === value()) {
         return true;
       }
     }
 
     return false;
-  }, [openValues, value]);
-
-  const onOpenChange = useEventCallback((nextOpen: boolean) => {
-    handleValueChange(value, nextOpen);
-    onOpenChangeProp?.(nextOpen);
   });
+
+  const onOpenChange = (nextOpen: boolean) => {
+    handleValueChange(value(), nextOpen);
+    local.onOpenChange?.(nextOpen);
+  };
 
   const collapsible = useCollapsibleRoot({
     open: isOpen,
@@ -71,74 +68,68 @@ export const AccordionItem = React.forwardRef(function AccordionItem(
     disabled,
   });
 
-  const collapsibleState: CollapsibleRoot.State = React.useMemo(
-    () => ({
-      open: collapsible.open,
-      disabled: collapsible.disabled,
-      hidden: !collapsible.mounted,
-    }),
-    [collapsible.open, collapsible.disabled, collapsible.mounted],
-  );
+  const collapsibleState: CollapsibleRoot.State = {
+    open: collapsible.open,
+    disabled: collapsible.disabled,
+    hidden: () => !collapsible.mounted(),
+  };
 
-  const collapsibleContext: CollapsibleRootContext = React.useMemo(
-    () => ({
-      ...collapsible,
-      onOpenChange,
-      state: collapsibleState,
-      transitionStatus: collapsible.transitionStatus,
-    }),
-    [collapsible, collapsibleState, onOpenChange],
-  );
+  const collapsibleContext: CollapsibleRootContext = {
+    ...collapsible,
+    onOpenChange,
+    state: collapsibleState,
+    transitionStatus: collapsible.transitionStatus,
+  };
 
-  const state: AccordionItem.State = React.useMemo(
-    () => ({
-      ...rootState,
-      index,
-      disabled,
-      open: isOpen,
-    }),
-    [disabled, index, isOpen, rootState],
-  );
+  const state = createMemo<AccordionItem.State>(() => ({
+    ...rootState(),
+    index,
+    disabled,
+    open: isOpen,
+  }));
 
-  const [triggerId, setTriggerId] = React.useState<string | undefined>(useBaseUiId());
+  const initialTriggerId = useBaseUiId();
+  const [triggerId, setTriggerId] = createSignal<string | undefined>(initialTriggerId());
 
-  const accordionItemContext: AccordionItemContext = React.useMemo(
-    () => ({
-      open: isOpen,
-      state,
-      setTriggerId,
-      triggerId,
-    }),
-    [isOpen, state, setTriggerId, triggerId],
-  );
-
-  const element = useRenderElement('div', componentProps, {
+  const accordionItemContext: AccordionItemContext = {
+    open: isOpen,
     state,
-    ref: mergedRef,
-    props: elementProps,
-    customStyleHookMapping: accordionStyleHookMapping,
-  });
+    setTriggerId,
+    triggerId,
+  };
 
   return (
     <CollapsibleRootContext.Provider value={collapsibleContext}>
       <AccordionItemContext.Provider value={accordionItemContext}>
-        {element}
+        <RenderElement
+          element="div"
+          componentProps={componentProps}
+          ref={(el) => {
+            handleRef(componentProps.ref, el);
+            setListItemRef(el);
+          }}
+          params={{
+            state: state(),
+            props: elementProps,
+            customStyleHookMapping: accordionStyleHookMapping,
+          }}
+        />
       </AccordionItemContext.Provider>
     </CollapsibleRootContext.Provider>
   );
-});
+}
 
 export type AccordionItemValue = any | null;
 
 export namespace AccordionItem {
   export interface State extends AccordionRoot.State {
-    index: number;
-    open: boolean;
+    index: MaybeAccessor<number>;
+    open: MaybeAccessor<boolean>;
   }
 
   export interface Props
     extends BaseUIComponentProps<'div', State>,
       Partial<Pick<useCollapsibleRoot.Parameters, 'disabled' | 'onOpenChange'>> {
-    value?: AccordionItemValue;
+    value?: MaybeAccessor<AccordionItemValue | undefined>;
   }
 }
