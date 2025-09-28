@@ -28,9 +28,10 @@
   "exports": {
     ".": "./src/index.ts",
     "./accordion": "./src/accordion/index.ts",
+    "./alert-dialog": "./src/alert-dialog/index.ts",
     "./collapsible": "./src/collapsible/index.ts",
-    "./direction-provider": "./src/direction-provider/index.ts",
     "./dialog": "./src/dialog/index.ts",
+    "./direction-provider": "./src/direction-provider/index.ts",
     "./merge-props": "./src/merge-props/index.ts",
     "./scroll-area": "./src/scroll-area/index.ts",
     "./solid-helpers": "./src/solid-helpers.ts",

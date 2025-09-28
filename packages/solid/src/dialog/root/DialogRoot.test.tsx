@@ -29,7 +29,7 @@ describe('<Dialog.Root />', () => {
   });
 
   it('ARIA attributes', () => {
-    const { queryByRole, getByText } = render(() => (
+    render(() => (
       <Dialog.Root modal={false} open>
         <Dialog.Trigger />
         <Dialog.Portal>
