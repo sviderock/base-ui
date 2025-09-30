@@ -27,6 +27,7 @@ describe('<Form />', () => {
       </Form>,
     );
 
+    screen.debug();
     const submit = screen.getByRole('button');
 
     await user.click(submit);

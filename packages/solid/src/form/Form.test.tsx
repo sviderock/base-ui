@@ -27,6 +27,7 @@ describe('<Form />', () => {
       </Form>
     ));
 
+    screen.debug();
     const submit = screen.getByRole('button');
 
     await user.click(submit);
@@ -143,7 +144,6 @@ describe('<Form />', () => {
       const age = screen.getByTestId('age');
 
       await user.click(submit);
-      screen.debug();
       expect(name).toHaveFocus();
 
       fireEvent.change(name, { target: { value: 'John' } });

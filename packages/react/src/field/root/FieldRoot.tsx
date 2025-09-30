@@ -83,6 +83,8 @@ export const FieldRoot = React.forwardRef(function FieldRoot(
     [disabled, touched, dirty, valid, filled, focused],
   );
 
+  console.log('VALID', valid);
+
   const contextValue: FieldRootContext = React.useMemo(
     () => ({
       invalid,

@@ -80,23 +80,31 @@ export function Form(componentProps: Form.Props) {
           state: EMPTY,
           props: [
             {
-              noValidate: true,
+              novalidate: true,
               onSubmit(event) {
+                console.log('onSubmit');
                 let values = Object.values(formRef.fields);
+                console.log('VALUES', values);
 
                 // Async validation isn't supported to stop the submit event.
                 values.forEach((field) => {
                   field.validate();
                 });
 
+                console.log('VALUES AFTER VALIDATE', values);
+
                 values = Object.values(formRef.fields);
                 const invalidFields = values.filter((field) => !field.validityData.state.valid);
 
+                console.log('INVALID FIELDS', invalidFields);
+
                 if (invalidFields.length) {
+                  console.log('FOCUSING');
                   event.preventDefault();
                   const controlRef = access(invalidFields[0].controlRef);
                   focusControl(controlRef);
                 } else {
+                  console.log('SUBMITTING');
                   setSubmitted(true);
                   callEventHandler(local.onSubmit, event);
                 }

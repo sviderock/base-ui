@@ -47,6 +47,10 @@ export function useField(params: useField.Parameters) {
             if (nextValue === undefined) {
               nextValue = params.getValue?.();
             }
+            refs.markedDirtyRef = true;
+
+            // Synchronously update the validity state so the submit event can be prevented.
+            params.commitValidation?.(nextValue);
           },
           getValueRef: params.getValue,
           name: name(),

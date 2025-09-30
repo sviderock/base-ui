@@ -41,23 +41,7 @@ export const Form = React.forwardRef(function Form(
     }
   });
 
-  console.log(
-    'FORM REF',
-    Array.from(formRef.current.fields.values()).map((field) => [
-      field.name,
-      field.validityData.state.valid,
-    ]),
-  );
-
   React.useEffect(() => {
-    console.log(
-      'FORM REF INSIDE EFFECT',
-      Array.from(formRef.current.fields.values()).map((field) => [
-        field.name,
-        field.validityData.state.valid,
-      ]),
-    );
-
     if (!submittedRef.current) {
       return;
     }
@@ -65,7 +49,6 @@ export const Form = React.forwardRef(function Form(
     submittedRef.current = false;
 
     const invalidFields = Array.from(formRef.current.fields.values()).filter((field) => {
-      console.log(5, 'FIELD', field.validityData.state);
       return field.validityData.state.valid === false;
     });
 
@@ -81,23 +64,28 @@ export const Form = React.forwardRef(function Form(
       {
         noValidate: true,
         onSubmit(event) {
+          console.log('onSubmit');
           let values = Array.from(formRef.current.fields.values());
+          console.log('VALUES', values);
 
           // Async validation isn't supported to stop the submit event.
           values.forEach((field) => {
             field.validate();
           });
 
+          console.log('VALUES AFTER VALIDATE', values);
           values = Array.from(formRef.current.fields.values());
 
           const invalidFields = values.filter((field) => !field.validityData.state.valid);
 
+          console.log('INVALID FIELDS', invalidFields);
+
           if (invalidFields.length) {
-            console.log('focusing lol');
+            console.log('FOCUSING');
             event.preventDefault();
             focusControl(invalidFields[0].controlRef.current);
           } else {
-            console.log('submit');
+            console.log('SUBMITTING');
             submittedRef.current = true;
             onSubmit(event as any);
           }
