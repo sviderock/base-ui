@@ -11,15 +11,19 @@ import {
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { mergePropsN } from '../merge-props';
+import { access, type MaybeAccessor, type MaybeAccessorValue } from '../solid-helpers';
 import { EMPTY_OBJECT } from './constants';
 import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
 import { resolveClassName } from './resolveClassName';
 import type { ComponentRenderFn, HTMLProps } from './types';
 
 type IntrinsicTagName = keyof HTMLElementTagNameMap;
+export type ComponentPropsToOmit<State extends Record<string, any>> =
+  keyof RenderElement.ComponentProps<State>;
+export const COMPONENT_PROPS_TO_OMIT: ComponentPropsToOmit<any>[] = ['class', 'render', 'children'];
 
 export function RenderElement<
-  State extends Record<string, any>,
+  State extends MaybeAccessor<Record<string, any>>,
   TagName extends IntrinsicTagName | undefined,
   RenderedElementType extends TagName extends keyof HTMLElementTagNameMap
     ? HTMLElementTagNameMap[TagName]
@@ -31,8 +35,9 @@ export function RenderElement<
   ref: Ref<RenderedElementType | null | undefined>;
   componentProps: RenderElement.ComponentProps<State>;
   params: RenderElement.Parameters<State, TagName, RenderedElementType, Enabled>;
+  children?: JSX.Element;
 }): JSX.Element {
-  const state = () => props.params.state ?? (EMPTY_OBJECT as State);
+  const state = () => access(props.params.state) ?? (EMPTY_OBJECT as MaybeAccessorValue<State>);
   const enabled = () => props.params.enabled ?? true;
   const classProp = () => props.componentProps.class;
   const renderProp = () => props.componentProps.render;
@@ -41,7 +46,7 @@ export function RenderElement<
   const paramsProps = () => props.params.props;
   const resolvedChildren = children(() => {
     if (typeof props.element === 'string') {
-      return props.componentProps.children;
+      return props.componentProps.children ?? props.children;
     }
 
     return false;
@@ -50,7 +55,10 @@ export function RenderElement<
   const styleHooks = createMemo((): Record<string, string> | undefined => {
     if (disableStyleHooks() !== true) {
       return enabled()
-        ? getStyleHookProps(state(), customStyleHookMapping() as CustomStyleHookMapping<State>)
+        ? getStyleHookProps(
+            state(),
+            customStyleHookMapping() as CustomStyleHookMapping<MaybeAccessorValue<State>>,
+          )
         : EMPTY_OBJECT;
     }
     return undefined;

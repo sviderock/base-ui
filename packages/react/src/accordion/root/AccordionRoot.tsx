@@ -104,8 +104,6 @@ export const AccordionRoot = React.forwardRef(function AccordionRoot(
     state: 'value',
   });
 
-  console.log({ value });
-
   const handleValueChange = React.useCallback(
     (newValue: number | string, nextOpen: boolean) => {
       if (!openMultiple) {

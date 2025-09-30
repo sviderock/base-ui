@@ -1,33 +1,33 @@
-import { createRenderer, describeConformance } from '#test-utils';
-import { Checkbox } from '@base-ui-components/react/checkbox';
-import { CheckboxGroup } from '@base-ui-components/react/checkbox-group';
-import { Field } from '@base-ui-components/react/field';
-import { Form } from '@base-ui-components/react/form';
-import { NumberField } from '@base-ui-components/react/number-field';
-import { Radio } from '@base-ui-components/react/radio';
-import { RadioGroup } from '@base-ui-components/react/radio-group';
-import { Select } from '@base-ui-components/react/select';
-import { Slider } from '@base-ui-components/react/slider';
-import { Switch } from '@base-ui-components/react/switch';
-import { act, fireEvent, flushMicrotasks, screen, waitFor } from '@mui/internal-test-utils';
+import { createRenderer, describeConformance, flushMicrotasks } from '#test-utils';
+// import { Checkbox } from '@base-ui-components/solid/checkbox';
+// import { CheckboxGroup } from '@base-ui-components/solid/checkbox-group';
+import { Field } from '@base-ui-components/solid/field';
+// import { Form } from '@base-ui-components/solid/form';
+import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
+// import { NumberField } from '@base-ui-components/solid/number-field';
+// import { Radio } from '@base-ui-components/solid/radio';
+// import { RadioGroup } from '@base-ui-components/solid/radio-group';
+// import { Select } from '@base-ui-components/solid/select';
+// import { Slider } from '@base-ui-components/solid/slider';
+// import { Switch } from '@base-ui-components/solid/switch';
 import { expect } from 'chai';
-import * as React from 'react';
 import { spy } from 'sinon';
+import { createSignal } from 'solid-js';
 
 describe('<Field.Root />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Field.Root />, () => ({
+  describeConformance(Field.Root, () => ({
     refInstanceof: window.HTMLDivElement,
     render,
   }));
 
   it('should not mark invalid if `valueMissing` is the only error and not yet dirtied', async () => {
-    await render(
+    render(() => (
       <Field.Root>
         <Field.Control data-testid="control" required />
-      </Field.Root>,
-    );
+      </Field.Root>
+    ));
 
     const control = screen.getByTestId('control');
 
@@ -39,11 +39,11 @@ describe('<Field.Root />', () => {
   });
 
   it('should mark invalid if `valueMissing` is the only error and dirtied', async () => {
-    await render(
+    render(() => (
       <Field.Root>
         <Field.Control data-testid="control" required />
-      </Field.Root>,
-    );
+      </Field.Root>
+    ));
 
     const control = screen.getByTestId('control');
 
@@ -58,13 +58,13 @@ describe('<Field.Root />', () => {
 
   describe('prop: disabled', () => {
     it('should add data-disabled style hook to all components', async () => {
-      await render(
+      render(() => (
         <Field.Root data-testid="field" disabled>
           <Field.Control data-testid="control" />
           <Field.Label data-testid="label" />
           <Field.Description data-testid="message" />
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const field = screen.getByTestId('field');
       const control = screen.getByTestId('control');
@@ -80,12 +80,12 @@ describe('<Field.Root />', () => {
 
   describe('prop: validate', () => {
     it('should validate the field on blur', async () => {
-      await render(
+      render(() => (
         <Field.Root validate={() => 'error'}>
           <Field.Control />
           <Field.Error />
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const control = screen.getByRole('textbox');
       const message = screen.queryByText('error');
@@ -99,12 +99,12 @@ describe('<Field.Root />', () => {
     });
 
     it('supports async validation', async () => {
-      await render(
+      render(() => (
         <Field.Root validate={() => Promise.resolve('error')}>
           <Field.Control />
           <Field.Error />
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const control = screen.getByRole('textbox');
       const message = screen.queryByText('error');
@@ -122,13 +122,13 @@ describe('<Field.Root />', () => {
     });
 
     it('runs after native validations', async () => {
-      await render(
+      render(() => (
         <Field.Root validate={() => 'custom error'}>
           <Field.Control required />
           <Field.Error match="valueMissing">value missing</Field.Error>
           <Field.Error match="customError" />
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       expect(screen.queryByText('value missing')).to.equal(null);
       expect(screen.queryByText('custom error')).to.equal(null);
@@ -162,14 +162,14 @@ describe('<Field.Root />', () => {
     });
 
     it('should apply [data-field] style hooks to field components', async () => {
-      await render(
+      render(() => (
         <Field.Root>
           <Field.Label data-testid="label">Label</Field.Label>
           <Field.Description data-testid="description">Description</Field.Description>
           <Field.Error data-testid="error" />
           <Field.Control data-testid="control" required />
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const control = screen.getByTestId<HTMLInputElement>('control');
       const label = screen.getByTestId('label');
@@ -193,11 +193,9 @@ describe('<Field.Root />', () => {
       expect(description).to.have.attribute('data-invalid', '');
       expect(error).to.have.attribute('data-invalid', '');
 
-      act(() => {
-        control.value = 'value';
-        control.focus();
-        control.blur();
-      });
+      control.value = 'value';
+      control.focus();
+      control.blur();
 
       error = screen.queryByTestId('error');
 
@@ -208,12 +206,12 @@ describe('<Field.Root />', () => {
     });
 
     it('should apply aria-invalid prop to control once validated', async () => {
-      await render(
+      render(() => (
         <Field.Root validate={() => 'error'}>
           <Field.Control />
           <Field.Error />
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const control = screen.getByRole('textbox');
 
@@ -225,135 +223,137 @@ describe('<Field.Root />', () => {
       expect(control).to.have.attribute('aria-invalid', 'true');
     });
 
-    it('receives all form values as the 2nd argument', async () => {
-      const validateSpy = spy();
+    // TODO: Fix this test when we have the Checkbox, CheckboxGroup, NumberField, Radio, RadioGroup, Select, Slider, Switch components
+    // it('receives all form values as the 2nd argument', async () => {
+    //   const validateSpy = spy();
 
-      await render(
-        <Form>
-          <Field.Root name="checkbox">
-            <Checkbox.Root defaultChecked />
-          </Field.Root>
+    //   render(() => (
+    //     <Form>
+    //       <Field.Root name="checkbox">
+    //         <Checkbox.Root defaultChecked />
+    //       </Field.Root>
 
-          <Field.Root name="checkbox-group">
-            <CheckboxGroup defaultValue={['apple', 'banana']}>
-              <Checkbox.Root value="apple" />
-              <Checkbox.Root value="banana" />
-            </CheckboxGroup>
-          </Field.Root>
+    //       <Field.Root name="checkbox-group">
+    //         <CheckboxGroup defaultValue={['apple', 'banana']}>
+    //           <Checkbox.Root value="apple" />
+    //           <Checkbox.Root value="banana" />
+    //         </CheckboxGroup>
+    //       </Field.Root>
 
-          <Field.Root name="input" validate={validateSpy}>
-            <Field.Control data-testid="input" type="url" defaultValue="https://base-ui.com" />
-          </Field.Root>
+    //       <Field.Root name="input" validate={validateSpy}>
+    //         <Field.Control data-testid="input" type="url" defaultValue="https://base-ui.com" />
+    //       </Field.Root>
 
-          <Field.Root name="number-field">
-            <NumberField.Root defaultValue={13}>
-              <NumberField.Input />
-            </NumberField.Root>
-          </Field.Root>
+    //       <Field.Root name="number-field">
+    //         <NumberField.Root defaultValue={13}>
+    //           <NumberField.Input />
+    //         </NumberField.Root>
+    //       </Field.Root>
 
-          <Field.Root name="radio-group">
-            <RadioGroup defaultValue="cats">
-              <Radio.Root value="cats" />
-            </RadioGroup>
-          </Field.Root>
+    //       <Field.Root name="radio-group">
+    //         <RadioGroup defaultValue="cats">
+    //           <Radio.Root value="cats" />
+    //         </RadioGroup>
+    //       </Field.Root>
 
-          <Field.Root name="select">
-            <Select.Root defaultValue="sans">
-              <Select.Trigger />
-              <Select.Portal>
-                <Select.Positioner>
-                  <Select.Popup>
-                    <Select.Item value="sans" />
-                  </Select.Popup>
-                </Select.Positioner>
-              </Select.Portal>
-            </Select.Root>
-          </Field.Root>
+    //       <Field.Root name="select">
+    //         <Select.Root defaultValue="sans">
+    //           <Select.Trigger />
+    //           <Select.Portal>
+    //             <Select.Positioner>
+    //               <Select.Popup>
+    //                 <Select.Item value="sans" />
+    //               </Select.Popup>
+    //             </Select.Positioner>
+    //           </Select.Portal>
+    //         </Select.Root>
+    //       </Field.Root>
 
-          <Field.Root name="slider">
-            <Slider.Root defaultValue={12}>
-              <Slider.Control />
-            </Slider.Root>
-          </Field.Root>
+    //       <Field.Root name="slider">
+    //         <Slider.Root defaultValue={12}>
+    //           <Slider.Control />
+    //         </Slider.Root>
+    //       </Field.Root>
 
-          <Field.Root name="range-slider">
-            <Slider.Root defaultValue={[25, 70]}>
-              <Slider.Control />
-            </Slider.Root>
-          </Field.Root>
+    //       <Field.Root name="range-slider">
+    //         <Slider.Root defaultValue={[25, 70]}>
+    //           <Slider.Control />
+    //         </Slider.Root>
+    //       </Field.Root>
 
-          <Field.Root name="switch">
-            <Switch.Root defaultChecked={false} />
-          </Field.Root>
-        </Form>,
-      );
+    //       <Field.Root name="switch">
+    //         <Switch.Root defaultChecked={false} />
+    //       </Field.Root>
+    //     </Form>
+    //   ));
 
-      const input = screen.getByTestId('input');
-      fireEvent.focus(input);
-      fireEvent.blur(input);
+    //   const input = screen.getByTestId('input');
+    //   fireEvent.focus(input);
+    //   fireEvent.blur(input);
 
-      expect(validateSpy.callCount).to.equal(1);
-      expect(validateSpy.firstCall.args[1]).to.deep.equal({
-        checkbox: true,
-        'checkbox-group': ['apple', 'banana'],
-        input: 'https://base-ui.com',
-        'number-field': 13,
-        'radio-group': 'cats',
-        select: 'sans',
-        slider: 12,
-        'range-slider': [25, 70],
-        switch: false,
-      });
-    });
+    //   expect(validateSpy.callCount).to.equal(1);
+    //   expect(validateSpy.firstCall.args[1]).to.deep.equal({
+    //     checkbox: true,
+    //     'checkbox-group': ['apple', 'banana'],
+    //     input: 'https://base-ui.com',
+    //     'number-field': 13,
+    //     'radio-group': 'cats',
+    //     select: 'sans',
+    //     slider: 12,
+    //     'range-slider': [25, 70],
+    //     switch: false,
+    //   });
+    // });
 
-    it('unmounted fields are excluded from the validate fn', async () => {
-      const validateSpy = spy();
-      function App() {
-        const [checked, setChecked] = React.useState(true);
+    // TODO: Fix this test when we have the Form component
+    // it('unmounted fields are excluded from the validate fn', async () => {
+    //   const validateSpy = spy();
+    //   function App() {
+    //     const [checked, setChecked] = createSignal(true);
 
-        return (
-          <Form>
-            <input type="checkbox" checked={checked} onChange={() => setChecked(!checked)} />
-            {checked && (
-              <Field.Root name="input1">
-                <Field.Control data-testid="input1" defaultValue="one" />
-              </Field.Root>
-            )}
-            <Field.Root name="input2" validate={validateSpy}>
-              <Field.Control data-testid="input2" defaultValue="two" />
-            </Field.Root>
-            <button>Submit</button>
-          </Form>
-        );
-      }
-      await render(<App />);
+    //     return (
+    //       <Form>
+    //         <input type="checkbox" checked={checked()} onChange={() => setChecked(!checked())} />
+    //         {checked() && (
+    //           <Field.Root name="input1">
+    //             <Field.Control data-testid="input1" defaultValue="one" />
+    //           </Field.Root>
+    //         )}
+    //         <Field.Root name="input2" validate={validateSpy}>
+    //           <Field.Control data-testid="input2" defaultValue="two" />
+    //         </Field.Root>
+    //         <button>Submit</button>
+    //       </Form>
+    //     );
+    //   }
+    //   render(() => <App />);
 
-      const input = screen.getByTestId('input2');
-      fireEvent.focus(input);
-      fireEvent.blur(input);
+    //   const input = screen.getByTestId('input2');
+    //   fireEvent.focus(input);
+    //   fireEvent.blur(input);
 
-      expect(validateSpy.callCount).to.equal(1);
-      expect(validateSpy.firstCall.args[1]).to.deep.equal({
-        input1: 'one',
-        input2: 'two',
-      });
+    //   expect(validateSpy.callCount).to.equal(1);
+    //   expect(validateSpy.firstCall.args[1]).to.deep.equal({
+    //     input1: 'one',
+    //     input2: 'two',
+    //   });
 
-      fireEvent.click(screen.getByRole('checkbox'));
+    //   fireEvent.click(screen.getByRole('checkbox'));
 
-      fireEvent.focus(input);
-      fireEvent.blur(input);
+    //   fireEvent.focus(input);
+    //   fireEvent.blur(input);
 
-      expect(validateSpy.callCount).to.equal(2);
-      expect(validateSpy.lastCall.args[1]).to.deep.equal({
-        input2: 'two',
-      });
-    });
+    //   expect(validateSpy.callCount).to.equal(2);
+    //   expect(validateSpy.lastCall.args[1]).to.deep.equal({
+    //     input2: 'two',
+    //   });
+    // });
   });
 
   describe('prop: validationMode', () => {
     describe('onChange', () => {
       it('validates the field on change', async () => {
-        await render(
+        render(() => (
           <Field.Root
             validationMode="onChange"
             validate={(value) => {
@@ -363,8 +363,8 @@ describe('<Field.Root />', () => {
           >
             <Field.Control />
             <Field.Error />
-          </Field.Root>,
-        );
+          </Field.Root>
+        ));
 
         const control = screen.getByRole<HTMLInputElement>('textbox');
         const message = screen.queryByText('error');
@@ -380,7 +380,7 @@ describe('<Field.Root />', () => {
 
     describe('onBlur', () => {
       it('validates the field on blur', async () => {
-        await render(
+        render(() => (
           <Field.Root
             validationMode="onBlur"
             validate={(value) => {
@@ -390,8 +390,8 @@ describe('<Field.Root />', () => {
           >
             <Field.Control />
             <Field.Error />
-          </Field.Root>,
-        );
+          </Field.Root>
+        ));
 
         const control = screen.getByRole<HTMLInputElement>('textbox');
         const message = screen.queryByText('error');
@@ -411,11 +411,11 @@ describe('<Field.Root />', () => {
 
     describe('computed validity state', () => {
       it('should not mark field as invalid for valueMissing if not dirty', async () => {
-        await render(
+        render(() => (
           <Field.Root>
             <Field.Control data-testid="control" required />
-          </Field.Root>,
-        );
+          </Field.Root>
+        ));
 
         const control = screen.getByTestId('control');
 
@@ -427,11 +427,11 @@ describe('<Field.Root />', () => {
       });
 
       it('should mark field as invalid for valueMissing if dirty', async () => {
-        await render(
+        render(() => (
           <Field.Root>
             <Field.Control data-testid="control" required />
-          </Field.Root>,
-        );
+          </Field.Root>
+        ));
 
         const control = screen.getByTestId('control');
 
@@ -447,11 +447,11 @@ describe('<Field.Root />', () => {
       });
 
       it('should mark field as invalid for other errors (e.g., typeMismatch) even if not dirty', async () => {
-        await render(
+        render(() => (
           <Field.Root>
             <Field.Control data-testid="control" type="email" defaultValue="not_an_email@" />
-          </Field.Root>,
-        );
+          </Field.Root>
+        ));
 
         const control = screen.getByTestId('control');
 
@@ -472,7 +472,7 @@ describe('<Field.Root />', () => {
     clock.withFakeTimers();
 
     it('should debounce validation', async () => {
-      await renderFakeTimers(
+      renderFakeTimers(() => (
         <Field.Root
           validationDebounceTime={100}
           validationMode="onChange"
@@ -483,8 +483,8 @@ describe('<Field.Root />', () => {
         >
           <Field.Control />
           <Field.Error />
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const control = screen.getByRole<HTMLInputElement>('textbox');
       const message = screen.queryByText('error');
@@ -512,12 +512,12 @@ describe('<Field.Root />', () => {
 
   describe('revalidation', () => {
     it('revalidates on change for `valueMissing`', async () => {
-      await render(
+      render(() => (
         <Field.Root>
           <Field.Control required />
           <Field.Error />
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const control = screen.getByRole('textbox');
       const message = screen.queryByText('error');
@@ -538,12 +538,12 @@ describe('<Field.Root />', () => {
     });
 
     it('handles both `required` and `typeMismatch`', async () => {
-      await render(
+      render(() => (
         <Field.Root>
           <Field.Control type="email" required />
           <Field.Error data-testid="error" />
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const control = screen.getByRole('textbox');
       const message = screen.queryByTestId('error');
@@ -575,12 +575,12 @@ describe('<Field.Root />', () => {
     });
 
     it('clears valueMissing on change but defers other native errors like typeMismatch until blur when both are active', async () => {
-      await render(
+      render(() => (
         <Field.Root>
           <Field.Control type="email" required data-testid="control" />
           <Field.Error data-testid="error" />
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const control = screen.getByTestId('control');
 
@@ -627,14 +627,14 @@ describe('<Field.Root />', () => {
   describe('style hooks', () => {
     describe('touched', () => {
       it('should apply [data-touched] style hook to all components when touched', async () => {
-        await render(
+        render(() => (
           <Field.Root data-testid="root">
             <Field.Control data-testid="control" />
             <Field.Label data-testid="label" />
             <Field.Description data-testid="description" />
             <Field.Error data-testid="error" />
-          </Field.Root>,
-        );
+          </Field.Root>
+        ));
 
         const root = screen.getByTestId('root');
         const control = screen.getByTestId('control');
@@ -661,14 +661,14 @@ describe('<Field.Root />', () => {
 
     describe('dirty', () => {
       it('should apply [data-dirty] style hook to all components when dirty', async () => {
-        await render(
+        render(() => (
           <Field.Root data-testid="root">
             <Field.Control data-testid="control" />
             <Field.Label data-testid="label" />
             <Field.Description data-testid="description" />
             <Field.Error data-testid="error" />
-          </Field.Root>,
-        );
+          </Field.Root>
+        ));
 
         const root = screen.getByTestId('root');
         const control = screen.getByTestId('control');
@@ -698,14 +698,14 @@ describe('<Field.Root />', () => {
 
     describe('filled', async () => {
       it('should apply [data-filled] style hook to all components when filled', async () => {
-        await render(
+        render(() => (
           <Field.Root data-testid="root">
             <Field.Control data-testid="control" />
             <Field.Label data-testid="label" />
             <Field.Description data-testid="description" />
             <Field.Error data-testid="error" />
-          </Field.Root>,
-        );
+          </Field.Root>
+        ));
 
         const root = screen.getByTestId('root');
         const control = screen.getByTestId('control');
@@ -734,11 +734,11 @@ describe('<Field.Root />', () => {
 
       it('changes [data-filled] when the value is changed externally', async () => {
         function App() {
-          const [value, setValue] = React.useState('');
+          const [value, setValue] = createSignal('');
           return (
             <div>
               <Field.Root>
-                <Field.Control value={value} onChange={(event) => setValue(event.target.value)} />
+                <Field.Control value={value()} onChange={(event) => setValue(event.target.value)} />
               </Field.Root>
               <button onClick={() => setValue('test')}>change</button>
               <button onClick={() => setValue('')}>reset</button>
@@ -746,7 +746,7 @@ describe('<Field.Root />', () => {
           );
         }
 
-        const { user } = await render(<App />);
+        const { user } = render(() => <App />);
 
         expect(screen.getByRole('textbox')).not.to.have.attribute('data-filled', '');
 
@@ -760,14 +760,14 @@ describe('<Field.Root />', () => {
 
     describe('focused', () => {
       it('should apply [data-focused] style hook to all components when focused', async () => {
-        await render(
+        render(() => (
           <Field.Root data-testid="root">
             <Field.Control data-testid="control" />
             <Field.Label data-testid="label" />
             <Field.Description data-testid="description" />
             <Field.Error data-testid="error" />
-          </Field.Root>,
-        );
+          </Field.Root>
+        ));
 
         const root = screen.getByTestId('root');
         const control = screen.getByTestId('control');

@@ -42,7 +42,6 @@ export const AccordionItem = React.forwardRef(function AccordionItem(
     state: rootState,
     value: openValues,
   } = useAccordionRootContext();
-  console.log({ openValues });
 
   const value = valueProp ?? index;
 

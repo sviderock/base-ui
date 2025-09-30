@@ -50,7 +50,6 @@ export const AccordionTrigger = React.forwardRef(function AccordionTrigger(
     };
   }, [idProp, setTriggerId]);
 
-  console.log({ open });
   const props = React.useMemo(
     () => ({
       'aria-controls': open ? panelId : undefined,

@@ -1,9 +1,7 @@
 'use client';
-import * as React from 'react';
 import { useFormContext } from '../../form/FormContext';
 import { mergeProps } from '../../merge-props';
 import type { HTMLProps } from '../../utils/types';
-import { useEventCallback } from '../../utils/useEventCallback';
 import { useTimeout } from '../../utils/useTimeout';
 import { useFieldRootContext } from '../root/FieldRootContext';
 import { DEFAULT_VALIDITY_STATE } from '../utils/constants';
@@ -42,7 +40,7 @@ export function useFieldControlValidation() {
     validationMode,
     validationDebounceTime,
     invalid,
-    markedDirtyRef,
+    refs: fieldRootRefs,
     controlId,
     state,
     name,
@@ -51,17 +49,19 @@ export function useFieldControlValidation() {
   const { formRef, clearErrors } = useFormContext();
 
   const timeout = useTimeout();
-  const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const refs: useFieldControlValidation.ReturnValue['refs'] = {
+    inputRef: null,
+  };
 
-  const commitValidation = useEventCallback(async (value: unknown, revalidate = false) => {
-    console.log('COMMIT VALIDATION', { value, revalidate });
-    const element = inputRef.current;
+  const commitValidation = async (value: unknown, revalidate = false) => {
+    const element = refs.inputRef;
     if (!element) {
       return;
     }
+    console.log('COMMITTING VALIDATION', { value, element: element.value });
 
     if (revalidate) {
-      if (state.valid !== false) {
+      if (state().valid !== false) {
         return;
       }
 
@@ -80,10 +80,12 @@ export function useFieldControlValidation() {
         };
         element.setCustomValidity('');
 
-        if (controlId) {
-          const currentFieldData = formRef.current.fields.get(controlId);
+        const controlIdValue = controlId();
+        if (controlIdValue) {
+          const currentFieldData = formRef.fields.get(controlIdValue);
           if (currentFieldData) {
-            formRef.current.fields.set(controlId, {
+            console.log(9, 'SETTING FIELD', currentFieldData, nextValidityData);
+            formRef.fields.set(controlIdValue, {
               ...currentFieldData,
               ...getCombinedFieldValidityData(nextValidityData, false), // invalid = false
             });
@@ -138,7 +140,7 @@ export function useFieldControlValidation() {
 
       // Only make `valueMissing` mark the field invalid if it's been changed
       // to reduce error noise.
-      if (hasOnlyValueMissingError && !markedDirtyRef.current) {
+      if (hasOnlyValueMissingError && !fieldRootRefs.markedDirtyRef) {
         computedState.valid = true;
         computedState.valueMissing = false;
       }
@@ -152,16 +154,17 @@ export function useFieldControlValidation() {
 
     const nextState = getState(element);
     console.log('PRE NEXT STATE', nextState);
+
     let defaultValidationMessage;
 
     if (element.validationMessage) {
       defaultValidationMessage = element.validationMessage;
       validationErrors = [element.validationMessage];
     } else {
-      const formValues = Array.from(formRef.current.fields.values()).reduce(
+      const formValues = Array.from(formRef.fields.values()).reduce(
         (acc, field) => {
           if (field.name && field.getValueRef) {
-            acc[field.name] = field.getValueRef.current?.();
+            acc[field.name] = field.getValueRef();
           }
           return acc;
         },
@@ -203,102 +206,94 @@ export function useFieldControlValidation() {
       initialValue: validityData.initialValue,
     };
 
-    if (controlId) {
-      const currentFieldData = formRef.current.fields.get(controlId);
+    const controlIdValue = controlId();
+    if (controlIdValue) {
+      const currentFieldData = formRef.fields.get(controlIdValue);
       if (currentFieldData) {
-        formRef.current.fields.set(controlId, {
+        const combined = getCombinedFieldValidityData(nextValidityData, invalid());
+        console.log('COMMIT VALIDATION SETTING FIELD', {
+          controlId: controlIdValue,
+          nextValidityData,
+          invalid: invalid(),
+          combined,
+        });
+        formRef.fields.set(controlIdValue, {
           ...currentFieldData,
-          ...getCombinedFieldValidityData(nextValidityData, invalid),
+          ...combined,
         });
       }
     }
 
     setValidityData(nextValidityData);
-  });
+  };
 
-  const getValidationProps = React.useCallback(
-    (externalProps = {}) => {
-      return mergeProps<any>(
-        {
-          ...(messageIds.length && { 'aria-describedby': messageIds.join(' ') }),
-          ...(state.valid === false && { 'aria-invalid': true }),
-        },
-        externalProps,
-      );
-    },
-    [messageIds, state.valid],
-  );
+  const getValidationProps = (externalProps = {}) => {
+    return mergeProps<any>(
+      {
+        ...(messageIds().length && { 'aria-describedby': messageIds().join(' ') }),
+        ...(state().valid === false && { 'aria-invalid': true }),
+      },
+      externalProps,
+    );
+  };
 
-  const getInputValidationProps = React.useCallback(
-    (externalProps = {}) =>
-      mergeProps<'input'>(
-        {
-          onChange(event) {
-            // Workaround for https://github.com/facebook/react/issues/9023
-            if (event.nativeEvent.defaultPrevented) {
-              return;
-            }
+  const getInputValidationProps = (externalProps = {}) =>
+    mergeProps<'input'>(
+      {
+        onChange(event) {
+          // Workaround for https://github.com/facebook/react/issues/9023
+          if (event.defaultPrevented) {
+            return;
+          }
 
-            clearErrors(name);
+          clearErrors(name());
 
-            if (validationMode !== 'onChange') {
-              commitValidation(event.currentTarget.value, true);
-              return;
-            }
+          if (validationMode() !== 'onChange') {
+            commitValidation(event.currentTarget.value, true);
+            return;
+          }
 
-            if (invalid) {
-              return;
-            }
+          if (invalid()) {
+            return;
+          }
 
-            const element = event.currentTarget;
+          const element = event.currentTarget;
 
-            if (element.value === '') {
-              // Ignore the debounce time for empty values.
+          if (element.value === '') {
+            // Ignore the debounce time for empty values.
+            commitValidation(element.value);
+            return;
+          }
+
+          timeout.clear();
+
+          if (validationDebounceTime()) {
+            timeout.start(validationDebounceTime(), () => {
               commitValidation(element.value);
-              return;
-            }
-
-            timeout.clear();
-
-            if (validationDebounceTime) {
-              timeout.start(validationDebounceTime, () => {
-                commitValidation(element.value);
-              });
-            } else {
-              commitValidation(element.value);
-            }
-          },
+            });
+          } else {
+            commitValidation(element.value);
+          }
         },
-        getValidationProps(externalProps),
-      ),
-    [
-      getValidationProps,
-      clearErrors,
-      name,
-      timeout,
-      commitValidation,
-      invalid,
-      validationMode,
-      validationDebounceTime,
-    ],
-  );
+      },
+      getValidationProps(externalProps),
+    );
 
-  return React.useMemo(
-    () => ({
-      getValidationProps,
-      getInputValidationProps,
-      inputRef,
-      commitValidation,
-    }),
-    [getValidationProps, getInputValidationProps, commitValidation],
-  );
+  return {
+    getValidationProps,
+    getInputValidationProps,
+    refs,
+    commitValidation,
+  };
 }
 
 export namespace useFieldControlValidation {
   export interface ReturnValue {
     getValidationProps: (props?: HTMLProps) => HTMLProps;
     getInputValidationProps: (props?: HTMLProps) => HTMLProps;
-    inputRef: React.MutableRefObject<any>;
+    refs: {
+      inputRef: any;
+    };
     commitValidation: (value: unknown, revalidate?: boolean) => void;
   }
 }

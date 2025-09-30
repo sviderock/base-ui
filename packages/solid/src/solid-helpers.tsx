@@ -1,4 +1,5 @@
-import { onMount, type Accessor, type JSX, type Ref } from 'solid-js';
+import { onMount, splitProps, type Accessor, type JSX, type Ref, type SplitProps } from 'solid-js';
+import type { ComponentPropsToOmit } from './utils/useRenderElement';
 
 export function callEventHandler<T, E extends Event>(
   eventHandler: JSX.EventHandlerUnion<T, E> | undefined,
@@ -54,4 +55,19 @@ export function handleRef<T extends HTMLElement | null | undefined>(
 ) {
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   typeof ref === 'function' ? ref(el) : (ref = el);
+}
+
+export type Args<T extends ((...args: any[]) => any) | undefined | null> = Parameters<
+  Exclude<T, undefined | null>
+>;
+
+export function splitComponentProps<
+  T extends Record<any, any>,
+  K extends [readonly (keyof T)[], ...(readonly (keyof T)[])[]],
+>(props: T, ...keys: K) {
+  const [componentProps, ...others] = splitProps(props, ['class', 'render', 'children'], ...keys);
+  return [componentProps, ...others] as unknown as SplitProps<
+    T,
+    [componentPropsToOmit: ['class', 'render', 'children'], ...K]
+  >;
 }

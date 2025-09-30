@@ -1,9 +1,9 @@
 'use client';
 import * as React from 'react';
 import type { BaseUIComponentProps } from '../utils/types';
-import { FormContext } from './FormContext';
 import { useEventCallback } from '../utils/useEventCallback';
 import { useRenderElement } from '../utils/useRenderElement';
+import { FormContext } from './FormContext';
 
 const EMPTY = {};
 
@@ -41,16 +41,33 @@ export const Form = React.forwardRef(function Form(
     }
   });
 
+  console.log(
+    'FORM REF',
+    Array.from(formRef.current.fields.values()).map((field) => [
+      field.name,
+      field.validityData.state.valid,
+    ]),
+  );
+
   React.useEffect(() => {
+    console.log(
+      'FORM REF INSIDE EFFECT',
+      Array.from(formRef.current.fields.values()).map((field) => [
+        field.name,
+        field.validityData.state.valid,
+      ]),
+    );
+
     if (!submittedRef.current) {
       return;
     }
 
     submittedRef.current = false;
 
-    const invalidFields = Array.from(formRef.current.fields.values()).filter(
-      (field) => field.validityData.state.valid === false,
-    );
+    const invalidFields = Array.from(formRef.current.fields.values()).filter((field) => {
+      console.log(5, 'FIELD', field.validityData.state);
+      return field.validityData.state.valid === false;
+    });
 
     if (invalidFields.length) {
       focusControl(invalidFields[0].controlRef.current);
@@ -76,9 +93,11 @@ export const Form = React.forwardRef(function Form(
           const invalidFields = values.filter((field) => !field.validityData.state.valid);
 
           if (invalidFields.length) {
+            console.log('focusing lol');
             event.preventDefault();
             focusControl(invalidFields[0].controlRef.current);
           } else {
+            console.log('submit');
             submittedRef.current = true;
             onSubmit(event as any);
           }

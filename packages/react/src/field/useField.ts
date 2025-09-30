@@ -1,9 +1,9 @@
 import * as ReactDOM from 'react-dom';
-import { useModernLayoutEffect } from '../utils/useModernLayoutEffect';
-import { getCombinedFieldValidityData } from './utils/getCombinedFieldValidityData';
 import { useFormContext } from '../form/FormContext';
-import { useFieldRootContext } from './root/FieldRootContext';
 import { useLatestRef } from '../utils/useLatestRef';
+import { useModernLayoutEffect } from '../utils/useModernLayoutEffect';
+import { useFieldRootContext } from './root/FieldRootContext';
+import { getCombinedFieldValidityData } from './utils/getCombinedFieldValidityData';
 
 export function useField(params: useField.Parameters) {
   const { formRef } = useFormContext();
@@ -33,6 +33,11 @@ export function useField(params: useField.Parameters) {
     }
 
     if (id) {
+      console.log('setting field', id, {
+        invalid,
+        old: validityData,
+        new: getCombinedFieldValidityData(validityData, invalid),
+      });
       formRef.current.fields.set(id, {
         controlRef,
         validityData: getCombinedFieldValidityData(validityData, invalid),
@@ -43,8 +48,12 @@ export function useField(params: useField.Parameters) {
           }
 
           markedDirtyRef.current = true;
+
           // Synchronously update the validity state so the submit event can be prevented.
-          ReactDOM.flushSync(() => commitValidation(nextValue));
+          console.log('FLUSHING SYNC', nextValue);
+          ReactDOM.flushSync(
+            () => (console.log('FLUSHED SYNC', nextValue), commitValidation(nextValue)),
+          );
         },
         getValueRef,
         name,

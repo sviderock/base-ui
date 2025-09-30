@@ -1,12 +1,12 @@
 'use client';
 import * as React from 'react';
-import { FieldRootContext } from './FieldRootContext';
-import { DEFAULT_VALIDITY_STATE, fieldValidityMapping } from '../utils/constants';
 import { useFieldsetRootContext } from '../../fieldset/root/FieldsetRootContext';
-import { useEventCallback } from '../../utils/useEventCallback';
 import { useFormContext } from '../../form/FormContext';
 import { BaseUIComponentProps } from '../../utils/types';
+import { useEventCallback } from '../../utils/useEventCallback';
 import { useRenderElement } from '../../utils/useRenderElement';
+import { DEFAULT_VALIDITY_STATE, fieldValidityMapping } from '../utils/constants';
+import { FieldRootContext } from './FieldRootContext';
 
 /**
  * Groups all parts of the field.
@@ -59,6 +59,7 @@ export const FieldRoot = React.forwardRef(function FieldRoot(
   const invalid = Boolean(
     invalidProp || (name && {}.hasOwnProperty.call(errors, name) && errors[name] !== undefined),
   );
+  console.log({ localInvalid: invalidProp, name, errors });
 
   const [validityData, setValidityData] = React.useState<FieldValidityData>({
     state: DEFAULT_VALIDITY_STATE,

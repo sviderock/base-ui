@@ -1,15 +1,15 @@
-import { Field } from '@base-ui-components/react/field';
-import { Form } from '@base-ui-components/react/form';
-import { createRenderer, fireEvent, screen } from '@mui/internal-test-utils';
+import { createRenderer, describeConformance } from '#test-utils';
+import { Field } from '@base-ui-components/solid/field';
+import { Form } from '@base-ui-components/solid/form';
+import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import * as React from 'react';
 import { spy } from 'sinon';
-import { describeConformance } from '../../test/describeConformance';
+import { createSignal } from 'solid-js';
 
 describe('<Form />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Form />, () => ({
+  describeConformance(Form, () => ({
     refInstanceof: window.HTMLFormElement,
     render,
   }));
@@ -17,15 +17,15 @@ describe('<Form />', () => {
   it('does not submit if there are errors', async () => {
     const onSubmit = spy();
 
-    const { user } = render(
+    const { user } = render(() => (
       <Form onSubmit={onSubmit}>
         <Field.Root>
           <Field.Control required />
           <Field.Error data-testid="error" />
         </Field.Root>
         <button>Submit</button>
-      </Form>,
-    );
+      </Form>
+    ));
 
     const submit = screen.getByRole('button');
 
@@ -38,7 +38,7 @@ describe('<Form />', () => {
   it('unmounted fields should be removed from the form', async () => {
     const submitSpy = spy((event) => event.preventDefault());
     function App() {
-      const [checked, setChecked] = React.useState(true);
+      const [checked, setChecked] = createSignal(true);
 
       return (
         <Form onSubmit={submitSpy}>
@@ -46,9 +46,9 @@ describe('<Form />', () => {
             <Field.Control defaultValue="Alice" />
           </Field.Root>
 
-          <input type="checkbox" checked={checked} onChange={() => setChecked(!checked)} />
+          <input type="checkbox" checked={checked()} onChange={() => setChecked(!checked())} />
 
-          {checked && (
+          {checked() && (
             <Field.Root name="email">
               <Field.Control defaultValue="" required data-testid="email" />
             </Field.Root>
@@ -59,7 +59,7 @@ describe('<Form />', () => {
       );
     }
 
-    const { user } = await render(<App />);
+    const { user } = render(() => <App />);
 
     const submit = screen.getByText('Submit');
 
@@ -74,13 +74,13 @@ describe('<Form />', () => {
 
   describe('prop: errors', () => {
     function App() {
-      const [errors, setErrors] = React.useState<Form.Props['errors']>({
+      const [errors, setErrors] = createSignal<Form.Props['errors']>({
         foo: 'bar',
       });
 
       return (
         <Form
-          errors={errors}
+          errors={errors()}
           onClearErrors={setErrors}
           onSubmit={(event) => {
             event.preventDefault();
@@ -108,42 +108,41 @@ describe('<Form />', () => {
     }
 
     it('should mark <Field.Control> as invalid and populate <Field.Error>', () => {
-      render(
+      render(() => (
         <Form errors={{ foo: 'bar' }}>
           <Field.Root name="foo">
             <Field.Control />
             <Field.Error data-testid="error" />
           </Field.Root>
-        </Form>,
-      );
+        </Form>
+      ));
 
       expect(screen.getByTestId('error')).to.have.text('bar');
       expect(screen.getByRole('textbox')).to.have.attribute('aria-invalid', 'true');
     });
 
     it('should not mark <Field.Control> as invalid if no error is provided', () => {
-      render(
+      render(() => (
         <Form>
           <Field.Root name="foo">
             <Field.Control />
             <Field.Error data-testid="error" />
           </Field.Root>
-        </Form>,
-      );
+        </Form>
+      ));
 
       expect(screen.queryByTestId('error')).to.equal(null);
       expect(screen.getByRole('textbox')).not.to.have.attribute('aria-invalid');
     });
 
     it('focuses the first invalid field only on submit', async () => {
-      const { user } = render(<App />);
+      const { user } = render(() => <App />);
 
       const submit = screen.getByRole('button');
       const name = screen.getByTestId('name');
       const age = screen.getByTestId('age');
 
       await user.click(submit);
-
       screen.debug();
       expect(name).toHaveFocus();
 
@@ -163,7 +162,7 @@ describe('<Form />', () => {
     });
 
     it('does not swap focus immediately on change after two submissions', async () => {
-      const { user } = render(<App />);
+      const { user } = render(() => <App />);
 
       const submit = screen.getByRole('button');
       const name = screen.getByTestId('name');
@@ -181,7 +180,7 @@ describe('<Form />', () => {
     });
 
     it('removes errors upon change', async () => {
-      render(<App />);
+      render(() => <App />);
 
       const name = screen.getByTestId('name');
       const age = screen.getByTestId('age');
@@ -197,11 +196,11 @@ describe('<Form />', () => {
   describe('prop: onClearErrors', () => {
     it('should clear errors if no matching name keys exist', () => {
       function App() {
-        const [errors, setErrors] = React.useState<Form.Props['errors']>({
+        const [errors, setErrors] = createSignal<Form.Props['errors']>({
           foo: 'bar',
         });
         return (
-          <Form errors={errors} onClearErrors={setErrors}>
+          <Form errors={errors()} onClearErrors={setErrors}>
             <Field.Root name="foo">
               <Field.Control />
               <Field.Error data-testid="error" />
@@ -210,7 +209,7 @@ describe('<Form />', () => {
         );
       }
 
-      render(<App />);
+      render(() => <App />);
 
       expect(screen.getByTestId('error')).to.have.text('bar');
       expect(screen.getByRole('textbox')).to.have.attribute('aria-invalid', 'true');
@@ -224,12 +223,12 @@ describe('<Form />', () => {
 
   describe('prop: noValidate', () => {
     it('should disable native validation if set to true (default)', () => {
-      render(<Form data-testid="form" />);
+      render(() => <Form data-testid="form" />);
       expect(screen.getByTestId('form')).to.have.attribute('novalidate');
     });
 
     it('should enable native validation if set to false', () => {
-      render(<Form noValidate={false} data-testid="form" />);
+      render(() => <Form noValidate={false} data-testid="form" />);
       expect(screen.getByTestId('form')).not.to.have.attribute('novalidate');
     });
   });
