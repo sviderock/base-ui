@@ -1,4 +1,5 @@
 'use client';
+import { reconcile } from 'solid-js/store';
 import { useFormContext } from '../../form/FormContext';
 import { mergeProps } from '../../merge-props';
 import type { HTMLProps } from '../../utils/types';
@@ -46,7 +47,7 @@ export function useFieldControlValidation() {
     name,
   } = useFieldRootContext();
 
-  const { formRef, clearErrors } = useFormContext();
+  const { formRef, setFormRef, clearErrors } = useFormContext();
 
   const timeout = useTimeout();
   const refs: useFieldControlValidation.ReturnValue['refs'] = {
@@ -58,7 +59,6 @@ export function useFieldControlValidation() {
     if (!element) {
       return;
     }
-    console.log('COMMITTING VALIDATION', { value, element: element.value });
 
     if (revalidate) {
       if (state().valid !== false) {
@@ -82,14 +82,12 @@ export function useFieldControlValidation() {
 
         const controlIdValue = controlId();
         if (controlIdValue) {
-          const currentFieldData = formRef.fields.get(controlIdValue);
-          if (currentFieldData) {
-            console.log(9, 'SETTING FIELD', currentFieldData, nextValidityData);
-            formRef.fields.set(controlIdValue, {
-              ...currentFieldData,
-              ...getCombinedFieldValidityData(nextValidityData, false), // invalid = false
-            });
-          }
+          setFormRef(
+            'fields',
+            controlIdValue,
+            'validityData',
+            reconcile(getCombinedFieldValidityData(nextValidityData, false)),
+          );
         }
         setValidityData(nextValidityData);
         return;
@@ -116,7 +114,6 @@ export function useFieldControlValidation() {
     }
 
     function getState(el: HTMLInputElement) {
-      console.log('getState', { el: el.outerHTML });
       const computedState = validityKeys.reduce(
         (acc, key) => {
           acc[key] = el.validity[key];
@@ -153,7 +150,6 @@ export function useFieldControlValidation() {
     let validationErrors: string[] = [];
 
     const nextState = getState(element);
-    console.log('PRE NEXT STATE', nextState);
 
     let defaultValidationMessage;
 
@@ -161,7 +157,7 @@ export function useFieldControlValidation() {
       defaultValidationMessage = element.validationMessage;
       validationErrors = [element.validationMessage];
     } else {
-      const formValues = Array.from(formRef.fields.values()).reduce(
+      const formValues = Object.values(formRef.fields).reduce(
         (acc, field) => {
           if (field.name && field.getValueRef) {
             acc[field.name] = field.getValueRef();
@@ -196,8 +192,6 @@ export function useFieldControlValidation() {
       }
     }
 
-    console.log('POST NEXT STATE', nextState);
-
     const nextValidityData = {
       value,
       state: nextState,
@@ -208,20 +202,12 @@ export function useFieldControlValidation() {
 
     const controlIdValue = controlId();
     if (controlIdValue) {
-      const currentFieldData = formRef.fields.get(controlIdValue);
-      if (currentFieldData) {
-        const combined = getCombinedFieldValidityData(nextValidityData, invalid());
-        console.log('COMMIT VALIDATION SETTING FIELD', {
-          controlId: controlIdValue,
-          nextValidityData,
-          invalid: invalid(),
-          combined,
-        });
-        formRef.fields.set(controlIdValue, {
-          ...currentFieldData,
-          ...combined,
-        });
-      }
+      setFormRef(
+        'fields',
+        controlIdValue,
+        'validityData',
+        reconcile(getCombinedFieldValidityData(nextValidityData, invalid())),
+      );
     }
 
     setValidityData(nextValidityData);

@@ -64,7 +64,6 @@ export function FieldRoot(componentProps: FieldRoot.Props) {
   const invalid = () => {
     const n = name();
     const err = errors();
-    console.log({ name: n, errors: err, local: local.invalid });
     return Boolean(local.invalid || (n && {}.hasOwnProperty.call(err, n) && err[n] !== undefined));
   };
 
