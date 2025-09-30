@@ -43,7 +43,6 @@ export function Form(componentProps: Form.Props) {
     }
 
     const invalidFields = Object.values(formRef.fields).filter((field) => {
-      console.log(5, 'FIELD', field);
       return field.validityData.state.valid === false;
     });
 
@@ -87,17 +86,10 @@ export function Form(componentProps: Form.Props) {
 
                 // Async validation isn't supported to stop the submit event.
                 values.forEach((field) => {
-                  console.log('VALIDATING FIELD', field);
                   field.validate();
                 });
 
                 values = Object.values(formRef.fields);
-
-                console.log(
-                  'AFTER VALIDATE',
-                  values.map((field) => [field.name, field.validityData.state.valid]),
-                );
-
                 const invalidFields = values.filter((field) => !field.validityData.state.valid);
 
                 if (invalidFields.length) {
@@ -105,7 +97,6 @@ export function Form(componentProps: Form.Props) {
                   const controlRef = access(invalidFields[0].controlRef);
                   focusControl(controlRef);
                 } else {
-                  console.log('submit');
                   setSubmitted(true);
                   callEventHandler(local.onSubmit, event);
                 }
