@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createSignal } from 'solid-js';
+import { createEffect, createMemo, createSignal, from, observable, on } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import {
   access,
@@ -27,8 +27,7 @@ export function Form(componentProps: Form.Props) {
   ]);
   const errors = () => access(local.errors);
   const [formRef, setFormRef] = createStore<FormContext['formRef']>({ fields: {} });
-
-  const [submitted, setSubmitted] = createSignal(false);
+  let submitted = false;
 
   const focusControl = (control: HTMLElement) => {
     control.focus();
@@ -37,22 +36,24 @@ export function Form(componentProps: Form.Props) {
     }
   };
 
-  createEffect(() => {
-    if (!submitted()) {
-      return;
-    }
+  const invalidFields = createMemo(() =>
+    Object.values(formRef.fields).filter((field) => field.validityData.state.valid === false),
+  );
 
-    const invalidFields = Object.values(formRef.fields).filter((field) => {
-      return field.validityData.state.valid === false;
-    });
+  createEffect(
+    on(invalidFields, () => {
+      if (!submitted) {
+        return;
+      }
 
-    if (invalidFields.length) {
-      const controlRef = access(invalidFields[0].controlRef);
-      focusControl(controlRef);
-    }
+      submitted = false;
 
-    setSubmitted(false);
-  });
+      if (invalidFields().length) {
+        const controlRef = access(invalidFields()[0].controlRef);
+        focusControl(controlRef);
+      }
+    }),
+  );
 
   const clearErrors = (name: string | undefined) => {
     const err = errors();
@@ -80,32 +81,17 @@ export function Form(componentProps: Form.Props) {
           state: EMPTY,
           props: [
             {
-              novalidate: true,
+              noValidate: true,
               onSubmit(event) {
-                console.log('onSubmit');
-                let values = Object.values(formRef.fields);
-                console.log('VALUES', values);
-
                 // Async validation isn't supported to stop the submit event.
-                values.forEach((field) => {
-                  field.validate();
-                });
+                Object.values(formRef.fields).forEach((field) => field.validate());
 
-                console.log('VALUES AFTER VALIDATE', values);
-
-                values = Object.values(formRef.fields);
-                const invalidFields = values.filter((field) => !field.validityData.state.valid);
-
-                console.log('INVALID FIELDS', invalidFields);
-
-                if (invalidFields.length) {
-                  console.log('FOCUSING');
+                if (invalidFields().length) {
                   event.preventDefault();
-                  const controlRef = access(invalidFields[0].controlRef);
+                  const controlRef = access(invalidFields()[0].controlRef);
                   focusControl(controlRef);
                 } else {
-                  console.log('SUBMITTING');
-                  setSubmitted(true);
+                  submitted = true;
                   callEventHandler(local.onSubmit, event);
                 }
               },

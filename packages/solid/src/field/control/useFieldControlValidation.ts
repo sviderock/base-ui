@@ -55,7 +55,6 @@ export function useFieldControlValidation() {
   };
 
   const commitValidation = async (value: unknown, revalidate = false) => {
-    console.log('COMMIT VALIDATION', { value, revalidate });
     const element = refs.inputRef;
     if (!element) {
       return;

@@ -64,28 +64,21 @@ export const Form = React.forwardRef(function Form(
       {
         noValidate: true,
         onSubmit(event) {
-          console.log('onSubmit');
           let values = Array.from(formRef.current.fields.values());
-          console.log('VALUES', values);
 
           // Async validation isn't supported to stop the submit event.
           values.forEach((field) => {
             field.validate();
           });
 
-          console.log('VALUES AFTER VALIDATE', values);
           values = Array.from(formRef.current.fields.values());
 
           const invalidFields = values.filter((field) => !field.validityData.state.valid);
 
-          console.log('INVALID FIELDS', invalidFields);
-
           if (invalidFields.length) {
-            console.log('FOCUSING');
             event.preventDefault();
             focusControl(invalidFields[0].controlRef.current);
           } else {
-            console.log('SUBMITTING');
             submittedRef.current = true;
             onSubmit(event as any);
           }

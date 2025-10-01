@@ -1,5 +1,5 @@
 import { createEffect, onCleanup } from 'solid-js';
-import { reconcile } from 'solid-js/store';
+import { produce, reconcile } from 'solid-js/store';
 import { useFormContext } from '../form/FormContext';
 import { type MaybeAccessor, access } from '../solid-helpers';
 import { useFieldRootContext } from './root/FieldRootContext';
@@ -36,26 +36,22 @@ export function useField(params: useField.Parameters) {
 
     const idValue = id();
     if (idValue) {
-      setFormRef(
-        'fields',
-        idValue,
-        reconcile({
-          controlRef: controlRef(),
-          validityData: getCombinedFieldValidityData(validityData, invalid()),
-          validate() {
-            let nextValue = value();
-            if (nextValue === undefined) {
-              nextValue = params.getValue?.();
-            }
-            refs.markedDirtyRef = true;
+      setFormRef('fields', idValue, {
+        controlRef: controlRef(),
+        validityData: getCombinedFieldValidityData(validityData, invalid()),
+        validate() {
+          let nextValue = value();
+          if (nextValue === undefined) {
+            nextValue = params.getValue?.();
+          }
+          refs.markedDirtyRef = true;
 
-            // Synchronously update the validity state so the submit event can be prevented.
-            params.commitValidation?.(nextValue);
-          },
-          getValueRef: params.getValue,
-          name: name(),
-        }),
-      );
+          // Synchronously update the validity state so the submit event can be prevented.
+          params.commitValidation?.(nextValue);
+        },
+        getValueRef: params.getValue,
+        name: name(),
+      });
     }
   });
 
@@ -63,7 +59,12 @@ export function useField(params: useField.Parameters) {
     const idValue = id();
     onCleanup(() => {
       if (idValue) {
-        setFormRef('fields', idValue, undefined as any);
+        setFormRef(
+          'fields',
+          produce((fields) => {
+            delete fields[idValue];
+          }),
+        );
       }
     });
   });

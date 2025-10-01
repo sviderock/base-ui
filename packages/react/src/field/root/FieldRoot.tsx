@@ -59,7 +59,6 @@ export const FieldRoot = React.forwardRef(function FieldRoot(
   const invalid = Boolean(
     invalidProp || (name && {}.hasOwnProperty.call(errors, name) && errors[name] !== undefined),
   );
-  console.log({ localInvalid: invalidProp, name, errors });
 
   const [validityData, setValidityData] = React.useState<FieldValidityData>({
     state: DEFAULT_VALIDITY_STATE,
@@ -82,8 +81,6 @@ export const FieldRoot = React.forwardRef(function FieldRoot(
     }),
     [disabled, touched, dirty, valid, filled, focused],
   );
-
-  console.log('VALID', valid);
 
   const contextValue: FieldRootContext = React.useMemo(
     () => ({

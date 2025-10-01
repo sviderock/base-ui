@@ -146,6 +146,7 @@ describe('<Form />', () => {
       await user.click(submit);
 
       screen.debug();
+      throw new Error('test');
       expect(name).toHaveFocus();
 
       fireEvent.change(name, { target: { value: 'John' } });

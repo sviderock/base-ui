@@ -54,7 +54,6 @@ export function useFieldControlValidation() {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
 
   const commitValidation = useEventCallback(async (value: unknown, revalidate = false) => {
-    console.log('COMMIT VALIDATION', { value, revalidate });
     const element = inputRef.current;
     if (!element) {
       return;
@@ -114,7 +113,6 @@ export function useFieldControlValidation() {
     }
 
     function getState(el: HTMLInputElement) {
-      console.log('getState', { el: el.outerHTML });
       const computedState = validityKeys.reduce(
         (acc, key) => {
           acc[key] = el.validity[key];
@@ -151,7 +149,6 @@ export function useFieldControlValidation() {
     let validationErrors: string[] = [];
 
     const nextState = getState(element);
-    console.log('PRE NEXT STATE', nextState);
     let defaultValidationMessage;
 
     if (element.validationMessage) {
@@ -192,8 +189,6 @@ export function useFieldControlValidation() {
         }
       }
     }
-
-    console.log('POST NEXT STATE', nextState);
 
     const nextValidityData = {
       value,

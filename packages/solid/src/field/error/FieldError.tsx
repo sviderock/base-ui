@@ -28,11 +28,6 @@ export function FieldError(componentProps: FieldError.Props) {
   const formError = () => (name() ? errors()[name()!] : null);
 
   const rendered = createMemo(() => {
-    console.log('RENDERED', {
-      formError: formError(),
-      match: match(),
-      validityData: validityData.state,
-    });
     let isRendered = false;
     const m = match();
     if (formError() || m === true) {

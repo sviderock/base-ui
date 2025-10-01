@@ -33,11 +33,6 @@ export function useField(params: useField.Parameters) {
     }
 
     if (id) {
-      console.log('setting field', id, {
-        invalid,
-        old: validityData,
-        new: getCombinedFieldValidityData(validityData, invalid),
-      });
       formRef.current.fields.set(id, {
         controlRef,
         validityData: getCombinedFieldValidityData(validityData, invalid),
@@ -50,10 +45,7 @@ export function useField(params: useField.Parameters) {
           markedDirtyRef.current = true;
 
           // Synchronously update the validity state so the submit event can be prevented.
-          console.log('FLUSHING SYNC', nextValue);
-          ReactDOM.flushSync(
-            () => (console.log('FLUSHED SYNC', nextValue), commitValidation(nextValue)),
-          );
+          ReactDOM.flushSync(() => commitValidation(nextValue));
         },
         getValueRef,
         name,
