@@ -1,11 +1,12 @@
-import * as React from 'react';
-import { expect } from 'chai';
-import { Checkbox } from '@base-ui-components/react/checkbox';
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { screen, waitFor } from '@mui/internal-test-utils';
+import { Checkbox } from '@base-ui-components/solid/checkbox';
+import { screen, waitFor } from '@solidjs/testing-library';
+import { expect } from 'chai';
+import { createSignal } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import { CheckboxRootContext } from '../root/CheckboxRootContext';
 
-const testContext = {
+const testContext = () => ({
   checked: true,
   disabled: false,
   readOnly: false,
@@ -16,7 +17,7 @@ const testContext = {
   valid: null,
   filled: false,
   focused: false,
-};
+});
 
 describe('<Checkbox.Indicator />', () => {
   beforeEach(() => {
@@ -25,72 +26,77 @@ describe('<Checkbox.Indicator />', () => {
 
   const { render } = createRenderer();
 
-  describeConformance(<Checkbox.Indicator />, () => ({
+  describeConformance(Checkbox.Indicator, () => ({
     refInstanceof: window.HTMLSpanElement,
-    render(node) {
+    render(node, elementProps = {}) {
       return render(
-        <CheckboxRootContext.Provider value={testContext}>{node}</CheckboxRootContext.Provider>,
+        () => (
+          <CheckboxRootContext.Provider value={testContext}>
+            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+          </CheckboxRootContext.Provider>
+        ),
+        elementProps,
       );
     },
   }));
 
   it('should not render indicator by default', async () => {
-    const { container } = await render(
+    const { container } = render(() => (
       <Checkbox.Root>
         <Checkbox.Indicator />
-      </Checkbox.Root>,
-    );
+      </Checkbox.Root>
+    ));
     const indicator = container.querySelector('span');
     expect(indicator).to.equal(null);
   });
 
   it('should render indicator when checked', async () => {
-    const { container } = await render(
+    const { container } = render(() => (
       <Checkbox.Root checked>
         <Checkbox.Indicator />
-      </Checkbox.Root>,
-    );
+      </Checkbox.Root>
+    ));
     const indicator = container.querySelector('span');
     expect(indicator).not.to.equal(null);
   });
 
   it('should spread extra props', async () => {
-    const { container } = await render(
+    const { container } = render(() => (
       <Checkbox.Root defaultChecked>
         <Checkbox.Indicator data-extra-prop="Lorem ipsum" />
-      </Checkbox.Root>,
-    );
+      </Checkbox.Root>
+    ));
     const indicator = container.querySelector('span');
     expect(indicator).to.have.attribute('data-extra-prop', 'Lorem ipsum');
   });
 
   describe('keepMounted prop', () => {
     it('should keep indicator mounted when unchecked', async () => {
-      const { container } = await render(
+      const { container } = render(() => (
         <Checkbox.Root>
           <Checkbox.Indicator keepMounted />
-        </Checkbox.Root>,
-      );
+        </Checkbox.Root>
+      ));
       const indicator = container.querySelector('span');
       expect(indicator).not.to.equal(null);
     });
 
     it('should keep indicator mounted when checked', async () => {
-      const { container } = await render(
+      const { container } = render(() => (
         <Checkbox.Root checked>
           <Checkbox.Indicator keepMounted />
-        </Checkbox.Root>,
-      );
+        </Checkbox.Root>
+      ));
       const indicator = container.querySelector('span');
       expect(indicator).not.to.equal(null);
     });
 
     it('should keep indicator mounted when indeterminate', async () => {
-      const { container } = await render(
+      const { container } = render(() => (
         <Checkbox.Root indeterminate>
           <Checkbox.Indicator keepMounted />
-        </Checkbox.Root>,
-      );
+        </Checkbox.Root>
+      ));
       const indicator = container.querySelector('span');
       expect(indicator).not.to.equal(null);
     });
@@ -102,7 +108,7 @@ describe('<Checkbox.Indicator />', () => {
     }
 
     function Test() {
-      const [checked, setChecked] = React.useState(true);
+      const [checked, setChecked] = createSignal(true);
       return (
         <div>
           <button onClick={() => setChecked(false)}>Close</button>
@@ -113,7 +119,7 @@ describe('<Checkbox.Indicator />', () => {
       );
     }
 
-    const { user } = await render(<Test />);
+    const { user } = render(() => <Test />);
 
     expect(screen.getByTestId('indicator')).not.to.equal(null);
 
@@ -151,16 +157,16 @@ describe('<Checkbox.Indicator />', () => {
         }
       `;
 
-      const [checked, setChecked] = React.useState(true);
+      const [checked, setChecked] = createSignal(true);
 
       return (
         <div>
-          {/* eslint-disable-next-line react/no-danger */}
-          <style dangerouslySetInnerHTML={{ __html: style }} />
+          {/* eslint-disable-next-line solid/no-innerhtml */}
+          <style innerHTML={style} />
           <button onClick={() => setChecked(false)}>Close</button>
           <Checkbox.Root checked={checked}>
             <Checkbox.Indicator
-              className="animation-test-indicator"
+              class="animation-test-indicator"
               data-testid="indicator"
               onAnimationEnd={notifyAnimationFinished}
               keepMounted

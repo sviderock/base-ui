@@ -31,6 +31,7 @@
     "./alert-dialog": "./src/alert-dialog/index.ts",
     "./avatar": "./src/avatar/index.ts",
     "./checkbox": "./src/checkbox/index.ts",
+    "./checkbox-group": "./src/checkbox-group/index.ts",
     "./collapsible": "./src/collapsible/index.ts",
     "./dialog": "./src/dialog/index.ts",
     "./direction-provider": "./src/direction-provider/index.ts",

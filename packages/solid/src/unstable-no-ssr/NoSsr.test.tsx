@@ -52,7 +52,6 @@ describe('<NoSsr />', () => {
   //         <span id="client-only">Hello</span>
   //       </NoSsr>
   //     ));
-  //     screen.debug();
   //     await flushMicrotasks();
   //     expect(document.querySelector('#client-only')).not.to.equal(null);
   //   });

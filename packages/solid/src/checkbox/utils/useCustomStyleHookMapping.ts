@@ -1,13 +1,14 @@
 'use client';
+import { createMemo, type Accessor } from 'solid-js';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import type { CheckboxRoot } from '../root/CheckboxRoot';
 import { CheckboxRootDataAttributes } from '../root/CheckboxRootDataAttributes';
 
-export function useCustomStyleHookMapping(state: CheckboxRoot.State) {
-  return React.useMemo<CustomStyleHookMapping<typeof state>>(
+export function useCustomStyleHookMapping(state: Accessor<CheckboxRoot.State>) {
+  const customStyleHookMapping = createMemo<CustomStyleHookMapping<ReturnType<typeof state>>>(
     () => ({
       checked(value): Record<string, string> {
-        if (state.indeterminate) {
+        if (state().indeterminate) {
           // `data-indeterminate` is already handled by the `indeterminate` prop.
           return {};
         }
@@ -23,6 +24,7 @@ export function useCustomStyleHookMapping(state: CheckboxRoot.State) {
         };
       },
     }),
-    [state.indeterminate],
   );
+
+  return customStyleHookMapping;
 }

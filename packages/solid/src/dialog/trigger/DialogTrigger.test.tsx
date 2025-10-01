@@ -65,7 +65,6 @@ describe('<Dialog.Trigger />', () => {
       expect(trigger).to.have.attribute('aria-disabled', 'true');
 
       await user.click(trigger);
-      screen.debug(trigger);
       expect(screen.queryByText('title text')).to.equal(null);
 
       await user.keyboard('[Tab]');

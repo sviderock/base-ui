@@ -29,7 +29,6 @@ describe('<Field.Description />', () => {
       </Field.Root>
     ));
 
-    screen.debug();
     expect(screen.getByRole('textbox')).to.have.attribute(
       'aria-describedby',
       screen.getByText('Message').id,

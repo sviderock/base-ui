@@ -172,7 +172,6 @@ describe('<Dialog.Popup />', () => {
       const closeButton = getByText('Close');
       await user.click(closeButton);
 
-      screen.debug();
       await waitFor(() => {
         expect(trigger).toHaveFocus();
       });

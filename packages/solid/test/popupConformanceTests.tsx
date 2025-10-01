@@ -111,7 +111,6 @@ export function popupConformanceTests(config: PopupTestConfig) {
             render(() => prepareComponent({ root: { open: () => true }, popup: { id: 'TestId' } }));
             const trigger = getTrigger();
             const popup = getPopup();
-            screen.debug();
             expect(trigger.getAttribute('aria-controls')).to.equal(popup?.getAttribute('id'));
           });
         }

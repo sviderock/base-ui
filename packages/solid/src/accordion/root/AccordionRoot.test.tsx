@@ -30,8 +30,6 @@ describe('<Accordion.Root />', () => {
         </Accordion.Root>
       ));
 
-      screen.debug();
-
       const root = container.firstElementChild as HTMLElement;
       const trigger = screen.getByRole('button');
       const panel = screen.queryByText(PANEL_CONTENT_1) as HTMLElement;

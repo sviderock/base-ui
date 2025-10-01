@@ -1,9 +1,10 @@
-import { Checkbox } from '@base-ui-components/react/checkbox';
-import { CheckboxGroup } from '@base-ui-components/react/checkbox-group';
-import { createRenderer, fireEvent, screen } from '@mui/internal-test-utils';
+import { createRenderer } from '#test-utils';
+import { Checkbox } from '@base-ui-components/solid/checkbox';
+import { CheckboxGroup } from '@base-ui-components/solid/checkbox-group';
+import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import * as React from 'react';
 import { spy } from 'sinon';
+import { createEffect, createSignal } from 'solid-js';
 
 describe('useCheckboxGroupParent', () => {
   const { render } = createRenderer();
@@ -13,7 +14,7 @@ describe('useCheckboxGroupParent', () => {
     const parentCheckedChange = spy();
     const childCheckedChange = spy();
     function App() {
-      const [value, setValue] = React.useState<string[]>([]);
+      const [value, setValue] = createSignal<string[]>([]);
       return (
         <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" onCheckedChange={parentCheckedChange} />
@@ -24,7 +25,7 @@ describe('useCheckboxGroupParent', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     const checkboxes = screen
       .getAllByRole('checkbox')
@@ -59,7 +60,7 @@ describe('useCheckboxGroupParent', () => {
   it('parent should be marked as mixed if some children are checked', () => {
     const childCheckedChange = spy();
     function App() {
-      const [value, setValue] = React.useState<string[]>([]);
+      const [value, setValue] = createSignal<string[]>([]);
       return (
         <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" />
@@ -70,7 +71,7 @@ describe('useCheckboxGroupParent', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     const checkboxes = screen
       .getAllByRole('checkbox')
@@ -87,7 +88,7 @@ describe('useCheckboxGroupParent', () => {
 
   it('should correctly initialize the values array', () => {
     function App() {
-      const [value, setValue] = React.useState<string[]>(['a']);
+      const [value, setValue] = createSignal<string[]>(['a']);
       return (
         <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" />
@@ -98,7 +99,7 @@ describe('useCheckboxGroupParent', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     expect(screen.getByTestId('parent')).to.have.attribute('aria-checked', 'mixed');
 
@@ -107,7 +108,7 @@ describe('useCheckboxGroupParent', () => {
 
   it('should update the values array when a child checkbox is clicked', () => {
     function App() {
-      const [value, setValue] = React.useState<string[]>(['a']);
+      const [value, setValue] = createSignal<string[]>(['a']);
       return (
         <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" />
@@ -118,7 +119,7 @@ describe('useCheckboxGroupParent', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     expect(screen.getByTestId('parent')).to.have.attribute('aria-checked', 'mixed');
 
@@ -140,7 +141,7 @@ describe('useCheckboxGroupParent', () => {
 
   it('should apply space-separated aria-controls attribute with child names', () => {
     function App() {
-      const [value, setValue] = React.useState<string[]>([]);
+      const [value, setValue] = createSignal<string[]>([]);
       return (
         <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" />
@@ -151,7 +152,7 @@ describe('useCheckboxGroupParent', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     const parent = screen.getByTestId('parent');
     const id = parent.getAttribute('id');
@@ -161,7 +162,7 @@ describe('useCheckboxGroupParent', () => {
 
   it('preserves initial state if mixed when parent is clicked', () => {
     function App() {
-      const [value, setValue] = React.useState<string[]>([]);
+      const [value, setValue] = createSignal<string[]>([]);
       return (
         <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" />
@@ -172,7 +173,7 @@ describe('useCheckboxGroupParent', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     const checkboxes = screen
       .getAllByRole('checkbox')
@@ -209,7 +210,7 @@ describe('useCheckboxGroupParent', () => {
 
   it('handles unchecked disabled checkboxes', () => {
     function App() {
-      const [value, setValue] = React.useState<string[]>([]);
+      const [value, setValue] = createSignal<string[]>([]);
       return (
         <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" />
@@ -220,7 +221,7 @@ describe('useCheckboxGroupParent', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     const parent = screen.getByTestId('parent');
     fireEvent.click(parent);
@@ -231,7 +232,7 @@ describe('useCheckboxGroupParent', () => {
 
   it('handles checked disabled checkboxes', () => {
     function App() {
-      const [value, setValue] = React.useState<string[]>(['a']);
+      const [value, setValue] = createSignal<string[]>(['a']);
       return (
         <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" />
@@ -242,7 +243,7 @@ describe('useCheckboxGroupParent', () => {
       );
     }
 
-    render(<App />);
+    render(() => <App />);
 
     const checkboxA = screen.getByTestId('checkboxA');
     const checkboxB = screen.getByTestId('checkboxB');

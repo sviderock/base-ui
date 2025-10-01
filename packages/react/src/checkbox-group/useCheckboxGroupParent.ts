@@ -29,7 +29,6 @@ export function useCheckboxGroupParent(
       'aria-controls': allValues.map((v) => `${id}-${v}`).join(' '),
       onCheckedChange(_, event) {
         const uncontrolledState = uncontrolledStateRef.current;
-
         // None except the disabled ones that are checked, which can't be changed.
         const none = allValues.filter(
           (v) => disabledStatesRef.current.get(v) && uncontrolledState.includes(v),

@@ -43,7 +43,7 @@ export function FieldLabel(componentProps: FieldLabel.Props) {
         props: [
           {
             id: labelId(),
-            htmlFor: htmlFor(),
+            for: htmlFor(),
             onMouseDown(event) {
               const target = getTarget(event) as HTMLElement | null;
               if (target?.closest('button,input,select,textarea')) {

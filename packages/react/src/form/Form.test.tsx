@@ -27,7 +27,6 @@ describe('<Form />', () => {
       </Form>,
     );
 
-    screen.debug();
     const submit = screen.getByRole('button');
 
     await user.click(submit);
@@ -145,7 +144,6 @@ describe('<Form />', () => {
 
       await user.click(submit);
 
-      screen.debug();
       throw new Error('test');
       expect(name).toHaveFocus();
 
