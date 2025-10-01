@@ -41,6 +41,7 @@
     "./input": "./src/input/index.ts",
     "./merge-props": "./src/merge-props/index.ts",
     "./scroll-area": "./src/scroll-area/index.ts",
+    "./separator": "./src/separator/index.ts",
     "./solid-helpers": "./src/solid-helpers.ts",
     "./unstable-no-ssr": "./src/unstable-no-ssr/index.ts",
     "./unstable-use-media-query": "./src/unstable-use-media-query/index.ts",
