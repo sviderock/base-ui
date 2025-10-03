@@ -15,9 +15,8 @@ export interface UseFloatingRootContextOptions {
   open?: MaybeAccessor<boolean | undefined>;
   onOpenChange?: (open: boolean, event?: Event, reason?: OpenChangeReason) => void;
   elements: {
-    reference: MaybeAccessor<Element | null>;
-    floating: MaybeAccessor<HTMLElement | null>;
-    domReference?: MaybeAccessor<Element | null>;
+    reference: MaybeAccessor<Element | null | undefined>;
+    floating: MaybeAccessor<HTMLElement | null | undefined>;
   };
 }
 
@@ -42,13 +41,9 @@ export function useFloatingRootContext(
     }
   }
 
-  const [positionReference, setPositionReference] = createSignal<ReferenceElement | null>(
-    access(options.elements.reference),
-  );
-  const [floating, setFloating] = createSignal(access(options.elements.floating));
-  const [domReference, setDomReference] = createSignal(
-    access(options.elements.domReference) ?? null,
-  );
+  const [positionReference, setPositionReference] = createSignal<
+    ReferenceElement | null | undefined
+  >(access(options.elements.reference));
 
   const onOpenChange = (newOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
     dataRef.openEvent = newOpen ? event : undefined;
@@ -58,14 +53,12 @@ export function useFloatingRootContext(
 
   const refs = {
     setPositionReference,
-    setFloating,
-    setDomReference,
   };
 
   const elements = {
     reference: () => positionReference() || access(options.elements.reference),
-    floating: () => floating() || access(options.elements.floating),
-    domReference: () => (domReference() || access(options.elements.domReference)) ?? null,
+    floating: () => access(options.elements.floating),
+    domReference: () => access(options.elements.reference),
   };
 
   return {

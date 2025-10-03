@@ -33,8 +33,8 @@ export type UsePositionOptions<RT extends ReferenceType = ReferenceType> = Prett
      * Object containing the reference and floating elements.
      */
     elements?: {
-      reference?: MaybeAccessor<RT | null>;
-      floating?: MaybeAccessor<HTMLElement | null>;
+      reference?: MaybeAccessor<RT | null | undefined>;
+      floating?: MaybeAccessor<HTMLElement | null | undefined>;
     };
     /**
      * The `open` state of the floating element to synchronize with the
@@ -69,26 +69,26 @@ export type UsePositionFloatingReturn<RT extends ReferenceType = ReferenceType> 
       /**
        * A Solid ref to the reference element.
        */
-      reference: Accessor<RT | null>;
+      reference: Accessor<RT | null | undefined>;
       /**
        * A Solid ref to the floating element.
        */
-      floating: Accessor<HTMLElement | null>;
+      floating: Accessor<HTMLElement | null | undefined>;
       /**
        * A callback to set the reference element (reactive).
        */
-      setReference: (value: RT | null) => void;
+      setReference: (value: RT | null | undefined) => void;
       /**
        * A callback to set the floating element (reactive).
        */
-      setFloating: (value: HTMLElement | null) => void;
+      setFloating: (value: HTMLElement | null | undefined) => void;
     };
     /**
      * Object containing the reference and floating elements.
      */
     elements: {
-      reference: Accessor<RT | null>;
-      floating: Accessor<HTMLElement | null>;
+      reference: Accessor<RT | null | undefined>;
+      floating: Accessor<HTMLElement | null | undefined>;
     };
   }
 >;
@@ -115,8 +115,8 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
     isPositioned: false,
   });
 
-  const [reference, setReference] = createSignal<RT | null>(null);
-  const [floating, setFloating] = createSignal<HTMLElement | null>(null);
+  const [reference, setReference] = createSignal<RT | null | undefined>(null);
+  const [floating, setFloating] = createSignal<HTMLElement | null | undefined>(null);
 
   const referenceEl = createMemo(() => access(elementsProp().reference) || reference());
   const floatingEl = createMemo(() => access(elementsProp().floating) || floating());

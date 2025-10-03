@@ -240,6 +240,7 @@ export function useClientPoint(
     return {
       ref: () => {
         onCleanup(() => {
+          // @ts-expect-error even though its not in the types this is valid
           context.refs.setFloating(null);
         });
       },

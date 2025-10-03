@@ -439,7 +439,8 @@ export function useHover(
     return {
       ref: () => {
         onCleanup(() => {
-          context.refs.setDomReference(null);
+          // @ts-expect-error even though its not in the types this is valid
+          context.refs.setReference(null);
         });
       },
       'on:pointerdown': setPointerRef,

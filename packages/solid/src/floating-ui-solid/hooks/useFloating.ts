@@ -27,17 +27,20 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
       elements: {
         reference: () => null,
         floating: () => null,
-        domReference: () => null,
         ...options.elements,
       },
     });
 
-  const [domReferenceState, setDomReference] = createSignal<NarrowedElement<RT> | null>(null);
-  const [positionReference, setPositionReferenceRaw] = createSignal<ReferenceType | null>(null);
+  const [domReferenceState, setDomReference] = createSignal<NarrowedElement<RT> | null | undefined>(
+    null,
+  );
+  const [positionReference, setPositionReferenceRaw] = createSignal<
+    ReferenceType | null | undefined
+  >(null);
 
   const optionDomReference = rootContext.elements.domReference;
   const domReference = createMemo(
-    () => (optionDomReference() || domReferenceState()) as NarrowedElement<RT> | null,
+    () => (optionDomReference() || domReferenceState()) as NarrowedElement<RT> | null | undefined,
   );
 
   const tree = useFloatingTree();
@@ -46,11 +49,11 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     ...options,
     elements: {
       floating: rootContext.elements.floating,
-      reference: positionReference as Accessor<NarrowedElement<RT> | null>,
+      reference: positionReference as Accessor<NarrowedElement<RT> | null | undefined>,
     },
   });
 
-  const setPositionReference = (node: ReferenceType | null) => {
+  const setPositionReference = (node: ReferenceType | null | undefined) => {
     const computedPositionReference = isElement(node)
       ? ({
           getBoundingClientRect: () => node.getBoundingClientRect(),
@@ -64,9 +67,9 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     position().refs.setReference(computedPositionReference);
   };
 
-  const setReference = (node: RT | null) => {
-    if (isElement(node) || node === null) {
-      setDomReference(() => node as NarrowedElement<RT> | null);
+  const setReference = (node: RT | null | undefined) => {
+    if (isElement(node) || node == null) {
+      setDomReference(() => node as NarrowedElement<RT> | null | undefined);
     }
 
     // Backwards-compatibility for passing a virtual element to `reference`
@@ -74,11 +77,11 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     const reference = position().refs.reference();
     if (
       isElement(reference) ||
-      reference === null ||
+      reference == null ||
       // Don't allow setting virtual elements using the old technique back to
       // `null` to support `positionReference` + an unstable `reference`
       // callback ref.
-      (node !== null && !isElement(node))
+      (node != null && !isElement(node))
     ) {
       position().refs.setReference(node);
     }
@@ -89,7 +92,6 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     setReference,
     setPositionReference,
     domReference,
-    setDomReference,
   };
 
   const elements = {
