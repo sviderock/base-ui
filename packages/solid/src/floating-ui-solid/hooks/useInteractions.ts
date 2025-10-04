@@ -1,5 +1,6 @@
 import { combineProps } from '@solid-primitives/props';
 import { type Accessor, type JSX } from 'solid-js';
+import { access } from '../../solid-helpers';
 import type { ElementProps } from '../types';
 import { ACTIVE_KEY, FOCUSABLE_ATTRIBUTE, SELECTED_KEY } from '../utils/constants';
 
@@ -27,12 +28,12 @@ export interface UseInteractionsReturn {
  * @see https://floating-ui.com/docs/useInteractions
  */
 export function useInteractions(
-  propsList: Accessor<Array<ElementProps | void>> = () => [],
+  propsList: Array<Accessor<ElementProps> | void> = [],
 ): UseInteractionsReturn {
   return {
     getReferenceProps(userProps) {
-      const referenceList = propsList()
-        .map((item) => item?.reference)
+      const referenceList = propsList
+        .map((item) => access(item)?.reference)
         .filter((i): i is JSX.HTMLAttributes<any> => !!i);
 
       if (userProps) {
@@ -44,8 +45,8 @@ export function useInteractions(
       return combined;
     },
     getFloatingProps(userProps) {
-      const list = propsList()
-        .map((item) => item?.floating)
+      const list = propsList
+        .map((item) => access(item)?.floating)
         .filter((i): i is JSX.HTMLAttributes<any> => !!i);
 
       list.unshift({ tabIndex: -1, [FOCUSABLE_ATTRIBUTE as any]: '' });
@@ -59,8 +60,8 @@ export function useInteractions(
       return combined;
     },
     getItemProps(userProps) {
-      let list: ElementProps['item'][] = propsList()
-        .map((item) => item?.item)
+      let list: ElementProps['item'][] = propsList
+        .map((item) => access(item)?.item)
         .filter((i) => !!i);
 
       if (userProps) {
@@ -72,7 +73,7 @@ export function useInteractions(
 
       list = list.map((item) =>
         // TODO: ExtendedUserProps is enough for the check but probably not the best way to do it
-        typeof item === 'function' ? item(userProps as ExtendedUserProps) : item,
+        typeof item === 'function' ? item(userProps ?? {}) : item,
       );
 
       const combined = combineProps(list, { reverseEventHandlers: true });

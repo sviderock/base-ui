@@ -140,11 +140,7 @@ export function Main() {
   const role = useRole(context, { role: 'menu' });
 
   // Handles opening the floating element via the Choose Emoji button.
-  const { getReferenceProps, getFloatingProps } = useInteractions(() => [
-    click(),
-    dismiss(),
-    role(),
-  ]);
+  const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role]);
 
   const listNavigation = useListNavigation(context, {
     listRef,
@@ -163,7 +159,7 @@ export function Main() {
     getReferenceProps: getInputProps,
     getFloatingProps: getListFloatingProps,
     getItemProps,
-  } = useInteractions(() => [listNavigation()]);
+  } = useInteractions([listNavigation]);
 
   createEffect(() => {
     if (open()) {

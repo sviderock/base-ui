@@ -35,9 +35,9 @@ function App(props: Omit<Partial<UseListNavigationProps>, 'listRef'>) {
     },
   });
 
-  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
-    click(),
-    listNavigation(),
+  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
+    click,
+    listNavigation,
   ]);
 
   return (
@@ -167,9 +167,9 @@ describe('useListNavigation', () => {
         loop: () => true,
       });
 
-      const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
-        dismiss(),
-        listNavigation(),
+      const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
+        dismiss,
+        listNavigation,
       ]);
 
       const items = () =>
@@ -1204,9 +1204,9 @@ describe('useListNavigation', () => {
         onNavigate: setActiveIndex,
       });
 
-      const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
-        click(),
-        listNavigation(),
+      const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
+        click,
+        listNavigation,
       ]);
 
       return (

@@ -72,10 +72,10 @@ export function Main(props: Props) {
   });
   const dismiss = useDismiss(context);
 
-  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
-    click(),
-    listNavigation(),
-    dismiss(),
+  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
+    click,
+    listNavigation,
+    dismiss,
   ]);
 
   return (

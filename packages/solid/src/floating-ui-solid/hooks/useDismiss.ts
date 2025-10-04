@@ -207,6 +207,7 @@ export function useDismiss(
        * If the target is inside a portal OR its dismisal is managed externally then don't dismiss here
        */
       const managed = (event.target as HTMLElement)?.hasAttribute(createAttribute('managed'));
+
       if (!tree && !managed) {
         return;
       }

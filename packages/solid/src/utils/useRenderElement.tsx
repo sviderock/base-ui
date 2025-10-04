@@ -2,7 +2,6 @@ import {
   children,
   createMemo,
   Match,
-  mergeProps,
   Show,
   splitProps,
   Switch,
@@ -10,7 +9,7 @@ import {
   type Ref,
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
-import { mergePropsN } from '../merge-props';
+import { mergeProps, mergePropsN } from '../merge-props';
 import { access, type MaybeAccessor, type MaybeAccessorValue } from '../solid-helpers';
 import { EMPTY_OBJECT } from './constants';
 import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
@@ -23,7 +22,7 @@ export type ComponentPropsToOmit<State extends Record<string, any>> =
 export const COMPONENT_PROPS_TO_OMIT: ComponentPropsToOmit<any>[] = ['class', 'render', 'children'];
 
 export function RenderElement<
-  State extends MaybeAccessor<Record<string, any>>,
+  State extends MaybeAccessor<Record<string, MaybeAccessor<any>>>,
   TagName extends IntrinsicTagName | undefined,
   RenderedElementType extends TagName extends keyof HTMLElementTagNameMap
     ? HTMLElementTagNameMap[TagName]

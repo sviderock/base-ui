@@ -171,7 +171,7 @@ export interface UseListNavigationProps {
    * navigation semantics change.
    * @default false
    */
-  nested?: boolean;
+  nested?: MaybeAccessor<boolean>;
   /**
    * Allows to specify the orientation of the parent list, which is used to
    * determine the direction of the navigation.
@@ -200,7 +200,7 @@ export interface UseListNavigationProps {
    * The orientation in which navigation occurs.
    * @default 'vertical'
    */
-  orientation?: MaybeAccessor<'vertical' | 'horizontal' | 'both'>;
+  orientation?: MaybeAccessor<'vertical' | 'horizontal' | 'both' | undefined>;
   /**
    * Specifies how many columns the list has (i.e., it’s a grid). Use an
    * orientation of 'horizontal' (e.g. for an emoji picker/date picker, where
@@ -249,7 +249,7 @@ export function useListNavigation(
   const selectedIndex = () => access(props.selectedIndex) ?? null;
   const allowEscape = () => access(props.allowEscape) ?? false;
   const loop = () => access(props.loop) ?? false;
-  const nested = props.nested ?? false;
+  const nested = () => access(props.nested) ?? false;
   const rtl = () => access(props.rtl) ?? false;
   const virtual = () => access(props.virtual) ?? false;
   const focusItemOnHover = () => access(props.focusItemOnHover) ?? true;
@@ -298,7 +298,13 @@ export function useListNavigation(
     context.dataRef.orientation = orientation();
   });
 
-  const typeableComboboxReference = () => isTypeableCombobox(context.elements.domReference());
+  /**
+   * TODO: this needs to be memoized as it causes an infinite loop
+   * with the MenuRoot triggerElement assignement
+   */
+  const typeableComboboxReference = createMemo(() =>
+    isTypeableCombobox(context.elements.domReference()),
+  );
 
   let indexRef = selectedIndex() ?? -1;
   let keyRef: null | string = null;
@@ -447,7 +453,7 @@ export function useListNavigation(
             runs += 1;
           } else {
             indexRef =
-              keyRef == null || isMainOrientationToEndKey(keyRef, orientation(), rtl()) || nested
+              keyRef == null || isMainOrientationToEndKey(keyRef, orientation(), rtl()) || nested()
                 ? getMinListIndex(access(props.listRef), disabledIndices())
                 : getMaxListIndex(access(props.listRef), disabledIndices());
             keyRef = null;
@@ -598,7 +604,7 @@ export function useListNavigation(
       return;
     }
 
-    if (nested && isCrossOrientationCloseKey(event.key, orientation(), rtl(), cols())) {
+    if (nested() && isCrossOrientationCloseKey(event.key, orientation(), rtl(), cols())) {
       // If the nested list's close key is also the parent navigation key,
       // let the parent navigate. Otherwise, stop propagating the event.
       if (!isMainOrientationKey(event.key, getParentOrientation())) {
@@ -806,7 +812,6 @@ export function useListNavigation(
       ...(!typeableComboboxReference() ? ariaActiveDescendantProp() : {}),
       'on:keydown': (event) => {
         commonOnKeyDown(event);
-
         // Manually bubble across portals only if propagation wasn't stopped
         // by commonOnKeyDown (mirrors React's natural bubbling behavior).
         if (parentId != null && !(event as any).cancelBubble) {
@@ -864,7 +869,7 @@ export function useListNavigation(
         );
         const isMainKey = isMainOrientationKey(event.key, orientation());
         const isNavigationKey =
-          (nested ? isParentCrossOpenKey : isMainKey) ||
+          (nested() ? isParentCrossOpenKey : isMainKey) ||
           event.key === 'Enter' ||
           event.key.trim() === '';
 
@@ -920,10 +925,10 @@ export function useListNavigation(
 
         if (isNavigationKey) {
           const isParentMainKey = isMainOrientationKey(event.key, getParentOrientation());
-          keyRef = nested && isParentMainKey ? null : event.key;
+          keyRef = nested() && isParentMainKey ? null : event.key;
         }
 
-        if (nested) {
+        if (nested()) {
           if (isParentCrossOpenKey) {
             stopEvent(event);
 

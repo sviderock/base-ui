@@ -10,14 +10,14 @@ describe('useInteractions', () => {
     const userOnClick = vi.fn();
 
     function App() {
-      const interactions = useInteractions(() => [
-        { reference: { onClick: firstInteractionOnClick } },
-        {
+      const interactions = useInteractions([
+        () => ({ reference: { onClick: firstInteractionOnClick } }),
+        () => ({
           reference: {
             onClick: secondInteractionOnClick,
             onKeyDown: secondInteractionOnKeyDown,
           },
-        },
+        }),
       ]);
 
       const { onClick, onKeyDown } = interactions.getReferenceProps({ onClick: userOnClick });
@@ -40,7 +40,7 @@ describe('useInteractions', () => {
 
   it('does not error with undefined user supplied functions', () => {
     function App() {
-      const interactions = useInteractions(() => [{ reference: { onClick() {} } }]);
+      const interactions = useInteractions([() => ({ reference: { onClick() {} } })]);
       expect(() =>
         // @ts-expect-error
         interactions.getReferenceProps({ onClick: undefined }).onClick(),
@@ -53,7 +53,7 @@ describe('useInteractions', () => {
 
   it('does not break props that start with `on`', () => {
     function App() {
-      const interactions = useInteractions(() => []);
+      const interactions = useInteractions([]);
 
       const props = interactions.getReferenceProps({
         // @ts-expect-error
@@ -72,7 +72,7 @@ describe('useInteractions', () => {
 
   it('does not break props that return values', () => {
     function App() {
-      const interactions = useInteractions(() => []);
+      const interactions = useInteractions([]);
 
       const props = interactions.getReferenceProps({
         // @ts-expect-error

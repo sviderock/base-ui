@@ -67,7 +67,7 @@ export function useTransitionStatus(
 
   createEffect(() => {
     if (!openProp() || enableIdleStateProp()) {
-      return undefined;
+      return;
     }
 
     const frame = AnimationFrame.request(() => {
@@ -77,13 +77,11 @@ export function useTransitionStatus(
     onCleanup(() => {
       AnimationFrame.cancel(frame);
     });
-
-    return undefined;
   });
 
   createRenderEffect(() => {
     if (!openProp() || !enableIdleStateProp()) {
-      return undefined;
+      return;
     }
 
     if (openProp() && state.mounted && state.transitionStatus !== 'idle') {
@@ -98,7 +96,7 @@ export function useTransitionStatus(
       AnimationFrame.cancel(frame);
     });
 
-    return undefined;
+    return;
   });
 
   return [state, setState] as const;

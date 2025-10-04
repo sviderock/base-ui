@@ -1,4 +1,4 @@
-import { type Accessor, createEffect, createMemo, createSignal, type JSX } from 'solid-js';
+import { createEffect, createMemo, createSignal, onMount, type Accessor, type JSX } from 'solid-js';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useId } from '../../utils/useId';
 import { useFloatingParentNodeId } from '../components/FloatingTree';
@@ -42,7 +42,11 @@ export function useRole(
   const role = () => access(props.role) ?? 'dialog';
 
   const defaultReferenceId = useId();
-  const referenceId = () => context.elements.domReference()?.id || access(defaultReferenceId);
+  /**
+   * TODO: this needs to be memoized as it causes an infinite loop
+   * with the MenuRoot triggerElement assignement
+   */
+  const referenceId = createMemo(() => context.elements.domReference()?.id || defaultReferenceId());
 
   // Track the actual floating element id (including user-provided custom id) after mount.
   const [resolvedFloatingId, setResolvedFloatingId] = createSignal<string | undefined>(undefined);

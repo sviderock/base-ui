@@ -28,13 +28,17 @@ function getTabbableIn(container: HTMLElement, dir: 1 | -1): FocusableElement | 
   return list[nextIndex];
 }
 
-export function getNextTabbable(referenceElement: Element | null): FocusableElement | null {
+export function getNextTabbable(
+  referenceElement: Element | null | undefined,
+): FocusableElement | null {
   return (
     getTabbableIn(getDocument(referenceElement).body, 1) || (referenceElement as FocusableElement)
   );
 }
 
-export function getPreviousTabbable(referenceElement: Element | null): FocusableElement | null {
+export function getPreviousTabbable(
+  referenceElement: Element | null | undefined,
+): FocusableElement | null {
   return (
     getTabbableIn(getDocument(referenceElement).body, -1) || (referenceElement as FocusableElement)
   );

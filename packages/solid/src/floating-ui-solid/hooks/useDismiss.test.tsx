@@ -59,7 +59,7 @@ function App(
   });
 
   const dismiss = useDismiss(context, props);
-  const { getReferenceProps, getFloatingProps } = useInteractions(() => [dismiss()]);
+  const { getReferenceProps, getFloatingProps } = useInteractions([dismiss]);
 
   return (
     <>
@@ -156,7 +156,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
         const dismiss = useDismiss(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions(() => [dismiss()]);
+        const { getReferenceProps, getFloatingProps } = useInteractions([dismiss]);
 
         return (
           <>
@@ -191,7 +191,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
         const dismiss = useDismiss(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions(() => [dismiss()]);
+        const { getReferenceProps, getFloatingProps } = useInteractions([dismiss]);
 
         const dialogJsx = (
           <div
@@ -318,7 +318,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
         });
 
         const dismiss = useDismiss(context);
-        const { getReferenceProps, getFloatingProps } = useInteractions(() => [dismiss()]);
+        const { getReferenceProps, getFloatingProps } = useInteractions([dismiss]);
 
         return (
           <>
@@ -366,7 +366,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       });
 
       const dismiss = useDismiss(context, others);
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [dismiss()]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([dismiss]);
 
       return (
         <FloatingNode id={nodeId()}>
@@ -522,10 +522,10 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
             onOpenChange: setTooltipOpen,
           });
 
-          const popoverInteractions = useInteractions(() => [useDismiss(popover.context)()]);
-          const tooltipInteractions = useInteractions(() => [
-            useFocus(tooltip.context, { visibleOnly: () => false })(),
-            useDismiss(tooltip.context)(),
+          const popoverInteractions = useInteractions([useDismiss(popover.context)]);
+          const tooltipInteractions = useInteractions([
+            useFocus(tooltip.context, { visibleOnly: () => false }),
+            useDismiss(tooltip.context),
           ]);
 
           return (
@@ -726,7 +726,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       });
 
       const dismiss = useDismiss(context, others);
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [dismiss()]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([dismiss]);
 
       return (
         <FloatingNode id={nodeId()}>
@@ -922,7 +922,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       const click = useClick(context);
       const dismiss = useDismiss(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [click(), dismiss()]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss]);
 
       return (
         <>

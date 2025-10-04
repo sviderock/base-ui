@@ -5,9 +5,9 @@ import type { CompositeMetadata } from './CompositeList';
 import { useCompositeListContext } from './CompositeListContext';
 
 export interface UseCompositeListItemParameters<Metadata extends MaybeAccessor<unknown>> {
-  label?: MaybeAccessor<string | null>;
+  label?: MaybeAccessor<string | null | undefined>;
   metadata?: Metadata;
-  textRef?: MaybeAccessor<HTMLElement | null>;
+  textRef?: MaybeAccessor<HTMLElement | null | undefined>;
   /** Enables guessing the indexes. This avoids a re-render after mount, which is useful for
    * large lists. This should be used for lists that are likely flat and vertical, other cases
    * might trigger a re-render anyway. */

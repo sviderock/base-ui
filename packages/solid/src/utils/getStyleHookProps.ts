@@ -6,7 +6,7 @@ export type CustomStyleHookMapping<State> = {
   ) => Record<string, MaybeAccessor<string>> | null;
 };
 
-export function getStyleHookProps<State extends Record<string, any>>(
+export function getStyleHookProps<State extends Record<string, MaybeAccessor<any>>>(
   state: State,
   customMapping?: CustomStyleHookMapping<State>,
 ) {
@@ -14,7 +14,7 @@ export function getStyleHookProps<State extends Record<string, any>>(
 
   /* eslint-disable-next-line guard-for-in */
   for (const key in state) {
-    const value = state[key];
+    const value = access(state[key]);
     const resolvedValue = access(value);
 
     if (customMapping?.hasOwnProperty(key)) {

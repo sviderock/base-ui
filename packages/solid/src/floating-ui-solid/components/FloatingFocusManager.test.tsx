@@ -111,7 +111,7 @@ function Dialog(props: DialogProps) {
   const click = useClick(context);
   const dismiss = useDismiss(context, { bubbles: false });
 
-  const { getReferenceProps, getFloatingProps } = useInteractions(() => [click(), dismiss()]);
+  const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss]);
 
   return (
     <FloatingNode id={nodeId()}>
@@ -316,7 +316,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
         const click = useClick(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
+        const { getReferenceProps, getFloatingProps } = useInteractions([click]);
 
         return (
           <>
@@ -370,7 +370,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
         const click = useClick(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
+        const { getReferenceProps, getFloatingProps } = useInteractions([click]);
 
         return (
           <>
@@ -425,10 +425,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
           const click = useClick(context);
           const dismiss = useDismiss(context);
 
-          const { getReferenceProps, getFloatingProps } = useInteractions(() => [
-            click(),
-            dismiss(),
-          ]);
+          const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss]);
 
           return (
             <>
@@ -481,7 +478,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         const click = useClick(context);
         const dismiss = useDismiss(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions(() => [click(), dismiss()]);
+        const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss]);
 
         return (
           <>
@@ -577,9 +574,9 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         onOpenChange: setOpen,
       });
 
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [
-        useClick(context)(),
-        useDismiss(context)(),
+      const { getReferenceProps, getFloatingProps } = useInteractions([
+        useClick(context),
+        useDismiss(context),
       ]);
 
       return (
@@ -923,9 +920,9 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
           nodeId,
         });
 
-        const { getReferenceProps, getFloatingProps } = useInteractions(() => [
-          useClick(context)(),
-          useDismiss(context, { bubbles: () => false })(),
+        const { getReferenceProps, getFloatingProps } = useInteractions([
+          useClick(context),
+          useDismiss(context, { bubbles: () => false }),
         ]);
 
         return (
@@ -1212,7 +1209,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
         const click = useClick(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
+        const { getReferenceProps, getFloatingProps } = useInteractions([click]);
 
         return (
           <>
@@ -1246,7 +1243,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         const click = useClick(context);
         const dismiss = useDismiss(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions(() => [click(), dismiss()]);
+        const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss]);
 
         return (
           <>
@@ -1604,7 +1601,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       });
 
       const click = useClick(context);
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([click]);
 
       return (
         <>
@@ -1681,11 +1678,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       const dismiss = useDismiss(context);
       const click = useClick(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [
-        role(),
-        dismiss(),
-        click(),
-      ]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([role, dismiss, click]);
 
       return (
         <div class="App">
@@ -1732,11 +1725,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       const dismiss = useDismiss(context);
       const click = useClick(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [
-        role(),
-        dismiss(),
-        click(),
-      ]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([role, dismiss, click]);
 
       return (
         <>
@@ -1779,7 +1768,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
         onOpenChange: props.onOpenChange,
       });
       const dismiss = useDismiss(context);
-      const { getFloatingProps } = useInteractions(() => [dismiss()]);
+      const { getFloatingProps } = useInteractions([dismiss]);
 
       return (
         <FloatingFocusManager context={context}>
@@ -1802,7 +1791,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       const dismiss = useDismiss(context);
       const click = useClick(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [click(), dismiss()]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss]);
 
       return (
         <>
@@ -1850,7 +1839,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
       const role = useRole(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [role()]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([role]);
 
       return (
         <>
@@ -1890,7 +1879,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
       const click = useClick(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([click]);
 
       return (
         <>
@@ -1932,7 +1921,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
       const hover = useHover(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [hover()]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
 
       return (
         <>
@@ -1973,7 +1962,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
       const hover = useHover(context);
 
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [hover()]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
 
       return (
         <>
@@ -2030,7 +2019,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
 
         const click = useClick(context);
 
-        const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
+        const { getReferenceProps, getFloatingProps } = useInteractions([click]);
 
         return (
           <>
@@ -2102,7 +2091,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       });
 
       const click = useClick(context);
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([click]);
 
       return (
         <>
@@ -2180,7 +2169,7 @@ describe.skipIf(!isJSDOM)('FloatingFocusManager', () => {
       });
 
       const click = useClick(context);
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [click()]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([click]);
 
       return (
         <>

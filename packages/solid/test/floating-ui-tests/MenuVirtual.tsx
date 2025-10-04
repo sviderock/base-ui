@@ -116,11 +116,11 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
     virtualItemRef: local.virtualItemRef,
   });
 
-  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
-    hover(),
-    role(),
-    dismiss(),
-    listNavigation(),
+  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
+    hover,
+    role,
+    dismiss,
+    listNavigation,
   ]);
 
   // Event emitter allows you to communicate across tree components.

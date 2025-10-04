@@ -37,7 +37,7 @@ const useImpl = (
     enabled: addUseClick,
   });
 
-  const { getReferenceProps, getFloatingProps } = useInteractions(() => [typeahead(), click()]);
+  const { getReferenceProps, getFloatingProps } = useInteractions([typeahead, click]);
 
   return {
     activeIndex,

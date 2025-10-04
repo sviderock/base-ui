@@ -97,7 +97,9 @@ export function matchesFocusVisible(element: Element | null) {
   }
 }
 
-export function getFloatingFocusElement(floatingElement: HTMLElement | null): HTMLElement | null {
+export function getFloatingFocusElement(
+  floatingElement: HTMLElement | null | undefined,
+): HTMLElement | null {
   if (!floatingElement) {
     return null;
   }

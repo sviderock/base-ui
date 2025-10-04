@@ -25,7 +25,7 @@ function App(props: { enabled?: boolean; point?: Coords; axis?: 'both' | 'x' | '
     y: () => merged.point?.y,
     axis: () => merged.axis,
   });
-  const { getReferenceProps, getFloatingProps } = useInteractions(() => [clientPoint()]);
+  const { getReferenceProps, getFloatingProps } = useInteractions([clientPoint]);
 
   const rect = () => elements.reference()?.getBoundingClientRect();
 

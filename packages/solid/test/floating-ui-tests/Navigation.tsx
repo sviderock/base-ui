@@ -64,11 +64,7 @@ export function NavigationItem(props: ItemProps & JSX.HTMLAttributes<HTMLAnchorE
     enabled: hasChildren,
   });
 
-  const { getReferenceProps, getFloatingProps } = useInteractions(() => [
-    hover(),
-    focus(),
-    dismiss(),
-  ]);
+  const { getReferenceProps, getFloatingProps } = useInteractions([hover, focus, dismiss]);
 
   // TODO: fix types
   return (

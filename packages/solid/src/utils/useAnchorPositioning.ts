@@ -159,7 +159,7 @@ export function useAnchorPositioning(
   // Using a ref assumes that the arrow element is always present in the DOM for the lifetime of the
   // popup. If this assumption ends up being false, we can switch to state to manage the arrow's
   // presence.
-  let arrowRef = null as Element | null;
+  let arrowRef = null as Element | null | undefined;
   const shiftDisabled = () =>
     collisionAvoidanceAlign() === 'none' && collisionAvoidanceSide() !== 'shift';
   const crossAxisShiftEnabled = () =>
@@ -429,12 +429,14 @@ export function useAnchorPositioning(
     return {
       positionerStyles: floatingStyles(),
       arrowStyles: arrowStyles(),
-      arrowRef,
       arrowUncentered: arrowUncentered(),
       side: logicalRenderedSide(),
       align: renderedAlign(),
       anchorHidden: anchorHidden(),
-      refs,
+      refs: {
+        ...refs,
+        arrowRef,
+      },
       context,
       isPositioned: isPositioned(),
       update,
@@ -451,7 +453,7 @@ export namespace useAnchorPositioning {
      * By default, the popup will be positioned against the trigger.
      */
     anchor?: MaybeAccessor<
-      Element | null | VirtualElement | (() => Element | VirtualElement | null)
+      Element | null | VirtualElement | (() => Element | VirtualElement | null) | undefined
     >;
     /**
      * Determines which CSS `position` property to use.
@@ -542,12 +544,13 @@ export namespace useAnchorPositioning {
   export interface ReturnValue {
     positionerStyles: JSX.CSSProperties;
     arrowStyles: JSX.CSSProperties;
-    arrowRef: Element | null;
     arrowUncentered: boolean;
     side: Side;
     align: Align;
     anchorHidden: boolean;
-    refs: ReturnType<typeof useFloating>['refs'];
+    refs: ReturnType<typeof useFloating>['refs'] & {
+      arrowRef: Element | null | undefined;
+    };
     context: FloatingContext;
     isPositioned: boolean;
     update: () => void;

@@ -20,7 +20,7 @@ function App(props: UseHoverProps & { showReference?: boolean }) {
   });
 
   const hover = useHover(context, props);
-  const { getReferenceProps, getFloatingProps } = useInteractions(() => [hover()]);
+  const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
 
   return (
     <>
@@ -257,7 +257,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
       });
 
       const hover = useHover(context);
-      const { getReferenceProps, getFloatingProps } = useInteractions(() => [hover()]);
+      const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
 
       return (
         <>

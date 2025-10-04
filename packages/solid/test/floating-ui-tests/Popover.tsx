@@ -139,11 +139,11 @@ function PopoverComponent(props: Props) {
   const role = useRole(context);
   const dismiss = useDismiss(context, { bubbles });
 
-  const { getReferenceProps, getFloatingProps } = useInteractions(() => [
-    hoverInteraction(),
-    click(),
-    role(),
-    dismiss(),
+  const { getReferenceProps, getFloatingProps } = useInteractions([
+    hoverInteraction,
+    click,
+    role,
+    dismiss,
   ]);
 
   return (

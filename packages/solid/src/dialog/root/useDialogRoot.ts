@@ -140,11 +140,7 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
     referenceElement: popupElement,
   });
 
-  const { getReferenceProps, getFloatingProps } = useInteractions(() => [
-    role(),
-    click(),
-    dismiss(),
-  ]);
+  const { getReferenceProps, getFloatingProps } = useInteractions([role, click, dismiss]);
 
   createEffect(() => {
     if (params.onNestedDialogOpen && open()) {

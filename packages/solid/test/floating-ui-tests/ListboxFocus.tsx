@@ -55,11 +55,7 @@ function Listbox(props: { children: JSX.Element }) {
   });
   const role = useRole(context, { role: 'listbox' });
 
-  const { getFloatingProps, getItemProps } = useInteractions(() => [
-    listNav(),
-    typeahead(),
-    role(),
-  ]);
+  const { getFloatingProps, getItemProps } = useInteractions([listNav, typeahead, role]);
 
   const selectContext = {
     activeIndex,

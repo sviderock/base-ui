@@ -31,7 +31,7 @@ function Tooltip(props: Props) {
 
   const { delayRef } = useDelayGroup(context);
   const hover = useHover(context, { delay: delayRef });
-  const { getReferenceProps } = useInteractions(() => [hover()]);
+  const { getReferenceProps } = useInteractions([hover]);
 
   let renderCount = 0;
   let renderCountRef: HTMLSpanElement | undefined;

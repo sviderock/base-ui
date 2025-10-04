@@ -60,7 +60,7 @@ export interface UseHoverProps {
    * handlers.
    * @default true
    */
-  enabled?: MaybeAccessor<boolean>;
+  enabled?: MaybeAccessor<boolean | undefined>;
   /**
    * Accepts an event handler that runs on `mousemove` to control when the
    * floating element closes once the cursor leaves the reference element.
@@ -72,25 +72,25 @@ export interface UseHoverProps {
    * before changing the `open` state.
    * @default 0
    */
-  restMs?: MaybeAccessor<number>;
+  restMs?: MaybeAccessor<number | undefined>;
   /**
    * Waits for the specified time when the event listener runs before changing
    * the `open` state.
    * @default 0
    */
-  delay?: MaybeAccessor<Delay>;
+  delay?: MaybeAccessor<Delay | undefined>;
   /**
    * Whether the logic only runs for mouse input, ignoring touch input.
    * Note: due to a bug with Linux Chrome, "pen" inputs are considered "mouse".
    * @default false
    */
-  mouseOnly?: MaybeAccessor<boolean>;
+  mouseOnly?: MaybeAccessor<boolean | undefined>;
   /**
    * Whether moving the cursor over the floating element will open it, without a
    * regular hover event required.
    * @default true
    */
-  move?: MaybeAccessor<boolean>;
+  move?: MaybeAccessor<boolean | undefined>;
 }
 
 /**

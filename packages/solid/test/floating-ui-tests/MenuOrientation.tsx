@@ -142,13 +142,13 @@ export function MenuComponent(
     activeIndex,
   });
 
-  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(() => [
-    hover(),
-    click(),
-    role(),
-    dismiss(),
-    listNavigation(),
-    typeahead(),
+  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
+    hover,
+    click,
+    role,
+    dismiss,
+    listNavigation,
+    typeahead,
   ]);
 
   // Event emitter allows you to communicate across tree components.
