@@ -68,7 +68,7 @@ describe('<AlertDialog.Close />', () => {
             <AlertDialog.Popup>
               <AlertDialog.Close
                 disabled
-                render={(props) => <span {...props} />}
+                render={(props) => <span {...props()} />}
                 nativeButton={false}
               >
                 Close

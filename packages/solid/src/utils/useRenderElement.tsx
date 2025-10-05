@@ -5,6 +5,7 @@ import {
   Show,
   splitProps,
   Switch,
+  untrack,
   type JSX,
   type Ref,
 } from 'solid-js';
@@ -39,7 +40,7 @@ export function RenderElement<
   const state = () => access(props.params.state) ?? (EMPTY_OBJECT as MaybeAccessorValue<State>);
   const enabled = () => props.params.enabled ?? true;
   const classProp = () => props.componentProps.class;
-  const renderProp = () => props.componentProps.render;
+  const renderProp = untrack(() => props.componentProps.render);
   const disableStyleHooks = () => props.params.disableStyleHooks;
   const customStyleHookMapping = () => props.params.customStyleHookMapping;
   const paramsProps = () => props.params.props;
@@ -102,9 +103,9 @@ export function RenderElement<
     <Switch>
       <Match when={enabled() === false}>{null}</Match>
 
-      <Match when={renderProp()}>
-        <Show when={typeof renderProp() === 'function'} fallback={renderProp() as JSX.Element}>
-          {(renderProp() as Function)(outProps() as any, state())}
+      <Match when={renderProp}>
+        <Show when={typeof renderProp === 'function'} fallback={renderProp as JSX.Element}>
+          <>{(renderProp as Function)(outProps, state)}</>
         </Show>
       </Match>
 

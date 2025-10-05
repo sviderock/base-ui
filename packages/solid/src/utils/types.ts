@@ -1,8 +1,6 @@
-import type { ComponentProps, JSX, Ref } from 'solid-js';
+import type { Accessor, ComponentProps, JSX } from 'solid-js';
 
-export type HTMLProps<T = any> = JSX.HTMLAttributes<T> & {
-  ref?: Ref<T | null | undefined>;
-};
+export type HTMLProps<T = any> = JSX.HTMLAttributes<T>;
 
 export type BaseUIEvent<E extends Event> = E & {
   preventBaseUIHandler: () => void;
@@ -30,7 +28,10 @@ export type WithBaseUIEvent<T> = {
  * @template Props Props to be spread on the rendered element.
  * @template State Component's internal state.
  */
-export type ComponentRenderFn<Props, State> = (props: Props, state: State) => JSX.Element;
+export type ComponentRenderFn<Props, State> = (
+  props: Accessor<Props>,
+  state: Accessor<State>,
+) => JSX.Element;
 
 /**
  * Props shared by all Base UI components.

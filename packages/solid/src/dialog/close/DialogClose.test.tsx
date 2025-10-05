@@ -65,7 +65,7 @@ describe('<Dialog.Close />', () => {
           <Dialog.Trigger>Open</Dialog.Trigger>
           <Dialog.Portal>
             <Dialog.Popup>
-              <Dialog.Close disabled render={(props) => <span {...props} />} nativeButton={false}>
+              <Dialog.Close disabled render={(props) => <span {...props()} />} nativeButton={false}>
                 Close
               </Dialog.Close>
             </Dialog.Popup>

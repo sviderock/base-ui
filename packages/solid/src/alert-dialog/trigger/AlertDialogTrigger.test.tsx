@@ -56,7 +56,7 @@ describe('<AlertDialog.Trigger />', () => {
         <AlertDialog.Root>
           <AlertDialog.Trigger
             disabled
-            render={(props) => <span {...props} />}
+            render={(props) => <span {...props()} />}
             nativeButton={false}
           />
           <AlertDialog.Portal>
