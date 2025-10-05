@@ -163,7 +163,7 @@ export function useDismiss(
     const children = tree ? getNodeChildren(tree.nodesRef, nodeId) : [];
 
     if (!bubbles().escapeKey) {
-      event.stopPropagation();
+      event.stopImmediatePropagation();
 
       if (children.length > 0) {
         let shouldDismiss = true;
@@ -348,10 +348,26 @@ export function useDismiss(
       );
     }
 
-    const doc = getDocument(context.elements.floating());
+    const floating = context.elements.floating();
+    const doc = getDocument(floating);
+
+    const closeOnEscapeKeyDownCapture = (event: KeyboardEvent) => {
+      const callback = () => {
+        closeOnEscapeKeyDown(event);
+        floating?.removeEventListener('keydown', callback);
+      };
+      floating?.addEventListener('keydown', callback);
+    };
 
     if (escapeKey()) {
-      doc.addEventListener('keydown', closeOnEscapeKeyDown, capture().escapeKey);
+      if (capture().escapeKey) {
+        floating?.addEventListener('keydown', closeOnEscapeKeyDownCapture);
+      } else if (bubbles().escapeKey) {
+        doc?.addEventListener('keydown', closeOnEscapeKeyDownCapture);
+      } else {
+        doc.addEventListener('keydown', closeOnEscapeKeyDown);
+      }
+
       doc.addEventListener('compositionstart', handleCompositionStart);
       doc.addEventListener('compositionend', handleCompositionEnd);
     }
@@ -388,7 +404,14 @@ export function useDismiss(
 
     onCleanup(() => {
       if (escapeKey()) {
-        doc.removeEventListener('keydown', closeOnEscapeKeyDown, capture().escapeKey);
+        if (capture().escapeKey) {
+          floating?.removeEventListener('keydown', closeOnEscapeKeyDownCapture);
+        } else if (bubbles().escapeKey) {
+          doc?.removeEventListener('keydown', closeOnEscapeKeyDownCapture);
+        } else {
+          doc.removeEventListener('keydown', closeOnEscapeKeyDown);
+        }
+
         doc.removeEventListener('compositionstart', handleCompositionStart);
         doc.removeEventListener('compositionend', handleCompositionEnd);
       }
@@ -406,13 +429,13 @@ export function useDismiss(
   });
 
   const reference = createMemo<ElementProps['reference']>(() => ({
-    'on:keydown': closeOnEscapeKeyDown,
+    onKeyDown: closeOnEscapeKeyDown,
     ...(referencePress() && {
       [bubbleAndCaptureHandlerKeys[referencePressEvent()]]: (event: Event) => {
         context.onOpenChange(false, event, 'reference-press');
       },
       ...(referencePressEvent() !== 'click' && {
-        'on:click': (event) => {
+        onClick: (event) => {
           context.onOpenChange(false, event, 'reference-press');
         },
       }),
@@ -420,11 +443,11 @@ export function useDismiss(
   }));
 
   const floating = createMemo<ElementProps['floating']>(() => ({
-    'on:keydown': closeOnEscapeKeyDown,
-    'on:mousedown': () => {
+    onKeyDown: closeOnEscapeKeyDown,
+    onMouseDown: () => {
       endedOrStartedInsideRef = true;
     },
-    'on:mouseup': () => {
+    onMouseUp: () => {
       endedOrStartedInsideRef = true;
     },
   }));

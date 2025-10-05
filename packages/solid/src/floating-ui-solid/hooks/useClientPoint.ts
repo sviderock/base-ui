@@ -225,10 +225,10 @@ export function useClientPoint(
     }
 
     return {
-      'on:pointerdown': setPointerTypeRef,
-      'on:pointerenter': setPointerTypeRef,
-      'on:mousemove': handleReferenceEnterOrMove,
-      'on:mouseenter': handleReferenceEnterOrMove,
+      onPointerDown: setPointerTypeRef,
+      onPointerEnter: setPointerTypeRef,
+      onMouseMove: handleReferenceEnterOrMove,
+      onMouseEnter: handleReferenceEnterOrMove,
     };
   });
 

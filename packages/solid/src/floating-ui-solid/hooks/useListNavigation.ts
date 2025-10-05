@@ -810,7 +810,7 @@ export function useListNavigation(
     return {
       'aria-orientation': typesafeOrientation === 'both' ? undefined : typesafeOrientation,
       ...(!typeableComboboxReference() ? ariaActiveDescendantProp() : {}),
-      'on:keydown': (event) => {
+      onKeyDown: (event) => {
         commonOnKeyDown(event);
         // Manually bubble across portals only if propagation wasn't stopped
         // by commonOnKeyDown (mirrors React's natural bubbling behavior).
@@ -823,7 +823,7 @@ export function useListNavigation(
           }
         }
       },
-      'on:pointermove': () => {
+      onPointerMove: () => {
         isPointerModalityRef = true;
       },
     };
@@ -854,7 +854,7 @@ export function useListNavigation(
 
     return {
       ...ariaActiveDescendantProp(),
-      'on:keydown': (event) => {
+      onKeyDown: (event) => {
         isPointerModalityRef = false;
 
         const isArrowKey = event.key.startsWith('Arrow');
@@ -968,16 +968,16 @@ export function useListNavigation(
 
         return undefined;
       },
-      'on:focus': () => {
+      onFocus: () => {
         if (openAtStart && !virtual()) {
           indexRef = -1;
           onNavigate();
         }
       },
-      'on:pointerdown': checkVirtualPointer,
-      'on:pointerenter': checkVirtualPointer,
-      'on:mousedown': checkVirtualMouse,
-      'on:click': checkVirtualMouse,
+      onPointerDown: checkVirtualPointer,
+      onPointerEnter: checkVirtualPointer,
+      onMouseDown: checkVirtualMouse,
+      onClick: checkVirtualMouse,
     };
   });
 

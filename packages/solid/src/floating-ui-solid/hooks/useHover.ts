@@ -250,6 +250,7 @@ export function useHover(
 
       const handler = props.handleClose({
         ...context.dataRef.floatingContext,
+        ...context.dataRef.floatingContext.storeData,
         tree,
         x: event.clientX,
         y: event.clientY,
@@ -295,6 +296,7 @@ export function useHover(
 
     props.handleClose?.({
       ...context.dataRef.floatingContext,
+      ...context.dataRef.floatingContext.storeData,
       tree,
       x: event.clientX,
       y: event.clientY,
@@ -443,9 +445,9 @@ export function useHover(
           context.refs.setReference(null);
         });
       },
-      'on:pointerdown': setPointerRef,
-      'on:pointerenter': setPointerRef,
-      'on:mousemove': (event) => {
+      onPointerDown: setPointerRef,
+      onPointerEnter: setPointerRef,
+      onMouseMove: (event) => {
         function handleMouseMove() {
           if (!blockMouseMoveRef && !context.open()) {
             context.onOpenChange(true, event, 'hover');

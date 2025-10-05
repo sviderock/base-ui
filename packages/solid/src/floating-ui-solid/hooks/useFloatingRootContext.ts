@@ -1,5 +1,5 @@
 import { isElement } from '@floating-ui/utils/dom';
-import { createSignal } from 'solid-js';
+import { createEffect, createMemo, createSignal, on } from 'solid-js';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useId } from '../../utils/useId';
 import { useFloatingParentNodeId } from '../components/FloatingTree';
@@ -67,7 +67,7 @@ export function useFloatingRootContext(
     onOpenChange,
     elements,
     events,
-    floatingId: () => access(floatingId),
+    floatingId,
     refs,
   };
 }

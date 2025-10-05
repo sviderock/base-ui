@@ -180,11 +180,11 @@ export function useTypeahead(
     }
   };
 
-  const reference = createMemo<ElementProps['reference']>(() => ({ 'on:keydown': onKeyDown }));
+  const reference = createMemo<ElementProps['reference']>(() => ({ onKeyDown }));
 
   const floating = createMemo<ElementProps['floating']>(() => ({
-    'on:keydown': onKeyDown,
-    'on:keyup': (event) => {
+    onKeyDown,
+    onKeyUp: (event) => {
       if (event.key === ' ') {
         setTypingChange(false);
       }

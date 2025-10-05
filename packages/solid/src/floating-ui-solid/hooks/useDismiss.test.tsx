@@ -571,6 +571,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
         await waitFor(() => {
           expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
         });
+
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
 
@@ -763,8 +764,8 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
         render(() => (
           <Overlay>
-            <NestedDialog id="outer" capture={() => ({ outsidePress: false })}>
-              <NestedDialog id="inner" capture={() => ({ outsidePress: false })}>
+            <NestedDialog id="outer" capture={{ outsidePress: false }}>
+              <NestedDialog id="inner" capture={{ outsidePress: false }}>
                 {null}
               </NestedDialog>
             </NestedDialog>
@@ -792,8 +793,8 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
         render(() => (
           <Overlay>
-            <NestedDialog id="outer" capture={() => ({ outsidePress: true })}>
-              <NestedDialog id="inner" capture={() => ({ outsidePress: true })}>
+            <NestedDialog id="outer" capture={{ outsidePress: true }}>
+              <NestedDialog id="inner" capture={{ outsidePress: true }}>
                 {null}
               </NestedDialog>
             </NestedDialog>
@@ -822,8 +823,8 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
         render(() => (
           <Overlay>
-            <NestedDialog id="outer" capture={() => ({ escapeKey: false })}>
-              <NestedDialog id="inner" capture={() => ({ escapeKey: false })}>
+            <NestedDialog id="outer" capture={{ escapeKey: false }}>
+              <NestedDialog id="inner" capture={{ escapeKey: false }}>
                 {null}
               </NestedDialog>
             </NestedDialog>
@@ -850,8 +851,8 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
         render(() => (
           <Overlay>
-            <NestedDialog id="outer" capture={() => ({ escapeKey: true })}>
-              <NestedDialog id="inner" capture={() => ({ escapeKey: true })}>
+            <NestedDialog id="outer" capture={{ escapeKey: true }}>
+              <NestedDialog id="inner" capture={{ escapeKey: true }}>
                 {null}
               </NestedDialog>
             </NestedDialog>

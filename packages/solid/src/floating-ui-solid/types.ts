@@ -185,7 +185,7 @@ export type ReferenceType = Element | VirtualElement;
 export type UseFloatingData = Prettify<UseFloatingReturn>;
 
 export type UseFloatingReturn<RT extends ReferenceType = ReferenceType> = Prettify<
-  Accessorify<Omit<UsePositionFloatingReturn, 'refs' | 'elements'>> & {
+  Accessorify<Omit<UsePositionFloatingReturn, 'refs' | 'elements' | 'storeData'>> & {
     /**
      * `FloatingContext`
      */
@@ -195,7 +195,7 @@ export type UseFloatingReturn<RT extends ReferenceType = ReferenceType> = Pretti
      */
     refs: ExtendedRefs<RT>;
     elements: ExtendedElements<RT>;
-  }
+  } & Accessorify<UsePositionFloatingReturn['storeData']>
 >;
 
 // TODO: explain the reasoning for this

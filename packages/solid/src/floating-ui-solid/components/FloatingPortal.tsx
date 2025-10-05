@@ -29,22 +29,22 @@ type FocusManagerState = {
   modal: boolean;
   open: boolean;
   onOpenChange(open: boolean, event?: Event, reason?: OpenChangeReason): void;
-  domReference: Element | null;
+  domReference: Element | null | undefined;
   closeOnFocusOut: boolean;
 } | null;
 
 const PortalContext = createContext<{
   preserveTabOrder: Accessor<boolean>;
-  portalNode: Accessor<HTMLElement | null>;
-  setFocusManagerState: (state: FocusManagerState | null) => void;
-  beforeInsideRef: Accessor<HTMLSpanElement | null>;
-  setBeforeInsideRef: (el: HTMLSpanElement | null) => void;
-  afterInsideRef: Accessor<HTMLSpanElement | null>;
-  setAfterInsideRef: (el: HTMLSpanElement | null) => void;
-  beforeOutsideRef: Accessor<HTMLSpanElement | null>;
-  setBeforeOutsideRef: (el: HTMLSpanElement | null) => void;
-  afterOutsideRef: Accessor<HTMLSpanElement | null>;
-  setAfterOutsideRef: (el: HTMLSpanElement | null) => void;
+  portalNode: Accessor<HTMLElement | null | undefined>;
+  setFocusManagerState: (state: FocusManagerState | null | undefined) => void;
+  beforeInsideRef: Accessor<HTMLSpanElement | null | undefined>;
+  setBeforeInsideRef: (el: HTMLSpanElement | null | undefined) => void;
+  afterInsideRef: Accessor<HTMLSpanElement | null | undefined>;
+  setAfterInsideRef: (el: HTMLSpanElement | null | undefined) => void;
+  beforeOutsideRef: Accessor<HTMLSpanElement | null | undefined>;
+  setBeforeOutsideRef: (el: HTMLSpanElement | null | undefined) => void;
+  afterOutsideRef: Accessor<HTMLSpanElement | null | undefined>;
+  setAfterOutsideRef: (el: HTMLSpanElement | null | undefined) => void;
 }>();
 
 export const usePortalContext = () => useContext(PortalContext);

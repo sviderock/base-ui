@@ -1,6 +1,6 @@
 import { type VirtualElement } from '@floating-ui/dom';
 import { isElement } from '@floating-ui/utils/dom';
-import { type Accessor, createEffect, createMemo, createSignal } from 'solid-js';
+import { type Accessor, createEffect, createMemo, createSignal, on } from 'solid-js';
 import { access } from '../../solid-helpers';
 import { useFloatingTree } from '../components/FloatingTree';
 import type {
@@ -64,7 +64,7 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     // Store the positionReference in state if the DOM reference is specified externally via the
     // `elements.reference` option. This ensures that it won't be overridden on future renders.
     setPositionReferenceRaw(computedPositionReference);
-    position().refs.setReference(computedPositionReference);
+    position.refs.setReference(computedPositionReference);
   };
 
   const setReference = (node: RT | null | undefined) => {
@@ -74,7 +74,7 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
 
     // Backwards-compatibility for passing a virtual element to `reference`
     // after it has set the DOM reference.
-    const reference = position().refs.reference();
+    const reference = position.refs.reference();
     if (
       isElement(reference) ||
       reference == null ||
@@ -83,24 +83,24 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
       // callback ref.
       (node != null && !isElement(node))
     ) {
-      position().refs.setReference(node);
+      position.refs.setReference(node);
     }
   };
 
   const refs = {
-    ...position().refs,
+    ...position.refs,
     setReference,
     setPositionReference,
     domReference,
   };
 
   const elements = {
-    ...position().elements,
+    ...position.elements,
     domReference,
   };
 
   const context: FloatingContext<RT> = {
-    ...position(),
+    ...position,
     ...rootContext,
     refs,
     elements,
@@ -121,17 +121,18 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     }
   });
 
+  // TODO: no memoizing causes an infinite loop in useAnchorPositioning
   return {
-    update: position().update,
-    floatingStyles: () => position().floatingStyles,
-    isPositioned: () => position().isPositioned,
-    placement: () => position().placement,
-    strategy: () => position().strategy,
-    middlewareData: () => position().middlewareData,
-    x: () => position().x,
-    y: () => position().y,
+    update: position.update,
+    floatingStyles: position.floatingStyles,
+    isPositioned: () => position.storeData.isPositioned,
+    placement: () => position.storeData.placement,
+    strategy: () => position.storeData.strategy,
+    middlewareData: () => position.storeData.middlewareData,
+    x: () => position.storeData.x,
+    y: () => position.storeData.y,
     context,
     refs,
     elements,
-  } as UseFloatingReturn<RT>;
+  } satisfies UseFloatingReturn<RT>;
 }

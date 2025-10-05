@@ -112,10 +112,10 @@ export function useFocus(
   });
 
   const reference = createMemo<ElementProps['reference']>(() => ({
-    'on:mouseleave': () => {
+    onMouseLeave: () => {
       blockFocusRef = false;
     },
-    'on:focus': (event) => {
+    onFocus: (event) => {
       if (blockFocusRef) {
         return;
       }
@@ -136,7 +136,7 @@ export function useFocus(
 
       context.onOpenChange(true, event, 'focus');
     },
-    'on:blur': (event) => {
+    onBlur: (event) => {
       blockFocusRef = false;
       const relatedTarget = event.relatedTarget;
 
