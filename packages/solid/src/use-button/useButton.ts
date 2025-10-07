@@ -28,27 +28,8 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
     isNativeButton,
   });
 
-  // TODO: fix typing and explain this
-  function unpackHandlers<T extends Record<string, unknown>>(
-    handlers: T,
-    handlerItem: <E extends Event | BaseUIEvent<Event>>(data: {
-      event: E;
-      handler: any;
-      handlerKey: keyof T;
-    }) => void,
-  ): Record<keyof T, any> {
-    return Object.entries(handlers).reduce(
-      (acc, [handlerKey, handlerFn]: [keyof T, any]) => {
-        acc[handlerKey] = (event: any) =>
-          handlerItem({ event, handler: handlerFn as any, handlerKey });
-        return acc;
-      },
-      {} as Record<keyof T, any>,
-    );
-  }
-
   // handles a disabled composite button rendering another button, e.g.
-  // <Toolbar.Button disabled render={<Menu.Trigger />} />
+  // <Toolbar.Button disabled render={() => <Menu.Trigger />} />
   // the `disabled` prop needs to pass through 2 `useButton`s then finally
   // delete the `disabled` attribute from DOM
   createEffect(() => {
@@ -69,107 +50,83 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
 
   // TODO: fix typing in the whole function
   function getButtonProps(externalProps: GenericButtonProps = {}) {
-    const [
-      clickHandlers,
-      mouseDownHandlers,
-      keyUpHandlers,
-      keyDownHandlers,
-      pointerDownHandlers,
-      otherExternalProps,
-    ] = splitProps(
-      externalProps,
-      ['onClick', 'onclick', 'on:click'],
-      ['onMouseDown', 'onmousedown', 'on:mousedown'],
-      ['onKeyUp', 'onkeyup', 'on:keyup'],
-      ['onKeyDown', 'onkeydown', 'on:keydown'],
-      ['onPointerDown', 'onpointerdown', 'on:pointerdown'],
-    );
-
-    const unpackedClickHandlers = unpackHandlers(clickHandlers, ({ event, handler }) => {
-      if (disabled()) {
-        event.preventDefault();
-        return;
-      }
-      callEventHandler(handler, event as any);
-    });
-
-    const unpackedMouseDownHandlers = unpackHandlers(mouseDownHandlers, ({ event, handler }) => {
-      if (!disabled()) {
-        callEventHandler(handler as any, event as any);
-      }
-    });
-
-    const unpackedKeyDownHandlers = unpackHandlers(keyDownHandlers, ({ event, handler }) => {
-      if (!disabled()) {
-        makeEventPreventable(event as any);
-        callEventHandler(handler as any, event as any);
-      }
-
-      if ((event as any).baseUIHandlerPrevented) {
-        return;
-      }
-
-      // Keyboard accessibility for non interactive elements
-      if (
-        event.target === event.currentTarget &&
-        !isNativeButton() &&
-        !isValidLink() &&
-        (event as any).key === 'Enter' &&
-        !disabled()
-      ) {
-        // TODO: probably not the best way to do this
-        const clickHandler = Object.values(unpackedClickHandlers)[0];
-        clickHandler?.(event as any);
-        event.preventDefault();
-      }
-    });
-
-    const unpackedKeyUpHandlers = unpackHandlers(keyUpHandlers, ({ event, handler }) => {
-      // calling preventDefault in keyUp on a <button> will not dispatch a click event if Space is pressed
-      // https://codesandbox.io/p/sandbox/button-keyup-preventdefault-dn7f0
-      // Keyboard accessibility for non interactive elements
-      if (!disabled()) {
-        makeEventPreventable(event as any);
-        callEventHandler(handler as any, event as any);
-      }
-
-      if ((event as any).baseUIHandlerPrevented) {
-        return;
-      }
-
-      if (
-        event.target === event.currentTarget &&
-        !isNativeButton() &&
-        !disabled() &&
-        (event as any).key === ' '
-      ) {
-        // TODO: fix this
-        const clickHandler = Object.values(unpackedClickHandlers)[0];
-        clickHandler?.(event as any);
-      }
-    });
-
-    const unpackedPointerDownHandlers = unpackHandlers(
-      pointerDownHandlers,
-      ({ event, handler }) => {
-        if (disabled()) {
-          event.preventDefault();
-          return;
-        }
-        callEventHandler(handler as any, event as any);
-      },
-    );
+    const [local, otherExternalProps] = splitProps(externalProps, [
+      'onClick',
+      'onMouseDown',
+      'onKeyUp',
+      'onKeyDown',
+      'onPointerDown',
+    ]);
 
     const type = isNativeButton() ? 'button' : undefined;
 
     return mergeProps<'button'>(
       {
         type,
-        ...unpackedClickHandlers,
-        ...unpackedMouseDownHandlers,
-        ...unpackedKeyDownHandlers,
-        ...unpackedKeyUpHandlers,
-        ...unpackedPointerDownHandlers,
+        onClick(event) {
+          if (disabled()) {
+            event.preventDefault();
+            return;
+          }
+          callEventHandler(local.onClick, event);
+        },
+        onMouseDown(event) {
+          if (!disabled()) {
+            callEventHandler(local.onMouseDown, event);
+          }
+        },
+        onKeyDown(event) {
+          if (!disabled()) {
+            makeEventPreventable(event);
+            callEventHandler(local.onKeyDown, event);
+          }
+
+          if ((event as any).baseUIHandlerPrevented) {
+            return;
+          }
+
+          // Keyboard accessibility for non interactive elements
+          if (
+            event.target === event.currentTarget &&
+            !isNativeButton() &&
+            !isValidLink() &&
+            (event as any).key === 'Enter' &&
+            !disabled()
+          ) {
+            callEventHandler(local.onClick, event as any);
+            event.preventDefault();
+          }
+        },
+        onKeyUp(event) {
+          // calling preventDefault in keyUp on a <button> will not dispatch a click event if Space is pressed
+          // https://codesandbox.io/p/sandbox/button-keyup-preventdefault-dn7f0
+          // Keyboard accessibility for non interactive elements
+          if (!disabled()) {
+            makeEventPreventable(event);
+            callEventHandler(local.onKeyUp, event);
+          }
+
+          if (event.baseUIHandlerPrevented) {
+            return;
+          }
+
+          if (
+            event.target === event.currentTarget &&
+            !isNativeButton() &&
+            !disabled() &&
+            event.key === ' '
+          ) {
+            // TODO: fix this
+            callEventHandler(local.onClick, event as any);
+          }
+        },
+        onPointerDown(event) {
+          if (disabled()) {
+            event.preventDefault();
+            return;
+          }
+          callEventHandler(local.onPointerDown, event);
+        },
       },
       !isNativeButton() ? { role: 'button' } : undefined,
       focusableWhenDisabledProps(),
@@ -185,11 +142,7 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
   };
 }
 
-interface GenericButtonProps
-  extends Omit<HTMLProps, 'onClick' | 'on:click'>,
-    AdditionalButtonProps {
-  onClick?: (event: MouseEvent) => void;
-  'on:click'?: (event: MouseEvent) => void;
+interface GenericButtonProps extends HTMLProps, AdditionalButtonProps {
   tabIndex?: number;
 }
 

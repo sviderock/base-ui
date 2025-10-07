@@ -1,5 +1,12 @@
 import { isHTMLElement } from '@floating-ui/utils/dom';
-import { createEffect, createMemo, createSignal, onCleanup, type Accessor } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+  onMount,
+  type Accessor,
+} from 'solid-js';
 import {
   activeElement,
   contains,
@@ -600,7 +607,11 @@ export function useListNavigation(
     // If the floating element is animating out, ignore navigation. Otherwise,
     // the `activeIndex` gets set to 0 despite not being open so the next time
     // the user ArrowDowns, the first item won't be focused.
-    if (!context.open() && event.currentTarget === floatingFocusElement()) {
+    if (
+      !context.open() &&
+      event.currentTarget === floatingFocusElement() &&
+      !context.dataRef.__closing
+    ) {
       return;
     }
 
@@ -609,6 +620,11 @@ export function useListNavigation(
       // let the parent navigate. Otherwise, stop propagating the event.
       if (!isMainOrientationKey(event.key, getParentOrientation())) {
         stopEvent(event);
+
+        if (context.dataRef.__closing) {
+          event.stopImmediatePropagation();
+          delete context.dataRef.__closing;
+        }
       }
 
       context.onOpenChange(false, event, 'list-navigation');

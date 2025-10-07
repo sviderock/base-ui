@@ -85,7 +85,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     test('does not dismiss with escape key if IME is active', async () => {
       const onClose = vi.fn();
 
-      render(() => <App onClose={onClose} escapeKey={() => true} />);
+      render(() => <App onClose={onClose} escapeKey={true} />);
 
       const textbox = screen.getByRole('textbox');
 
@@ -118,28 +118,28 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     });
 
     test('dismisses with reference press', async () => {
-      render(() => <App referencePress={() => true} />);
+      render(() => <App referencePress={true} />);
       await userEvent.click(screen.getByRole('button'));
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
       cleanup();
     });
 
     test('dismisses with native click', async () => {
-      render(() => <App referencePress={() => true} />);
+      render(() => <App referencePress={true} />);
       fireEvent.click(screen.getByRole('button'));
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
       cleanup();
     });
 
     test('dismisses with ancestor scroll', async () => {
-      render(() => <App ancestorScroll={() => true} />);
+      render(() => <App ancestorScroll={true} />);
       fireEvent.scroll(window);
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
       cleanup();
     });
 
     test('outsidePress function guard', async () => {
-      render(() => <App outsidePress={() => false} />);
+      render(() => <App outsidePress={false} />);
       await userEvent.click(document.body);
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
       cleanup();
@@ -282,28 +282,28 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
   describe('false', () => {
     test('dismisses with escape key', () => {
-      render(() => <App escapeKey={() => false} />);
+      render(() => <App escapeKey={false} />);
       fireEvent.keyDown(document.body, { key: 'Escape' });
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
       cleanup();
     });
 
     test('dismisses with outside press', async () => {
-      render(() => <App outsidePress={() => false} />);
+      render(() => <App outsidePress={false} />);
       await userEvent.click(document.body);
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
       cleanup();
     });
 
     test('dismisses with reference pointer down', async () => {
-      render(() => <App referencePress={() => false} />);
+      render(() => <App referencePress={false} />);
       await userEvent.click(screen.getByRole('button'));
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
       cleanup();
     });
 
     test('dismisses with ancestor scroll', async () => {
-      render(() => <App ancestorScroll={() => false} />);
+      render(() => <App ancestorScroll={false} />);
       fireEvent.scroll(window);
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
       cleanup();
@@ -346,7 +346,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     });
 
     test('outsidePress function guard', async () => {
-      render(() => <App outsidePress={() => true} />);
+      render(() => <App outsidePress={true} />);
       await userEvent.click(document.body);
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
       cleanup();
@@ -460,8 +460,8 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
       test('false', async () => {
         render(() => (
-          <NestedDialog testId="outer" bubbles={() => ({ outsidePress: false })}>
-            <NestedDialog testId="inner" bubbles={() => ({ outsidePress: false })}>
+          <NestedDialog testId="outer" bubbles={{ outsidePress: false }}>
+            <NestedDialog testId="inner" bubbles={{ outsidePress: false }}>
               <button>test button</button>
             </NestedDialog>
           </NestedDialog>
@@ -484,8 +484,8 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
       test('mixed', async () => {
         render(() => (
-          <NestedDialog testId="outer" bubbles={() => ({ outsidePress: true })}>
-            <NestedDialog testId="inner" bubbles={() => ({ outsidePress: false })}>
+          <NestedDialog testId="outer" bubbles={{ outsidePress: true }}>
+            <NestedDialog testId="inner" bubbles={{ outsidePress: false }}>
               <button>test button</button>
             </NestedDialog>
           </NestedDialog>
@@ -577,8 +577,8 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
       test('true', async () => {
         render(() => (
-          <NestedDialog testId="outer" bubbles={() => true}>
-            <NestedDialog testId="inner" bubbles={() => true}>
+          <NestedDialog testId="outer" bubbles={true}>
+            <NestedDialog testId="inner" bubbles={true}>
               <button>test button</button>
             </NestedDialog>
           </NestedDialog>
@@ -595,8 +595,8 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       });
       test('false', async () => {
         render(() => (
-          <NestedDialog testId="outer" bubbles={() => ({ escapeKey: false })}>
-            <NestedDialog testId="inner" bubbles={() => ({ escapeKey: false })}>
+          <NestedDialog testId="outer" bubbles={{ escapeKey: false }}>
+            <NestedDialog testId="inner" bubbles={{ escapeKey: false }}>
               <button>test button</button>
             </NestedDialog>
           </NestedDialog>
@@ -619,8 +619,8 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
       test('mixed', async () => {
         render(() => (
-          <NestedDialog testId="outer" bubbles={() => ({ escapeKey: true })}>
-            <NestedDialog testId="inner" bubbles={() => ({ escapeKey: false })}>
+          <NestedDialog testId="outer" bubbles={{ escapeKey: true }}>
+            <NestedDialog testId="inner" bubbles={{ escapeKey: false }}>
               <button>test button</button>
             </NestedDialog>
           </NestedDialog>
@@ -631,6 +631,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
         await userEvent.keyboard('{Escape}');
 
+        screen.debug();
         expect(screen.getByTestId('outer')).toBeInTheDocument();
         expect(screen.queryByTestId('inner')).not.toBeInTheDocument();
 
@@ -864,6 +865,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
         await user.keyboard('{Escape}');
 
+        screen.debug();
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.queryByText('inner')).not.toBeInTheDocument();
 
@@ -878,7 +880,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
   describe('outsidePressEvent click', () => {
     test('dragging outside the floating element does not close', () => {
-      render(() => <App outsidePressEvent={() => 'click'} />);
+      render(() => <App outsidePressEvent={'click'} />);
       const floatingEl = screen.getByRole('tooltip');
       fireEvent.mouseDown(floatingEl);
       fireEvent.mouseUp(document.body);
@@ -887,7 +889,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     });
 
     test('dragging inside the floating element does not close', () => {
-      render(() => <App outsidePressEvent={() => 'click'} />);
+      render(() => <App outsidePressEvent={'click'} />);
       const floatingEl = screen.getByRole('tooltip');
       fireEvent.mouseDown(document.body);
       fireEvent.mouseUp(floatingEl);
@@ -896,7 +898,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     });
 
     test('dragging outside the floating element then clicking outside closes', async () => {
-      render(() => <App outsidePressEvent={() => 'click'} />);
+      render(() => <App outsidePressEvent={'click'} />);
       const floatingEl = screen.getByRole('tooltip');
       fireEvent.mouseDown(floatingEl);
       fireEvent.mouseUp(document.body);

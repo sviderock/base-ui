@@ -1,6 +1,5 @@
 'use client';
 import { Show, splitProps } from 'solid-js';
-import { handleRef } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
@@ -21,7 +20,11 @@ export function ScrollAreaCorner(componentProps: ScrollAreaCorner.Props) {
         element="div"
         componentProps={componentProps}
         ref={(el) => {
-          handleRef(componentProps.ref, el);
+          if (typeof componentProps.ref === 'function') {
+            componentProps.ref(el);
+          } else {
+            componentProps.ref = el;
+          }
           context.refs.cornerRef = el;
         }}
         params={{
@@ -35,8 +38,7 @@ export function ScrollAreaCorner(componentProps: ScrollAreaCorner.Props) {
                 height: `${context.cornerSize.height}px`,
               },
             },
-            // TODO: fix typing
-            elementProps as any,
+            elementProps,
           ],
         }}
       />

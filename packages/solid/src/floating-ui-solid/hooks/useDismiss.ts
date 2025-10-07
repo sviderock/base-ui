@@ -83,7 +83,7 @@ export interface UseDismissProps {
    * ```
    * @default true
    */
-  outsidePress?: MaybeAccessor<boolean> | ((event: MouseEvent) => boolean);
+  outsidePress?: boolean | ((event: MouseEvent) => boolean);
   /**
    * The type of event to use to determine an outside “press”.
    * - `pointerdown` is eager on both mouse + touch input.
@@ -126,13 +126,8 @@ export function useDismiss(
   const ancestorScroll = () => access(props.ancestorScroll) ?? false;
 
   const outsidePress = createMemo(() => {
-    // If it's an accessor
-    if (typeof props.outsidePress === 'function' && props.outsidePress.length === 0) {
-      return (props.outsidePress as Accessor<boolean>)();
-    }
-
     // If it's an event callback
-    if (typeof props.outsidePress === 'function' && props.outsidePress.length === 1) {
+    if (typeof props.outsidePress === 'function') {
       return props.outsidePress;
     }
 
@@ -148,6 +143,10 @@ export function useDismiss(
   let isComposingRef = false;
 
   const closeOnEscapeKeyDown = (event: KeyboardEvent) => {
+    if (!event.currentTarget) {
+      return;
+    }
+
     if (!context.open() || !enabled() || !escapeKey() || event.key !== 'Escape') {
       return;
     }
@@ -159,27 +158,31 @@ export function useDismiss(
     }
 
     const nodeId = context.dataRef.floatingContext?.nodeId();
+    const floatingId = context.dataRef.floatingContext?.floatingId();
 
-    const children = tree ? getNodeChildren(tree.nodesRef, nodeId) : [];
+    const children = tree
+      ? getNodeChildren(tree.nodesRef, nodeId)
+      : getNodeChildren(context.dataRef.virtualFloatingTree, floatingId);
 
-    if (!bubbles().escapeKey) {
-      event.stopImmediatePropagation();
-
-      if (children.length > 0) {
-        let shouldDismiss = true;
-
-        children.forEach((child) => {
-          if (child.context?.open() && !child.context.dataRef.__escapeKeyBubbles) {
-            shouldDismiss = false;
-          }
-        });
-
-        if (!shouldDismiss) {
-          return;
+    let shouldDismiss = true;
+    if (children.length > 0) {
+      for (const child of children) {
+        if (child.context?.open() && !child.context.dataRef.__escapeKeyBubbles) {
+          shouldDismiss = false;
+          break;
         }
       }
     }
 
+    if (!shouldDismiss) {
+      return;
+    }
+
+    if (!bubbles().escapeKey) {
+      event.stopImmediatePropagation();
+    }
+
+    context.dataRef.__closing = true;
     context.onOpenChange(false, event, 'escape-key');
   };
 
@@ -351,29 +354,22 @@ export function useDismiss(
     const floating = context.elements.floating();
     const doc = getDocument(floating);
 
-    const closeOnEscapeKeyDownCapture = (event: KeyboardEvent) => {
-      const callback = () => {
-        closeOnEscapeKeyDown(event);
-        floating?.removeEventListener('keydown', callback);
-      };
-      floating?.addEventListener('keydown', callback);
-    };
-
     if (escapeKey()) {
-      if (capture().escapeKey) {
-        floating?.addEventListener('keydown', closeOnEscapeKeyDownCapture);
-      } else if (bubbles().escapeKey) {
-        doc?.addEventListener('keydown', closeOnEscapeKeyDownCapture);
-      } else {
-        doc.addEventListener('keydown', closeOnEscapeKeyDown);
-      }
-
+      doc.addEventListener('keydown', closeOnEscapeKeyDown, capture().escapeKey);
       doc.addEventListener('compositionstart', handleCompositionStart);
       doc.addEventListener('compositionend', handleCompositionEnd);
+      onCleanup(() => {
+        doc.removeEventListener('keydown', closeOnEscapeKeyDown, capture().escapeKey);
+        doc.removeEventListener('compositionstart', handleCompositionStart);
+        doc.removeEventListener('compositionend', handleCompositionEnd);
+      });
     }
 
     if (outsidePress()) {
       doc.addEventListener(outsidePressEvent(), closeOnPressOutside, capture().outsidePress);
+      onCleanup(() => {
+        doc.removeEventListener(outsidePressEvent(), closeOnPressOutside, capture().outsidePress);
+      });
     }
 
     let ancestors: (Element | Window | VisualViewport)[] = [];
@@ -396,34 +392,14 @@ export function useDismiss(
     }
 
     // Ignore the visual viewport for scrolling dismissal (allow pinch-zoom)
-    ancestors = ancestors.filter((ancestor) => ancestor !== doc.defaultView?.visualViewport);
-
-    ancestors.forEach((ancestor) => {
-      ancestor.addEventListener('scroll', onScroll, { passive: true });
-    });
-
-    onCleanup(() => {
-      if (escapeKey()) {
-        if (capture().escapeKey) {
-          floating?.removeEventListener('keydown', closeOnEscapeKeyDownCapture);
-        } else if (bubbles().escapeKey) {
-          doc?.removeEventListener('keydown', closeOnEscapeKeyDownCapture);
-        } else {
-          doc.removeEventListener('keydown', closeOnEscapeKeyDown);
-        }
-
-        doc.removeEventListener('compositionstart', handleCompositionStart);
-        doc.removeEventListener('compositionend', handleCompositionEnd);
-      }
-
-      if (outsidePress()) {
-        doc.removeEventListener(outsidePressEvent(), closeOnPressOutside, capture().outsidePress);
-      }
-
-      ancestors.forEach((ancestor) => {
-        ancestor.removeEventListener('scroll', onScroll);
+    ancestors
+      .filter((ancestor) => ancestor !== doc.defaultView?.visualViewport)
+      .forEach((ancestor) => {
+        ancestor.addEventListener('scroll', onScroll, { passive: true });
+        onCleanup(() => ancestor.removeEventListener('scroll', onScroll));
       });
 
+    onCleanup(() => {
       compositionTimeout.clear();
     });
   });
@@ -442,15 +418,17 @@ export function useDismiss(
     }),
   }));
 
-  const floating = createMemo<ElementProps['floating']>(() => ({
-    onKeyDown: closeOnEscapeKeyDown,
-    onMouseDown: () => {
-      endedOrStartedInsideRef = true;
-    },
-    onMouseUp: () => {
-      endedOrStartedInsideRef = true;
-    },
-  }));
+  const floating = createMemo<ElementProps['floating']>(() => {
+    return {
+      onKeyDown: closeOnEscapeKeyDown,
+      onMouseDown: () => {
+        endedOrStartedInsideRef = true;
+      },
+      onMouseUp: () => {
+        endedOrStartedInsideRef = true;
+      },
+    };
+  });
 
   const returnValue = createMemo<ElementProps>(() => {
     if (!enabled()) {

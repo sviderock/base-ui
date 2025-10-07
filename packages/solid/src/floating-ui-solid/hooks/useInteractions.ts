@@ -40,7 +40,7 @@ export function useInteractions(
         referenceList.push(userProps);
       }
 
-      const combined = combineProps(referenceList, { reverseEventHandlers: true });
+      const combined = combineProps(referenceList);
 
       return combined;
     },
@@ -55,7 +55,7 @@ export function useInteractions(
         list.push(userProps);
       }
 
-      const combined = combineProps(list, { reverseEventHandlers: true });
+      const combined = combineProps(list);
 
       return combined;
     },
@@ -76,7 +76,7 @@ export function useInteractions(
         typeof item === 'function' ? item(userProps ?? {}) : item,
       );
 
-      const combined = combineProps(list, { reverseEventHandlers: true });
+      const combined = combineProps(list);
 
       return combined;
     },

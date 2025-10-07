@@ -1,6 +1,6 @@
 'use client';
 import { createEffect, onCleanup, type ComponentProps } from 'solid-js';
-import { access, handleRef, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useControlled } from '../../utils';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
@@ -98,7 +98,11 @@ export function FieldControl(componentProps: FieldControl.Props) {
       element="input"
       componentProps={componentProps}
       ref={(el) => {
-        handleRef(componentProps.ref, el);
+        if (typeof componentProps.ref === 'function') {
+          componentProps.ref(el);
+        } else {
+          componentProps.ref = el;
+        }
         refs.inputRef = el;
       }}
       params={{

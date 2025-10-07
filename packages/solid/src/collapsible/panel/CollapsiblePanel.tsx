@@ -1,6 +1,5 @@
 'use client';
 import { type Accessor, createEffect, type JSX, onCleanup, Show, splitProps } from 'solid-js';
-import { handleRef } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
 import { RenderElement } from '../../utils/useRenderElement';
@@ -109,7 +108,11 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
         element="div"
         componentProps={componentProps}
         ref={(el) => {
-          handleRef(componentProps.ref, el);
+          if (typeof componentProps.ref === 'function') {
+            componentProps.ref(el);
+          } else {
+            componentProps.ref = el;
+          }
           context.refs.panelRef = el;
           panel.ref = el;
         }}

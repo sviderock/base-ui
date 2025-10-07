@@ -1,6 +1,6 @@
 'use client';
-import { splitProps, type JSX } from 'solid-js';
-import { handleRef, type MaybeAccessor } from '../../solid-helpers';
+import { splitProps } from 'solid-js';
+import { type MaybeAccessor } from '../../solid-helpers';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
@@ -34,7 +34,11 @@ export function DialogBackdrop(componentProps: DialogBackdrop.Props) {
       element="div"
       componentProps={componentProps}
       ref={(el) => {
-        handleRef(componentProps.ref, el);
+        if (typeof componentProps.ref === 'function') {
+          componentProps.ref(el);
+        } else {
+          componentProps.ref = el;
+        }
         refs.backdropRef = el;
       }}
       params={{

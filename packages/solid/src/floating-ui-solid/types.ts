@@ -123,6 +123,7 @@ export interface FloatingEvents {
 export interface ContextData {
   openEvent?: Event;
   floatingContext?: FloatingContext;
+  virtualFloatingTree: Array<FloatingNodeType<ReferenceType>>;
   /** @deprecated use `onTypingChange` prop in `useTypeahead` */
   typing?: boolean;
   [key: string]: any;

@@ -1,6 +1,5 @@
 'use client';
-import { splitProps } from 'solid-js';
-import { handleRef } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useCompositeItem } from './useCompositeItem';
@@ -9,24 +8,23 @@ import { useCompositeItem } from './useCompositeItem';
  * @internal
  */
 export function CompositeItem<Metadata>(componentProps: CompositeItem.Props<Metadata>) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'render',
-    'class',
-    'itemRef',
-    'metadata',
-  ]);
+  const [, local, elementProps] = splitComponentProps(componentProps, ['itemRef', 'metadata']);
 
   const compositeItem = useCompositeItem({ metadata: () => local.metadata });
 
   return (
     <RenderElement
       element="div"
+      componentProps={componentProps}
       ref={(el) => {
-        handleRef(componentProps.ref, el);
+        if (typeof componentProps.ref === 'function') {
+          componentProps.ref(el);
+        } else {
+          componentProps.ref = el;
+        }
         componentProps.itemRef = el;
         compositeItem.setRef(el);
       }}
-      componentProps={componentProps}
       params={{ props: [compositeItem.props(), elementProps] }}
     />
   );

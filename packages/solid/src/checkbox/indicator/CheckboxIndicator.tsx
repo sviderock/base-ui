@@ -1,7 +1,7 @@
 'use client';
 import { createMemo, Show } from 'solid-js';
 import { fieldValidityMapping } from '../../field/utils/constants';
-import { access, handleRef, MaybeAccessor, splitComponentProps } from '../../solid-helpers';
+import { access, MaybeAccessor, splitComponentProps } from '../../solid-helpers';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -58,7 +58,11 @@ export function CheckboxIndicator(componentProps: CheckboxIndicator.Props) {
         element="span"
         componentProps={componentProps}
         ref={(el) => {
-          handleRef(componentProps.ref, el);
+          if (typeof componentProps.ref === 'function') {
+            componentProps.ref(el);
+          } else {
+            componentProps.ref = el;
+          }
           indicatorRef = el;
         }}
         params={{

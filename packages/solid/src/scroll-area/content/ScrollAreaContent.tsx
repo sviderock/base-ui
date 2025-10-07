@@ -1,6 +1,5 @@
 'use client';
 import { onCleanup, onMount, splitProps } from 'solid-js';
-import { handleRef } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useScrollAreaViewportContext } from '../viewport/ScrollAreaViewportContext';
@@ -39,7 +38,11 @@ export function ScrollAreaContent(componentProps: ScrollAreaContent.Props) {
       element="div"
       componentProps={componentProps}
       ref={(el) => {
-        handleRef(componentProps.ref, el);
+        if (typeof componentProps.ref === 'function') {
+          componentProps.ref(el);
+        } else {
+          componentProps.ref = el;
+        }
         contentWrapperRef = el;
       }}
       params={{

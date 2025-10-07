@@ -14,7 +14,6 @@ import {
   useHover,
   useInteractions,
 } from '../../src/floating-ui-solid';
-import { handleRef } from '../../src/solid-helpers';
 
 interface SubItemProps {
   label: string;
@@ -66,14 +65,17 @@ export function NavigationItem(props: ItemProps & JSX.HTMLAttributes<HTMLAnchorE
 
   const { getReferenceProps, getFloatingProps } = useInteractions([hover, focus, dismiss]);
 
-  // TODO: fix types
   return (
     <FloatingNode id={nodeId()}>
       <li>
         <a
           href={local.href}
           ref={(el) => {
-            handleRef(elementProps.ref, el);
+            if (typeof elementProps.ref === 'function') {
+              elementProps.ref(el);
+            } else {
+              elementProps.ref = el;
+            }
             refs.setReference(el);
           }}
           class="bg-slate-100 my-1 flex w-48 items-center justify-between rounded p-2"

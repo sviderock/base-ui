@@ -144,14 +144,11 @@ export function useCompositeRoot<Metadata>(
     return {
       'aria-orientation': orientationValue === 'both' ? undefined : orientationValue,
       // We need to capture the focus event in order to also trigger the focus event on the root element
-      'on:focus': {
-        capture: true,
-        handleEvent: (event) => {
-          if (!rootRef() || !isNativeInput(event.target)) {
-            return;
-          }
-          event.target.setSelectionRange(0, event.target.value.length ?? 0);
-        },
+      onFocus(event) {
+        if (!rootRef() || !isNativeInput(event.target)) {
+          return;
+        }
+        event.target.setSelectionRange(0, event.target.value.length ?? 0);
       },
       onKeyDown(event) {
         const RELEVANT_KEYS = enableHomeAndEndKeys() ? ALL_KEYS : ARROW_KEYS;

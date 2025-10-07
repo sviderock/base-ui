@@ -1,7 +1,15 @@
 'use client';
 
 import { getAlignment, getSide, getSideAxis, type Rect } from '@floating-ui/utils';
-import { createEffect, createMemo, onCleanup, type Accessor, type JSX } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+  type Accessor,
+  type JSX,
+  type Setter,
+} from 'solid-js';
 import { useDirection } from '../direction-provider/DirectionContext';
 import {
   arrow,
@@ -102,9 +110,9 @@ export type CollisionAvoidance = SideFlipMode | SideShiftMode;
  */
 export function useAnchorPositioning(
   params: useAnchorPositioning.Parameters,
-): Accessor<useAnchorPositioning.ReturnValue> {
+): useAnchorPositioning.ReturnValue {
   // Public parameters
-  const anchor = () => access(params.anchor);
+  const anchor = createMemo(() => access(params.anchor));
   const positionMethod = () => access(params.positionMethod) ?? 'absolute';
   const sideParam = () => access(params.side) ?? 'bottom';
   const sideOffset = () => access(params.sideOffset) ?? 0;
@@ -159,7 +167,7 @@ export function useAnchorPositioning(
   // Using a ref assumes that the arrow element is always present in the DOM for the lifetime of the
   // popup. If this assumption ends up being false, we can switch to state to manage the arrow's
   // presence.
-  let arrowRef = null as Element | null | undefined;
+  const [arrowRef, setArrowRef] = createSignal<Element | null | undefined>(null);
   const shiftDisabled = () =>
     collisionAvoidanceAlign() === 'none' && collisionAvoidanceSide() !== 'shift';
   const crossAxisShiftEnabled = () =>
@@ -215,10 +223,10 @@ export function useAnchorPositioning(
                 sticky() || shiftCrossAxis()
                   ? undefined
                   : limitShift(() => {
-                      if (!arrowRef) {
+                      if (!arrowRef()) {
                         return {};
                       }
-                      const { height } = arrowRef.getBoundingClientRect();
+                      const { height } = arrowRef()!.getBoundingClientRect();
                       const padding = collisionPadding();
                       return {
                         offset: height / 2 + (typeof padding === 'number' ? padding : 0),
@@ -249,7 +257,7 @@ export function useAnchorPositioning(
     return arrow(() => ({
       // `transform-origin` calculations rely on an element existing. If the arrow hasn't been set,
       // we'll create a fake element.
-      element: arrowRef || document.createElement('div'),
+      element: arrowRef() || document.createElement('div'),
       padding: arrowPadding(),
     }));
   });
@@ -264,8 +272,8 @@ export function useAnchorPositioning(
         const currentRenderedAxis = getSideAxis(currentRenderedSide);
         const arrowX = middlewareData.arrow?.x || 0;
         const arrowY = middlewareData.arrow?.y || 0;
-        const arrowWidth = arrowRef?.clientWidth || 0;
-        const arrowHeight = arrowRef?.clientHeight || 0;
+        const arrowWidth = arrowRef()?.clientWidth || 0;
+        const arrowHeight = arrowRef()?.clientHeight || 0;
         const transformX = arrowX + arrowWidth / 2;
         const transformY = arrowY + arrowHeight / 2;
         const shiftY = Math.abs(middlewareData.shift?.y || 0);
@@ -359,7 +367,6 @@ export function useAnchorPositioning(
       const options = autoUpdateOptions();
       return keepMounted() ? () => undefined : () => autoUpdate(...args, options);
     },
-
     nodeId,
   });
 
@@ -417,7 +424,7 @@ export function useAnchorPositioning(
   const renderedAlign = () => getAlignment(renderedPlacement()) || 'center';
   const anchorHidden = () => Boolean(middlewareData().hide?.referenceHidden);
 
-  const arrowStyles = createMemo<useAnchorPositioning.ReturnValue['arrowStyles']>(() => ({
+  const arrowStyles = createMemo<JSX.CSSProperties>(() => ({
     position: 'absolute' as const,
     top: `${middlewareData().arrow?.y || 0}px`,
     left: `${middlewareData().arrow?.x || 0}px`,
@@ -425,25 +432,22 @@ export function useAnchorPositioning(
 
   const arrowUncentered = () => middlewareData().arrow?.centerOffset !== 0;
 
-  const returnValue = createMemo<useAnchorPositioning.ReturnValue>(() => {
-    return {
-      positionerStyles: floatingStyles(),
-      arrowStyles: arrowStyles(),
-      arrowUncentered: arrowUncentered(),
-      side: logicalRenderedSide(),
-      align: renderedAlign(),
-      anchorHidden: anchorHidden(),
-      refs: {
-        ...refs,
-        arrowRef,
-      },
-      context,
-      isPositioned: isPositioned(),
-      update,
-    };
-  });
-
-  return returnValue;
+  return {
+    positionerStyles: floatingStyles,
+    arrowStyles,
+    arrowUncentered,
+    side: logicalRenderedSide,
+    align: renderedAlign,
+    anchorHidden,
+    refs: {
+      ...refs,
+      arrowRef,
+      setArrowRef,
+    },
+    context,
+    isPositioned,
+    update,
+  };
 }
 
 export namespace useAnchorPositioning {
@@ -542,17 +546,18 @@ export namespace useAnchorPositioning {
   }
 
   export interface ReturnValue {
-    positionerStyles: JSX.CSSProperties;
-    arrowStyles: JSX.CSSProperties;
-    arrowUncentered: boolean;
-    side: Side;
-    align: Align;
-    anchorHidden: boolean;
+    positionerStyles: Accessor<JSX.CSSProperties>;
+    arrowStyles: Accessor<JSX.CSSProperties>;
+    arrowUncentered: Accessor<boolean>;
+    side: Accessor<Side>;
+    align: Accessor<Align>;
+    anchorHidden: Accessor<boolean>;
     refs: ReturnType<typeof useFloating>['refs'] & {
-      arrowRef: Element | null | undefined;
+      arrowRef: Accessor<Element | null | undefined>;
+      setArrowRef: Setter<Element | null | undefined>;
     };
     context: FloatingContext;
-    isPositioned: boolean;
+    isPositioned: Accessor<boolean>;
     update: () => void;
   }
 }

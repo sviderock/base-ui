@@ -1,7 +1,7 @@
 'use client';
 import { splitProps } from 'solid-js';
 import { useDialogClose } from '../../dialog/close/useDialogClose';
-import { type MaybeAccessor, access, handleRef } from '../../solid-helpers';
+import { type MaybeAccessor, access } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
@@ -37,7 +37,11 @@ export function AlertDialogClose(componentProps: AlertDialogClose.Props) {
       element="button"
       componentProps={componentProps}
       ref={(el) => {
-        handleRef(componentProps.ref, el);
+        if (typeof componentProps.ref === 'function') {
+          componentProps.ref(el);
+        } else {
+          componentProps.ref = el;
+        }
         dialogCloseRef(el);
       }}
       params={{ state, props: [elementProps, getRootProps] }}

@@ -1,6 +1,5 @@
 'use client';
 import { createMemo, mergeProps, splitProps, type JSX } from 'solid-js';
-import { handleRef } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
@@ -55,7 +54,11 @@ export function CollapsibleTrigger(componentProps: CollapsibleTrigger.Props): JS
       element="button"
       componentProps={componentProps}
       ref={(el) => {
-        handleRef(componentProps.ref, el);
+        if (typeof componentProps.ref === 'function') {
+          componentProps.ref(el);
+        } else {
+          componentProps.ref = el;
+        }
         button.buttonRef(el);
       }}
       params={{

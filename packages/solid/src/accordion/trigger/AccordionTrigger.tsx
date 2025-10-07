@@ -1,7 +1,7 @@
 'use client';
 import { createEffect, createMemo, onCleanup, splitProps, type JSX } from 'solid-js';
 import { useCollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
-import { access, handleRef, type MaybeAccessor } from '../../solid-helpers';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping';
 import { BaseUIComponentProps } from '../../utils/types';
@@ -63,7 +63,11 @@ export function AccordionTrigger(componentProps: AccordionTrigger.Props) {
       element="button"
       componentProps={componentProps}
       ref={(el) => {
-        handleRef(componentProps.ref, el);
+        if (typeof componentProps.ref === 'function') {
+          componentProps.ref(el);
+        } else {
+          componentProps.ref = el;
+        }
         buttonRef(el);
       }}
       params={{

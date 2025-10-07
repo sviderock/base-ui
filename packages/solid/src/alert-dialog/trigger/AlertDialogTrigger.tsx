@@ -1,6 +1,6 @@
 'use client';
 import { splitProps } from 'solid-js';
-import { access, handleRef, type MaybeAccessor } from '../../solid-helpers';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -40,7 +40,11 @@ export function AlertDialogTrigger(componentProps: AlertDialogTrigger.Props) {
       element="button"
       componentProps={componentProps}
       ref={(el) => {
-        handleRef(componentProps.ref, el);
+        if (typeof componentProps.ref === 'function') {
+          componentProps.ref(el);
+        } else {
+          componentProps.ref = el;
+        }
         buttonRef(el);
         setTriggerElement(el);
       }}

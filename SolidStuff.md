@@ -15,3 +15,4 @@
 - most likely jest-dom versions of react and solid differ as for some reason toBeInTheDocument doesn't work for Solid version when checking against iframe and toBeTruthy needs to be used
 - in Solid the empty attributes like `aria-hidden` should be passed as `aria-hidden="true"` contrary to the simplified React's version as Solid renders empty attrivutes with an empty string value (`aria-hidden=""`)
 - `use-button` required some amount of rework as in Solid we have three kinds of the same handler, e.g. for click we have `onClick`, `onclick` and `on:click`
+- `render` prop needs manual ref set: `render={(props) => <div ref={el => props.ref(el) />}`

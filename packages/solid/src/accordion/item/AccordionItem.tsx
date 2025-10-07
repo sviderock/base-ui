@@ -1,10 +1,10 @@
 'use client';
-import { createEffect, createMemo, createSignal, splitProps } from 'solid-js';
+import { createMemo, createSignal, splitProps } from 'solid-js';
 import type { CollapsibleRoot } from '../../collapsible/root/CollapsibleRoot';
 import { CollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
 import { useCollapsibleRoot } from '../../collapsible/root/useCollapsibleRoot';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
-import { type MaybeAccessor, access, handleRef } from '../../solid-helpers';
+import { type MaybeAccessor, access } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { RenderElement } from '../../utils/useRenderElement';
@@ -105,7 +105,11 @@ export function AccordionItem(componentProps: AccordionItem.Props) {
           element="div"
           componentProps={componentProps}
           ref={(el) => {
-            handleRef(componentProps.ref, el);
+            if (typeof componentProps.ref === 'function') {
+              componentProps.ref(el);
+            } else {
+              componentProps.ref = el;
+            }
             setListItemRef(el);
           }}
           params={{

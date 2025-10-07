@@ -104,7 +104,10 @@ export function RenderElement<
       <Match when={enabled() === false}>{null}</Match>
 
       <Match when={renderProp}>
-        <Show when={typeof renderProp === 'function'} fallback={renderProp as JSX.Element}>
+        <Show
+          when={typeof renderProp === 'function' && renderProp}
+          fallback={renderProp as JSX.Element}
+        >
           <>{(renderProp as Function)(outProps, state)}</>
         </Show>
       </Match>

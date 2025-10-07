@@ -2,7 +2,7 @@
 import { splitProps, type JSX } from 'solid-js';
 import { useDialogPopup } from '../../dialog/popup/useDialogPopup';
 import { FloatingFocusManager } from '../../floating-ui-solid';
-import { access, handleRef, type MaybeAccessor } from '../../solid-helpers';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { inertValue } from '../../utils/inertValue';
 import { InternalBackdrop } from '../../utils/InternalBackdrop';
@@ -112,8 +112,12 @@ export function AlertDialogPopup(componentProps: AlertDialogPopup.Props) {
           componentProps={componentProps}
           ref={(el) => {
             refs.popupRef = el;
-            handleRef(componentProps.ref, el);
             dialogPopupRef(el);
+            if (typeof componentProps.ref === 'function') {
+              componentProps.ref(el);
+            } else {
+              componentProps.ref = el;
+            }
           }}
           params={{
             state,

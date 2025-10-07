@@ -34,7 +34,7 @@ import {
   useListNavigation,
   useRole,
 } from '../../src/floating-ui-solid';
-import { callEventHandler, handleRef, type ReactLikeRef } from '../../src/solid-helpers';
+import { callEventHandler, type ReactLikeRef } from '../../src/solid-helpers';
 
 type MenuContextType = {
   getItemProps: (userProps?: JSX.HTMLAttributes<HTMLElement>) => Record<string, unknown>;
@@ -196,7 +196,11 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
           ref={(el) => {
             refs.setReference(el);
             item.setRef(el);
-            handleRef(props.ref, el);
+            if (typeof props.ref === 'function') {
+              props.ref(el);
+            } else {
+              props.ref = el;
+            }
           }}
           data-open={isOpen() ? '' : undefined}
           tabIndex={-1}
@@ -242,7 +246,11 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
           ref={(el) => {
             refs.setReference(el);
             item.setRef(el);
-            handleRef(props.ref, el);
+            if (typeof props.ref === 'function') {
+              props.ref(el);
+            } else {
+              props.ref = el;
+            }
           }}
           id={id}
           data-open={isOpen() ? '' : undefined}
@@ -314,7 +322,11 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLElement>)
       id={id}
       ref={(el) => {
         item.setRef(el);
-        handleRef(props.ref, el);
+        if (typeof props.ref === 'function') {
+          props.ref(el);
+        } else {
+          props.ref = el;
+        }
       }}
       role="option"
       tabIndex={-1}

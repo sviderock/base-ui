@@ -1,6 +1,5 @@
 'use client';
 import { splitProps, type Accessor } from 'solid-js';
-import { handleRef } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
@@ -27,7 +26,11 @@ export function ScrollAreaThumb(componentProps: ScrollAreaThumb.Props) {
       element="div"
       componentProps={componentProps}
       ref={(el) => {
-        handleRef(componentProps.ref, el);
+        if (typeof componentProps.ref === 'function') {
+          componentProps.ref(el);
+        } else {
+          componentProps.ref = el;
+        }
         if (scrollbarContext.orientation() === 'vertical') {
           rootContext.refs.thumbYRef = el;
         } else {

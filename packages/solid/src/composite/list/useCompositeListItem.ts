@@ -85,12 +85,16 @@ export function useCompositeListItem<Metadata extends MaybeAccessor<unknown>>(
       if (node) {
         context.unregister(node);
         context.unsubscribeMapChange(onMapChange);
+        context.refs.elements = context.refs.elements.filter((_, i) => i !== index());
+        if (context.refs.labels) {
+          context.refs.labels = context.refs.labels.filter((_, i) => i !== index());
+        }
       }
     });
   });
 
   return {
-    setRef: setComponentRef,
     index,
+    setRef: setComponentRef,
   };
 }

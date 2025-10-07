@@ -35,7 +35,7 @@ import {
   useRole,
   useTypeahead,
 } from '../../src/floating-ui-solid';
-import { callEventHandler, handleRef } from '../../src/solid-helpers';
+import { callEventHandler } from '../../src/solid-helpers';
 
 type MenuContextType = {
   getItemProps: ReturnType<typeof useInteractions>['getItemProps'];
@@ -220,7 +220,11 @@ export function MenuComponent(
         ref={(el) => {
           refs.setReference(el);
           item.setRef(el);
-          handleRef(props.ref, el);
+          if (typeof props.ref === 'function') {
+            props.ref(el);
+          } else {
+            props.ref = el;
+          }
         }}
         data-open={isOpen() ? '' : undefined}
         // eslint-disable-next-line no-nested-ternary
@@ -332,7 +336,11 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLButtonEle
       {...elementProps}
       ref={(el) => {
         item.setRef(el);
-        handleRef(props.ref, el);
+        if (typeof props.ref === 'function') {
+          props.ref(el);
+        } else {
+          props.ref = el;
+        }
       }}
       type="button"
       role="menuitem"

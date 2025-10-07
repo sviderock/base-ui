@@ -52,7 +52,9 @@ export function CompositeRoot<Metadata extends {}>(componentProps: CompositeRoot
       <CompositeList<Metadata> refs={compositeRoot.refs} onMapChange={onMapChange}>
         <RenderElement
           element="div"
-          ref={compositeRoot.setRootRef}
+          ref={(el) => {
+            compositeRoot.setRootRef(el);
+          }}
           componentProps={componentProps}
           params={{
             state: COMPOSITE_ROOT_STATE,

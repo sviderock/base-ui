@@ -1,7 +1,6 @@
 'use client';
 import { Accessor, createEffect, onCleanup, Show, splitProps } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
-import { handleRef } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
@@ -104,7 +103,11 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
           element="div"
           componentProps={componentProps}
           ref={(el) => {
-            handleRef(componentProps.ref, el);
+            if (typeof componentProps.ref === 'function') {
+              componentProps.ref(el);
+            } else {
+              componentProps.ref = el;
+            }
             if (orientation() === 'vertical') {
               context.refs.scrollbarYRef = el;
             } else {

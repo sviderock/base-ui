@@ -1,7 +1,6 @@
 'use client';
 import { createEffect, on, onCleanup, splitProps } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
-import { handleRef } from '../../solid-helpers';
 import { clamp } from '../../utils/clamp';
 import { styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -204,8 +203,12 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
         componentProps={componentProps}
         ref={(el) => {
           viewportEl = el;
-          handleRef(componentProps.ref, el);
           context.refs.viewportRef = el;
+          if (typeof componentProps.ref === 'function') {
+            componentProps.ref(el);
+          } else {
+            componentProps.ref = el;
+          }
         }}
         params={{
           props: [
