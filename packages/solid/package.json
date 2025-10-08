@@ -43,6 +43,7 @@
     "./menu": "./src/menu/index.ts",
     "./menubar": "./src/menubar/index.ts",
     "./merge-props": "./src/merge-props/index.ts",
+    "./meter": "./src/meter/index.ts",
     "./scroll-area": "./src/scroll-area/index.ts",
     "./separator": "./src/separator/index.ts",
     "./solid-helpers": "./src/solid-helpers.ts",
