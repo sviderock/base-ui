@@ -1,6 +1,5 @@
 'use client';
-import { createEffect, createRenderEffect, onCleanup } from 'solid-js';
-import { createStore } from 'solid-js/store';
+import { batch, createEffect, createSignal, on, onCleanup } from 'solid-js';
 import { access, type MaybeAccessor } from '../solid-helpers';
 import { AnimationFrame } from './useAnimationFrame';
 
@@ -17,87 +16,77 @@ export function useTransitionStatus(
   deferEndingState: MaybeAccessor<boolean> = false,
 ) {
   const openProp = () => access(open);
-  const enableIdleStateProp = () => access(enableIdleState);
-  const deferEndingStateProp = () => access(deferEndingState);
+  const enableIdleStateProp = () => access(enableIdleState) ?? false;
+  const deferEndingStateProp = () => access(deferEndingState) ?? false;
+  const [mounted, setMounted] = createSignal(openProp());
+  const [transitionStatus, setTransitionStatus] = createSignal<TransitionStatus>(
+    openProp() && enableIdleStateProp() ? 'idle' : undefined,
+  );
 
-  const [state, setState] = createStore<{ mounted: boolean; transitionStatus: TransitionStatus }>({
-    mounted: openProp(),
-    transitionStatus: openProp() && enableIdleStateProp() ? 'idle' : undefined,
-  });
+  function updateState(newMounted: boolean) {
+    batch(() => {
+      setMounted(newMounted);
 
-  createEffect(() => {
-    setState((prev) => {
-      if (openProp() && !prev.mounted) {
-        return { mounted: true, transitionStatus: 'starting' };
+      if (openProp() && !newMounted) {
+        setMounted(true);
+        setTransitionStatus('starting');
+        return;
       }
 
-      if (
-        !openProp() &&
-        prev.mounted &&
-        prev.transitionStatus !== 'ending' &&
-        !deferEndingStateProp()
-      ) {
-        return { ...prev, transitionStatus: 'ending' };
+      if (!openProp() && newMounted && transitionStatus() !== 'ending' && !deferEndingStateProp()) {
+        setTransitionStatus('ending');
+        return;
       }
 
-      if (!openProp() && !prev.mounted && prev.transitionStatus === 'ending') {
-        return { ...prev, transitionStatus: undefined };
+      if (!openProp() && !newMounted && transitionStatus() === 'ending') {
+        setTransitionStatus(undefined);
+        return;
       }
 
-      return prev;
+      if (mounted() && !newMounted && !openProp() && transitionStatus() !== 'ending') {
+        setTransitionStatus('ending');
+        return;
+      }
+
+      if (newMounted === false && mounted() && !openProp() && transitionStatus() === 'ending') {
+        setMounted(false);
+        setTransitionStatus(undefined);
+        return;
+      }
     });
-  });
+  }
+
+  createEffect(
+    on([openProp, enableIdleStateProp, deferEndingStateProp, mounted, transitionStatus], () => {
+      updateState(mounted());
+    }),
+  );
 
   createEffect(() => {
-    if (
-      !openProp() &&
-      state.mounted &&
-      state.transitionStatus !== 'ending' &&
-      deferEndingStateProp()
-    ) {
-      const frame = AnimationFrame.request(() => {
-        setState('transitionStatus', 'ending');
-      });
-
-      onCleanup(() => {
-        AnimationFrame.cancel(frame);
-      });
+    if (!openProp() && mounted() && transitionStatus() !== 'ending' && deferEndingStateProp()) {
+      const frame = AnimationFrame.request(() => setTransitionStatus('ending'));
+      onCleanup(() => AnimationFrame.cancel(frame));
     }
   });
 
   createEffect(() => {
-    if (!openProp() || enableIdleStateProp()) {
+    if (!openProp()) {
       return;
     }
 
-    const frame = AnimationFrame.request(() => {
-      setState('transitionStatus', undefined);
-    });
-
-    onCleanup(() => {
-      AnimationFrame.cancel(frame);
-    });
-  });
-
-  createRenderEffect(() => {
-    if (!openProp() || !enableIdleStateProp()) {
-      return;
+    if (mounted() && enableIdleStateProp() && transitionStatus() !== 'idle') {
+      setTransitionStatus('starting');
     }
 
-    if (openProp() && state.mounted && state.transitionStatus !== 'idle') {
-      setState('transitionStatus', 'starting');
-    }
-
-    const frame = AnimationFrame.request(() => {
-      setState('transitionStatus', 'idle');
-    });
-
-    onCleanup(() => {
-      AnimationFrame.cancel(frame);
-    });
-
-    return;
+    const frame = AnimationFrame.request(() =>
+      setTransitionStatus(enableIdleStateProp() ? 'idle' : undefined),
+    );
+    onCleanup(() => AnimationFrame.cancel(frame));
   });
 
-  return [state, setState] as const;
+  return {
+    mounted,
+    transitionStatus,
+    setMounted: updateState,
+  };
 }

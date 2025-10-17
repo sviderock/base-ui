@@ -127,7 +127,7 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   let isMountedRef = false;
 
   function update() {
-    if (!reference() || !floating()) {
+    if (!referenceEl() || !floatingEl()) {
       return;
     }
 
@@ -142,7 +142,7 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
       config.platform = platform;
     }
 
-    computePosition(reference()!, floating()!, config).then((computedData) => {
+    computePosition(referenceEl()!, floatingEl()!, config).then((computedData) => {
       const fullData = {
         ...computedData,
         // The floating element's position may be recomputed while it's closed
@@ -173,7 +173,7 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   createEffect(() => {
     if (referenceEl() && floatingEl()) {
       if (options.whileElementsMounted) {
-        options.whileElementsMounted(referenceEl()!, floatingEl()!, update);
+        options.whileElementsMounted(referenceEl()!, floatingEl()!, update)();
         return;
       }
 

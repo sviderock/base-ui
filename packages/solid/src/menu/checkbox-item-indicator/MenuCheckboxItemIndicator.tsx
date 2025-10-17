@@ -22,14 +22,14 @@ export function MenuCheckboxItemIndicator(componentProps: MenuCheckboxItemIndica
 
   let indicatorRef = null as HTMLSpanElement | null | undefined;
 
-  const [transitionStatus, setTransitionStatus] = useTransitionStatus(item.checked);
+  const { transitionStatus, setMounted } = useTransitionStatus(item.checked);
 
   useOpenChangeComplete({
     open: item.checked,
     ref: () => indicatorRef,
     onComplete() {
       if (!item.checked()) {
-        setTransitionStatus('mounted', false);
+        setMounted(false);
       }
     },
   });
@@ -38,7 +38,7 @@ export function MenuCheckboxItemIndicator(componentProps: MenuCheckboxItemIndica
     checked: item.checked,
     disabled: item.disabled,
     highlighted: item.highlighted,
-    transitionStatus: () => transitionStatus.transitionStatus,
+    transitionStatus,
   };
 
   return (

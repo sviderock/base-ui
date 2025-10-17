@@ -28,7 +28,7 @@ export function useCollapsibleRoot(
     state: 'open',
   });
 
-  const [state, setState] = useTransitionStatus(open, true, true);
+  const { transitionStatus, setMounted, mounted } = useTransitionStatus(open, true, true);
   const [visible, setVisible] = createSignal(open());
   const [dimensions, setDimensions] = createSignal<Dimensions>({
     height: undefined,
@@ -63,8 +63,8 @@ export function useCollapsibleRoot(
 
     if (!hiddenUntilFound() && !keepMounted()) {
       if (animationType() != null && animationType() !== 'css-animation') {
-        if (!state.mounted && nextOpen) {
-          setState('mounted', true);
+        if (!mounted() && nextOpen) {
+          setMounted(true);
         }
       }
 
@@ -72,8 +72,8 @@ export function useCollapsibleRoot(
         if (!visible() && nextOpen) {
           setVisible(true);
         }
-        if (!state.mounted && nextOpen) {
-          setState('mounted', true);
+        if (!mounted() && nextOpen) {
+          setMounted(true);
         }
       }
     }
@@ -82,8 +82,8 @@ export function useCollapsibleRoot(
     parameters.onOpenChange(nextOpen);
 
     if (animationType() === 'none') {
-      if (state.mounted && !nextOpen) {
-        setState('mounted', false);
+      if (mounted() && !nextOpen) {
+        setMounted(false);
       }
     }
   }
@@ -95,7 +95,7 @@ export function useCollapsibleRoot(
        * and no CSS animations or transitions are applied
        */
       if (isControlled() && animationType() === 'none' && !keepMounted() && !open()) {
-        setState('mounted', false);
+        setMounted(false);
       }
     }),
   );
@@ -107,7 +107,7 @@ export function useCollapsibleRoot(
     disabled,
     handleTrigger,
     height: () => dimensions().height,
-    mounted: () => state.mounted,
+    mounted,
     open,
     panelId,
     refs,
@@ -115,13 +115,13 @@ export function useCollapsibleRoot(
     setDimensions,
     setHiddenUntilFound,
     setKeepMounted,
-    setMounted: (mounted) => setState('mounted', mounted),
+    setMounted,
     setOpen,
     setPanelIdState,
     setVisible,
     transitionDimension,
     setTransitionDimension,
-    transitionStatus: () => state.transitionStatus,
+    transitionStatus,
     visible,
     width: () => dimensions().width,
   };

@@ -1,4 +1,5 @@
 import {
+  children,
   createContext,
   createEffect,
   createMemo,
@@ -99,7 +100,6 @@ export function useFloatingPortalNode(props: UseFloatingPortalNodeProps = {}) {
         if (!access(props.preserveTabOrder) || access(props.modal)) {
           return;
         }
-
         if (isOutsideEvent(event)) {
           const focusing = event.type === 'focusin';
           const manageFocus = focusing ? enableFocusInside : disableFocusInside;
@@ -120,7 +120,7 @@ export function useFloatingPortalNode(props: UseFloatingPortalNodeProps = {}) {
     }
   }
 
-  return { portalMount, portalRef, portalNode };
+  return { portalMount, portalRef, portalNode, uniqueId };
 }
 
 export interface FloatingPortalProps {
@@ -165,6 +165,8 @@ export function FloatingPortal(props: FloatingPortalProps): JSX.Element {
   const [afterOutsideRef, setAfterOutsideRef] = createSignal<HTMLSpanElement | null>(null);
   const [beforeInsideRef, setBeforeInsideRef] = createSignal<HTMLSpanElement | null>(null);
   const [afterInsideRef, setAfterInsideRef] = createSignal<HTMLSpanElement | null>(null);
+  const [portalMounted, setPortalMounted] = createSignal(false);
+  const resolvedChildren = children(() => portalMounted() && props.children);
 
   const shouldRenderGuards = () =>
     // The FocusManager and therefore floating element are currently open/

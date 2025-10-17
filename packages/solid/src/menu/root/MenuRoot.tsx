@@ -171,11 +171,11 @@ export function MenuRoot(props: MenuRoot.Props) {
     });
   });
 
-  const [transitionStatus, setTransitionStatus] = useTransitionStatus(open);
+  const { transitionStatus, setMounted, mounted } = useTransitionStatus(open);
 
   useScrollLock({
     enabled: () => open() && modal() && lastOpenChangeReason() !== 'trigger-hover',
-    mounted: () => transitionStatus.mounted,
+    mounted,
     open,
     referenceElement: positionerRef,
   });
@@ -188,7 +188,7 @@ export function MenuRoot(props: MenuRoot.Props) {
 
   const handleUnmount = () => {
     batch(() => {
-      setTransitionStatus('mounted', false);
+      setMounted(false);
       setStickIfOpen(true);
       setAllowMouseEnter(false);
       props.onOpenChangeComplete?.(false);
@@ -490,7 +490,7 @@ export function MenuRoot(props: MenuRoot.Props) {
     triggerProps,
     itemDomElements,
     itemLabels,
-    mounted: () => transitionStatus.mounted,
+    mounted,
     open,
     popupRef,
     setPopupRef,
@@ -501,7 +501,7 @@ export function MenuRoot(props: MenuRoot.Props) {
     setAllowMouseUpTriggerRef,
     triggerElement,
     setTriggerElement,
-    transitionStatus: () => transitionStatus.transitionStatus,
+    transitionStatus,
     lastOpenChangeReason,
     instantType,
     // eslint-disable-next-line solid/reactivity

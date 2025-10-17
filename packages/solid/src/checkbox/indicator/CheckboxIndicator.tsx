@@ -26,7 +26,7 @@ export function CheckboxIndicator(componentProps: CheckboxIndicator.Props) {
 
   const rendered = () => rootState().checked || rootState().indeterminate;
 
-  const [transitionStatus, setTransitionStatus] = useTransitionStatus(rendered());
+  const { transitionStatus, setMounted } = useTransitionStatus(rendered);
 
   let indicatorRef = null as HTMLSpanElement | null | undefined;
 
@@ -35,7 +35,7 @@ export function CheckboxIndicator(componentProps: CheckboxIndicator.Props) {
     ref: () => indicatorRef,
     onComplete() {
       if (!rendered()) {
-        setTransitionStatus('mounted', false);
+        setMounted(false);
       }
     },
   });
@@ -69,7 +69,7 @@ export function CheckboxIndicator(componentProps: CheckboxIndicator.Props) {
           enabled: shouldRender(),
           state: {
             ...rootState(),
-            transitionStatus: transitionStatus.transitionStatus,
+            transitionStatus: transitionStatus(),
           },
           customStyleHookMapping: customStyleHookMapping(),
           props: elementProps,

@@ -56,7 +56,7 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
   const [triggerElement, setTriggerElement] = createSignal<Element | null>(null);
   const [popupElement, setPopupElement] = createSignal<HTMLElement | null>(null);
 
-  const [transitionStatus, setTransitionStatus] = useTransitionStatus(open);
+  const { transitionStatus, setMounted, mounted } = useTransitionStatus(open);
 
   const setOpen = (
     nextOpen: boolean,
@@ -68,7 +68,7 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
   };
 
   const handleUnmount = () => {
-    setTransitionStatus('mounted', false);
+    setMounted(false);
     params.onOpenChangeComplete?.(false);
   };
 
@@ -135,7 +135,7 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
 
   useScrollLock({
     enabled: () => open() && modal() === true,
-    mounted: transitionStatus.mounted,
+    mounted,
     open,
     referenceElement: popupElement,
   });
@@ -182,8 +182,8 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
     onNestedDialogClose: handleNestedDialogClose,
     nestedOpenDialogCount: ownNestedOpenDialogs,
     openMethod,
-    mounted: () => transitionStatus.mounted,
-    transitionStatus: () => transitionStatus.transitionStatus,
+    mounted,
+    transitionStatus,
     triggerProps: dialogTriggerProps,
     getPopupProps: getFloatingProps,
     setTriggerElement,
