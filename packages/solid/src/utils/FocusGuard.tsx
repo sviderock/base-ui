@@ -23,7 +23,6 @@ export function FocusGuard(props: ComponentProps<'span'>) {
     <span
       {...props}
       ref={props.ref}
-      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
       tabIndex={0}
       role={role()}
       aria-hidden={role() ? undefined : true}

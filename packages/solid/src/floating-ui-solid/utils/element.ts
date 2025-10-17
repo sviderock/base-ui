@@ -13,7 +13,7 @@ export function activeElement(doc: Document) {
   return element;
 }
 
-export function contains(parent?: Element | null, child?: Element | null) {
+export function contains(parent?: Element | null | undefined, child?: Element | null | undefined) {
   if (!parent || !child) {
     return false;
   }

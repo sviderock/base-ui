@@ -1,5 +1,4 @@
-import { onMount, splitProps, type Accessor, type JSX, type Ref, type SplitProps } from 'solid-js';
-import type { ComponentPropsToOmit } from './utils/useRenderElement';
+import { onMount, splitProps, type Accessor, type JSX, type SplitProps } from 'solid-js';
 
 export function callEventHandler<T, E extends Event>(
   eventHandler: JSX.EventHandlerUnion<T, E> | undefined,

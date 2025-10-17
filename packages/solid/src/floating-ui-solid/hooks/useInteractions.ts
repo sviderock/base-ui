@@ -26,6 +26,8 @@ export interface UseInteractionsReturn {
  * event handler functions to be composed together without overwriting one
  * another.
  * @see https://floating-ui.com/docs/useInteractions
+ *
+ * TODO: Object.assign from proxy is probably not the best way to do it
  */
 export function useInteractions(
   propsList: Array<Accessor<ElementProps> | void> = [],
@@ -42,7 +44,7 @@ export function useInteractions(
 
       const combined = combineProps(referenceList);
 
-      return combined;
+      return Object.assign({}, combined);
     },
     getFloatingProps(userProps) {
       const list = propsList
@@ -57,7 +59,7 @@ export function useInteractions(
 
       const combined = combineProps(list);
 
-      return combined;
+      return Object.assign({}, combined);
     },
     getItemProps(userProps) {
       let list: ElementProps['item'][] = propsList
@@ -78,7 +80,7 @@ export function useInteractions(
 
       const combined = combineProps(list);
 
-      return combined;
+      return Object.assign({}, combined);
     },
   };
 }

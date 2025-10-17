@@ -1,6 +1,6 @@
 import { type VirtualElement } from '@floating-ui/dom';
 import { isElement } from '@floating-ui/utils/dom';
-import { type Accessor, createEffect, createMemo, createSignal, on, onMount } from 'solid-js';
+import { type Accessor, createEffect, createMemo, createSignal } from 'solid-js';
 import { access } from '../../solid-helpers';
 import { useFloatingTree } from '../components/FloatingTree';
 import type {

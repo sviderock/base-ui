@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createSignal, onCleanup, onMount, type ParentProps } from 'solid-js';
+import { batch, createSignal, onCleanup, onMount, type ParentProps } from 'solid-js';
 import { CompositeRoot } from '../composite/root/CompositeRoot';
 import {
   FloatingNode,
@@ -70,18 +70,20 @@ export function Menubar(props: Menubar.Props) {
                 element="div"
                 componentProps={props}
                 ref={(el) => {
-                  if (typeof props.ref === 'function') {
-                    props.ref(el);
-                  } else {
-                    props.ref = el;
-                  }
-                  setContentElement(el);
-                  contentRef = el;
-                  p().ref(el);
+                  batch(() => {
+                    if (typeof props.ref === 'function') {
+                      props.ref(el);
+                    } else {
+                      props.ref = el;
+                    }
+                    setContentElement(el);
+                    contentRef = el;
+                    p().ref(el);
+                  });
                 }}
                 params={{
                   state,
-                  props: [{ role: 'menubar', id: id() }, otherProps, p()],
+                  props: [p(), { role: 'menubar', id: id() }, otherProps],
                 }}
               />
             )}

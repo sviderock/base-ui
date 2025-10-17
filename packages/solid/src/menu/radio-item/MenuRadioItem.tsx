@@ -1,6 +1,5 @@
 'use client';
-import { createAsync } from '@solidjs/router';
-import { createEffect, splitProps, type Accessor, type JSX } from 'solid-js';
+import { splitProps, type Accessor, type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { FloatingEvents, useFloatingTree } from '../../floating-ui-solid';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
@@ -77,7 +76,6 @@ function InnerMenuRadioItem(componentProps: InnerMenuRadioItemProps) {
             role: 'menuitemradio',
             'aria-checked': checked(),
             onClick: (event) => {
-              console.trace('onClick', { checked: checked() });
               local.setChecked(event);
             },
           },

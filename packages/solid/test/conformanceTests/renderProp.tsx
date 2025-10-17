@@ -69,14 +69,28 @@ export function testRenderProp(
     });
 
     it('should pass the ref to the custom component', () => {
-      let instanceFromRef;
+      let instanceFromRef: any;
 
       function Test() {
         return (
           <Dynamic
             component={element}
             ref={instanceFromRef}
-            render={(props) => <Wrapper {...props} />}
+            render={(props) => {
+              return (
+                <Wrapper
+                  {...props()}
+                  ref={(el) => {
+                    instanceFromRef = el;
+                    if (typeof props().ref === 'function') {
+                      props().ref(el);
+                    } else {
+                      props().ref = el;
+                    }
+                  }}
+                />
+              );
+            }}
             data-testid="wrapped"
           />
         );

@@ -8,7 +8,7 @@ import { Dynamic } from 'solid-js/web';
 import { afterEach } from 'vitest';
 
 function Trigger(props: Menu.Trigger.Props) {
-  return <Menu.Trigger {...props} ref={props.ref} render={(p) => <div {...p()} />} />;
+  return <Menu.Trigger {...props} ref={props.ref} render={(p) => <div {...p()} ref={p().ref} />} />;
 }
 
 describe('<Menu.Positioner />', () => {

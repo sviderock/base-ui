@@ -631,7 +631,6 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
         await userEvent.keyboard('{Escape}');
 
-        screen.debug();
         expect(screen.getByTestId('outer')).toBeInTheDocument();
         expect(screen.queryByTestId('inner')).not.toBeInTheDocument();
 
@@ -865,7 +864,6 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
         await user.keyboard('{Escape}');
 
-        screen.debug();
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.queryByText('inner')).not.toBeInTheDocument();
 

@@ -177,7 +177,7 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
             params={{
               state,
               customStyleHookMapping: pressableTriggerOpenStateMapping,
-              props: [rootTriggerProps(), elementProps, getTriggerProps, p()],
+              props: [p(), rootTriggerProps(), elementProps, getTriggerProps],
             }}
           />
         )}
