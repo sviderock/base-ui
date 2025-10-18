@@ -5,17 +5,13 @@ import { access } from '../../solid-helpers';
 import { useFloatingTree } from '../components/FloatingTree';
 import type {
   FloatingContext,
-  FloatingNodeType,
   NarrowedElement,
   ReferenceType,
   UseFloatingOptions,
   UseFloatingReturn,
 } from '../types';
-import { FOCUSABLE_ATTRIBUTE } from '../utils/constants';
 import { useFloatingOriginal as usePosition } from './useFloatingOriginal';
 import { useFloatingRootContext } from './useFloatingRootContext';
-
-const virtualFloatingTree: Array<FloatingNodeType<ReferenceType>> = [];
 
 /**
  * Provides data to position a floating element and context to add interactions.
@@ -113,7 +109,6 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
 
   createEffect(() => {
     rootContext.dataRef.floatingContext = context as unknown as FloatingContext;
-    rootContext.dataRef.virtualFloatingTree = virtualFloatingTree;
 
     if (!tree) {
       return;
@@ -124,31 +119,6 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     if (nodeIdx !== -1) {
       tree?.setNodesRef(nodeIdx, 'context', context as unknown as FloatingContext);
     }
-  });
-
-  createEffect(() => {
-    const floatingId = context.floatingId();
-    if (!floatingId) {
-      return;
-    }
-
-    const reference = context.elements.reference();
-    if (!reference) {
-      return;
-    }
-
-    const parentFloating = (reference as Element)?.closest?.(`[${FOCUSABLE_ATTRIBUTE}]`);
-    const parentIdx = context.dataRef.virtualFloatingTree?.findIndex((item) => {
-      return item.context?.elements.floating() === parentFloating;
-    });
-    const parentId =
-      parentIdx !== -1 ? (context.dataRef.virtualFloatingTree[parentIdx].id ?? null) : null;
-
-    context.dataRef.virtualFloatingTree?.push({
-      id: floatingId,
-      parentId,
-      context: context as unknown as FloatingContext,
-    });
   });
 
   // TODO: no memoizing causes an infinite loop in useAnchorPositioning
