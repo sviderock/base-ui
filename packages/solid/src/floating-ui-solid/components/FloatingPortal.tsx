@@ -217,7 +217,6 @@ export function FloatingPortal(props: FloatingPortalProps): JSX.Element {
               enableFocusInside(node);
               beforeInsideRef()?.focus();
             } else {
-              disableFocusInside(node);
               const domReference = focusManagerState()?.domReference;
               const prevTabbable = getPreviousTabbable(domReference!);
               prevTabbable?.focus();
