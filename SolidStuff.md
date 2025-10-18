@@ -16,3 +16,4 @@
 - in Solid the empty attributes like `aria-hidden` should be passed as `aria-hidden="true"` contrary to the simplified React's version as Solid renders empty attrivutes with an empty string value (`aria-hidden=""`)
 - `use-button` required some amount of rework as in Solid we have three kinds of the same handler, e.g. for click we have `onClick`, `onclick` and `on:click`
 - `render` prop needs manual ref set: `render={(props) => <div ref={el => props.ref(el) />}`
+- Navigation menu bubble/capture event order is a mess, needed to wrap all the focuses inside focus guards in queueMicrotask as they were running before the event even finished to capture/bubble
