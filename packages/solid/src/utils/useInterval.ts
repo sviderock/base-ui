@@ -7,7 +7,7 @@ export type Interval = ReturnType<typeof useInterval>;
 const EMPTY = 0 as IntervalId;
 
 /**
- * A `setTimeout` with automatic cleanup and guard.
+ * A `setInterval` with automatic cleanup and guard.
  */
 export function useInterval() {
   const [currentId, setCurrentId] = createSignal<IntervalId>(EMPTY);
@@ -15,8 +15,7 @@ export function useInterval() {
   function start(delay: number, fn: Function) {
     clear();
     setCurrentId(
-      setTimeout(() => {
-        setCurrentId(EMPTY);
+      setInterval(() => {
         fn();
       }, delay) as unknown as IntervalId,
     );
