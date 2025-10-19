@@ -1,26 +1,28 @@
-import * as React from 'react';
-import { PreviewCard } from '@base-ui-components/react/preview-card';
-import { screen } from '@mui/internal-test-utils';
-import { expect } from 'chai';
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+import { PreviewCard } from '@base-ui-components/solid/preview-card';
+import { screen } from '@solidjs/testing-library';
+import { expect } from 'chai';
+import { Dynamic } from 'solid-js/web';
 
-const Trigger = React.forwardRef(function Trigger(
-  props: PreviewCard.Trigger.Props,
-  ref: React.ForwardedRef<HTMLAnchorElement>,
-) {
-  return <PreviewCard.Trigger {...props} ref={ref} render={<div />} />;
-});
+function Trigger(props: PreviewCard.Trigger.Props) {
+  return <PreviewCard.Trigger {...props} ref={props.ref} render={(p) => <div {...p()} />} />;
+}
 
 describe('<PreviewCard.Positioner />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<PreviewCard.Positioner />, () => ({
+  describeConformance(PreviewCard.Positioner, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node) {
+    render(node, elementProps = {}) {
       return render(
-        <PreviewCard.Root open>
-          <PreviewCard.Portal>{node}</PreviewCard.Portal>
-        </PreviewCard.Root>,
+        () => (
+          <PreviewCard.Root open>
+            <PreviewCard.Portal>
+              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+            </PreviewCard.Portal>
+          </PreviewCard.Root>
+        ),
+        elementProps,
       );
     },
   }));
@@ -31,13 +33,13 @@ describe('<PreviewCard.Positioner />', () => {
   const popupHeight = 24;
   const anchorWidth = 72;
   const anchorHeight = 36;
-  const triggerStyle = { width: anchorWidth, height: anchorHeight };
-  const popupStyle = { width: popupWidth, height: popupHeight };
+  const triggerStyle = { width: `${anchorWidth}px`, height: `${anchorHeight}px` };
+  const popupStyle = { width: `${popupWidth}px`, height: `${popupHeight}px` };
 
   describe.skipIf(isJSDOM)('prop: sideOffset', () => {
     it('offsets the side when a number is specified', async () => {
       const sideOffset = 7;
-      await render(
+      render(() => (
         <PreviewCard.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <PreviewCard.Portal>
@@ -45,8 +47,8 @@ describe('<PreviewCard.Positioner />', () => {
               <PreviewCard.Popup style={popupStyle}>Popup</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </PreviewCard.Root>,
-      );
+        </PreviewCard.Root>
+      ));
 
       expect(screen.getByTestId('positioner').style.transform).to.equal(
         `translate(${baselineX}px, ${baselineY + sideOffset}px)`,
@@ -54,7 +56,7 @@ describe('<PreviewCard.Positioner />', () => {
     });
 
     it('offsets the side when a function is specified', async () => {
-      await render(
+      render(() => (
         <PreviewCard.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <PreviewCard.Portal>
@@ -65,8 +67,8 @@ describe('<PreviewCard.Positioner />', () => {
               <PreviewCard.Popup style={popupStyle}>Popup</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </PreviewCard.Root>,
-      );
+        </PreviewCard.Root>
+      ));
 
       expect(screen.getByTestId('positioner').style.transform).to.equal(
         `translate(${baselineX}px, ${baselineY + popupWidth + anchorWidth}px)`,
@@ -75,7 +77,7 @@ describe('<PreviewCard.Positioner />', () => {
 
     it('can read the latest side inside sideOffset', async () => {
       let side = 'none';
-      await render(
+      render(() => (
         <PreviewCard.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <PreviewCard.Portal>
@@ -90,8 +92,8 @@ describe('<PreviewCard.Positioner />', () => {
               <PreviewCard.Popup style={popupStyle}>Popup</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </PreviewCard.Root>,
-      );
+        </PreviewCard.Root>
+      ));
 
       // correctly flips the side in the browser
       expect(side).to.equal('right');
@@ -99,7 +101,7 @@ describe('<PreviewCard.Positioner />', () => {
 
     it('can read the latest align inside sideOffset', async () => {
       let align = 'none';
-      await render(
+      render(() => (
         <PreviewCard.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <PreviewCard.Portal>
@@ -115,8 +117,8 @@ describe('<PreviewCard.Positioner />', () => {
               <PreviewCard.Popup style={popupStyle}>Popup</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </PreviewCard.Root>,
-      );
+        </PreviewCard.Root>
+      ));
 
       // correctly flips the align in the browser
       expect(align).to.equal('end');
@@ -124,7 +126,7 @@ describe('<PreviewCard.Positioner />', () => {
 
     it('reads logical side inside sideOffset', async () => {
       let side = 'none';
-      await render(
+      render(() => (
         <PreviewCard.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <PreviewCard.Portal>
@@ -139,8 +141,8 @@ describe('<PreviewCard.Positioner />', () => {
               <PreviewCard.Popup style={popupStyle}>Popup</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </PreviewCard.Root>,
-      );
+        </PreviewCard.Root>
+      ));
 
       // correctly flips the side in the browser
       expect(side).to.equal('inline-end');
@@ -150,7 +152,7 @@ describe('<PreviewCard.Positioner />', () => {
   describe.skipIf(isJSDOM)('prop: alignOffset', () => {
     it('offsets the align when a number is specified', async () => {
       const alignOffset = 7;
-      await render(
+      render(() => (
         <PreviewCard.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <PreviewCard.Portal>
@@ -158,8 +160,8 @@ describe('<PreviewCard.Positioner />', () => {
               <PreviewCard.Popup style={popupStyle}>Popup</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </PreviewCard.Root>,
-      );
+        </PreviewCard.Root>
+      ));
 
       expect(screen.getByTestId('positioner').style.transform).to.equal(
         `translate(${baselineX + alignOffset}px, ${baselineY}px)`,
@@ -167,7 +169,7 @@ describe('<PreviewCard.Positioner />', () => {
     });
 
     it('offsets the align when a function is specified', async () => {
-      await render(
+      render(() => (
         <PreviewCard.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <PreviewCard.Portal>
@@ -178,8 +180,8 @@ describe('<PreviewCard.Positioner />', () => {
               <PreviewCard.Popup style={popupStyle}>Popup</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </PreviewCard.Root>,
-      );
+        </PreviewCard.Root>
+      ));
 
       expect(screen.getByTestId('positioner').style.transform).to.equal(
         `translate(${baselineX + popupWidth}px, ${baselineY}px)`,
@@ -188,7 +190,7 @@ describe('<PreviewCard.Positioner />', () => {
 
     it('can read the latest side inside alignOffset', async () => {
       let side = 'none';
-      await render(
+      render(() => (
         <PreviewCard.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <PreviewCard.Portal>
@@ -203,8 +205,8 @@ describe('<PreviewCard.Positioner />', () => {
               <PreviewCard.Popup style={popupStyle}>Popup</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </PreviewCard.Root>,
-      );
+        </PreviewCard.Root>
+      ));
 
       // correctly flips the side in the browser
       expect(side).to.equal('right');
@@ -212,7 +214,7 @@ describe('<PreviewCard.Positioner />', () => {
 
     it('can read the latest align inside alignOffset', async () => {
       let align = 'none';
-      await render(
+      render(() => (
         <PreviewCard.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <PreviewCard.Portal>
@@ -228,8 +230,8 @@ describe('<PreviewCard.Positioner />', () => {
               <PreviewCard.Popup style={popupStyle}>Popup</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </PreviewCard.Root>,
-      );
+        </PreviewCard.Root>
+      ));
 
       // correctly flips the align in the browser
       expect(align).to.equal('end');
@@ -237,7 +239,7 @@ describe('<PreviewCard.Positioner />', () => {
 
     it('reads logical side inside alignOffset', async () => {
       let side = 'none';
-      await render(
+      render(() => (
         <PreviewCard.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <PreviewCard.Portal>
@@ -252,8 +254,8 @@ describe('<PreviewCard.Positioner />', () => {
               <PreviewCard.Popup style={popupStyle}>Popup</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </PreviewCard.Root>,
-      );
+        </PreviewCard.Root>
+      ));
 
       // correctly flips the side in the browser
       expect(side).to.equal('inline-end');

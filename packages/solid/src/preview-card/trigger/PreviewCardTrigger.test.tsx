@@ -1,14 +1,21 @@
-import * as React from 'react';
-import { PreviewCard } from '@base-ui-components/react/preview-card';
 import { createRenderer, describeConformance } from '#test-utils';
+import { PreviewCard } from '@base-ui-components/solid/preview-card';
+import { Dynamic } from 'solid-js/web';
 
 describe('<PreviewCard.Trigger />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<PreviewCard.Trigger />, () => ({
+  describeConformance(PreviewCard.Trigger, () => ({
     refInstanceof: window.HTMLAnchorElement,
-    render(node) {
-      return render(<PreviewCard.Root open>{node}</PreviewCard.Root>);
+    render(node, elementProps = {}) {
+      return render(
+        () => (
+          <PreviewCard.Root open>
+            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+          </PreviewCard.Root>
+        ),
+        elementProps,
+      );
     },
   }));
 });

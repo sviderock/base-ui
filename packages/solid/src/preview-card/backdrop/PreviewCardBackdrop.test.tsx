@@ -1,20 +1,27 @@
-import * as React from 'react';
-import { PreviewCard } from '@base-ui-components/react/preview-card';
-import { screen } from '@mui/internal-test-utils';
 import { createRenderer, describeConformance } from '#test-utils';
+import { PreviewCard } from '@base-ui-components/solid/preview-card';
+import { screen } from '@solidjs/testing-library';
+import { Dynamic } from 'solid-js/web';
 
 describe('<PreviewCard.Backdrop />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<PreviewCard.Backdrop />, () => ({
+  describeConformance(PreviewCard.Backdrop, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node) {
-      return render(<PreviewCard.Root open>{node}</PreviewCard.Root>);
+    render(node, elementProps = {}) {
+      return render(
+        () => (
+          <PreviewCard.Root open>
+            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+          </PreviewCard.Root>
+        ),
+        elementProps,
+      );
     },
   }));
 
   it('sets `pointer-events: none` style', async () => {
-    const { user } = await render(
+    const { user } = render(() => (
       <PreviewCard.Root delay={0} closeDelay={0}>
         <PreviewCard.Trigger>Open</PreviewCard.Trigger>
         <PreviewCard.Portal>
@@ -23,8 +30,8 @@ describe('<PreviewCard.Backdrop />', () => {
             <PreviewCard.Popup />
           </PreviewCard.Positioner>
         </PreviewCard.Portal>
-      </PreviewCard.Root>,
-    );
+      </PreviewCard.Root>
+    ));
 
     await user.hover(screen.getByText('Open'));
 

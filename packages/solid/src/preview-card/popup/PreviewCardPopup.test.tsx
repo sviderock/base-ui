@@ -1,35 +1,40 @@
-import * as React from 'react';
-import { PreviewCard } from '@base-ui-components/react/preview-card';
-import { screen } from '@mui/internal-test-utils';
-import { expect } from 'chai';
 import { createRenderer, describeConformance } from '#test-utils';
+import { PreviewCard } from '@base-ui-components/solid/preview-card';
+import { screen } from '@solidjs/testing-library';
+import { expect } from 'chai';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Popover.Popup />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<PreviewCard.Popup />, () => ({
+  describeConformance(PreviewCard.Popup, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node) {
+    render(node, elementProps = {}) {
       return render(
-        <PreviewCard.Root open>
-          <PreviewCard.Portal>
-            <PreviewCard.Positioner>{node}</PreviewCard.Positioner>
-          </PreviewCard.Portal>
-        </PreviewCard.Root>,
+        () => (
+          <PreviewCard.Root open>
+            <PreviewCard.Portal>
+              <PreviewCard.Positioner>
+                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+              </PreviewCard.Positioner>
+            </PreviewCard.Portal>
+          </PreviewCard.Root>
+        ),
+        elementProps,
       );
     },
   }));
 
   it('should render the children', async () => {
-    await render(
+    render(() => (
       <PreviewCard.Root open>
         <PreviewCard.Portal>
           <PreviewCard.Positioner>
             <PreviewCard.Popup>Content</PreviewCard.Popup>
           </PreviewCard.Positioner>
         </PreviewCard.Portal>
-      </PreviewCard.Root>,
-    );
+      </PreviewCard.Root>
+    ));
 
     expect(screen.getByText('Content')).not.to.equal(null);
   });

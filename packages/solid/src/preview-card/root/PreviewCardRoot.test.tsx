@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { PreviewCard } from '@base-ui-components/react/preview-card';
-import { act, fireEvent, screen, flushMicrotasks, waitFor } from '@mui/internal-test-utils';
+import { createRenderer, flushMicrotasks, isJSDOM, popupConformanceTests } from '#test-utils';
+import { PreviewCard } from '@base-ui-components/solid/preview-card';
+import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { createRenderer, isJSDOM, popupConformanceTests } from '#test-utils';
+import { createSignal } from 'solid-js';
 import { CLOSE_DELAY, OPEN_DELAY } from '../utils/constants';
 
 function Root(props: PreviewCard.Root.Props) {
@@ -36,7 +36,7 @@ describe('<PreviewCard.Root />', () => {
         </PreviewCard.Portal>
       </PreviewCard.Root>
     ),
-    render,
+    render: (...args) => render(...(args as Parameters<typeof render>)),
     triggerMouseAction: 'hover',
   });
 
@@ -44,7 +44,7 @@ describe('<PreviewCard.Root />', () => {
     clock.withFakeTimers();
 
     it('should open when the trigger is hovered', async () => {
-      await render(
+      render(() => (
         <Root>
           <Trigger />
           <PreviewCard.Portal>
@@ -52,8 +52,8 @@ describe('<PreviewCard.Root />', () => {
               <PreviewCard.Popup>Content</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('link');
 
@@ -69,7 +69,7 @@ describe('<PreviewCard.Root />', () => {
     });
 
     it('should close when the trigger is unhovered', async () => {
-      await render(
+      render(() => (
         <Root>
           <Trigger />
           <PreviewCard.Portal>
@@ -77,8 +77,8 @@ describe('<PreviewCard.Root />', () => {
               <PreviewCard.Popup>Content</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('link');
 
@@ -103,7 +103,7 @@ describe('<PreviewCard.Root />', () => {
         return;
       }
 
-      await render(
+      render(() => (
         <Root>
           <Trigger />
           <PreviewCard.Portal>
@@ -111,12 +111,12 @@ describe('<PreviewCard.Root />', () => {
               <PreviewCard.Popup>Content</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('link');
 
-      await act(async () => trigger.focus());
+      trigger.focus();
 
       clock.tick(OPEN_DELAY);
 
@@ -126,7 +126,7 @@ describe('<PreviewCard.Root />', () => {
     });
 
     it('should close when the trigger is blurred', async () => {
-      await render(
+      render(() => (
         <Root>
           <Trigger />
           <PreviewCard.Portal>
@@ -134,16 +134,16 @@ describe('<PreviewCard.Root />', () => {
               <PreviewCard.Popup>Content</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('link');
 
-      await act(async () => trigger.focus());
+      trigger.focus();
       clock.tick(OPEN_DELAY);
       await flushMicrotasks();
 
-      await act(async () => trigger.blur());
+      trigger.blur();
       clock.tick(CLOSE_DELAY);
 
       expect(screen.queryByText('Content')).to.equal(null);
@@ -157,13 +157,13 @@ describe('<PreviewCard.Root />', () => {
       const handleChange = spy();
 
       function App() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
 
         return (
           <Root
             open={open}
             onOpenChange={(nextOpen) => {
-              handleChange(open);
+              handleChange(open());
               setOpen(nextOpen);
             }}
           >
@@ -177,7 +177,7 @@ describe('<PreviewCard.Root />', () => {
         );
       }
 
-      await render(<App />);
+      render(() => <App />);
 
       expect(screen.queryByText('Content')).to.equal(null);
 
@@ -206,13 +206,13 @@ describe('<PreviewCard.Root />', () => {
       const handleChange = spy();
 
       function App() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
 
         return (
           <Root
             open={open}
             onOpenChange={(nextOpen) => {
-              handleChange(open);
+              handleChange(open());
               setOpen(nextOpen);
             }}
           >
@@ -226,7 +226,7 @@ describe('<PreviewCard.Root />', () => {
         );
       }
 
-      await render(<App />);
+      render(() => <App />);
 
       expect(screen.queryByText('Content')).to.equal(null);
 
@@ -249,7 +249,7 @@ describe('<PreviewCard.Root />', () => {
     clock.withFakeTimers();
 
     it('should open when the component is rendered', async () => {
-      await render(
+      render(() => (
         <Root defaultOpen>
           <Trigger />
           <PreviewCard.Portal>
@@ -257,14 +257,14 @@ describe('<PreviewCard.Root />', () => {
               <PreviewCard.Popup>Content</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       expect(screen.getByText('Content')).not.to.equal(null);
     });
 
     it('should not open when the component is rendered and open is controlled', async () => {
-      await render(
+      render(() => (
         <Root defaultOpen open={false}>
           <Trigger />
           <PreviewCard.Portal>
@@ -272,14 +272,14 @@ describe('<PreviewCard.Root />', () => {
               <PreviewCard.Popup>Content</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       expect(screen.queryByText('Content')).to.equal(null);
     });
 
     it('should not close when the component is rendered and open is controlled', async () => {
-      await render(
+      render(() => (
         <Root defaultOpen open>
           <Trigger />
           <PreviewCard.Portal>
@@ -287,14 +287,14 @@ describe('<PreviewCard.Root />', () => {
               <PreviewCard.Popup>Content</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       expect(screen.getByText('Content')).not.to.equal(null);
     });
 
     it('should remain uncontrolled', async () => {
-      await render(
+      render(() => (
         <Root defaultOpen>
           <Trigger />
           <PreviewCard.Portal>
@@ -302,8 +302,8 @@ describe('<PreviewCard.Root />', () => {
               <PreviewCard.Popup>Content</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       expect(screen.getByText('Content')).not.to.equal(null);
 
@@ -321,7 +321,7 @@ describe('<PreviewCard.Root />', () => {
     clock.withFakeTimers();
 
     it('should open after delay with rest type by default', async () => {
-      await render(
+      render(() => (
         <Root delay={100}>
           <Trigger />
           <PreviewCard.Portal>
@@ -329,8 +329,8 @@ describe('<PreviewCard.Root />', () => {
               <PreviewCard.Popup>Content</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('link');
 
@@ -353,7 +353,7 @@ describe('<PreviewCard.Root />', () => {
     clock.withFakeTimers();
 
     it('should close after delay', async () => {
-      await render(
+      render(() => (
         <Root closeDelay={100}>
           <Trigger />
           <PreviewCard.Portal>
@@ -361,8 +361,8 @@ describe('<PreviewCard.Root />', () => {
               <PreviewCard.Popup>Content</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('link');
 
@@ -388,12 +388,10 @@ describe('<PreviewCard.Root />', () => {
   describe.skipIf(!isJSDOM)('prop: actionsRef', () => {
     it('unmounts the preview card when the `unmount` method is called', async () => {
       const actionsRef = {
-        current: {
-          unmount: spy(),
-        },
+        unmount: spy(),
       };
 
-      const { user } = await render(
+      const { user } = render(() => (
         <Root actionsRef={actionsRef} delay={0} closeDelay={0}>
           <Trigger>Open</Trigger>
           <PreviewCard.Portal>
@@ -401,8 +399,8 @@ describe('<PreviewCard.Root />', () => {
               <PreviewCard.Popup>Content</PreviewCard.Popup>
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('link');
       await user.hover(trigger);
@@ -417,7 +415,7 @@ describe('<PreviewCard.Root />', () => {
         expect(screen.queryByTestId('positioner')).not.to.equal(null);
       });
 
-      await act(async () => actionsRef.current.unmount());
+      actionsRef.unmount();
 
       await waitFor(() => {
         expect(screen.queryByTestId('positioner')).to.equal(null);
@@ -430,7 +428,7 @@ describe('<PreviewCard.Root />', () => {
       const onOpenChangeComplete = spy();
 
       function Test() {
-        const [open, setOpen] = React.useState(true);
+        const [open, setOpen] = createSignal(true);
         return (
           <div>
             <button onClick={() => setOpen(false)}>Close</button>
@@ -445,7 +443,7 @@ describe('<PreviewCard.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       const closeButton = screen.getByText('Close');
       await user.click(closeButton);
@@ -476,17 +474,17 @@ describe('<PreviewCard.Root />', () => {
           }
         `;
 
-        const [open, setOpen] = React.useState(true);
+        const [open, setOpen] = createSignal(true);
 
         return (
           <div>
-            {/* eslint-disable-next-line react/no-danger */}
-            <style dangerouslySetInnerHTML={{ __html: style }} />
+            {/* eslint-disable-next-line solid/no-innerhtml */}
+            <style innerHTML={style} />
             <button onClick={() => setOpen(false)}>Close</button>
             <PreviewCard.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
               <PreviewCard.Portal>
                 <PreviewCard.Positioner>
-                  <PreviewCard.Popup className="animation-test-indicator" data-testid="popup" />
+                  <PreviewCard.Popup class="animation-test-indicator" data-testid="popup" />
                 </PreviewCard.Positioner>
               </PreviewCard.Portal>
             </PreviewCard.Root>
@@ -494,7 +492,7 @@ describe('<PreviewCard.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       expect(screen.getByTestId('popup')).not.to.equal(null);
 
@@ -514,7 +512,7 @@ describe('<PreviewCard.Root />', () => {
       const onOpenChangeComplete = spy();
 
       function Test() {
-        const [open, setOpen] = React.useState(true);
+        const [open, setOpen] = createSignal(true);
         return (
           <div>
             <button onClick={() => setOpen(false)}>Close</button>
@@ -529,7 +527,7 @@ describe('<PreviewCard.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       const closeButton = screen.getByText('Close');
       await user.click(closeButton);
@@ -554,23 +552,23 @@ describe('<PreviewCard.Root />', () => {
               opacity: 0;
             }
           }
-  
+
           .animation-test-indicator[data-ending-style] {
             animation: test-anim 1ms;
           }
         `;
 
-        const [open, setOpen] = React.useState(true);
+        const [open, setOpen] = createSignal(true);
 
         return (
           <div>
-            {/* eslint-disable-next-line react/no-danger */}
-            <style dangerouslySetInnerHTML={{ __html: style }} />
+            {/* eslint-disable-next-line solid/no-innerhtml */}
+            <style innerHTML={style} />
             <button onClick={() => setOpen(false)}>Close</button>
             <PreviewCard.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
               <PreviewCard.Portal>
                 <PreviewCard.Positioner>
-                  <PreviewCard.Popup className="animation-test-indicator" data-testid="popup" />
+                  <PreviewCard.Popup class="animation-test-indicator" data-testid="popup" />
                 </PreviewCard.Positioner>
               </PreviewCard.Portal>
             </PreviewCard.Root>
@@ -578,7 +576,7 @@ describe('<PreviewCard.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       expect(screen.getByTestId('popup')).not.to.equal(null);
 
@@ -601,7 +599,7 @@ describe('<PreviewCard.Root />', () => {
       const onOpenChangeComplete = spy();
 
       function Test() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
         return (
           <div>
             <button onClick={() => setOpen(true)}>Open</button>
@@ -616,7 +614,7 @@ describe('<PreviewCard.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       const openButton = screen.getByText('Open');
       await user.click(openButton);
@@ -641,18 +639,18 @@ describe('<PreviewCard.Root />', () => {
               opacity: 0;
             }
           }
-  
+
           .animation-test-indicator[data-starting-style] {
             animation: test-anim 1ms;
           }
         `;
 
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
 
         return (
           <div>
-            {/* eslint-disable-next-line react/no-danger */}
-            <style dangerouslySetInnerHTML={{ __html: style }} />
+            {/* eslint-disable-next-line solid/no-innerhtml */}
+            <style innerHTML={style} />
             <button onClick={() => setOpen(true)}>Open</button>
             <PreviewCard.Root
               open={open}
@@ -661,7 +659,7 @@ describe('<PreviewCard.Root />', () => {
             >
               <PreviewCard.Portal>
                 <PreviewCard.Positioner>
-                  <PreviewCard.Popup className="animation-test-indicator" data-testid="popup" />
+                  <PreviewCard.Popup class="animation-test-indicator" data-testid="popup" />
                 </PreviewCard.Positioner>
               </PreviewCard.Portal>
             </PreviewCard.Root>
@@ -669,7 +667,7 @@ describe('<PreviewCard.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       const openButton = screen.getByText('Open');
       await user.click(openButton);
@@ -685,15 +683,15 @@ describe('<PreviewCard.Root />', () => {
     it('does not get called on mount when not open', async () => {
       const onOpenChangeComplete = spy();
 
-      await render(
+      render(() => (
         <PreviewCard.Root onOpenChangeComplete={onOpenChangeComplete}>
           <PreviewCard.Portal>
             <PreviewCard.Positioner>
               <PreviewCard.Popup />
             </PreviewCard.Positioner>
           </PreviewCard.Portal>
-        </PreviewCard.Root>,
-      );
+        </PreviewCard.Root>
+      ));
 
       expect(onOpenChangeComplete.callCount).to.equal(0);
     });
