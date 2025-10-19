@@ -47,6 +47,7 @@
     "./navigation-menu": "./src/navigation-menu/index.ts",
     "./number-field": "./src/number-field/index.ts",
     "./popover": "./src/popover/index.ts",
+    "./preview-card": "./src/preview-card/index.ts",
     "./scroll-area": "./src/scroll-area/index.ts",
     "./separator": "./src/separator/index.ts",
     "./solid-helpers": "./src/solid-helpers.ts",
