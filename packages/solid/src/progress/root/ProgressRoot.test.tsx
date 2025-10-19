@@ -1,7 +1,8 @@
-import * as React from 'react';
-import { expect } from 'chai';
-import { Progress } from '@base-ui-components/react/progress';
 import { createRenderer, describeConformance } from '#test-utils';
+import { Progress } from '@base-ui-components/solid/progress';
+import { screen } from '@solidjs/testing-library';
+import { expect } from 'chai';
+import { createSignal } from 'solid-js';
 import type { ProgressRoot } from './ProgressRoot';
 
 function TestProgress(props: ProgressRoot.Props) {
@@ -17,25 +18,28 @@ function TestProgress(props: ProgressRoot.Props) {
 describe('<Progress.Root />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Progress.Root value={50} />, () => ({
-    render,
-    refInstanceof: window.HTMLDivElement,
-  }));
+  describeConformance(
+    (props) => <Progress.Root {...props} ref={props.ref} value={50} />,
+    () => ({
+      render,
+      refInstanceof: window.HTMLDivElement,
+    }),
+  );
 
   describe('ARIA attributes', () => {
     it('sets the correct aria attributes', async () => {
-      const { getByRole, getByText } = await render(
+      render(() => (
         <Progress.Root value={30}>
           <Progress.Label>Downloading</Progress.Label>
           <Progress.Value />
           <Progress.Track>
             <Progress.Indicator />
           </Progress.Track>
-        </Progress.Root>,
-      );
+        </Progress.Root>
+      ));
 
-      const progressbar = getByRole('progressbar');
-      const label = getByText('Downloading');
+      const progressbar = screen.getByRole('progressbar');
+      const label = screen.getByText('Downloading');
 
       expect(progressbar).to.have.attribute('aria-valuenow', '30');
       expect(progressbar).to.have.attribute('aria-valuemin', '0');
@@ -45,9 +49,10 @@ describe('<Progress.Root />', () => {
     });
 
     it('should update aria-valuenow when value changes', async () => {
-      const { getByRole, setProps } = await render(<TestProgress value={50} />);
-      const progressbar = getByRole('progressbar');
-      await setProps({ value: 77 });
+      const [value, setValue] = createSignal(50);
+      render(() => <TestProgress value={value} />);
+      const progressbar = screen.getByRole('progressbar');
+      setValue(77);
       expect(progressbar).to.have.attribute('aria-valuenow', '77');
     });
   });
@@ -61,16 +66,16 @@ describe('<Progress.Root />', () => {
       function formatValue(v: number) {
         return new Intl.NumberFormat(undefined, format).format(v);
       }
-      const { getByRole, getByTestId } = await render(
+      render(() => (
         <Progress.Root value={30} format={format}>
           <Progress.Value data-testid="value" />
           <Progress.Track>
             <Progress.Indicator />
           </Progress.Track>
-        </Progress.Root>,
-      );
-      const value = getByTestId('value');
-      const progressbar = getByRole('progressbar');
+        </Progress.Root>
+      ));
+      const value = screen.getByTestId('value');
+      const progressbar = screen.getByRole('progressbar');
       expect(value).to.have.text(formatValue(30));
       expect(progressbar).to.have.attribute('aria-valuetext', formatValue(30));
     });
@@ -80,7 +85,7 @@ describe('<Progress.Root />', () => {
     it('sets the locale when formatting the value', async () => {
       // In German locale, numbers use dot as thousands separator and comma as decimal separator
       const expectedValue = new Intl.NumberFormat('de-DE').format(70.51);
-      const { getByTestId } = await render(
+      render(() => (
         <Progress.Root
           value={70.51}
           format={{
@@ -91,10 +96,10 @@ describe('<Progress.Root />', () => {
           locale="de-DE"
         >
           <Progress.Value data-testid="value" />
-        </Progress.Root>,
-      );
+        </Progress.Root>
+      ));
 
-      expect(getByTestId('value')).to.have.text(expectedValue);
+      expect(screen.getByTestId('value')).to.have.text(expectedValue);
     });
   });
 });

@@ -1,27 +1,35 @@
-import * as React from 'react';
+import { createRenderer, describeConformance } from '#test-utils';
+import { Progress } from '@base-ui-components/solid/progress';
+import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { Progress } from '@base-ui-components/react/progress';
-import { createRenderer, describeConformance } from '#test-utils';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Progress.Value />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Progress.Value />, () => ({
-    render: (node) => {
-      return render(<Progress.Root value={40}>{node}</Progress.Root>);
+  describeConformance(Progress.Value, () => ({
+    render: (node, elementProps = {}) => {
+      return render(
+        () => (
+          <Progress.Root value={40}>
+            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+          </Progress.Root>
+        ),
+        elementProps,
+      );
     },
     refInstanceof: window.HTMLSpanElement,
   }));
 
   describe('prop: children', () => {
     it('renders the value when children is not provided', async () => {
-      const { getByTestId } = await render(
+      render(() => (
         <Progress.Root value={30}>
           <Progress.Value data-testid="value" />
-        </Progress.Root>,
-      );
-      const value = getByTestId('value');
+        </Progress.Root>
+      ));
+      const value = screen.getByTestId('value');
       expect(value).to.have.text('30%');
     });
 
@@ -33,12 +41,12 @@ describe('<Progress.Value />', () => {
       function formatValue(v: number) {
         return new Intl.NumberFormat(undefined, format).format(v);
       }
-      const { getByTestId } = await render(
+      render(() => (
         <Progress.Root value={30} format={format}>
           <Progress.Value data-testid="value" />
-        </Progress.Root>,
-      );
-      const value = getByTestId('value');
+        </Progress.Root>
+      ));
+      const value = screen.getByTestId('value');
       expect(value).to.have.text(formatValue(30));
     });
 
@@ -52,11 +60,11 @@ describe('<Progress.Value />', () => {
         function formatValue(v: number) {
           return new Intl.NumberFormat(undefined, format).format(v);
         }
-        await render(
+        render(() => (
           <Progress.Root value={30} format={format}>
             <Progress.Value data-testid="value">{renderSpy}</Progress.Value>
-          </Progress.Root>,
-        );
+          </Progress.Root>
+        ));
         expect(renderSpy.lastCall.args[0]).to.deep.equal(formatValue(30));
         expect(renderSpy.lastCall.args[1]).to.deep.equal(30);
       });
@@ -67,11 +75,11 @@ describe('<Progress.Value />', () => {
           style: 'currency',
           currency: 'USD',
         };
-        await render(
+        render(() => (
           <Progress.Root value={null} format={format}>
             <Progress.Value data-testid="value">{renderSpy}</Progress.Value>
-          </Progress.Root>,
-        );
+          </Progress.Root>
+        ));
         expect(renderSpy.lastCall.args[0]).to.deep.equal('indeterminate');
         expect(renderSpy.lastCall.args[1]).to.deep.equal(null);
       });
