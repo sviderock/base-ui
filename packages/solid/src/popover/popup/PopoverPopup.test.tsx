@@ -1,42 +1,47 @@
-import * as React from 'react';
-import { Popover } from '@base-ui-components/react/popover';
-import { act, screen, waitFor } from '@mui/internal-test-utils';
-import { expect } from 'chai';
 import { createRenderer, describeConformance } from '#test-utils';
+import { Popover } from '@base-ui-components/solid/popover';
+import { screen, waitFor } from '@solidjs/testing-library';
+import { expect } from 'chai';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Popover.Popup />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Popover.Popup />, () => ({
+  describeConformance(Popover.Popup, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node) {
+    render(node, elementProps = {}) {
       return render(
-        <Popover.Root open>
-          <Popover.Portal>
-            <Popover.Positioner>{node}</Popover.Positioner>
-          </Popover.Portal>
-        </Popover.Root>,
+        () => (
+          <Popover.Root open>
+            <Popover.Portal>
+              <Popover.Positioner>
+                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+              </Popover.Positioner>
+            </Popover.Portal>
+          </Popover.Root>
+        ),
+        elementProps,
       );
     },
   }));
 
   it('should render the children', async () => {
-    await render(
+    render(() => (
       <Popover.Root open>
         <Popover.Portal>
           <Popover.Positioner>
             <Popover.Popup>Content</Popover.Popup>
           </Popover.Positioner>
         </Popover.Portal>
-      </Popover.Root>,
-    );
+      </Popover.Root>
+    ));
 
     expect(screen.getByText('Content')).not.to.equal(null);
   });
 
   describe('prop: initial focus', () => {
     it('should focus the first focusable element within the popup by default', async () => {
-      const { getByText, getByTestId } = await render(
+      render(() => (
         <div>
           <input />
           <Popover.Root>
@@ -51,23 +56,21 @@ describe('<Popover.Popup />', () => {
             </Popover.Portal>
           </Popover.Root>
           <input />
-        </div>,
-      );
+        </div>
+      ));
 
-      const trigger = getByText('Open');
-      await act(async () => {
-        trigger.click();
-      });
+      const trigger = screen.getByText('Open');
+      trigger.click();
 
       await waitFor(() => {
-        const innerInput = getByTestId('popover-input');
+        const innerInput = screen.getByTestId('popover-input');
         expect(innerInput).to.toHaveFocus();
       });
     });
 
     it('should focus the element provided to `initialFocus` as a ref when open', async () => {
       function TestComponent() {
-        const input2Ref = React.useRef<HTMLInputElement | null>(null);
+        let input2Ref;
         return (
           <div>
             <input />
@@ -89,24 +92,22 @@ describe('<Popover.Popup />', () => {
         );
       }
 
-      const { getByText, getByTestId } = await render(<TestComponent />);
+      render(() => <TestComponent />);
 
-      const trigger = getByText('Open');
-      await act(async () => {
-        trigger.click();
-      });
+      const trigger = screen.getByText('Open');
+      trigger.click();
 
       await waitFor(() => {
-        const input2 = getByTestId('input-2');
+        const input2 = screen.getByTestId('input-2');
         expect(input2).to.toHaveFocus();
       });
     });
 
     it('should focus the element provided to `initialFocus` as a function when open', async () => {
       function TestComponent() {
-        const input2Ref = React.useRef<HTMLInputElement>(null);
+        let input2Ref;
 
-        const getRef = React.useCallback(() => input2Ref, []);
+        const getRef = () => input2Ref;
 
         return (
           <div>
@@ -129,15 +130,13 @@ describe('<Popover.Popup />', () => {
         );
       }
 
-      const { getByText, getByTestId } = await render(<TestComponent />);
+      render(() => <TestComponent />);
 
-      const trigger = getByText('Open');
-      await act(async () => {
-        trigger.click();
-      });
+      const trigger = screen.getByText('Open');
+      trigger.click();
 
       await waitFor(() => {
-        const input2 = getByTestId('input-2');
+        const input2 = screen.getByTestId('input-2');
         expect(input2).to.toHaveFocus();
       });
     });
@@ -145,7 +144,7 @@ describe('<Popover.Popup />', () => {
 
   describe('prop: final focus', () => {
     it('should focus the trigger by default when closed', async () => {
-      const { getByText } = await render(
+      render(() => (
         <div>
           <input />
           <Popover.Root>
@@ -159,18 +158,14 @@ describe('<Popover.Popup />', () => {
             </Popover.Portal>
           </Popover.Root>
           <input />
-        </div>,
-      );
+        </div>
+      ));
 
-      const trigger = getByText('Open');
-      await act(async () => {
-        trigger.click();
-      });
+      const trigger = screen.getByText('Open');
+      trigger.click();
 
-      const closeButton = getByText('Close');
-      await act(async () => {
-        closeButton.click();
-      });
+      const closeButton = screen.getByText('Close');
+      closeButton.click();
 
       await waitFor(() => {
         expect(trigger).toHaveFocus();
@@ -179,7 +174,7 @@ describe('<Popover.Popup />', () => {
 
     it('should focus the element provided to the prop when closed', async () => {
       function TestComponent() {
-        const inputRef = React.useRef<HTMLInputElement | null>(null);
+        let inputRef;
         return (
           <div>
             <input />
@@ -200,19 +195,15 @@ describe('<Popover.Popup />', () => {
         );
       }
 
-      const { getByText, getByTestId } = await render(<TestComponent />);
+      render(() => <TestComponent />);
 
-      const trigger = getByText('Open');
-      await act(async () => {
-        trigger.click();
-      });
+      const trigger = screen.getByText('Open');
+      trigger.click();
 
-      const closeButton = getByText('Close');
-      await act(async () => {
-        closeButton.click();
-      });
+      const closeButton = screen.getByText('Close');
+      closeButton.click();
 
-      const inputToFocus = getByTestId('input-to-focus');
+      const inputToFocus = screen.getByTestId('input-to-focus');
 
       await waitFor(() => {
         expect(inputToFocus).toHaveFocus();

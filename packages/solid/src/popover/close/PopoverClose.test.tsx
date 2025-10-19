@@ -1,29 +1,34 @@
-import * as React from 'react';
-import { Popover } from '@base-ui-components/react/popover';
-import { fireEvent, screen } from '@mui/internal-test-utils';
-import { expect } from 'chai';
 import { createRenderer, describeConformance } from '#test-utils';
+import { Popover } from '@base-ui-components/solid/popover';
+import { fireEvent, screen } from '@solidjs/testing-library';
+import { expect } from 'chai';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Popover.Close />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Popover.Close />, () => ({
+  describeConformance(Popover.Close, () => ({
     refInstanceof: window.HTMLButtonElement,
-    render(node) {
+    render(node, elementProps = {}) {
       return render(
-        <Popover.Root open>
-          <Popover.Portal>
-            <Popover.Positioner>
-              <Popover.Popup>{node}</Popover.Popup>
-            </Popover.Positioner>
-          </Popover.Portal>
-        </Popover.Root>,
+        () => (
+          <Popover.Root open>
+            <Popover.Portal>
+              <Popover.Positioner>
+                <Popover.Popup>
+                  <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+                </Popover.Popup>
+              </Popover.Positioner>
+            </Popover.Portal>
+          </Popover.Root>
+        ),
+        elementProps,
       );
     },
   }));
 
   it('should close popover when clicked', async () => {
-    await render(
+    render(() => (
       <Popover.Root defaultOpen>
         <Popover.Portal>
           <Popover.Positioner>
@@ -33,8 +38,8 @@ describe('<Popover.Close />', () => {
             </Popover.Popup>
           </Popover.Positioner>
         </Popover.Portal>
-      </Popover.Root>,
-    );
+      </Popover.Root>
+    ));
 
     expect(screen.queryByText('Content')).not.to.equal(null);
 

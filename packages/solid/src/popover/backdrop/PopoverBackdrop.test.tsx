@@ -1,20 +1,27 @@
-import * as React from 'react';
-import { Popover } from '@base-ui-components/react/popover';
 import { createRenderer, describeConformance } from '#test-utils';
-import { screen, waitFor } from '@mui/internal-test-utils';
+import { Popover } from '@base-ui-components/solid/popover';
+import { screen, waitFor } from '@solidjs/testing-library';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Popover.Backdrop />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Popover.Backdrop />, () => ({
+  describeConformance(Popover.Backdrop, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node) {
-      return render(<Popover.Root open>{node}</Popover.Root>);
+    render(node, elementProps = {}) {
+      return render(
+        () => (
+          <Popover.Root open>
+            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+          </Popover.Root>
+        ),
+        elementProps,
+      );
     },
   }));
 
   it('sets `pointer-events: none` style on backdrop if opened by hover', async () => {
-    const { user } = await render(
+    const { user } = render(() => (
       <Popover.Root delay={0} openOnHover>
         <Popover.Trigger>Open</Popover.Trigger>
         <Popover.Portal>
@@ -23,8 +30,8 @@ describe('<Popover.Backdrop />', () => {
             <Popover.Popup />
           </Popover.Positioner>
         </Popover.Portal>
-      </Popover.Root>,
-    );
+      </Popover.Root>
+    ));
 
     await user.hover(screen.getByText('Open'));
 
@@ -32,7 +39,7 @@ describe('<Popover.Backdrop />', () => {
   });
 
   it('does not set `pointer-events: none` style on backdrop if opened by click', async () => {
-    const { user } = await render(
+    const { user } = render(() => (
       <Popover.Root openOnHover>
         <Popover.Trigger>Open</Popover.Trigger>
         <Popover.Portal>
@@ -41,8 +48,8 @@ describe('<Popover.Backdrop />', () => {
             <Popover.Popup />
           </Popover.Positioner>
         </Popover.Portal>
-      </Popover.Root>,
-    );
+      </Popover.Root>
+    ));
 
     await user.click(screen.getByText('Open'));
 

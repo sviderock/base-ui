@@ -1,29 +1,34 @@
-import * as React from 'react';
-import { Popover } from '@base-ui-components/react/popover';
-import { screen } from '@mui/internal-test-utils';
-import { expect } from 'chai';
 import { createRenderer, describeConformance } from '#test-utils';
+import { Popover } from '@base-ui-components/solid/popover';
+import { screen } from '@solidjs/testing-library';
+import { expect } from 'chai';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Popover.Description />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Popover.Description />, () => ({
+  describeConformance(Popover.Description, () => ({
     refInstanceof: window.HTMLParagraphElement,
-    render(node) {
+    render(node, elementProps = {}) {
       return render(
-        <Popover.Root open>
-          <Popover.Portal>
-            <Popover.Positioner>
-              <Popover.Popup>{node}</Popover.Popup>
-            </Popover.Positioner>
-          </Popover.Portal>
-        </Popover.Root>,
+        () => (
+          <Popover.Root open>
+            <Popover.Portal>
+              <Popover.Positioner>
+                <Popover.Popup>
+                  <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+                </Popover.Popup>
+              </Popover.Positioner>
+            </Popover.Portal>
+          </Popover.Root>
+        ),
+        elementProps,
       );
     },
   }));
 
   it('describes the popup element with its id', async () => {
-    await render(
+    render(() => (
       <Popover.Root open>
         <Popover.Portal>
           <Popover.Positioner>
@@ -32,8 +37,8 @@ describe('<Popover.Description />', () => {
             </Popover.Popup>
           </Popover.Positioner>
         </Popover.Portal>
-      </Popover.Root>,
-    );
+      </Popover.Root>
+    ));
 
     const id = document.querySelector('p')?.id;
     expect(screen.getByRole('dialog')).to.have.attribute('aria-describedby', id);

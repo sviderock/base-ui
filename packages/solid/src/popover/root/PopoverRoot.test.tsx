@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { Popover } from '@base-ui-components/react/popover';
-import { act, fireEvent, flushMicrotasks, screen, waitFor } from '@mui/internal-test-utils';
+import { createRenderer, flushMicrotasks, isJSDOM, popupConformanceTests } from '#test-utils';
+import { Popover } from '@base-ui-components/solid/popover';
+import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { createRenderer, isJSDOM, popupConformanceTests } from '#test-utils';
+import { createSignal } from 'solid-js';
 import { OPEN_DELAY } from '../utils/constants';
 
 function Root(props: Popover.Root.Props) {
@@ -28,24 +28,24 @@ describe('<Popover.Root />', () => {
         </Popover.Portal>
       </Popover.Root>
     ),
-    render,
+    render: (...args) => render(...(args as Parameters<typeof render>)),
     triggerMouseAction: 'click',
     expectedPopupRole: 'dialog',
   });
 
   it('should render the children', async () => {
-    await render(
+    render(() => (
       <Root>
         <Popover.Trigger>Content</Popover.Trigger>
-      </Root>,
-    );
+      </Root>
+    ));
 
     expect(screen.getByText('Content')).not.to.equal(null);
   });
 
   describe('uncontrolled open', () => {
     it('should close when the anchor is clicked twice', async () => {
-      await render(
+      render(() => (
         <Root>
           <Popover.Trigger />
           <Popover.Portal>
@@ -53,8 +53,8 @@ describe('<Popover.Root />', () => {
               <Popover.Popup>Content</Popover.Popup>
             </Popover.Positioner>
           </Popover.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const anchor = screen.getByRole('button');
 
@@ -75,13 +75,13 @@ describe('<Popover.Root />', () => {
       const handleChange = spy();
 
       function App() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
 
         return (
           <Root
             open={open}
             onOpenChange={(nextOpen) => {
-              handleChange(open);
+              handleChange(open());
               setOpen(nextOpen);
             }}
           >
@@ -95,7 +95,7 @@ describe('<Popover.Root />', () => {
         );
       }
 
-      await render(<App />);
+      render(() => <App />);
 
       expect(screen.queryByText('Content')).to.equal(null);
 
@@ -119,13 +119,13 @@ describe('<Popover.Root />', () => {
       const handleChange = spy();
 
       function App() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
 
         return (
           <Root
             open={open}
             onOpenChange={(nextOpen) => {
-              handleChange(open);
+              handleChange(open());
               setOpen(nextOpen);
             }}
           >
@@ -139,7 +139,7 @@ describe('<Popover.Root />', () => {
         );
       }
 
-      await render(<App />);
+      render(() => <App />);
 
       expect(screen.queryByText('Content')).to.equal(null);
 
@@ -157,7 +157,7 @@ describe('<Popover.Root />', () => {
 
   describe('prop: defaultOpen', () => {
     it('should open when the component is rendered', async () => {
-      await render(
+      render(() => (
         <Root defaultOpen>
           <Popover.Trigger />
           <Popover.Portal>
@@ -165,14 +165,14 @@ describe('<Popover.Root />', () => {
               <Popover.Popup>Content</Popover.Popup>
             </Popover.Positioner>
           </Popover.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       expect(screen.getByText('Content')).not.to.equal(null);
     });
 
     it('should not open when the component is rendered and open is controlled', async () => {
-      await render(
+      render(() => (
         <Root defaultOpen open={false}>
           <Popover.Trigger />
           <Popover.Portal>
@@ -180,14 +180,14 @@ describe('<Popover.Root />', () => {
               <Popover.Popup>Content</Popover.Popup>
             </Popover.Positioner>
           </Popover.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       expect(screen.queryByText('Content')).to.equal(null);
     });
 
     it('should not close when the component is rendered and open is controlled', async () => {
-      await render(
+      render(() => (
         <Root defaultOpen open>
           <Popover.Trigger />
           <Popover.Portal>
@@ -195,14 +195,14 @@ describe('<Popover.Root />', () => {
               <Popover.Popup>Content</Popover.Popup>
             </Popover.Positioner>
           </Popover.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       expect(screen.getByText('Content')).not.to.equal(null);
     });
 
     it('should remain uncontrolled', async () => {
-      await render(
+      render(() => (
         <Root defaultOpen>
           <Popover.Trigger data-testid="trigger" />
           <Popover.Portal>
@@ -210,8 +210,8 @@ describe('<Popover.Root />', () => {
               <Popover.Popup>Content</Popover.Popup>
             </Popover.Positioner>
           </Popover.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       expect(screen.getByText('Content')).not.to.equal(null);
 
@@ -227,7 +227,7 @@ describe('<Popover.Root />', () => {
     clock.withFakeTimers();
 
     it('should open after delay with rest type by default', async () => {
-      await render(
+      render(() => (
         <Root openOnHover delay={100}>
           <Popover.Trigger />
           <Popover.Portal>
@@ -235,8 +235,8 @@ describe('<Popover.Root />', () => {
               <Popover.Popup>Content</Popover.Popup>
             </Popover.Positioner>
           </Popover.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const anchor = screen.getByRole('button');
 
@@ -259,7 +259,7 @@ describe('<Popover.Root />', () => {
     clock.withFakeTimers();
 
     it('should close after delay', async () => {
-      await render(
+      render(() => (
         <Root openOnHover closeDelay={100}>
           <Popover.Trigger />
           <Popover.Portal>
@@ -267,8 +267,8 @@ describe('<Popover.Root />', () => {
               <Popover.Popup>Content</Popover.Popup>
             </Popover.Positioner>
           </Popover.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const anchor = screen.getByRole('button');
 
@@ -295,7 +295,7 @@ describe('<Popover.Root />', () => {
 
   describe('focus management', () => {
     it('focuses the trigger after the popover is closed but not unmounted', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <div>
           <input type="text" />
           <Popover.Root>
@@ -309,8 +309,8 @@ describe('<Popover.Root />', () => {
             </Popover.Portal>
           </Popover.Root>
           <input type="text" />
-        </div>,
-      );
+        </div>
+      ));
 
       const toggle = screen.getByRole('button', { name: 'Toggle' });
 
@@ -330,7 +330,7 @@ describe('<Popover.Root />', () => {
     });
 
     it('does not move focus to the popover when opened with hover', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <Popover.Root openOnHover delay={0}>
           <Popover.Trigger>Toggle</Popover.Trigger>
           <Popover.Portal>
@@ -340,12 +340,12 @@ describe('<Popover.Root />', () => {
               </Popover.Popup>
             </Popover.Positioner>
           </Popover.Portal>
-        </Popover.Root>,
-      );
+        </Popover.Root>
+      ));
 
       const toggle = screen.getByRole('button', { name: 'Toggle' });
 
-      act(() => toggle.focus());
+      toggle.focus();
 
       await user.hover(toggle);
       await flushMicrotasks();
@@ -371,28 +371,28 @@ describe('<Popover.Root />', () => {
         }
       `;
 
-      const { user } = await render(
+      const { user } = render(() => (
         <div>
-          {/* eslint-disable-next-line react/no-danger */}
-          <style dangerouslySetInnerHTML={{ __html: style }} />
+          {/* eslint-disable-next-line solid/no-innerhtml */}
+          <style innerHTML={style} />
           <input type="text" data-testid="first-input" />
           <Popover.Root openOnHover delay={0} closeDelay={0}>
             <Popover.Trigger>Toggle</Popover.Trigger>
             <Popover.Portal>
               <Popover.Positioner>
-                <Popover.Popup className="popup" />
+                <Popover.Popup class="popup" />
               </Popover.Positioner>
             </Popover.Portal>
           </Popover.Root>
           <input type="text" data-testid="last-input" />
-        </div>,
-      );
+        </div>
+      ));
 
       const toggle = screen.getByRole('button', { name: 'Toggle' });
       const firstInput = screen.getByTestId('first-input');
       const lastInput = screen.getByTestId('last-input');
 
-      await act(async () => lastInput.focus());
+      lastInput.focus();
 
       await user.hover(toggle);
       await flushMicrotasks();
@@ -411,12 +411,10 @@ describe('<Popover.Root />', () => {
   describe('prop: actionsRef', () => {
     it('unmounts the popover when the `unmount` method is called', async () => {
       const actionsRef = {
-        current: {
-          unmount: spy(),
-        },
+        unmount: spy(),
       };
 
-      const { user } = await render(
+      const { user } = render(() => (
         <Popover.Root actionsRef={actionsRef}>
           <Popover.Trigger>Open</Popover.Trigger>
           <Popover.Portal>
@@ -424,8 +422,8 @@ describe('<Popover.Root />', () => {
               <Popover.Popup>Content</Popover.Popup>
             </Popover.Positioner>
           </Popover.Portal>
-        </Popover.Root>,
-      );
+        </Popover.Root>
+      ));
 
       const trigger = screen.getByRole('button', { name: 'Open' });
       await user.click(trigger);
@@ -440,7 +438,7 @@ describe('<Popover.Root />', () => {
         expect(screen.queryByRole('dialog')).not.to.equal(null);
       });
 
-      await act(async () => actionsRef.current.unmount());
+      actionsRef.unmount();
 
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).to.equal(null);
@@ -450,7 +448,7 @@ describe('<Popover.Root />', () => {
 
   describe('prop: modal', () => {
     it('should render an internal backdrop when `true`', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <div>
           <Popover.Root modal>
             <Popover.Trigger>Open</Popover.Trigger>
@@ -461,8 +459,8 @@ describe('<Popover.Root />', () => {
             </Popover.Portal>
           </Popover.Root>
           <button>Outside</button>
-        </div>,
-      );
+        </div>
+      ));
 
       const trigger = screen.getByRole('button', { name: 'Open' });
 
@@ -478,7 +476,7 @@ describe('<Popover.Root />', () => {
     });
 
     it('should not render an internal backdrop when `false`', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <div>
           <Popover.Root modal={false}>
             <Popover.Trigger>Open</Popover.Trigger>
@@ -489,8 +487,8 @@ describe('<Popover.Root />', () => {
             </Popover.Portal>
           </Popover.Root>
           <button>Outside</button>
-        </div>,
-      );
+        </div>
+      ));
 
       const trigger = screen.getByRole('button', { name: 'Open' });
 
@@ -511,7 +509,7 @@ describe('<Popover.Root />', () => {
       const onOpenChangeComplete = spy();
 
       function Test() {
-        const [open, setOpen] = React.useState(true);
+        const [open, setOpen] = createSignal(true);
         return (
           <div>
             <button onClick={() => setOpen(false)}>Close</button>
@@ -526,7 +524,7 @@ describe('<Popover.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       const closeButton = screen.getByText('Close');
       await user.click(closeButton);
@@ -557,17 +555,17 @@ describe('<Popover.Root />', () => {
           }
         `;
 
-        const [open, setOpen] = React.useState(true);
+        const [open, setOpen] = createSignal(true);
 
         return (
           <div>
-            {/* eslint-disable-next-line react/no-danger */}
-            <style dangerouslySetInnerHTML={{ __html: style }} />
+            {/* eslint-disable-next-line solid/no-innerhtml */}
+            <style innerHTML={style} />
             <button onClick={() => setOpen(false)}>Close</button>
             <Popover.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
               <Popover.Portal>
                 <Popover.Positioner>
-                  <Popover.Popup className="animation-test-indicator" data-testid="popup" />
+                  <Popover.Popup class="animation-test-indicator" data-testid="popup" />
                 </Popover.Positioner>
               </Popover.Portal>
             </Popover.Root>
@@ -575,7 +573,7 @@ describe('<Popover.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       expect(screen.getByTestId('popup')).not.to.equal(null);
 
@@ -598,7 +596,7 @@ describe('<Popover.Root />', () => {
       const onOpenChangeComplete = spy();
 
       function Test() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
         return (
           <div>
             <button onClick={() => setOpen(true)}>Open</button>
@@ -613,7 +611,7 @@ describe('<Popover.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       const openButton = screen.getByText('Open');
       await user.click(openButton);
@@ -644,12 +642,12 @@ describe('<Popover.Root />', () => {
           }
         `;
 
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
 
         return (
           <div>
-            {/* eslint-disable-next-line react/no-danger */}
-            <style dangerouslySetInnerHTML={{ __html: style }} />
+            {/* eslint-disable-next-line solid/no-innerhtml */}
+            <style innerHTML={style} />
             <button onClick={() => setOpen(true)}>Open</button>
             <Popover.Root
               open={open}
@@ -658,7 +656,7 @@ describe('<Popover.Root />', () => {
             >
               <Popover.Portal>
                 <Popover.Positioner>
-                  <Popover.Popup className="animation-test-indicator" data-testid="popup" />
+                  <Popover.Popup class="animation-test-indicator" data-testid="popup" />
                 </Popover.Positioner>
               </Popover.Portal>
             </Popover.Root>
@@ -666,7 +664,7 @@ describe('<Popover.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       const openButton = screen.getByText('Open');
       await user.click(openButton);
@@ -682,15 +680,15 @@ describe('<Popover.Root />', () => {
     it('does not get called on mount when not open', async () => {
       const onOpenChangeComplete = spy();
 
-      await render(
+      render(() => (
         <Popover.Root onOpenChangeComplete={onOpenChangeComplete}>
           <Popover.Portal>
             <Popover.Positioner>
               <Popover.Popup />
             </Popover.Positioner>
           </Popover.Portal>
-        </Popover.Root>,
-      );
+        </Popover.Root>
+      ));
 
       expect(onOpenChangeComplete.callCount).to.equal(0);
     });

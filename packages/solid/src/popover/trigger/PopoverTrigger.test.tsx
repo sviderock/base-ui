@@ -1,23 +1,30 @@
-import * as React from 'react';
-import { Popover } from '@base-ui-components/react/popover';
-import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#test-utils';
+import { Popover } from '@base-ui-components/solid/popover';
+import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { act, fireEvent, flushMicrotasks, screen } from '@mui/internal-test-utils';
+import { Dynamic } from 'solid-js/web';
 import { PATIENT_CLICK_THRESHOLD } from '../../utils/constants';
 
 describe('<Popover.Trigger />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Popover.Trigger />, () => ({
+  describeConformance(Popover.Trigger, () => ({
     refInstanceof: window.HTMLButtonElement,
-    render(node) {
-      return render(<Popover.Root open>{node}</Popover.Root>);
+    render(node, elementProps = {}) {
+      return render(
+        () => (
+          <Popover.Root open>
+            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+          </Popover.Root>
+        ),
+        elementProps,
+      );
     },
   }));
 
   describe('prop: disabled', () => {
     it('disables the popover', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <Popover.Root>
           <Popover.Trigger disabled />
           <Popover.Portal>
@@ -25,8 +32,8 @@ describe('<Popover.Trigger />', () => {
               <Popover.Popup>Content</Popover.Popup>
             </Popover.Positioner>
           </Popover.Portal>
-        </Popover.Root>,
-      );
+        </Popover.Root>
+      ));
 
       const trigger = screen.getByRole('button');
       expect(trigger).to.have.attribute('disabled');
@@ -40,16 +47,20 @@ describe('<Popover.Trigger />', () => {
     });
 
     it('custom element', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <Popover.Root>
-          <Popover.Trigger disabled render={<span />} nativeButton={false} />
+          <Popover.Trigger
+            disabled
+            render={(props) => <span {...props()} />}
+            nativeButton={false}
+          />
           <Popover.Portal>
             <Popover.Positioner>
               <Popover.Popup>Content</Popover.Popup>
             </Popover.Positioner>
           </Popover.Portal>
-        </Popover.Root>,
-      );
+        </Popover.Root>
+      ));
 
       const trigger = screen.getByRole('button');
       expect(trigger).to.not.have.attribute('disabled');
@@ -66,24 +77,22 @@ describe('<Popover.Trigger />', () => {
 
   describe('style hooks', () => {
     it('should have the data-popup-open and data-pressed attributes when open by clicking', async () => {
-      await render(
+      render(() => (
         <Popover.Root>
           <Popover.Trigger />
-        </Popover.Root>,
-      );
+        </Popover.Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
-      await act(async () => {
-        trigger.click();
-      });
+      trigger.click();
 
       expect(trigger).to.have.attribute('data-popup-open');
       expect(trigger).to.have.attribute('data-pressed');
     });
 
     it('should have the data-popup-open but not the data-pressed attribute when open by hover', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <Popover.Root openOnHover delay={0}>
           <Popover.Trigger />
           <Popover.Portal>
@@ -91,8 +100,8 @@ describe('<Popover.Trigger />', () => {
               <Popover.Popup />
             </Popover.Positioner>
           </Popover.Portal>
-        </Popover.Root>,
-      );
+        </Popover.Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -103,7 +112,7 @@ describe('<Popover.Trigger />', () => {
     });
 
     it('should not have the data-popup-open and data-pressed attributes when open by click when `openOnHover=true` and `delay=0`', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <Popover.Root delay={0} openOnHover>
           <Popover.Trigger />
           <Popover.Portal>
@@ -111,22 +120,20 @@ describe('<Popover.Trigger />', () => {
               <Popover.Popup />
             </Popover.Positioner>
           </Popover.Portal>
-        </Popover.Root>,
-      );
+        </Popover.Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
       await user.hover(trigger);
 
-      await act(async () => {
-        trigger.click();
-      });
+      trigger.click();
 
       expect(trigger).to.have.attribute('data-popup-open');
     });
 
     it('should have the data-popup-open and data-pressed attributes when open by click when `openOnHover=true`', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <Popover.Root openOnHover>
           <Popover.Trigger />
           <Popover.Portal>
@@ -134,15 +141,13 @@ describe('<Popover.Trigger />', () => {
               <Popover.Popup />
             </Popover.Positioner>
           </Popover.Portal>
-        </Popover.Root>,
-      );
+        </Popover.Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
       await user.hover(trigger);
-      await act(async () => {
-        trigger.click();
-      });
+      trigger.click();
 
       expect(trigger).to.have.attribute('data-popup-open');
       expect(trigger).to.have.attribute('data-pressed');
@@ -155,7 +160,7 @@ describe('<Popover.Trigger />', () => {
     clock.withFakeTimers();
 
     it('does not close the popover if the user clicks too quickly', async () => {
-      await renderFakeTimers(
+      renderFakeTimers(() => (
         <Popover.Root delay={0} openOnHover>
           <Popover.Trigger />
           <Popover.Portal>
@@ -163,8 +168,8 @@ describe('<Popover.Trigger />', () => {
               <Popover.Popup />
             </Popover.Positioner>
           </Popover.Portal>
-        </Popover.Root>,
-      );
+        </Popover.Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -178,7 +183,7 @@ describe('<Popover.Trigger />', () => {
     });
 
     it('closes the popover if the user clicks patiently', async () => {
-      await renderFakeTimers(
+      renderFakeTimers(() => (
         <Popover.Root delay={0} openOnHover>
           <Popover.Trigger />
           <Popover.Portal>
@@ -186,8 +191,8 @@ describe('<Popover.Trigger />', () => {
               <Popover.Popup />
             </Popover.Positioner>
           </Popover.Portal>
-        </Popover.Root>,
-      );
+        </Popover.Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -201,7 +206,7 @@ describe('<Popover.Trigger />', () => {
     });
 
     it('sticks if the user clicks impatiently', async () => {
-      await renderFakeTimers(
+      renderFakeTimers(() => (
         <Popover.Root delay={0} openOnHover>
           <Popover.Trigger />
           <Popover.Portal>
@@ -209,8 +214,8 @@ describe('<Popover.Trigger />', () => {
               <Popover.Popup />
             </Popover.Positioner>
           </Popover.Portal>
-        </Popover.Root>,
-      );
+        </Popover.Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -229,7 +234,7 @@ describe('<Popover.Trigger />', () => {
     });
 
     it('does not stick if the user clicks patiently', async () => {
-      await renderFakeTimers(
+      renderFakeTimers(() => (
         <Popover.Root delay={0} openOnHover>
           <Popover.Trigger />
           <Popover.Portal>
@@ -237,8 +242,8 @@ describe('<Popover.Trigger />', () => {
               <Popover.Popup />
             </Popover.Positioner>
           </Popover.Portal>
-        </Popover.Root>,
-      );
+        </Popover.Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -253,7 +258,7 @@ describe('<Popover.Trigger />', () => {
     });
 
     it('should keep the popover open when re-hovered and clicked within the patient threshold', async () => {
-      await render(
+      render(() => (
         <Popover.Root openOnHover delay={100}>
           <Popover.Trigger>Open</Popover.Trigger>
           <Popover.Portal>
@@ -261,8 +266,8 @@ describe('<Popover.Trigger />', () => {
               <Popover.Popup>Content</Popover.Popup>
             </Popover.Positioner>
           </Popover.Portal>
-        </Popover.Root>,
-      );
+        </Popover.Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -288,10 +293,14 @@ describe('<Popover.Trigger />', () => {
   it.skipIf(!isJSDOM)(
     'should toggle closed with Enter or Space when rendering a <div>',
     async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <div>
           <Popover.Root>
-            <Popover.Trigger render={<div />} nativeButton={false} data-testid="div-trigger">
+            <Popover.Trigger
+              render={(props) => <div {...props()} />}
+              nativeButton={false}
+              data-testid="div-trigger"
+            >
               Toggle
             </Popover.Trigger>
             <Popover.Portal>
@@ -301,12 +310,12 @@ describe('<Popover.Trigger />', () => {
             </Popover.Portal>
           </Popover.Root>
           <button data-testid="other-button">Other button</button>
-        </div>,
-      );
+        </div>
+      ));
 
       const trigger = screen.getByTestId('div-trigger');
 
-      await act(async () => trigger.focus());
+      trigger.focus();
       await user.keyboard('[Enter]');
       expect(screen.queryByText('Content')).not.to.equal(null);
 
