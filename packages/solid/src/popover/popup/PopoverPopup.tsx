@@ -1,5 +1,5 @@
 'use client';
-import { createMemo } from 'solid-js';
+import { createEffect, createMemo } from 'solid-js';
 import { FloatingFocusManager } from '../../floating-ui-solid';
 import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
 import { DISABLED_TRANSITIONS_STYLE, EMPTY_OBJECT } from '../../utils/constants';

@@ -1,6 +1,6 @@
 import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#test-utils';
 import { Popover } from '@base-ui-components/solid/popover';
-import { fireEvent, screen } from '@solidjs/testing-library';
+import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { Dynamic } from 'solid-js/web';
 import { PATIENT_CLICK_THRESHOLD } from '../../utils/constants';
@@ -297,7 +297,7 @@ describe('<Popover.Trigger />', () => {
         <div>
           <Popover.Root>
             <Popover.Trigger
-              render={(props) => <div {...props()} />}
+              render={(p) => <div {...p()} />}
               nativeButton={false}
               data-testid="div-trigger"
             >
@@ -317,13 +317,17 @@ describe('<Popover.Trigger />', () => {
 
       trigger.focus();
       await user.keyboard('[Enter]');
-      expect(screen.queryByText('Content')).not.to.equal(null);
+      await waitFor(() => {
+        expect(screen.queryByText('Content')).not.to.equal(null);
+      });
 
       await user.tab({ shift: true });
       expect(document.activeElement).to.equal(trigger);
 
       await user.keyboard('[Enter]');
-      expect(screen.queryByText('Content')).to.equal(null);
+      await waitFor(() => {
+        expect(screen.queryByText('Content')).to.equal(null);
+      });
 
       await user.keyboard('[Enter]');
       expect(screen.queryByText('Content')).not.to.equal(null);

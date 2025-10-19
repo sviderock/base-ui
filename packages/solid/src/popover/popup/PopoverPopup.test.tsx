@@ -2,6 +2,7 @@ import { createRenderer, describeConformance } from '#test-utils';
 import { Popover } from '@base-ui-components/solid/popover';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
+import { createSignal } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 
 describe('<Popover.Popup />', () => {
@@ -70,7 +71,7 @@ describe('<Popover.Popup />', () => {
 
     it('should focus the element provided to `initialFocus` as a ref when open', async () => {
       function TestComponent() {
-        let input2Ref;
+        const [input2Ref, setInput2Ref] = createSignal<HTMLInputElement | null>(null);
         return (
           <div>
             <input />
@@ -80,7 +81,7 @@ describe('<Popover.Popup />', () => {
                 <Popover.Positioner>
                   <Popover.Popup initialFocus={input2Ref}>
                     <input data-testid="input-1" />
-                    <input data-testid="input-2" ref={input2Ref} />
+                    <input data-testid="input-2" ref={setInput2Ref} />
                     <input data-testid="input-3" />
                     <button>Close</button>
                   </Popover.Popup>
@@ -105,9 +106,9 @@ describe('<Popover.Popup />', () => {
 
     it('should focus the element provided to `initialFocus` as a function when open', async () => {
       function TestComponent() {
-        let input2Ref;
+        const [input2Ref, setInput2Ref] = createSignal<HTMLInputElement | null>(null);
 
-        const getRef = () => input2Ref;
+        const getRef = () => input2Ref();
 
         return (
           <div>
@@ -118,7 +119,7 @@ describe('<Popover.Popup />', () => {
                 <Popover.Positioner>
                   <Popover.Popup initialFocus={getRef}>
                     <input data-testid="input-1" />
-                    <input data-testid="input-2" ref={input2Ref} />
+                    <input data-testid="input-2" ref={setInput2Ref} />
                     <input data-testid="input-3" />
                     <button>Close</button>
                   </Popover.Popup>

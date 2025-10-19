@@ -81,7 +81,7 @@ function PopoverRootComponent(props: PopoverRoot.Props) {
     open,
     ref: () => refs.popupRef,
     onComplete() {
-      if (!open) {
+      if (!open()) {
         handleUnmount();
       }
     },
@@ -109,12 +109,14 @@ function PopoverRootComponent(props: PopoverRoot.Props) {
     const isDismissClose = !nextOpen && (reason === 'escape-key' || reason == null);
 
     function changeState() {
-      props.onOpenChange?.(nextOpen, event, reason);
-      setOpenUnwrapped(nextOpen);
+      batch(() => {
+        props.onOpenChange?.(nextOpen, event, reason);
+        setOpenUnwrapped(nextOpen);
 
-      if (nextOpen) {
-        setOpenReason(reason ?? null);
-      }
+        if (nextOpen) {
+          setOpenReason(reason ?? null);
+        }
+      });
     }
 
     if (isHover) {

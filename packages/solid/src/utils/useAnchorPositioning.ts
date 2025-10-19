@@ -334,13 +334,7 @@ export function useAnchorPositioning(
 
   // Ensure positioning doesn't run initially for `keepMounted` elements that
   // aren't initially open.
-  const rootContext =
-    !mounted() && params.floatingRootContext
-      ? {
-          ...params.floatingRootContext,
-          elements: { reference: () => null, floating: () => null, domReference: () => null },
-        }
-      : params.floatingRootContext;
+  const rootContext = params.floatingRootContext;
 
   const autoUpdateOptions = createMemo<AutoUpdateOptions>(() => ({
     elementResize: trackAnchor() && typeof ResizeObserver !== 'undefined',

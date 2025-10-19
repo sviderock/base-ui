@@ -1,5 +1,5 @@
 'use client';
-import { createMemo, Show, type JSX } from 'solid-js';
+import { createEffect, createMemo, Show, type JSX } from 'solid-js';
 import { FloatingNode, useFloatingNodeId } from '../../floating-ui-solid';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { POPUP_COLLISION_AVOIDANCE } from '../../utils/constants';
