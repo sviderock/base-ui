@@ -45,29 +45,12 @@ export function NavigationMenuContent(componentProps: NavigationMenuContent.Prop
   const [, , elementProps] = splitComponentProps(componentProps, []);
 
   const { viewportElement, activationDirection, refs } = useNavigationMenuRootContext();
-  const {
-    value: itemValue,
-    open,
-    transitionStatus,
-    mounted,
-    setMounted,
-  } = useNavigationMenuItemContext();
+  const { open, transitionStatus, mounted, setMounted } = useNavigationMenuItemContext();
   const nodeId = useNavigationMenuTreeContext();
 
   let ref = null as HTMLDivElement | null | undefined;
 
   const [focusInside, setFocusInside] = createSignal(false);
-
-  createEffect(() => {
-    if (itemValue?.() === 'item-1' || itemValue?.() === 'item-2') {
-      console.table({
-        name: itemValue?.(),
-        open: open(),
-        mounted: mounted(),
-        transitionStatus: transitionStatus(),
-      });
-    }
-  });
 
   useOpenChangeComplete({
     ref: () => ref,
