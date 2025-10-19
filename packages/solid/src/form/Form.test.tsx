@@ -145,7 +145,7 @@ describe('<Form />', () => {
       await user.click(submit);
       expect(name).toHaveFocus();
 
-      fireEvent.change(name, { target: { value: 'John' } });
+      fireEvent.input(name, { target: { value: 'John' } });
 
       expect(age).not.toHaveFocus();
 
@@ -153,7 +153,7 @@ describe('<Form />', () => {
 
       expect(age).toHaveFocus();
 
-      fireEvent.change(age, { target: { value: '42' } });
+      fireEvent.input(age, { target: { value: '42' } });
 
       await user.click(submit);
 
@@ -173,7 +173,7 @@ describe('<Form />', () => {
 
       await user.click(submit);
 
-      fireEvent.change(name, { target: { value: 'John' } });
+      fireEvent.input(name, { target: { value: 'John' } });
 
       expect(age).not.toHaveFocus();
     });
@@ -184,8 +184,8 @@ describe('<Form />', () => {
       const name = screen.getByTestId('name');
       const age = screen.getByTestId('age');
 
-      fireEvent.change(name, { target: { value: 'John' } });
-      fireEvent.change(age, { target: { value: '42' } });
+      fireEvent.input(name, { target: { value: 'John' } });
+      fireEvent.input(age, { target: { value: '42' } });
 
       expect(screen.queryByTestId('name-error')).to.equal(null);
       expect(screen.queryByTestId('age-error')).to.equal(null);
@@ -213,7 +213,7 @@ describe('<Form />', () => {
       expect(screen.getByTestId('error')).to.have.text('bar');
       expect(screen.getByRole('textbox')).to.have.attribute('aria-invalid', 'true');
 
-      fireEvent.change(screen.getByRole('textbox'), { target: { value: 'baz' } });
+      fireEvent.input(screen.getByRole('textbox'), { target: { value: 'baz' } });
 
       expect(screen.queryByTestId('error')).to.equal(null);
       expect(screen.getByRole('textbox')).not.to.have.attribute('aria-invalid');

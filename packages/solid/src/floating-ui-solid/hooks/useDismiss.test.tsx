@@ -93,7 +93,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
       // Simulate behavior when "あ" (Japanese) is entered and Esc is pressed for IME
       // cancellation.
-      fireEvent.change(textbox, { target: { value: 'あ' } });
+      fireEvent.input(textbox, { target: { value: 'あ' } });
       fireEvent.compositionStart(textbox);
       fireEvent.keyDown(textbox, { key: 'Escape' });
       fireEvent.compositionEnd(textbox);

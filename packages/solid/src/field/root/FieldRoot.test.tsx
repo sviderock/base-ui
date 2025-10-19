@@ -371,7 +371,7 @@ describe('<Field.Root />', () => {
 
         expect(message).to.equal(null);
 
-        fireEvent.change(control, { target: { value: 't' } });
+        fireEvent.input(control, { target: { value: 't' } });
 
         expect(control).to.have.attribute('data-invalid', '');
         expect(control).to.have.attribute('aria-invalid', 'true');
@@ -491,13 +491,13 @@ describe('<Field.Root />', () => {
 
       expect(message).to.equal(null);
 
-      fireEvent.change(control, { target: { value: 't' } });
+      fireEvent.input(control, { target: { value: 't' } });
 
       expect(control).not.to.have.attribute('aria-invalid');
 
       clock.tick(99);
 
-      fireEvent.change(control, { target: { value: 'te' } });
+      fireEvent.input(control, { target: { value: 'te' } });
 
       clock.tick(99);
 
@@ -598,7 +598,7 @@ describe('<Field.Root />', () => {
       expect(screen.getByTestId('error')).not.to.equal(null);
 
       fireEvent.focus(control);
-      fireEvent.change(control, { target: { value: 't' } });
+      fireEvent.input(control, { target: { value: 't' } });
 
       // The field becomes temporarily valid because only 'valueMissing' is checked for immediate clearing.
       // Other errors like 'typeMismatch' are deferred to the next blur/submit.
@@ -612,7 +612,7 @@ describe('<Field.Root />', () => {
       expect(screen.getByTestId('error').textContent).not.to.equal('');
 
       fireEvent.focus(control);
-      fireEvent.change(control, { target: { value: 'test@example.com' } });
+      fireEvent.input(control, { target: { value: 'test@example.com' } });
 
       expect(control).not.to.have.attribute('aria-invalid', 'true');
       expect(screen.queryByTestId('error')).to.equal(null);

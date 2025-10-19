@@ -20,7 +20,7 @@ describe('<Field.Validity />', () => {
     const input = screen.getByRole<HTMLInputElement>('textbox');
 
     fireEvent.focus(input);
-    fireEvent.change(input, { target: { value: 'test' } });
+    fireEvent.input(input, { target: { value: 'test' } });
     fireEvent.blur(input);
 
     const [data] = handleValidity.lastCall.args;

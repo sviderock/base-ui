@@ -226,7 +226,7 @@ export function useFieldControlValidation() {
   const getInputValidationProps = (externalProps = {}) => {
     return mergeProps<'input'>(
       {
-        onChange(event) {
+        onInput(event) {
           // Workaround for https://github.com/facebook/react/issues/9023
           if (event.defaultPrevented) {
             return;
