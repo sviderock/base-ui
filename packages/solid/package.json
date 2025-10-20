@@ -49,6 +49,8 @@
     "./popover": "./src/popover/index.ts",
     "./preview-card": "./src/preview-card/index.ts",
     "./progress": "./src/progress/index.ts",
+    "./radio": "./src/radio/index.ts",
+    "./radio-group": "./src/radio-group/index.ts",
     "./scroll-area": "./src/scroll-area/index.ts",
     "./separator": "./src/separator/index.ts",
     "./solid-helpers": "./src/solid-helpers.ts",

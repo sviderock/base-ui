@@ -19,7 +19,7 @@ describe('<Progress.Root />', () => {
   const { render } = createRenderer();
 
   describeConformance(
-    (props) => <Progress.Root {...props} ref={props.ref} value={50} />,
+    (props: any) => <Progress.Root {...props} ref={props.ref} value={50} />,
     () => ({
       render,
       refInstanceof: window.HTMLDivElement,
