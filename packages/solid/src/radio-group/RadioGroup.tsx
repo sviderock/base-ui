@@ -204,6 +204,7 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
               state: state(),
               customStyleHookMapping: fieldValidityMapping,
               props: [
+                p(),
                 {
                   role: 'radiogroup',
                   'aria-required': required() || undefined,
@@ -214,10 +215,7 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
                     setFocused(true);
                   },
                   onBlur,
-                  'on:keydown': {
-                    capture: true,
-                    handleEvent: onKeyDownCapture,
-                  },
+                  onKeyDown: onKeyDownCapture,
                 },
                 fieldControlValidation.getValidationProps,
                 elementProps,
@@ -228,8 +226,10 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
       />
       <input
         ref={(el) => {
+          if (local.refs) {
+            local.refs.inputRef = el;
+          }
           fieldControlValidation.refs.inputRef = el;
-          registerControlRef(el);
         }}
         {...inputProps()}
       />
@@ -281,11 +281,11 @@ export namespace RadioGroup {
      * Callback fired when the value changes.
      */
     onValueChange?: (value: unknown, event: Event) => void;
-    refs: {
+    refs?: {
       /**
        * A ref to access the hidden input element.
        */
-      input: HTMLInputElement | null | undefined;
+      inputRef: HTMLInputElement | null | undefined;
     };
   }
 }

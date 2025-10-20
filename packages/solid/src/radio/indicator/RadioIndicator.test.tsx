@@ -1,9 +1,10 @@
-import * as React from 'react';
-import { screen, waitFor } from '@mui/internal-test-utils';
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Radio } from '@base-ui-components/react/radio';
+import { Radio } from '@base-ui-components/solid/radio';
+import { RadioGroup } from '@base-ui-components/solid/radio-group';
+import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { RadioGroup } from '@base-ui-components/react/radio-group';
+import { createSignal } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Radio.Indicator />', () => {
   beforeEach(() => {
@@ -12,10 +13,17 @@ describe('<Radio.Indicator />', () => {
 
   const { render } = createRenderer();
 
-  describeConformance(<Radio.Indicator />, () => ({
+  describeConformance(Radio.Indicator, () => ({
     refInstanceof: window.HTMLSpanElement,
-    render(node) {
-      return render(<Radio.Root value="">{node}</Radio.Root>);
+    render(node, elementProps = {}) {
+      return render(
+        () => (
+          <Radio.Root value="">
+            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+          </Radio.Root>
+        ),
+        elementProps,
+      );
     },
   }));
 
@@ -25,23 +33,23 @@ describe('<Radio.Indicator />', () => {
     }
 
     function Test() {
-      const [value, setValue] = React.useState('a');
+      const [value, setValue] = createSignal('a');
       return (
         <div>
           <button onClick={() => setValue('b')}>Close</button>
           <RadioGroup value={value}>
             <Radio.Root value="a">
-              <Radio.Indicator className="animation-test-indicator" data-testid="indicator-a" />
+              <Radio.Indicator class="animation-test-indicator" data-testid="indicator-a" />
             </Radio.Root>
             <Radio.Root value="a">
-              <Radio.Indicator className="animation-test-indicator" />
+              <Radio.Indicator class="animation-test-indicator" />
             </Radio.Root>
           </RadioGroup>
         </div>
       );
     }
 
-    const { user } = await render(<Test />);
+    const { user } = render(() => <Test />);
 
     expect(screen.getByTestId('indicator-a')).not.to.equal(null);
 
@@ -79,31 +87,31 @@ describe('<Radio.Indicator />', () => {
         }
       `;
 
-      const [value, setValue] = React.useState('a');
+      const [value, setValue] = createSignal('a');
 
       return (
         <div>
-          {/* eslint-disable-next-line react/no-danger */}
-          <style dangerouslySetInnerHTML={{ __html: style }} />
+          {/* eslint-disable-next-line solid/no-innerhtml */}
+          <style innerHTML={style} />
           <button onClick={() => setValue('b')}>Close</button>
           <RadioGroup value={value}>
             <Radio.Root value="a">
               <Radio.Indicator
-                className="animation-test-indicator"
+                class="animation-test-indicator"
                 keepMounted
                 onAnimationEnd={notifyAnimationFinished}
                 data-testid="indicator-a"
               />
             </Radio.Root>
             <Radio.Root value="a">
-              <Radio.Indicator className="animation-test-indicator" keepMounted />
+              <Radio.Indicator class="animation-test-indicator" keepMounted />
             </Radio.Root>
           </RadioGroup>
         </div>
       );
     }
 
-    const { user } = await render(<Test />);
+    const { user } = render(() => <Test />);
 
     expect(screen.getByTestId('indicator-a')).not.to.equal(null);
 

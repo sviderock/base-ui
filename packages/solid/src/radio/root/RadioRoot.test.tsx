@@ -1,35 +1,37 @@
-import * as React from 'react';
+import { createRenderer, describeConformance } from '#test-utils';
+import { Radio } from '@base-ui-components/solid/radio';
+import { RadioGroup } from '@base-ui-components/solid/radio-group';
+import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Radio } from '@base-ui-components/react/radio';
-import { RadioGroup } from '@base-ui-components/react/radio-group';
-import { fireEvent, screen } from '@mui/internal-test-utils';
-import { describeConformance, createRenderer } from '#test-utils';
 
 describe('<Radio.Root />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Radio.Root value="" />, () => ({
-    refInstanceof: window.HTMLButtonElement,
-    render,
-  }));
+  describeConformance(
+    (props: any) => <Radio.Root {...props} ref={props.ref} value="" />,
+    () => ({
+      refInstanceof: window.HTMLButtonElement,
+      render,
+    }),
+  );
 
   it('does not forward `value` prop', async () => {
-    await render(
+    render(() => (
       <RadioGroup>
         <Radio.Root value="test" data-testid="radio-root" />
-      </RadioGroup>,
-    );
+      </RadioGroup>
+    ));
 
     expect(screen.getByTestId('radio-root')).not.to.have.attribute('value');
   });
 
   it('allows `null` value', async () => {
-    await render(
+    render(() => (
       <RadioGroup>
         <Radio.Root value={null} data-testid="radio-null" />
         <Radio.Root value="a" data-testid="radio-a" />
-      </RadioGroup>,
-    );
+      </RadioGroup>
+    ));
 
     const radioNull = screen.getByTestId('radio-null');
     const radioA = screen.getByTestId('radio-a');

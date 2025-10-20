@@ -1,5 +1,6 @@
 'use client';
 import {
+  batch,
   createEffect,
   createMemo,
   createSignal,
@@ -69,12 +70,6 @@ export function RadioRoot(componentProps: RadioRoot.Props) {
 
   const [inputRef, setInputRef] = createSignal<HTMLInputElement | null | undefined>(null);
 
-  createEffect(() => {
-    if (inputRef()?.checked) {
-      setFilled(true);
-    }
-  });
-
   const rootProps = createMemo<ComponentProps<'button'>>(() => ({
     role: 'radio',
     'aria-checked': checked(),
@@ -114,6 +109,12 @@ export function RadioRoot(componentProps: RadioRoot.Props) {
   });
 
   const id = useBaseUiId();
+
+  createEffect(() => {
+    if (checked()) {
+      setFilled(true);
+    }
+  });
 
   const inputProps = createMemo<ComponentProps<'input'>>(() => ({
     type: 'radio',
@@ -170,14 +171,16 @@ export function RadioRoot(componentProps: RadioRoot.Props) {
         element="button"
         componentProps={componentProps}
         ref={(el) => {
-          compositeItemProps?.().ref(el);
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-          registerControlRef(el);
-          buttonRef(el);
+          batch(() => {
+            compositeItemProps?.().ref(el);
+            if (typeof componentProps.ref === 'function') {
+              componentProps.ref(el);
+            } else {
+              componentProps.ref = el;
+            }
+            registerControlRef(el);
+            buttonRef(el);
+          });
         }}
         params={{
           state: state(),
@@ -202,7 +205,9 @@ export function RadioRoot(componentProps: RadioRoot.Props) {
 
       <input
         ref={(el) => {
-          local.refs.inputRef = el;
+          if (local.refs) {
+            local.refs.inputRef = el;
+          }
           setInputRef(el);
         }}
         {...inputProps()}
