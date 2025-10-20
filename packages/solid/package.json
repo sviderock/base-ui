@@ -52,6 +52,7 @@
     "./radio": "./src/radio/index.ts",
     "./radio-group": "./src/radio-group/index.ts",
     "./scroll-area": "./src/scroll-area/index.ts",
+    "./select": "./src/select/index.ts",
     "./separator": "./src/separator/index.ts",
     "./solid-helpers": "./src/solid-helpers.ts",
     "./unstable-no-ssr": "./src/unstable-no-ssr/index.ts",
