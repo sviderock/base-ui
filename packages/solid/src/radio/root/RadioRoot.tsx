@@ -200,30 +200,6 @@ export function RadioRoot(componentProps: RadioRoot.Props) {
         <CompositeItem render={element} />
       </Show>
 
-      <RenderElement
-        element="button"
-        componentProps={componentProps}
-        ref={(el) => {
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-          registerControlRef(el);
-          buttonRef(el);
-        }}
-        params={{
-          state: state(),
-          customStyleHookMapping,
-          props: [
-            rootProps(),
-            fieldControlValidation?.getValidationProps ?? undefined,
-            elementProps,
-            getButtonProps,
-          ],
-        }}
-      />
-
       <input
         ref={(el) => {
           local.refs.inputRef = el;
@@ -256,7 +232,7 @@ export namespace RadioRoot {
      * @default false
      */
     readOnly?: MaybeAccessor<boolean | undefined>;
-    refs: {
+    refs?: {
       /**
        * A ref to access the hidden input element.
        */
