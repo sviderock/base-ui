@@ -1,21 +1,28 @@
-import * as React from 'react';
-import { Select } from '@base-ui-components/react/select';
 import { createRenderer, describeConformance } from '#test-utils';
-import { screen } from '@mui/internal-test-utils';
+import { Select } from '@base-ui-components/solid/select';
+import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Select.Group />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Select.Group />, () => ({
+  describeConformance(Select.Group, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node) {
-      return render(<Select.Root open>{node}</Select.Root>);
+    render(node, elementProps = {}) {
+      return render(
+        () => (
+          <Select.Root open>
+            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+          </Select.Root>
+        ),
+        elementProps,
+      );
     },
   }));
 
   it('should render group with label', async () => {
-    await render(
+    render(() => (
       <Select.Root open>
         <Select.Positioner>
           <Select.Group>
@@ -24,15 +31,15 @@ describe('<Select.Group />', () => {
             <Select.Item value="banana">Banana</Select.Item>
           </Select.Group>
         </Select.Positioner>
-      </Select.Root>,
-    );
+      </Select.Root>
+    ));
 
     expect(screen.getByRole('group')).to.have.attribute('aria-labelledby');
     expect(screen.getByText('Fruits')).toBeVisible();
   });
 
   it('should associate label with group', async () => {
-    await render(
+    render(() => (
       <Select.Root open>
         <Select.Positioner>
           <Select.Group>
@@ -41,8 +48,8 @@ describe('<Select.Group />', () => {
             <Select.Item value="lettuce">Lettuce</Select.Item>
           </Select.Group>
         </Select.Positioner>
-      </Select.Root>,
-    );
+      </Select.Root>
+    ));
 
     const Group = screen.getByRole('group');
     const label = screen.getByText('Vegetables');

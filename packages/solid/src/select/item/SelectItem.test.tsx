@@ -1,21 +1,31 @@
-import * as React from 'react';
-import { Select } from '@base-ui-components/react/select';
-import { act, fireEvent, flushMicrotasks, screen, waitFor } from '@mui/internal-test-utils';
-import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#test-utils';
+import { Select } from '@base-ui-components/solid/select';
+import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Select.Item />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Select.Item value="" />, () => ({
-    refInstanceof: window.HTMLDivElement,
-    render(node) {
-      return render(<Select.Root open>{node}</Select.Root>);
-    },
-  }));
+  describeConformance(
+    (props: any) => <Select.Item {...props} ref={props.ref} value="" />,
+    () => ({
+      refInstanceof: window.HTMLDivElement,
+      render(node, elementProps = {}) {
+        return render(
+          () => (
+            <Select.Root open>
+              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+            </Select.Root>
+          ),
+          elementProps,
+        );
+      },
+    }),
+  );
 
   it('should select the item and close popup when clicked', async () => {
-    await render(
+    render(() => (
       <Select.Root>
         <Select.Trigger data-testid="trigger">
           <Select.Value data-testid="value" />
@@ -23,8 +33,8 @@ describe('<Select.Item />', () => {
         <Select.Positioner data-testid="positioner">
           <Select.Item value="one">one</Select.Item>
         </Select.Positioner>
-      </Select.Root>,
-    );
+      </Select.Root>
+    ));
 
     const value = screen.getByTestId('value');
     const trigger = screen.getByTestId('trigger');
@@ -46,7 +56,7 @@ describe('<Select.Item />', () => {
   });
 
   it('navigating with keyboard should highlight item', async () => {
-    const { user } = await render(
+    const { user } = render(() => (
       <Select.Root>
         <Select.Trigger data-testid="trigger">
           <Select.Value />
@@ -60,8 +70,8 @@ describe('<Select.Item />', () => {
             </Select.Popup>
           </Select.Positioner>
         </Select.Portal>
-      </Select.Root>,
-    );
+      </Select.Root>
+    ));
 
     fireEvent.click(screen.getByTestId('trigger'));
     await flushMicrotasks();
@@ -82,7 +92,7 @@ describe('<Select.Item />', () => {
       skip();
     }
 
-    const { user } = await render(
+    const { user } = render(() => (
       <Select.Root>
         <Select.Trigger data-testid="trigger">
           <Select.Value data-testid="value" />
@@ -95,8 +105,8 @@ describe('<Select.Item />', () => {
             </Select.Popup>
           </Select.Positioner>
         </Select.Portal>
-      </Select.Root>,
-    );
+      </Select.Root>
+    ));
 
     fireEvent.click(screen.getByTestId('trigger'));
     await flushMicrotasks();
@@ -111,7 +121,7 @@ describe('<Select.Item />', () => {
   });
 
   it('should focus disabled items', async () => {
-    await render(
+    render(() => (
       <Select.Root open>
         <Select.Trigger data-testid="trigger">
           <Select.Value data-testid="value" />
@@ -125,18 +135,18 @@ describe('<Select.Item />', () => {
             </Select.Popup>
           </Select.Positioner>
         </Select.Portal>
-      </Select.Root>,
-    );
+      </Select.Root>
+    ));
 
     const item = screen.getByText('two');
-    await act(() => item.focus());
+    item.focus();
     await waitFor(() => {
       expect(item).toHaveFocus();
     });
   });
 
   it('should not select disabled item', async () => {
-    await render(
+    render(() => (
       <Select.Root>
         <Select.Trigger data-testid="trigger">
           <Select.Value data-testid="value" />
@@ -151,8 +161,8 @@ describe('<Select.Item />', () => {
             </Select.Popup>
           </Select.Positioner>
         </Select.Portal>
-      </Select.Root>,
-    );
+      </Select.Root>
+    ));
 
     fireEvent.click(screen.getByTestId('trigger'));
     await flushMicrotasks();
@@ -162,7 +172,7 @@ describe('<Select.Item />', () => {
   });
 
   it('should focus the selected item upon opening the popup', async () => {
-    const { user } = await render(
+    const { user } = render(() => (
       <Select.Root>
         <Select.Trigger data-testid="trigger">
           <Select.Value data-testid="value" />
@@ -176,8 +186,8 @@ describe('<Select.Item />', () => {
             </Select.Popup>
           </Select.Positioner>
         </Select.Portal>
-      </Select.Root>,
-    );
+      </Select.Root>
+    ));
 
     const trigger = screen.getByTestId('trigger');
 
@@ -196,7 +206,7 @@ describe('<Select.Item />', () => {
         skip();
       }
 
-      const { user } = await render(
+      const { user } = render(() => (
         <Select.Root defaultValue="a">
           <Select.Trigger data-testid="trigger" />
           <Select.Portal>
@@ -207,8 +217,8 @@ describe('<Select.Item />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       fireEvent.click(screen.getByTestId('trigger'));
       await flushMicrotasks();
@@ -224,7 +234,7 @@ describe('<Select.Item />', () => {
     });
 
     it('should apply data-selected attribute when item is selected', async () => {
-      await render(
+      render(() => (
         <Select.Root>
           <Select.Trigger data-testid="trigger" />
           <Select.Portal>
@@ -235,8 +245,8 @@ describe('<Select.Item />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       fireEvent.click(screen.getByTestId('trigger'));
       await flushMicrotasks();

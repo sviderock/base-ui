@@ -1,24 +1,32 @@
-import * as React from 'react';
-import { Select } from '@base-ui-components/react/select';
-import { spy } from 'sinon';
+import { createRenderer, describeConformance, flushMicrotasks } from '#test-utils';
+import { Select } from '@base-ui-components/solid/select';
+import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { fireEvent, flushMicrotasks, screen } from '@mui/internal-test-utils';
-import { createRenderer, describeConformance } from '#test-utils';
+import { spy } from 'sinon';
+import { createSignal } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Select.Value />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Select.Value />, () => ({
+  describeConformance(Select.Value, () => ({
     refInstanceof: window.HTMLSpanElement,
-    render(node) {
-      return render(<Select.Root open>{node}</Select.Root>);
+    render(node, elementProps = {}) {
+      return render(
+        () => (
+          <Select.Root open>
+            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+          </Select.Root>
+        ),
+        elementProps,
+      );
     },
   }));
 
   describe('prop: children', () => {
     it('accepts a function with a value parameter', async () => {
       const children = spy();
-      await render(
+      render(() => (
         <Select.Root value="1">
           <Select.Trigger>
             <Select.Value>
@@ -35,8 +43,8 @@ describe('<Select.Value />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       fireEvent.click(screen.getByText('1'));
       await flushMicrotasks();
@@ -46,11 +54,11 @@ describe('<Select.Value />', () => {
     });
 
     it('overrides the text when children is a string', async () => {
-      await render(
+      render(() => (
         <Select.Root value="1">
           <Select.Value>one</Select.Value>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByText('one')).not.to.equal(null);
     });
@@ -64,7 +72,7 @@ describe('<Select.Value />', () => {
         mono: 'Monospace',
       };
 
-      await render(
+      render(() => (
         <Select.Root value="sans" items={items}>
           <Select.Trigger>
             <Select.Value data-testid="value" />
@@ -78,8 +86,8 @@ describe('<Select.Value />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByTestId('value')).to.have.text('Sans-serif');
     });
@@ -92,7 +100,7 @@ describe('<Select.Value />', () => {
       };
 
       function App() {
-        const [value, setValue] = React.useState<string | null>('sans');
+        const [value, setValue] = createSignal<string | null>('sans');
         return (
           <div>
             <button onClick={() => setValue('serif')}>serif</button>
@@ -115,7 +123,7 @@ describe('<Select.Value />', () => {
         );
       }
 
-      const { user } = await render(<App />);
+      const { user } = render(() => <App />);
 
       expect(screen.getByTestId('value')).to.have.text('Sans-serif');
 
@@ -132,11 +140,11 @@ describe('<Select.Value />', () => {
         serif: 'Serif',
       };
 
-      await render(
+      render(() => (
         <Select.Root value="unknown" items={items}>
           <Select.Value data-testid="value" />
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByTestId('value')).to.have.text('unknown');
     });
@@ -147,11 +155,11 @@ describe('<Select.Value />', () => {
         serif: <span>Serif</span>,
       };
 
-      await render(
+      render(() => (
         <Select.Root value="sans" items={items}>
           <Select.Value data-testid="value" />
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByTestId('value').querySelector('span')).to.have.text('Sans-serif');
     });
@@ -163,11 +171,11 @@ describe('<Select.Value />', () => {
         null: 'Null',
       };
 
-      await render(
+      render(() => (
         <Select.Root value={null} items={items}>
           <Select.Value data-testid="value" />
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByTestId('value')).to.have.text('Null');
     });
@@ -181,7 +189,7 @@ describe('<Select.Value />', () => {
         { value: 'mono', label: 'Monospace' },
       ];
 
-      await render(
+      render(() => (
         <Select.Root value="serif" items={items}>
           <Select.Trigger>
             <Select.Value data-testid="value" />
@@ -195,8 +203,8 @@ describe('<Select.Value />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByTestId('value')).to.have.text('Serif');
     });
@@ -209,7 +217,7 @@ describe('<Select.Value />', () => {
       ];
 
       function App() {
-        const [value, setValue] = React.useState<string | null>('sans');
+        const [value, setValue] = createSignal<string | null>('sans');
         return (
           <div>
             <button onClick={() => setValue('serif')}>serif</button>
@@ -232,7 +240,7 @@ describe('<Select.Value />', () => {
         );
       }
 
-      const { user } = await render(<App />);
+      const { user } = render(() => <App />);
 
       expect(screen.getByTestId('value')).to.have.text('Sans-serif');
 
@@ -249,11 +257,11 @@ describe('<Select.Value />', () => {
         { value: 'serif', label: 'Serif' },
       ];
 
-      await render(
+      render(() => (
         <Select.Root value="unknown" items={items}>
           <Select.Value data-testid="value" />
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByTestId('value')).to.have.text('unknown');
     });
@@ -264,11 +272,11 @@ describe('<Select.Value />', () => {
         { value: 'italic', label: <em>Italic Text</em> },
       ];
 
-      await render(
+      render(() => (
         <Select.Root value="bold" items={items}>
           <Select.Value data-testid="value" />
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByTestId('value').querySelector('strong')).to.have.text('Bold Text');
     });
@@ -281,11 +289,11 @@ describe('<Select.Value />', () => {
         serif: 'Serif',
       };
 
-      await render(
+      render(() => (
         <Select.Root value="sans" items={items}>
           <Select.Value data-testid="value">Custom Text</Select.Value>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByTestId('value')).to.have.text('Custom Text');
     });
@@ -296,11 +304,11 @@ describe('<Select.Value />', () => {
         { value: 'serif', label: 'Serif' },
       ];
 
-      await render(
+      render(() => (
         <Select.Root value="sans" items={items}>
           <Select.Value data-testid="value">{(value) => `Custom: ${value}`}</Select.Value>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByTestId('value')).to.have.text('Custom: sans');
     });
@@ -308,7 +316,7 @@ describe('<Select.Value />', () => {
 
   it('changes text when the value changes', async () => {
     function App() {
-      const [value, setValue] = React.useState<string | null>(null);
+      const [value, setValue] = createSignal<string | null>(null);
       return (
         <div>
           <button onClick={() => setValue('1')}>1</button>
@@ -331,7 +339,7 @@ describe('<Select.Value />', () => {
       );
     }
 
-    const { user } = await render(<App />);
+    const { user } = render(() => <App />);
 
     await user.click(screen.getByText('initial'));
     await flushMicrotasks();

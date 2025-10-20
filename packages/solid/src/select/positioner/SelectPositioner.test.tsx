@@ -1,26 +1,28 @@
-import * as React from 'react';
-import { Select } from '@base-ui-components/react/select';
-import { screen } from '@mui/internal-test-utils';
-import { expect } from 'chai';
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+import { Select } from '@base-ui-components/solid/select';
+import { screen } from '@solidjs/testing-library';
+import { expect } from 'chai';
+import { Dynamic } from 'solid-js/web';
 
-const Trigger = React.forwardRef(function Trigger(
-  props: Select.Trigger.Props,
-  ref: React.ForwardedRef<HTMLDivElement>,
-) {
-  return <Select.Trigger {...props} ref={ref} render={<div />} />;
-});
+function Trigger(props: Select.Trigger.Props) {
+  return <Select.Trigger {...props} ref={props.ref} render={(p) => <div {...p()} />} />;
+}
 
 describe('<Select.Positioner />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Select.Positioner />, () => ({
+  describeConformance(Select.Positioner, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node) {
+    render(node, elementProps = {}) {
       return render(
-        <Select.Root open>
-          <Select.Portal>{node}</Select.Portal>
-        </Select.Root>,
+        () => (
+          <Select.Root open>
+            <Select.Portal>
+              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+            </Select.Portal>
+          </Select.Root>
+        ),
+        elementProps,
       );
     },
   }));
@@ -31,13 +33,13 @@ describe('<Select.Positioner />', () => {
   const popupHeight = 24;
   const anchorWidth = 72;
   const anchorHeight = 36;
-  const triggerStyle = { width: anchorWidth, height: anchorHeight };
-  const popupStyle = { width: popupWidth, height: popupHeight };
+  const triggerStyle = { width: `${anchorWidth}px`, height: `${anchorHeight}px` };
+  const popupStyle = { width: `${popupWidth}px`, height: `${popupHeight}px` };
 
   describe.skipIf(isJSDOM)('prop: sideOffset', () => {
     it('offsets the side when a number is specified', async () => {
       const sideOffset = 7;
-      await render(
+      render(() => (
         <Select.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Select.Portal>
@@ -50,8 +52,8 @@ describe('<Select.Positioner />', () => {
               <Select.Popup style={popupStyle}>Popup</Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByTestId('positioner').style.transform).to.equal(
         `translate(${baselineX}px, ${baselineY + sideOffset}px)`,
@@ -59,7 +61,7 @@ describe('<Select.Positioner />', () => {
     });
 
     it('offsets the side when a function is specified', async () => {
-      await render(
+      render(() => (
         <Select.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Select.Portal>
@@ -72,8 +74,8 @@ describe('<Select.Positioner />', () => {
               <Select.Popup style={popupStyle}>Popup</Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByTestId('positioner').style.transform).to.equal(
         `translate(${baselineX}px, ${baselineY + popupWidth + anchorWidth}px)`,
@@ -82,7 +84,7 @@ describe('<Select.Positioner />', () => {
 
     it('can read the latest side inside sideOffset', async () => {
       let side = 'none';
-      await render(
+      render(() => (
         <Select.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Select.Portal>
@@ -99,8 +101,8 @@ describe('<Select.Positioner />', () => {
               <Select.Popup style={popupStyle}>Popup</Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       // correctly flips the side in the browser
       expect(side).to.equal('right');
@@ -108,7 +110,7 @@ describe('<Select.Positioner />', () => {
 
     it('can read the latest align inside sideOffset', async () => {
       let align = 'none';
-      await render(
+      render(() => (
         <Select.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Select.Portal>
@@ -125,8 +127,8 @@ describe('<Select.Positioner />', () => {
               <Select.Popup style={popupStyle}>Popup</Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       // correctly flips the align in the browser
       expect(align).to.equal('end');
@@ -134,7 +136,7 @@ describe('<Select.Positioner />', () => {
 
     it('reads logical side inside sideOffset', async () => {
       let side = 'none';
-      await render(
+      render(() => (
         <Select.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Select.Portal>
@@ -150,8 +152,8 @@ describe('<Select.Positioner />', () => {
               <Select.Popup style={popupStyle}>Popup</Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       // correctly flips the side in the browser
       expect(side).to.equal('inline-end');
@@ -161,7 +163,7 @@ describe('<Select.Positioner />', () => {
   describe.skipIf(isJSDOM)('prop: alignOffset', () => {
     it('offsets the align when a number is specified', async () => {
       const alignOffset = 7;
-      await render(
+      render(() => (
         <Select.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Select.Portal>
@@ -174,8 +176,8 @@ describe('<Select.Positioner />', () => {
               <Select.Popup style={popupStyle}>Popup</Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByTestId('positioner').style.transform).to.equal(
         `translate(${baselineX + alignOffset}px, ${baselineY}px)`,
@@ -183,7 +185,7 @@ describe('<Select.Positioner />', () => {
     });
 
     it('offsets the align when a function is specified', async () => {
-      await render(
+      render(() => (
         <Select.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Select.Portal>
@@ -196,8 +198,8 @@ describe('<Select.Positioner />', () => {
               <Select.Popup style={popupStyle}>Popup</Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByTestId('positioner').style.transform).to.equal(
         `translate(${baselineX + popupWidth}px, ${baselineY}px)`,
@@ -206,7 +208,7 @@ describe('<Select.Positioner />', () => {
 
     it('can read the latest side inside alignOffset', async () => {
       let side = 'none';
-      await render(
+      render(() => (
         <Select.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Select.Portal>
@@ -223,8 +225,8 @@ describe('<Select.Positioner />', () => {
               <Select.Popup style={popupStyle}>Popup</Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       // correctly flips the side in the browser
       expect(side).to.equal('right');
@@ -232,7 +234,7 @@ describe('<Select.Positioner />', () => {
 
     it('can read the latest align inside alignOffset', async () => {
       let align = 'none';
-      await render(
+      render(() => (
         <Select.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Select.Portal>
@@ -249,8 +251,8 @@ describe('<Select.Positioner />', () => {
               <Select.Popup style={popupStyle}>Popup</Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       // correctly flips the align in the browser
       expect(align).to.equal('end');
@@ -258,7 +260,7 @@ describe('<Select.Positioner />', () => {
 
     it('reads logical side inside alignOffset', async () => {
       let side = 'none';
-      await render(
+      render(() => (
         <Select.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Select.Portal>
@@ -274,8 +276,8 @@ describe('<Select.Positioner />', () => {
               <Select.Popup style={popupStyle}>Popup</Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       // correctly flips the side in the browser
       expect(side).to.equal('inline-end');

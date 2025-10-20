@@ -1,23 +1,30 @@
-import * as React from 'react';
-import { Select } from '@base-ui-components/react/select';
 import { createRenderer, describeConformance } from '#test-utils';
+import { Select } from '@base-ui-components/solid/select';
+import { act, fireEvent, screen, waitFor } from '@mui/internal-test-utils';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { act, fireEvent, screen, waitFor } from '@mui/internal-test-utils';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Select.Trigger />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Select.Trigger />, () => ({
+  describeConformance(Select.Trigger, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node) {
-      return render(<Select.Root open>{node}</Select.Root>);
+    render(node, elementProps = {}) {
+      return render(
+        () => (
+          <Select.Root open>
+            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+          </Select.Root>
+        ),
+        elementProps,
+      );
     },
   }));
 
   describe('disabled state', () => {
     it('cannot be focused when disabled', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <Select.Root defaultValue="b">
           <Select.Trigger data-testid="trigger" disabled>
             <Select.Value />
@@ -30,8 +37,8 @@ describe('<Select.Trigger />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
       expect(trigger).to.have.attribute('data-disabled');
@@ -43,7 +50,7 @@ describe('<Select.Trigger />', () => {
 
     it('does not toggle the popup when disabled', async () => {
       const handleOpenChange = spy();
-      await render(
+      render(() => (
         <Select.Root defaultValue="b" onOpenChange={handleOpenChange}>
           <Select.Trigger data-testid="trigger" disabled>
             <Select.Value />
@@ -56,8 +63,8 @@ describe('<Select.Trigger />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
@@ -72,11 +79,11 @@ describe('<Select.Trigger />', () => {
 
   describe('style hooks', () => {
     it('should have the data-popup-open and data-pressed attributes when open', async () => {
-      await render(
+      render(() => (
         <Select.Root>
           <Select.Trigger />
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       const trigger = screen.getByRole('combobox');
 
