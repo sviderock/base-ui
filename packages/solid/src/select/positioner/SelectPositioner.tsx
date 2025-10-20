@@ -1,5 +1,12 @@
 'use client';
-import { createEffect, createMemo, createSignal, type ComponentProps, type JSX } from 'solid-js';
+import {
+  batch,
+  createEffect,
+  createMemo,
+  createSignal,
+  type ComponentProps,
+  type JSX,
+} from 'solid-js';
 import { produce } from 'solid-js/store';
 import { CompositeList } from '../../composite/list/CompositeList';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
@@ -135,28 +142,11 @@ export function SelectPositioner(componentProps: SelectPositioner.Props) {
     anchorHidden: positioning.anchorHidden(),
   }));
 
-  const setPositionerElement = (element: HTMLElement) => {
+  const setPositionerElement = (element: HTMLElement | null | undefined) => {
     setStore('positionerElement', element);
   };
 
-  let prevMapSizeRef = 0;
-
-  const onMapChange = (map: Map<Element, { index?: number | null } | null>) => {
-    if (map.size === 0 && prevMapSizeRef === 0) {
-      return;
-    }
-
-    if (refs.valuesRef.length === 0) {
-      return;
-    }
-
-    const prevSize = prevMapSizeRef;
-    prevMapSizeRef = map.size;
-
-    if (map.size === prevSize) {
-      return;
-    }
-
+  const onMapChange = () => {
     if (store.value !== null) {
       const valueIndex = refs.valuesRef.indexOf(store.value);
       if (valueIndex === -1) {

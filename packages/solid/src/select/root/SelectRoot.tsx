@@ -78,12 +78,14 @@ export function SelectRoot<Value>(props: SelectRoot.Props<Value>): JSX.Element {
               const nextValue = (event.target as HTMLSelectElement).value;
 
               rootContext.setStore('forceMount', true);
+              const resolvedValue = value();
 
               queueMicrotask(() => {
                 const exactValue = rootContext.refs.valuesRef.find(
                   (v) =>
                     v === nextValue ||
-                    (typeof value === 'string' && nextValue.toLowerCase() === v.toLowerCase()),
+                    (typeof resolvedValue === 'string' &&
+                      nextValue.toLowerCase() === v.toLowerCase()),
                 );
 
                 if (exactValue != null) {

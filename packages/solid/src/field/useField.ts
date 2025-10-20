@@ -1,12 +1,12 @@
 import { createEffect, onCleanup } from 'solid-js';
-import { produce, reconcile } from 'solid-js/store';
+import { produce } from 'solid-js/store';
 import { useFormContext } from '../form/FormContext';
 import { type MaybeAccessor, access } from '../solid-helpers';
 import { useFieldRootContext } from './root/FieldRootContext';
 import { getCombinedFieldValidityData } from './utils/getCombinedFieldValidityData';
 
 export function useField(params: useField.Parameters) {
-  const { formRef, setFormRef } = useFormContext();
+  const { setFormRef } = useFormContext();
   const { invalid, refs, validityData, setValidityData } = useFieldRootContext();
   const enabled = () => access(params.enabled) ?? true;
   const value = () => access(params.value);
@@ -25,7 +25,7 @@ export function useField(params: useField.Parameters) {
     }
 
     if (validityData.initialValue === null && initialValue !== validityData.initialValue) {
-      setValidityData((prev) => ({ ...prev, initialValue }));
+      setValidityData('initialValue', initialValue);
     }
   });
 

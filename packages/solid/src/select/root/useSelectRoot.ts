@@ -55,7 +55,6 @@ export function useSelectRoot<T>(params: useSelectRoot.Parameters<T>): useSelect
   const { clearErrors } = useFormContext();
   const {
     setDirty,
-    validityData,
     validationMode,
     setControlId,
     setFilled,
@@ -140,7 +139,6 @@ export function useSelectRoot<T>(params: useSelectRoot.Parameters<T>): useSelect
   );
 
   const initialValueRef = value();
-
   createEffect(() => {
     // Ensure the values and labels are registered for programmatic value changes.
     if (value() !== initialValueRef) {
@@ -161,9 +159,6 @@ export function useSelectRoot<T>(params: useSelectRoot.Parameters<T>): useSelect
   });
 
   let prevValueRef = value();
-  createEffect(() => {
-    prevValueRef = value();
-  });
 
   createEffect(() => {
     setFilled(value() !== null);
@@ -185,7 +180,7 @@ export function useSelectRoot<T>(params: useSelectRoot.Parameters<T>): useSelect
       );
 
       clearErrors(name());
-      setDirty(value() !== validityData.initialValue);
+      setDirty(value() !== initialValueRef);
       commitValidation(value(), validationMode() !== 'onChange');
 
       if (validationMode() === 'onChange') {
@@ -194,13 +189,19 @@ export function useSelectRoot<T>(params: useSelectRoot.Parameters<T>): useSelect
     });
   });
 
+  createEffect(() => {
+    prevValueRef = value();
+  });
+
   const setOpen = (
     nextOpen: boolean,
     event: Event | undefined,
     reason: SelectOpenChangeReason | undefined,
   ) => {
-    params.onOpenChange?.(nextOpen, event, reason);
-    setOpenUnwrapped(nextOpen);
+    batch(() => {
+      params.onOpenChange?.(nextOpen, event, reason);
+      setOpenUnwrapped(nextOpen);
+    });
 
     // Workaround `enableFocusInside` in Floating UI setting `tabindex=0` of a non-highlighted
     // option upon close when tabbing out due to `keepMounted=true`:

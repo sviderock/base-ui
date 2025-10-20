@@ -347,7 +347,7 @@ export function SelectPopup(componentProps: SelectPopup.Props) {
       <FloatingFocusManager context={context} modal={false} disabled={!store.mounted} restoreFocus>
         <RenderElement
           element="div"
-          props={{ ...componentProps }}
+          componentProps={componentProps}
           ref={(el) => {
             refs.popupRef = el;
             if (typeof componentProps.ref === 'function') {

@@ -1233,8 +1233,6 @@ describe('<Menu.Root />', () => {
       function DynamicMenu() {
         const [itemsFiltered, setItemsFiltered] = createSignal(false);
 
-        createEffect(() => {});
-
         return (
           <Menu.Root
             onOpenChange={(newOpen) => {

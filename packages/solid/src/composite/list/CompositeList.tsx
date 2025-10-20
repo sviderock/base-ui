@@ -60,7 +60,14 @@ export function CompositeList<Metadata>(props: CompositeList.Props<Metadata>) {
   }
 
   createEffect(() => {
-    props.onMapChange?.(sortedMap());
+    const sorted = sortedMap();
+    if (props.refs.elements.length !== sorted.size) {
+      props.refs.elements.length = sorted.size;
+    }
+    if (props.refs.labels && props.refs.labels.length !== sorted.size) {
+      props.refs.labels.length = sorted.size;
+    }
+    props.onMapChange?.(sorted);
   });
 
   function subscribeMapChange(fn: Function) {

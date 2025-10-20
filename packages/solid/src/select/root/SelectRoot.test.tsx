@@ -1,11 +1,11 @@
-import * as React from 'react';
-import { Select } from '@base-ui-components/react/select';
-import { act, fireEvent, flushMicrotasks, screen, waitFor } from '@mui/internal-test-utils';
-import { createRenderer, isJSDOM, popupConformanceTests } from '#test-utils';
+import { createRenderer, flushMicrotasks, isJSDOM, popupConformanceTests } from '#test-utils';
+import { Field } from '@base-ui-components/solid/field';
+import { Form } from '@base-ui-components/solid/form';
+import { Select } from '@base-ui-components/solid/select';
+import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { Field } from '@base-ui-components/react/field';
-import { Form } from '@base-ui-components/react/form';
+import { createEffect, createSignal, For } from 'solid-js';
 
 describe('<Select.Root />', () => {
   beforeEach(() => {
@@ -29,7 +29,7 @@ describe('<Select.Root />', () => {
         </Select.Portal>
       </Select.Root>
     ),
-    render,
+    render: (...args) => render(...(args as Parameters<typeof render>)),
     triggerMouseAction: 'click',
     expectedPopupRole: 'listbox',
     alwaysMounted: 'only-after-open',
@@ -37,7 +37,7 @@ describe('<Select.Root />', () => {
 
   describe('prop: defaultValue', () => {
     it('should select the item by default', async () => {
-      await render(
+      render(() => (
         <Select.Root defaultValue="b">
           <Select.Trigger data-testid="trigger">
             <Select.Value />
@@ -50,8 +50,8 @@ describe('<Select.Root />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
@@ -68,7 +68,7 @@ describe('<Select.Root />', () => {
 
   describe('prop: value', () => {
     it('should select the item specified by the value prop', async () => {
-      await render(
+      render(() => (
         <Select.Root value="b">
           <Select.Trigger data-testid="trigger">
             <Select.Value />
@@ -81,8 +81,8 @@ describe('<Select.Root />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
@@ -97,8 +97,9 @@ describe('<Select.Root />', () => {
     });
 
     it('should update the selected item when the value prop changes', async () => {
-      const { setProps } = await render(
-        <Select.Root value="a">
+      const [value, setValue] = createSignal('a');
+      render(() => (
+        <Select.Root value={value}>
           <Select.Trigger data-testid="trigger">
             <Select.Value />
           </Select.Trigger>
@@ -110,8 +111,8 @@ describe('<Select.Root />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
@@ -124,7 +125,7 @@ describe('<Select.Root />', () => {
         '',
       );
 
-      await setProps({ value: 'b' });
+      setValue('b');
 
       expect(screen.getByRole('option', { name: 'b', hidden: false })).to.have.attribute(
         'data-selected',
@@ -134,7 +135,7 @@ describe('<Select.Root />', () => {
 
     it('should not update the internal value if the controlled value prop does not change', async () => {
       const onValueChange = spy();
-      await render(
+      render(() => (
         <Select.Root value="a" onValueChange={onValueChange}>
           <Select.Trigger data-testid="trigger">
             <Select.Value />
@@ -147,8 +148,8 @@ describe('<Select.Root />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
       expect(trigger).to.have.text('a');
@@ -165,8 +166,9 @@ describe('<Select.Root />', () => {
     });
 
     it('updates <Select.Value /> label when the value prop changes before the popup opens', async () => {
-      const { setProps } = await render(
-        <Select.Root value="b">
+      const [value, setValue] = createSignal('b');
+      render(() => (
+        <Select.Root value={value}>
           <Select.Trigger data-testid="trigger">
             <Select.Value />
           </Select.Trigger>
@@ -178,14 +180,14 @@ describe('<Select.Root />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
       expect(trigger).to.have.text('b');
 
-      await setProps({ value: 'a' });
+      setValue('a');
       await flushMicrotasks();
 
       expect(trigger).to.have.text('a');
@@ -205,7 +207,7 @@ describe('<Select.Root />', () => {
       const handleValueChange = spy();
 
       function App() {
-        const [value, setValue] = React.useState('');
+        const [value, setValue] = createSignal('');
 
         return (
           <Select.Root
@@ -230,7 +232,7 @@ describe('<Select.Root />', () => {
         );
       }
 
-      const { user } = await renderFakeTimers(<App />);
+      const { user } = renderFakeTimers(() => <App />);
 
       const trigger = screen.getByTestId('trigger');
 
@@ -247,7 +249,7 @@ describe('<Select.Root />', () => {
     it('is not called twice on select', async () => {
       const handleValueChange = spy();
 
-      const { user } = await renderFakeTimers(
+      const { user } = renderFakeTimers(() => (
         <Select.Root onValueChange={handleValueChange}>
           <Select.Trigger data-testid="trigger">
             <Select.Value />
@@ -260,8 +262,8 @@ describe('<Select.Root />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
@@ -278,7 +280,7 @@ describe('<Select.Root />', () => {
 
   describe('prop: defaultOpen', () => {
     it('should open the select by default', async () => {
-      await render(
+      render(() => (
         <Select.Root defaultOpen>
           <Select.Trigger data-testid="trigger">
             <Select.Value />
@@ -291,8 +293,8 @@ describe('<Select.Root />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(screen.getByRole('listbox', { hidden: false })).toBeVisible();
     });
@@ -302,7 +304,7 @@ describe('<Select.Root />', () => {
     it('should call onOpenChange when the select is opened or closed', async () => {
       const handleOpenChange = spy();
 
-      const { user } = await render(
+      const { user } = render(() => (
         <Select.Root onOpenChange={handleOpenChange}>
           <Select.Trigger data-testid="trigger">
             <Select.Value />
@@ -315,8 +317,8 @@ describe('<Select.Root />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
@@ -329,7 +331,7 @@ describe('<Select.Root />', () => {
   });
 
   it('should handle browser autofill', async () => {
-    const { container } = await render(
+    const { container } = render(() => (
       <Select.Root name="select">
         <Select.Trigger data-testid="trigger">
           <Select.Value />
@@ -342,12 +344,12 @@ describe('<Select.Root />', () => {
             </Select.Popup>
           </Select.Positioner>
         </Select.Portal>
-      </Select.Root>,
-    );
+      </Select.Root>
+    ));
 
     const trigger = screen.getByTestId('trigger');
 
-    fireEvent.change(container.querySelector('[name="select"]')!, { target: { value: 'b' } });
+    fireEvent.input(container.querySelector('[name="select"]')!, { target: { value: 'b' } });
     await flushMicrotasks();
 
     fireEvent.click(trigger);
@@ -361,7 +363,7 @@ describe('<Select.Root />', () => {
 
   describe('prop: modal', () => {
     it('should render an internal backdrop when `true`', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <div>
           <Select.Root modal>
             <Select.Trigger data-testid="trigger">Open</Select.Trigger>
@@ -374,8 +376,8 @@ describe('<Select.Root />', () => {
             </Select.Portal>
           </Select.Root>
           <button>Outside</button>
-        </div>,
-      );
+        </div>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
@@ -391,7 +393,7 @@ describe('<Select.Root />', () => {
     });
 
     it('should not render an internal backdrop when `false`', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <div>
           <Select.Root modal={false}>
             <Select.Trigger data-testid="trigger">Open</Select.Trigger>
@@ -404,8 +406,8 @@ describe('<Select.Root />', () => {
             </Select.Portal>
           </Select.Root>
           <button>Outside</button>
-        </div>,
-      );
+        </div>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
@@ -424,12 +426,10 @@ describe('<Select.Root />', () => {
   describe('prop: actionsRef', () => {
     it('unmounts the select when the `unmount` method is called', async () => {
       const actionsRef = {
-        current: {
-          unmount: spy(),
-        },
+        unmount: spy(),
       };
 
-      const { user } = await render(
+      const { user } = render(() => (
         <Select.Root actionsRef={actionsRef}>
           <Select.Trigger data-testid="trigger">Open</Select.Trigger>
           <Select.Portal>
@@ -439,8 +439,8 @@ describe('<Select.Root />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
       await user.click(trigger);
@@ -455,12 +455,10 @@ describe('<Select.Root />', () => {
         expect(screen.queryByRole('listbox')).not.to.equal(null);
       });
 
-      await act(async () => {
-        await new Promise((resolve) => {
-          requestAnimationFrame(resolve);
-        });
-        actionsRef.current.unmount();
+      await new Promise((resolve) => {
+        requestAnimationFrame(resolve);
       });
+      actionsRef.unmount();
 
       await waitFor(() => {
         expect(screen.queryByRole('listbox')).to.equal(null);
@@ -473,7 +471,7 @@ describe('<Select.Root />', () => {
       const onOpenChangeComplete = spy();
 
       function Test() {
-        const [open, setOpen] = React.useState(true);
+        const [open, setOpen] = createSignal(true);
         return (
           <div>
             <button onClick={() => setOpen(false)}>Close</button>
@@ -488,7 +486,7 @@ describe('<Select.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       const closeButton = screen.getByText('Close');
       await user.click(closeButton);
@@ -519,17 +517,17 @@ describe('<Select.Root />', () => {
           }
         `;
 
-        const [open, setOpen] = React.useState(true);
+        const [open, setOpen] = createSignal(true);
 
         return (
           <div>
-            {/* eslint-disable-next-line react/no-danger */}
-            <style dangerouslySetInnerHTML={{ __html: style }} />
+            {/* eslint-disable-next-line solid/no-innerhtml */}
+            <style innerHTML={style} />
             <button onClick={() => setOpen(false)}>Close</button>
             <Select.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
               <Select.Portal>
                 <Select.Positioner>
-                  <Select.Popup className="animation-test-indicator" data-testid="popup" />
+                  <Select.Popup class="animation-test-indicator" data-testid="popup" />
                 </Select.Positioner>
               </Select.Portal>
             </Select.Root>
@@ -537,7 +535,7 @@ describe('<Select.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       expect(screen.queryByRole('listbox')).not.to.equal(null);
 
@@ -560,7 +558,7 @@ describe('<Select.Root />', () => {
       const onOpenChangeComplete = spy();
 
       function Test() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
         return (
           <div>
             <button onClick={() => setOpen(true)}>Open</button>
@@ -575,7 +573,7 @@ describe('<Select.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       const openButton = screen.getByText('Open');
       await user.click(openButton);
@@ -606,12 +604,12 @@ describe('<Select.Root />', () => {
           }
         `;
 
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
 
         return (
           <div>
-            {/* eslint-disable-next-line react/no-danger */}
-            <style dangerouslySetInnerHTML={{ __html: style }} />
+            {/* eslint-disable-next-line solid/no-innerhtml */}
+            <style innerHTML={style} />
             <button onClick={() => setOpen(true)}>Open</button>
             <Select.Root
               open={open}
@@ -620,7 +618,7 @@ describe('<Select.Root />', () => {
             >
               <Select.Portal>
                 <Select.Positioner>
-                  <Select.Popup className="animation-test-indicator" data-testid="popup" />
+                  <Select.Popup class="animation-test-indicator" data-testid="popup" />
                 </Select.Positioner>
               </Select.Portal>
             </Select.Root>
@@ -628,7 +626,7 @@ describe('<Select.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       const openButton = screen.getByText('Open');
       await user.click(openButton);
@@ -644,15 +642,15 @@ describe('<Select.Root />', () => {
     it('does not get called on mount when not open', async () => {
       const onOpenChangeComplete = spy();
 
-      await render(
+      render(() => (
         <Select.Root onOpenChangeComplete={onOpenChangeComplete}>
           <Select.Portal>
             <Select.Positioner>
               <Select.Popup data-testid="popup" />
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       expect(onOpenChangeComplete.callCount).to.equal(0);
     });
@@ -661,7 +659,7 @@ describe('<Select.Root />', () => {
   describe('prop: disabled', () => {
     it('sets the disabled state', async () => {
       const handleOpenChange = spy();
-      const { user } = await render(
+      const { user } = render(() => (
         <Select.Root defaultValue="b" onOpenChange={handleOpenChange} disabled>
           <Select.Trigger>
             <Select.Value />
@@ -674,8 +672,8 @@ describe('<Select.Root />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       const trigger = screen.getByRole('combobox');
       expect(trigger).to.have.attribute('aria-disabled', 'true');
@@ -692,10 +690,10 @@ describe('<Select.Root />', () => {
     it('updates the disabled state when the disabled prop changes', async () => {
       const handleOpenChange = spy();
       function App() {
-        const [disabled, setDisabled] = React.useState(true);
+        const [disabled, setDisabled] = createSignal(true);
         return (
-          <React.Fragment>
-            <button onClick={() => setDisabled(!disabled)}>toggle</button>
+          <>
+            <button onClick={() => setDisabled(!disabled())}>toggle</button>
             <Select.Root defaultValue="b" onOpenChange={handleOpenChange} disabled={disabled}>
               <Select.Trigger>
                 <Select.Value />
@@ -709,10 +707,10 @@ describe('<Select.Root />', () => {
                 </Select.Positioner>
               </Select.Portal>
             </Select.Root>
-          </React.Fragment>
+          </>
         );
       }
-      const { user } = await render(<App />);
+      const { user } = render(() => <App />);
 
       const trigger = screen.getByRole('combobox');
       expect(trigger).to.have.attribute('aria-disabled', 'true');
@@ -742,7 +740,7 @@ describe('<Select.Root />', () => {
 
   describe('prop: id', () => {
     it('sets the id on the hidden input', async () => {
-      const { container } = await render(
+      const { container } = render(() => (
         <Select.Root id="test-id">
           <Select.Trigger>
             <Select.Value />
@@ -755,8 +753,8 @@ describe('<Select.Root />', () => {
               </Select.Popup>
             </Select.Positioner>
           </Select.Portal>
-        </Select.Root>,
-      );
+        </Select.Root>
+      ));
 
       const input = container.querySelector('input');
       expect(input).to.have.attribute('id', 'test-id');
@@ -765,7 +763,7 @@ describe('<Select.Root />', () => {
 
   describe('with Field.Root parent', () => {
     it('should receive disabled prop from Field.Root', async () => {
-      await render(
+      render(() => (
         <Field.Root disabled>
           <Select.Root>
             <Select.Trigger data-testid="trigger">
@@ -780,15 +778,15 @@ describe('<Select.Root />', () => {
               </Select.Positioner>
             </Select.Portal>
           </Select.Root>
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
       expect(trigger).to.have.attribute('aria-disabled', 'true');
     });
 
     it('should receive name prop from Field.Root', async () => {
-      await render(
+      render(() => (
         <Field.Root name="field-select">
           <Select.Root>
             <Select.Trigger data-testid="trigger">
@@ -803,8 +801,8 @@ describe('<Select.Root />', () => {
               </Select.Positioner>
             </Select.Portal>
           </Select.Root>
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const hiddenInput = screen.getByRole('textbox', { hidden: true });
       expect(hiddenInput).to.have.attribute('name', 'field-select');
@@ -813,7 +811,7 @@ describe('<Select.Root />', () => {
 
   it('resets selected index when value is set to null without a null item', async () => {
     function App() {
-      const [value, setValue] = React.useState<string | null>(null);
+      const [value, setValue] = createSignal<string | null>(null);
       return (
         <div>
           <button onClick={() => setValue('1')}>1</button>
@@ -836,7 +834,7 @@ describe('<Select.Root />', () => {
       );
     }
 
-    const { user } = await render(<App />);
+    const { user } = render(() => <App />);
 
     await user.click(screen.getByText('initial'));
 
@@ -868,7 +866,7 @@ describe('<Select.Root />', () => {
     clock.withFakeTimers();
 
     it('triggers native HTML validation on submit', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <Form>
           <Field.Root name="test" data-testid="field">
             <Select.Root required>
@@ -884,8 +882,8 @@ describe('<Select.Root />', () => {
             </Field.Error>
           </Field.Root>
           <button type="submit">Submit</button>
-        </Form>,
-      );
+        </Form>
+      ));
 
       const submit = screen.getByText('Submit');
 
@@ -899,11 +897,11 @@ describe('<Select.Root />', () => {
 
     it('clears errors on change', async () => {
       function App() {
-        const [errors, setErrors] = React.useState<Record<string, string | string[]>>({
+        const [errors, setErrors] = createSignal<Record<string, string | string[]>>({
           select: 'test',
         });
         return (
-          <Form errors={errors} onClearErrors={setErrors}>
+          <Form errors={errors()} onClearErrors={setErrors}>
             <Field.Root name="select">
               <Select.Root>
                 <Select.Trigger data-testid="trigger">
@@ -924,7 +922,7 @@ describe('<Select.Root />', () => {
         );
       }
 
-      const { user } = await renderFakeTimers(<App />);
+      const { user } = renderFakeTimers(() => <App />);
 
       expect(screen.getByTestId('error')).to.have.text('test');
 
@@ -943,7 +941,7 @@ describe('<Select.Root />', () => {
     });
 
     it('revalidates immediately after form submission errors', async () => {
-      const { user } = await renderFakeTimers(
+      const { user } = renderFakeTimers(() => (
         <Form>
           <Field.Root name="select">
             <Select.Root required>
@@ -966,8 +964,8 @@ describe('<Select.Root />', () => {
           <button type="submit" data-testid="submit">
             Submit
           </button>
-        </Form>,
-      );
+        </Form>
+      ));
 
       const submit = screen.getByTestId('submit');
       await user.click(submit);
@@ -996,7 +994,7 @@ describe('<Select.Root />', () => {
     clock.withFakeTimers();
 
     it('[data-touched]', async () => {
-      await render(
+      render(() => (
         <Field.Root>
           <Select.Root>
             <Select.Trigger data-testid="trigger" />
@@ -1009,8 +1007,8 @@ describe('<Select.Root />', () => {
               </Select.Positioner>
             </Select.Portal>
           </Select.Root>
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
@@ -1025,7 +1023,7 @@ describe('<Select.Root />', () => {
     });
 
     it('[data-dirty]', async () => {
-      const { user } = await renderFakeTimers(
+      const { user } = renderFakeTimers(() => (
         <Field.Root>
           <Select.Root>
             <Select.Trigger data-testid="trigger" />
@@ -1038,8 +1036,8 @@ describe('<Select.Root />', () => {
               </Select.Positioner>
             </Select.Portal>
           </Select.Root>
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
@@ -1061,7 +1059,7 @@ describe('<Select.Root />', () => {
 
     describe('[data-filled]', () => {
       it('adds [data-filled] attribute when filled', async () => {
-        const { user } = await renderFakeTimers(
+        const { user } = renderFakeTimers(() => (
           <Field.Root>
             <Select.Root>
               <Select.Trigger data-testid="trigger" />
@@ -1074,8 +1072,8 @@ describe('<Select.Root />', () => {
                 </Select.Positioner>
               </Select.Portal>
             </Select.Root>
-          </Field.Root>,
-        );
+          </Field.Root>
+        ));
 
         const trigger = screen.getByTestId('trigger');
 
@@ -1104,7 +1102,7 @@ describe('<Select.Root />', () => {
       });
 
       it('adds [data-filled] attribute when already filled', async () => {
-        await render(
+        render(() => (
           <Field.Root>
             <Select.Root defaultValue="1">
               <Select.Trigger data-testid="trigger" />
@@ -1116,8 +1114,8 @@ describe('<Select.Root />', () => {
                 </Select.Positioner>
               </Select.Portal>
             </Select.Root>
-          </Field.Root>,
-        );
+          </Field.Root>
+        ));
 
         const trigger = screen.getByTestId('trigger');
 
@@ -1126,7 +1124,7 @@ describe('<Select.Root />', () => {
     });
 
     it('[data-focused]', async () => {
-      await render(
+      render(() => (
         <Field.Root>
           <Select.Root>
             <Select.Trigger data-testid="trigger" />
@@ -1139,8 +1137,8 @@ describe('<Select.Root />', () => {
               </Select.Positioner>
             </Select.Portal>
           </Select.Root>
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
@@ -1156,7 +1154,7 @@ describe('<Select.Root />', () => {
     });
 
     it('prop: validate', async () => {
-      await render(
+      render(() => (
         <Field.Root validate={() => 'error'}>
           <Select.Root>
             <Select.Trigger data-testid="trigger" />
@@ -1164,8 +1162,8 @@ describe('<Select.Root />', () => {
               <Select.Positioner />
             </Select.Portal>
           </Select.Root>
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
@@ -1181,7 +1179,7 @@ describe('<Select.Root />', () => {
 
     // flaky in real browser
     it.skipIf(!isJSDOM)('prop: validationMode=onChange', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <Field.Root
           validationMode="onChange"
           validate={(value) => {
@@ -1200,8 +1198,8 @@ describe('<Select.Root />', () => {
               </Select.Positioner>
             </Select.Portal>
           </Select.Root>
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
@@ -1220,7 +1218,7 @@ describe('<Select.Root />', () => {
 
     // flaky in real browser
     it.skipIf(!isJSDOM)('prop: validationMode=onBlur', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <Field.Root
           validationMode="onBlur"
           validate={(value) => {
@@ -1240,8 +1238,8 @@ describe('<Select.Root />', () => {
             </Select.Portal>
           </Select.Root>
           <Field.Error data-testid="error" />
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
 
@@ -1265,7 +1263,7 @@ describe('<Select.Root />', () => {
     });
 
     it('Field.Label', async () => {
-      await render(
+      render(() => (
         <Field.Root>
           <Select.Root>
             <Select.Trigger data-testid="trigger" />
@@ -1273,9 +1271,9 @@ describe('<Select.Root />', () => {
               <Select.Positioner />
             </Select.Portal>
           </Select.Root>
-          <Field.Label data-testid="label" render={<span />} />
-        </Field.Root>,
-      );
+          <Field.Label data-testid="label" render={(p) => <span {...p()} />} />
+        </Field.Root>
+      ));
 
       expect(screen.getByTestId('trigger')).to.have.attribute(
         'aria-labelledby',
@@ -1284,7 +1282,7 @@ describe('<Select.Root />', () => {
     });
 
     it('Field.Label links to hidden input and focuses trigger', async () => {
-      const { container, user } = await render(
+      const { container, user } = render(() => (
         <Field.Root>
           <Field.Label data-testid="label">Font</Field.Label>
           <Select.Root>
@@ -1300,8 +1298,8 @@ describe('<Select.Root />', () => {
               </Select.Positioner>
             </Select.Portal>
           </Select.Root>
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       const label = screen.getByTestId<HTMLLabelElement>('label');
       const trigger = screen.getByTestId('trigger');
@@ -1316,7 +1314,7 @@ describe('<Select.Root />', () => {
     });
 
     it('Field.Description', async () => {
-      await render(
+      render(() => (
         <Field.Root>
           <Select.Root>
             <Select.Trigger data-testid="trigger" />
@@ -1325,8 +1323,8 @@ describe('<Select.Root />', () => {
             </Select.Portal>
           </Select.Root>
           <Field.Description data-testid="description" />
-        </Field.Root>,
-      );
+        </Field.Root>
+      ));
 
       expect(screen.getByTestId('trigger')).to.have.attribute(
         'aria-describedby',
@@ -1346,7 +1344,7 @@ describe('<Select.Root />', () => {
 
     it('skips null items when navigating', async () => {
       function DynamicMenu() {
-        const [itemsFiltered, setItemsFiltered] = React.useState(false);
+        const [itemsFiltered, setItemsFiltered] = createSignal(false);
 
         return (
           <Select.Root
@@ -1368,12 +1366,12 @@ describe('<Select.Root />', () => {
               <Select.Positioner>
                 <Select.Popup>
                   <Select.Item>Add to Library</Select.Item>
-                  {!itemsFiltered && (
-                    <React.Fragment>
+                  {!itemsFiltered() && (
+                    <>
                       <Select.Item>Add to Playlist</Select.Item>
                       <Select.Item>Play Next</Select.Item>
                       <Select.Item>Play Last</Select.Item>
-                    </React.Fragment>
+                    </>
                   )}
                   <Select.Item>Favorite</Select.Item>
                   <Select.Item>Share</Select.Item>
@@ -1384,13 +1382,11 @@ describe('<Select.Root />', () => {
         );
       }
 
-      const { user } = await renderFakeTimers(<DynamicMenu />);
+      const { user } = renderFakeTimers(() => <DynamicMenu />);
 
       const trigger = screen.getByText('Toggle');
 
-      await act(async () => {
-        trigger.focus();
-      });
+      trigger.focus();
 
       await user.keyboard('{ArrowDown}');
 
@@ -1407,8 +1403,8 @@ describe('<Select.Root />', () => {
 
     it('unselects the selected item if removed', async () => {
       function DynamicMenu() {
-        const [items, setItems] = React.useState(['a', 'b', 'c']);
-        const [selectedItem, setSelectedItem] = React.useState('a');
+        const [items, setItems] = createSignal(['a', 'b', 'c']);
+        const [selectedItem, setSelectedItem] = createSignal('a');
 
         return (
           <div>
@@ -1427,18 +1423,16 @@ describe('<Select.Root />', () => {
             >
               Add
             </button>
-            <div data-testid="value">{selectedItem}</div>
+            <div data-testid="value">{selectedItem()}</div>
 
             <Select.Root value={selectedItem} onValueChange={setSelectedItem}>
               <Select.Trigger>Toggle</Select.Trigger>
               <Select.Portal>
                 <Select.Positioner>
                   <Select.Popup>
-                    {items.map((item) => (
-                      <Select.Item key={item} value={item}>
-                        {item}
-                      </Select.Item>
-                    ))}
+                    <For each={items()}>
+                      {(item) => <Select.Item value={item}>{item}</Select.Item>}
+                    </For>
                   </Select.Popup>
                 </Select.Positioner>
               </Select.Portal>
@@ -1447,13 +1441,11 @@ describe('<Select.Root />', () => {
         );
       }
 
-      const { user } = await renderFakeTimers(<DynamicMenu />);
+      const { user } = renderFakeTimers(() => <DynamicMenu />);
 
       const trigger = screen.getByText('Toggle');
 
-      await act(async () => {
-        trigger.focus();
-      });
+      trigger.focus();
       await user.keyboard('{ArrowDown}');
 
       expect(screen.queryByRole('option', { name: 'a' })).to.have.attribute('data-selected');

@@ -56,6 +56,7 @@ export function useCompositeListItem<Metadata extends MaybeAccessor<unknown>>(
   function onMapChange(map: Map<Element, CompositeMetadata<Metadata> | null>) {
     const itemRef = componentRef();
     const i = itemRef ? map.get(itemRef)?.index : null;
+
     if (i != null) {
       setIndex(i);
 
@@ -85,10 +86,6 @@ export function useCompositeListItem<Metadata extends MaybeAccessor<unknown>>(
       if (node) {
         context.unregister(node);
         context.unsubscribeMapChange(onMapChange);
-        context.refs.elements = context.refs.elements.filter((_, i) => i !== index());
-        if (context.refs.labels) {
-          context.refs.labels = context.refs.labels.filter((_, i) => i !== index());
-        }
       }
     });
   });
