@@ -71,8 +71,8 @@ describe('<Slider.Value />', () => {
         </Slider.Root>
       ));
 
-      expect(renderSpy.lastCall.args[0]).to.deep.equal([formatValue(40), formatValue(60)]);
-      expect(renderSpy.lastCall.args[1]).to.deep.equal([40, 60]);
+      expect(renderSpy.lastCall.args[0]()).to.deep.equal([formatValue(40), formatValue(60)]);
+      expect(renderSpy.lastCall.args[1]()).to.deep.equal([40, 60]);
     });
   });
 });

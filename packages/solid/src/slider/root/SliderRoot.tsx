@@ -1,6 +1,5 @@
 'use client';
 import { createEffect, createMemo, createSignal, For, Show } from 'solid-js';
-import { createStore } from 'solid-js/store';
 import { CompositeList, type CompositeMetadata } from '../../composite/list/CompositeList';
 import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../../field/root/FieldRoot';
@@ -263,10 +262,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
     max,
     min,
     minStepsBetweenValues,
-    onValueCommitted: local.onValueCommitted as (
-      value: number | readonly number[],
-      event: Event,
-    ) => void,
+    onValueCommitted: (...args: any[]) => (local.onValueCommitted as Function)?.(...args),
     orientation,
     range,
     registerFieldControlRef,
@@ -328,7 +324,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
               }}
               {...fieldControlValidation.getInputValidationProps({
                 disabled,
-                name,
+                name: name(),
                 value: valueUnwrapped,
                 onFocus: handleHiddenInputFocus,
                 style: visuallyHidden,
@@ -348,8 +344,8 @@ export function SliderRoot<Value extends number | readonly number[]>(
                   fieldControlValidation.refs.inputRef = el;
                 }}
                 {...fieldControlValidation.getInputValidationProps({
-                  disabled,
-                  name,
+                  disabled: disabled(),
+                  name: name(),
                   value,
                   onFocus: handleHiddenInputFocus,
                   style: visuallyHidden,

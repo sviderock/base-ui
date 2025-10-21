@@ -6,7 +6,7 @@ import {
 import { Field } from '@base-ui-components/solid/field';
 import { Form } from '@base-ui-components/solid/form';
 import { Slider } from '@base-ui-components/solid/slider';
-import { fireEvent, screen } from '@solidjs/testing-library';
+import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy, stub } from 'sinon';
 import { createSignal, onCleanup, onMount } from 'solid-js';
@@ -167,10 +167,10 @@ describe.skipIf(typeof Touch === 'undefined')('<Slider.Root />', () => {
       const slider = screen.getByRole('slider');
       slider.focus();
 
-      fireEvent.change(slider, { target: { value: 51 } });
+      fireEvent.input(slider, { target: { value: 51 } });
       expect(slider).to.have.attribute('aria-valuenow', '51');
 
-      fireEvent.change(slider, { target: { value: 52 } });
+      fireEvent.input(slider, { target: { value: 52 } });
       expect(slider).to.have.attribute('aria-valuenow', '52');
     });
 
@@ -385,13 +385,13 @@ describe.skipIf(typeof Touch === 'undefined')('<Slider.Root />', () => {
 
       slider.focus();
 
-      fireEvent.change(slider, { target: { value: '51.1' } });
+      fireEvent.input(slider, { target: { value: '51.1' } });
       expect(slider).to.have.attribute('aria-valuenow', '51.1');
 
-      fireEvent.change(slider, { target: { value: '0.00000005' } });
+      fireEvent.input(slider, { target: { value: '0.00000005' } });
       expect(slider).to.have.attribute('aria-valuenow', '5e-8');
 
-      fireEvent.change(slider, { target: { value: '1e-7' } });
+      fireEvent.input(slider, { target: { value: '1e-7' } });
       expect(slider).to.have.attribute('aria-valuenow', '1e-7');
     });
 
@@ -510,7 +510,7 @@ describe.skipIf(typeof Touch === 'undefined')('<Slider.Root />', () => {
       const slider = screen.getByRole('slider');
       slider.focus();
 
-      fireEvent.change(slider, { target: { value: String(MAX + 100) } });
+      fireEvent.input(slider, { target: { value: String(MAX + 100) } });
       expect(slider).to.have.attribute('aria-valuenow', String(MAX));
     });
 
@@ -1111,7 +1111,7 @@ describe.skipIf(typeof Touch === 'undefined')('<Slider.Root />', () => {
       const slider = screen.getByRole('slider');
 
       slider.focus();
-      fireEvent.change(slider, {
+      fireEvent.input(slider, {
         target: {
           value: 4,
         },
@@ -1906,7 +1906,7 @@ describe.skipIf(typeof Touch === 'undefined')('<Slider.Root />', () => {
 
       expect(root).not.to.have.attribute('data-dirty');
 
-      fireEvent.change(input, { target: { value: 'value' } });
+      fireEvent.input(input, { target: { value: 'value' } });
 
       expect(root).to.have.attribute('data-dirty', '');
     });
@@ -2001,7 +2001,7 @@ describe.skipIf(typeof Touch === 'undefined')('<Slider.Root />', () => {
       const input = container.querySelector<HTMLInputElement>('input')!;
       expect(input).not.to.have.attribute('aria-invalid');
 
-      fireEvent.change(input, { target: { value: '1' } });
+      fireEvent.input(input, { target: { value: '1' } });
       await flushMicrotasks();
       expect(input).to.have.attribute('aria-invalid', 'true');
     });
@@ -2026,7 +2026,7 @@ describe.skipIf(typeof Touch === 'undefined')('<Slider.Root />', () => {
       const input = screen.getByRole('slider');
       expect(input).not.to.have.attribute('aria-invalid');
 
-      fireEvent.change(input, { target: { value: '1' } });
+      fireEvent.input(input, { target: { value: '1' } });
       fireEvent.blur(screen.getByTestId('thumb'));
       await flushMicrotasks();
       expect(input).to.have.attribute('aria-invalid', 'true');

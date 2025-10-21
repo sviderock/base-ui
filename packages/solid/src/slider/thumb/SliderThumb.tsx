@@ -192,8 +192,10 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
         class: resolveClassName(renderProps.class, state()),
         id: id(),
         onFocus() {
-          setActive(index());
-          setFocused(true);
+          batch(() => {
+            setActive(index());
+            setFocused(true);
+          });
         },
         onBlur() {
           if (!thumbRef) {
@@ -311,7 +313,7 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
         style: getThumbStyle(),
         tabIndex: externalTabIndex() ?? (disabled() ? undefined : 0),
       },
-      styleHooks,
+      styleHooks(),
       elementProps,
     );
   });
@@ -356,6 +358,14 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
         min: min(),
         onInput(event: InputEvent) {
           handleInputChange((event.target as HTMLInputElement).valueAsNumber, index(), event);
+        },
+        // Need to bubble the focus event to the thumb
+        onFocus() {
+          thumbRef?.dispatchEvent(new FocusEvent('focus'));
+        },
+        // Need to bubble the blur event to the thumb
+        onBlur() {
+          thumbRef?.dispatchEvent(new FocusEvent('blur'));
         },
         step: step(),
         style: {

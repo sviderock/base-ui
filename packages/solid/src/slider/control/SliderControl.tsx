@@ -59,11 +59,11 @@ function getFingerPosition(
   touchIdRef: any,
 ): FingerPosition | null {
   // The event is TouchEvent
-  if (touchIdRef.current !== undefined && (event as TouchEvent).changedTouches) {
+  if (touchIdRef !== undefined && (event as TouchEvent).changedTouches) {
     const touchEvent = event as TouchEvent;
     for (let i = 0; i < touchEvent.changedTouches.length; i += 1) {
       const touch = touchEvent.changedTouches[i];
-      if (touch.identifier === touchIdRef.current) {
+      if (touch.identifier === touchIdRef) {
         return {
           x: touch.clientX,
           y: touch.clientY,
