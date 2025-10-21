@@ -73,7 +73,7 @@ export interface UseCompositeRootParameters {
 
 const EMPTY_ARRAY: never[] = [];
 
-export function useCompositeRoot<Metadata>(
+export function useCompositeRoot<Metadata extends MaybeAccessor<unknown>>(
   params: UseCompositeRootParameters,
   direction: Accessor<TextDirection>,
 ) {

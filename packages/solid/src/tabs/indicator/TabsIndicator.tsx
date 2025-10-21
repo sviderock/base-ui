@@ -33,7 +33,7 @@ const customStyleHookMapping = {
  *
  * Documentation: [Base UI Tabs](https://base-ui.com/react/components/tabs)
  */
-export function TabIndicator(componentProps: TabsIndicator.Props) {
+export function TabsIndicator(componentProps: TabsIndicator.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['renderBeforeHydration']);
   const renderBeforeHydration = () => access(local.renderBeforeHydration) ?? false;
 

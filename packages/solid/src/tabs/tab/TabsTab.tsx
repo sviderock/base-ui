@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createMemo } from 'solid-js';
+import { batch, createEffect, createMemo } from 'solid-js';
 import { ACTIVE_COMPOSITE_ITEM } from '../../composite/constants';
 import { useCompositeItem } from '../../composite/item/useCompositeItem';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
@@ -49,7 +49,7 @@ export function TabsTab(componentProps: TabsTab.Props) {
 
   const {
     props: compositeItemProps,
-    ref: compositeItemRef,
+    setRef: setCompositeItemRef,
     index,
     // hook is used instead of the CompositeItem component
     // because the index is needed for Tab internals
@@ -154,13 +154,15 @@ export function TabsTab(componentProps: TabsTab.Props) {
       element="button"
       componentProps={componentProps}
       ref={(el) => {
-        buttonRef(el);
-        compositeItemRef(el);
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
+        batch(() => {
+          buttonRef(el);
+          setCompositeItemRef(el);
+          if (typeof componentProps.ref === 'function') {
+            componentProps.ref(el);
+          } else {
+            componentProps.ref = el;
+          }
+        });
       }}
       params={{
         state: state(),

@@ -1,15 +1,15 @@
-import * as React from 'react';
-import { expect } from 'chai';
-import { spy } from 'sinon';
-import { act, flushMicrotasks, fireEvent, screen, waitFor } from '@mui/internal-test-utils';
+import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#test-utils';
+import { Dialog } from '@base-ui-components/solid/dialog';
 import {
   DirectionProvider,
   type TextDirection,
-} from '@base-ui-components/react/direction-provider';
-import { Popover } from '@base-ui-components/react/popover';
-import { Dialog } from '@base-ui-components/react/dialog';
-import { Tabs } from '@base-ui-components/react/tabs';
-import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+} from '@base-ui-components/solid/direction-provider';
+import { Popover } from '@base-ui-components/solid/popover';
+import { Tabs } from '@base-ui-components/solid/tabs';
+import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
+import { expect } from 'chai';
+import { spy } from 'sinon';
+import { createSignal, For } from 'solid-js';
 
 describe('<Tabs.Root />', () => {
   const { render } = createRenderer();
@@ -26,47 +26,56 @@ describe('<Tabs.Root />', () => {
     }
   });
 
-  describeConformance(<Tabs.Root value={0} />, () => ({
-    render,
-    refInstanceof: window.HTMLDivElement,
-  }));
+  describeConformance(
+    (props) => <Tabs.Root {...props} ref={props.ref} value={0} />,
+    () => ({
+      render,
+      refInstanceof: window.HTMLDivElement,
+    }),
+  );
 
   describe('prop: children', () => {
     it('should accept a null child', async () => {
-      const { getAllByRole } = await render(
+      render(() => (
         <Tabs.Root value={0}>
           {null}
           <Tabs.List>
             <Tabs.Tab value={1} />
           </Tabs.List>
-        </Tabs.Root>,
-      );
-      expect(getAllByRole('tab')).to.have.lengthOf(1);
+        </Tabs.Root>
+      ));
+      expect(screen.getAllByRole('tab')).to.have.lengthOf(1);
     });
 
     it('should support empty children', async () => {
-      await render(<Tabs.Root value={1} />);
+      render(() => <Tabs.Root value={1} />);
     });
 
     it('puts the selected child in tab order', async () => {
-      const { getAllByRole, setProps } = await render(
-        <Tabs.Root value={1}>
+      const [value, setValue] = createSignal(1);
+      render(() => (
+        <Tabs.Root value={value}>
           <Tabs.List>
             <Tabs.Tab value={0} />
             <Tabs.Tab value={1} />
           </Tabs.List>
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
-      expect(getAllByRole('tab').map((tab) => tab.tabIndex)).to.have.ordered.members([-1, 0]);
+      screen.debug();
+      expect(screen.getAllByRole('tab').map((tab) => tab.tabIndex)).to.have.ordered.members([
+        -1, 0,
+      ]);
 
-      await setProps({ value: 0 });
+      setValue(0);
 
-      expect(getAllByRole('tab').map((tab) => tab.tabIndex)).to.have.ordered.members([0, -1]);
+      expect(screen.getAllByRole('tab').map((tab) => tab.tabIndex)).to.have.ordered.members([
+        0, -1,
+      ]);
     });
 
     it('sets the aria-labelledby attribute on tab panels to the corresponding tab id', async () => {
-      const { getAllByRole } = await render(
+      render(() => (
         <Tabs.Root defaultValue="tab-0">
           <Tabs.List>
             <Tabs.Tab value="tab-0" />
@@ -78,11 +87,12 @@ describe('<Tabs.Root />', () => {
           <Tabs.Panel value="tab-0" />
           <Tabs.Panel />
           <Tabs.Panel />
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
-      const tabs = getAllByRole('tab');
-      const tabPanels = getAllByRole('tabpanel', { hidden: true });
+      const tabs = screen.getAllByRole('tab');
+      const tabPanels = screen.getAllByRole('tabpanel', { hidden: true });
+      screen.debug();
 
       expect(tabPanels[0]).to.have.attribute('aria-labelledby', tabs[1].id);
       expect(tabPanels[1]).to.have.attribute('aria-labelledby', tabs[0].id);
@@ -91,7 +101,7 @@ describe('<Tabs.Root />', () => {
     });
 
     it('sets the aria-controls attribute on tabs to the corresponding tab panel id', async () => {
-      const { getAllByRole } = await render(
+      render(() => (
         <Tabs.Root defaultValue="tab-0">
           <Tabs.List>
             <Tabs.Tab value="tab-0" />
@@ -103,11 +113,11 @@ describe('<Tabs.Root />', () => {
           <Tabs.Panel value="tab-0" />
           <Tabs.Panel />
           <Tabs.Panel />
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
-      const tabs = getAllByRole('tab');
-      const tabPanels = getAllByRole('tabpanel', { hidden: true });
+      const tabs = screen.getAllByRole('tab');
+      const tabPanels = screen.getAllByRole('tabpanel', { hidden: true });
 
       expect(tabs[0]).to.have.attribute('aria-controls', tabPanels[1].id);
       expect(tabs[1]).to.have.attribute('aria-controls', tabPanels[0].id);
@@ -118,17 +128,15 @@ describe('<Tabs.Root />', () => {
 
   describe('prop: value', () => {
     it('should pass selected prop to children', async () => {
-      const tabs = (
+      render(() => (
         <Tabs.Root value={1}>
           <Tabs.List>
             <Tabs.Tab value={0} />
             <Tabs.Tab value={1} />
           </Tabs.List>
         </Tabs.Root>
-      );
-
-      const { getAllByRole } = await render(tabs);
-      const tabElements = getAllByRole('tab');
+      ));
+      const tabElements = screen.getAllByRole('tab');
       expect(tabElements[0]).to.have.attribute('aria-selected', 'false');
       expect(tabElements[1]).to.have.attribute('aria-selected', 'true');
     });
@@ -136,21 +144,17 @@ describe('<Tabs.Root />', () => {
     it('should support values of different types', async () => {
       const tabValues = [0, '1', { value: 2 }, () => 3, Symbol('4'), /5/];
 
-      const { getAllByRole } = await render(
+      render(() => (
         <Tabs.Root>
           <Tabs.List>
-            {tabValues.map((value, index) => (
-              <Tabs.Tab key={index} value={value} />
-            ))}
+            <For each={tabValues}>{(value) => <Tabs.Tab value={value} />}</For>
           </Tabs.List>
-          {tabValues.map((value, index) => (
-            <Tabs.Panel key={index} value={value} />
-          ))}
-        </Tabs.Root>,
-      );
+          <For each={tabValues}>{(value) => <Tabs.Panel value={value} />}</For>
+        </Tabs.Root>
+      ));
 
-      const tabElements = getAllByRole('tab');
-      const tabPanelElements = getAllByRole('tabpanel', { hidden: true });
+      const tabElements = screen.getAllByRole('tab');
+      const tabPanelElements = screen.getAllByRole('tabpanel', { hidden: true });
 
       await Promise.allSettled(
         tabValues.map(async (value, index) => {
@@ -159,9 +163,7 @@ describe('<Tabs.Root />', () => {
             tabElements[index].id,
           );
 
-          await act(() => {
-            tabElements[index].click();
-          });
+          tabElements[index].click();
 
           expect(tabPanelElements[index]).not.to.have.attribute('hidden');
         }),
@@ -173,81 +175,80 @@ describe('<Tabs.Root />', () => {
     it('should call onValueChange on pointerdown', async () => {
       const handleChange = spy();
       const handlePointerDown = spy();
-      const { getAllByRole, user } = await render(
+      const { user } = render(() => (
         <Tabs.Root value={0} onValueChange={handleChange}>
           <Tabs.List>
             <Tabs.Tab value={0} />
             <Tabs.Tab value={1} onPointerDown={handlePointerDown} />
           </Tabs.List>
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
-      await user.pointer({ keys: '[MouseLeft>]', target: getAllByRole('tab')[1] });
+      await user.pointer({ keys: '[MouseLeft>]', target: screen.getAllByRole('tab')[1] });
       expect(handleChange.callCount).to.equal(1);
       expect(handlePointerDown.callCount).to.equal(1);
     });
 
     it('should call onValueChange when clicking', async () => {
       const handleChange = spy();
-      const { getAllByRole } = await render(
+      render(() => (
         <Tabs.Root value={0} onValueChange={handleChange}>
           <Tabs.List>
             <Tabs.Tab value={0} />
             <Tabs.Tab value={1} />
           </Tabs.List>
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
-      fireEvent.click(getAllByRole('tab')[1]);
+      fireEvent.click(screen.getAllByRole('tab')[1]);
       expect(handleChange.callCount).to.equal(1);
       expect(handleChange.firstCall.args[0]).to.equal(1);
     });
 
     it('should not call onValueChange on non-main button clicks', async () => {
       const handleChange = spy();
-      const { getAllByRole } = await render(
+      render(() => (
         <Tabs.Root value={0} onValueChange={handleChange}>
           <Tabs.List>
             <Tabs.Tab value={0} />
             <Tabs.Tab value={1} />
           </Tabs.List>
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
-      fireEvent.click(getAllByRole('tab')[1], { button: 2 });
+      screen.debug();
+      fireEvent.contextMenu(screen.getAllByRole('tab')[1]);
       expect(handleChange.callCount).to.equal(0);
     });
 
     it('should not call onValueChange when already selected', async () => {
       const handleChange = spy();
-      const { getAllByRole } = await render(
+      render(() => (
         <Tabs.Root value={0} onValueChange={handleChange}>
           <Tabs.List>
             <Tabs.Tab value={0} />
             <Tabs.Tab value={1} />
           </Tabs.List>
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
-      fireEvent.click(getAllByRole('tab')[0]);
+      fireEvent.click(screen.getAllByRole('tab')[0]);
       expect(handleChange.callCount).to.equal(0);
     });
 
     it('should call onValueChange if an unselected tab gets focused', async () => {
       const handleChange = spy();
-      const { getAllByRole } = await render(
+      render(() => (
         <Tabs.Root value={0} onValueChange={handleChange}>
           <Tabs.List>
             <Tabs.Tab value={0} />
             <Tabs.Tab value={1} />
           </Tabs.List>
-        </Tabs.Root>,
-      );
-      const [firstTab] = getAllByRole('tab');
+        </Tabs.Root>
+      ));
+      const [firstTab] = screen.getAllByRole('tab');
 
-      await act(async () => {
-        firstTab.focus();
-      });
+      firstTab.focus();
 
       fireEvent.keyDown(firstTab, { key: 'ArrowRight' });
       await flushMicrotasks();
@@ -258,20 +259,18 @@ describe('<Tabs.Root />', () => {
 
     it('when `activateOnFocus = false` should not call onValueChange if an unselected tab gets focused', async () => {
       const handleChange = spy();
-      const { getAllByRole } = await render(
+      render(() => (
         <Tabs.Root value={1} onValueChange={handleChange}>
           <Tabs.List activateOnFocus={false}>
             <Tabs.Tab value={0} />
             <Tabs.Tab value={1} />
           </Tabs.List>
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
-      const [firstTab] = getAllByRole('tab');
+      const [firstTab] = screen.getAllByRole('tab');
 
-      await act(async () => {
-        firstTab.focus();
-      });
+      firstTab.focus();
 
       expect(handleChange.callCount).to.equal(0);
     });
@@ -279,25 +278,25 @@ describe('<Tabs.Root />', () => {
 
   describe('prop: orientation', () => {
     it('does not add aria-orientation by default', async () => {
-      await render(
+      render(() => (
         <Tabs.Root value={0}>
           <Tabs.List>
             <Tabs.Root />
           </Tabs.List>
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
       expect(screen.getByRole('tablist')).not.to.have.attribute('aria-orientation');
     });
 
     it('adds the proper aria-orientation when vertical', async () => {
-      await render(
+      render(() => (
         <Tabs.Root value={0} orientation="vertical">
           <Tabs.List>
             <Tabs.Root />
           </Tabs.List>
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
       expect(screen.getByRole('tablist')).to.have.attribute('aria-orientation', 'vertical');
     });
@@ -305,7 +304,7 @@ describe('<Tabs.Root />', () => {
 
   describe('pointer navigation', () => {
     it('activates the clicked tab', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <Tabs.Root defaultValue={0}>
           <Tabs.List activateOnFocus={false}>
             <Tabs.Tab value={0}>Tab 1</Tabs.Tab>
@@ -315,8 +314,8 @@ describe('<Tabs.Root />', () => {
           <Tabs.Panel>Panel 1</Tabs.Panel>
           <Tabs.Panel>Panel 2</Tabs.Panel>
           <Tabs.Panel>Panel 3</Tabs.Panel>
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
       const tab2 = screen.getByRole('tab', { name: 'Tab 2' });
       await user.click(tab2);
@@ -329,7 +328,7 @@ describe('<Tabs.Root />', () => {
     });
 
     it('does not activate the clicked disabled tab', async () => {
-      const { user } = await render(
+      const { user } = render(() => (
         <Tabs.Root defaultValue={0}>
           <Tabs.List activateOnFocus={false}>
             <Tabs.Tab value={0}>Tab 1</Tabs.Tab>
@@ -341,8 +340,8 @@ describe('<Tabs.Root />', () => {
           <Tabs.Panel>Panel 1</Tabs.Panel>
           <Tabs.Panel>Panel 2</Tabs.Panel>
           <Tabs.Panel>Panel 3</Tabs.Panel>
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
       const tab2 = screen.getByRole('tab', { name: 'Tab 2' });
       await user.click(tab2);
@@ -371,7 +370,7 @@ describe('<Tabs.Root />', () => {
               it('moves focus to the last tab without activating it if focus is on the first tab', async () => {
                 const handleChange = spy();
                 const handleKeyDown = spy();
-                const { getAllByRole } = await render(
+                render(() => (
                   <DirectionProvider direction={direction as TextDirection}>
                     <Tabs.Root
                       onValueChange={handleChange}
@@ -385,12 +384,10 @@ describe('<Tabs.Root />', () => {
                         <Tabs.Tab value={2} />
                       </Tabs.List>
                     </Tabs.Root>
-                  </DirectionProvider>,
-                );
-                const [firstTab, , lastTab] = getAllByRole('tab');
-                await act(async () => {
-                  firstTab.focus();
-                });
+                  </DirectionProvider>
+                ));
+                const [firstTab, , lastTab] = screen.getAllByRole('tab');
+                firstTab.focus();
 
                 fireEvent.keyDown(firstTab, { key: previousItemKey });
                 await flushMicrotasks();
@@ -404,7 +401,7 @@ describe('<Tabs.Root />', () => {
               it('moves focus to the previous tab without activating it', async () => {
                 const handleChange = spy();
                 const handleKeyDown = spy();
-                const { getAllByRole } = await render(
+                render(() => (
                   <DirectionProvider direction={direction as TextDirection}>
                     <Tabs.Root
                       onValueChange={handleChange}
@@ -418,12 +415,10 @@ describe('<Tabs.Root />', () => {
                         <Tabs.Tab value={2} />
                       </Tabs.List>
                     </Tabs.Root>
-                  </DirectionProvider>,
-                );
-                const [firstTab, secondTab] = getAllByRole('tab');
-                await act(async () => {
-                  secondTab.focus();
-                });
+                  </DirectionProvider>
+                ));
+                const [firstTab, secondTab] = screen.getAllByRole('tab');
+                secondTab.focus();
 
                 fireEvent.keyDown(secondTab, { key: previousItemKey });
                 await flushMicrotasks();
@@ -436,7 +431,7 @@ describe('<Tabs.Root />', () => {
 
               it('moves focus to a disabled tab without activating it', async () => {
                 const handleKeyDown = spy();
-                const { getAllByRole } = await render(
+                render(() => (
                   <DirectionProvider direction={direction as TextDirection}>
                     <Tabs.Root
                       onKeyDown={handleKeyDown}
@@ -449,12 +444,10 @@ describe('<Tabs.Root />', () => {
                         <Tabs.Tab value={2} />
                       </Tabs.List>
                     </Tabs.Root>
-                  </DirectionProvider>,
-                );
-                const [, disabledTab, lastTab] = getAllByRole('tab');
-                await act(async () => {
-                  lastTab.focus();
-                });
+                  </DirectionProvider>
+                ));
+                const [, disabledTab, lastTab] = screen.getAllByRole('tab');
+                lastTab.focus();
 
                 fireEvent.keyDown(lastTab, { key: previousItemKey });
                 await flushMicrotasks();
@@ -469,7 +462,7 @@ describe('<Tabs.Root />', () => {
               it('moves focus to the last tab while activating it if focus is on the first tab', async () => {
                 const handleChange = spy();
                 const handleKeyDown = spy();
-                const { getAllByRole } = await render(
+                render(() => (
                   <DirectionProvider direction={direction as TextDirection}>
                     <Tabs.Root
                       onValueChange={handleChange}
@@ -483,12 +476,10 @@ describe('<Tabs.Root />', () => {
                         <Tabs.Tab value={2} />
                       </Tabs.List>
                     </Tabs.Root>
-                  </DirectionProvider>,
-                );
-                const [firstTab, , lastTab] = getAllByRole('tab');
-                await act(async () => {
-                  firstTab.focus();
-                });
+                  </DirectionProvider>
+                ));
+                const [firstTab, , lastTab] = screen.getAllByRole('tab');
+                firstTab.focus();
 
                 fireEvent.keyDown(firstTab, { key: previousItemKey });
                 await flushMicrotasks();
@@ -503,7 +494,7 @@ describe('<Tabs.Root />', () => {
               it('moves focus to the previous tab while activating it', async () => {
                 const handleChange = spy();
                 const handleKeyDown = spy();
-                const { getAllByRole } = await render(
+                render(() => (
                   <DirectionProvider direction={direction as TextDirection}>
                     <Tabs.Root
                       onValueChange={handleChange}
@@ -517,12 +508,10 @@ describe('<Tabs.Root />', () => {
                         <Tabs.Tab value={2} />
                       </Tabs.List>
                     </Tabs.Root>
-                  </DirectionProvider>,
-                );
-                const [firstTab, secondTab] = getAllByRole('tab');
-                await act(async () => {
-                  secondTab.focus();
-                });
+                  </DirectionProvider>
+                ));
+                const [firstTab, secondTab] = screen.getAllByRole('tab');
+                secondTab.focus();
 
                 fireEvent.keyDown(secondTab, { key: previousItemKey });
                 await flushMicrotasks();
@@ -537,7 +526,7 @@ describe('<Tabs.Root />', () => {
 
             it('moves focus to a disabled tab without activating it', async () => {
               const handleKeyDown = spy();
-              const { getAllByRole } = await render(
+              render(() => (
                 <DirectionProvider direction={direction as TextDirection}>
                   <Tabs.Root
                     onKeyDown={handleKeyDown}
@@ -550,12 +539,10 @@ describe('<Tabs.Root />', () => {
                       <Tabs.Tab value={2} />
                     </Tabs.List>
                   </Tabs.Root>
-                </DirectionProvider>,
-              );
-              const [, disabledTab, lastTab] = getAllByRole('tab');
-              await act(async () => {
-                lastTab.focus();
-              });
+                </DirectionProvider>
+              ));
+              const [, disabledTab, lastTab] = screen.getAllByRole('tab');
+              lastTab.focus();
 
               fireEvent.keyDown(lastTab, { key: previousItemKey });
               await flushMicrotasks();
@@ -571,7 +558,7 @@ describe('<Tabs.Root />', () => {
               it('moves focus to the first tab without activating it if focus is on the last tab', async () => {
                 const handleChange = spy();
                 const handleKeyDown = spy();
-                const { getAllByRole } = await render(
+                render(() => (
                   <DirectionProvider direction={direction as TextDirection}>
                     <Tabs.Root
                       onValueChange={handleChange}
@@ -585,12 +572,10 @@ describe('<Tabs.Root />', () => {
                         <Tabs.Tab value={2} />
                       </Tabs.List>
                     </Tabs.Root>
-                  </DirectionProvider>,
-                );
-                const [firstTab, , lastTab] = getAllByRole('tab');
-                await act(async () => {
-                  lastTab.focus();
-                });
+                  </DirectionProvider>
+                ));
+                const [firstTab, , lastTab] = screen.getAllByRole('tab');
+                lastTab.focus();
 
                 fireEvent.keyDown(lastTab, { key: nextItemKey });
                 await flushMicrotasks();
@@ -604,7 +589,7 @@ describe('<Tabs.Root />', () => {
               it('moves focus to the next tab without activating it', async () => {
                 const handleChange = spy();
                 const handleKeyDown = spy();
-                const { getAllByRole } = await render(
+                render(() => (
                   <DirectionProvider direction={direction as TextDirection}>
                     <Tabs.Root
                       onValueChange={handleChange}
@@ -618,12 +603,10 @@ describe('<Tabs.Root />', () => {
                         <Tabs.Tab value={2} />
                       </Tabs.List>
                     </Tabs.Root>
-                  </DirectionProvider>,
-                );
-                const [, secondTab, lastTab] = getAllByRole('tab');
-                await act(async () => {
-                  secondTab.focus();
-                });
+                  </DirectionProvider>
+                ));
+                const [, secondTab, lastTab] = screen.getAllByRole('tab');
+                secondTab.focus();
 
                 fireEvent.keyDown(secondTab, { key: nextItemKey });
                 await flushMicrotasks();
@@ -637,7 +620,7 @@ describe('<Tabs.Root />', () => {
               it('moves focus to a disabled tab without activating it', async () => {
                 const handleChange = spy();
                 const handleKeyDown = spy();
-                const { getAllByRole } = await render(
+                render(() => (
                   <DirectionProvider direction={direction as TextDirection}>
                     <Tabs.Root
                       onValueChange={handleChange}
@@ -651,12 +634,10 @@ describe('<Tabs.Root />', () => {
                         <Tabs.Tab value={2} />
                       </Tabs.List>
                     </Tabs.Root>
-                  </DirectionProvider>,
-                );
-                const [firstTab, disabledTab, thirdTab] = getAllByRole('tab');
-                await act(async () => {
-                  firstTab.focus();
-                });
+                  </DirectionProvider>
+                ));
+                const [firstTab, disabledTab, thirdTab] = screen.getAllByRole('tab');
+                firstTab.focus();
 
                 fireEvent.keyDown(firstTab, { key: nextItemKey });
                 await flushMicrotasks();
@@ -676,7 +657,7 @@ describe('<Tabs.Root />', () => {
               it('moves focus to the first tab while activating it if focus is on the last tab', async () => {
                 const handleChange = spy();
                 const handleKeyDown = spy();
-                const { getAllByRole } = await render(
+                render(() => (
                   <DirectionProvider direction={direction as TextDirection}>
                     <Tabs.Root
                       onValueChange={handleChange}
@@ -690,12 +671,10 @@ describe('<Tabs.Root />', () => {
                         <Tabs.Tab value={2} />
                       </Tabs.List>
                     </Tabs.Root>
-                  </DirectionProvider>,
-                );
-                const [firstTab, , lastTab] = getAllByRole('tab');
-                await act(async () => {
-                  lastTab.focus();
-                });
+                  </DirectionProvider>
+                ));
+                const [firstTab, , lastTab] = screen.getAllByRole('tab');
+                lastTab.focus();
 
                 fireEvent.keyDown(lastTab, { key: nextItemKey });
                 await flushMicrotasks();
@@ -710,7 +689,7 @@ describe('<Tabs.Root />', () => {
               it('moves focus to the next tab while activating it', async () => {
                 const handleChange = spy();
                 const handleKeyDown = spy();
-                const { getAllByRole } = await render(
+                render(() => (
                   <DirectionProvider direction={direction as TextDirection}>
                     <Tabs.Root
                       onValueChange={handleChange}
@@ -724,12 +703,10 @@ describe('<Tabs.Root />', () => {
                         <Tabs.Tab value={2} />
                       </Tabs.List>
                     </Tabs.Root>
-                  </DirectionProvider>,
-                );
-                const [, secondTab, lastTab] = getAllByRole('tab');
-                await act(async () => {
-                  secondTab.focus();
-                });
+                  </DirectionProvider>
+                ));
+                const [, secondTab, lastTab] = screen.getAllByRole('tab');
+                secondTab.focus();
 
                 fireEvent.keyDown(secondTab, { key: nextItemKey });
                 await flushMicrotasks();
@@ -745,7 +722,7 @@ describe('<Tabs.Root />', () => {
             it('moves focus to a disabled tab without activating it', async () => {
               const handleChange = spy();
               const handleKeyDown = spy();
-              const { getAllByRole } = await render(
+              render(() => (
                 <DirectionProvider direction={direction as TextDirection}>
                   <Tabs.Root
                     onValueChange={handleChange}
@@ -759,12 +736,10 @@ describe('<Tabs.Root />', () => {
                       <Tabs.Tab value={2} />
                     </Tabs.List>
                   </Tabs.Root>
-                </DirectionProvider>,
-              );
-              const [firstTab, disabledTab, thirdTab] = getAllByRole('tab');
-              await act(async () => {
-                firstTab.focus();
-              });
+                </DirectionProvider>
+              ));
+              const [firstTab, disabledTab, thirdTab] = screen.getAllByRole('tab');
+              firstTab.focus();
 
               fireEvent.keyDown(firstTab, { key: nextItemKey });
               await flushMicrotasks();
@@ -785,7 +760,7 @@ describe('<Tabs.Root />', () => {
               it(`does not move focus when modifier key: ${modifierKey} is pressed`, async () => {
                 const handleChange = spy();
                 const handleKeyDown = spy();
-                const { getAllByRole, user } = await render(
+                const { user } = render(() => (
                   <DirectionProvider direction={direction as TextDirection}>
                     <Tabs.Root
                       onValueChange={handleChange}
@@ -799,10 +774,10 @@ describe('<Tabs.Root />', () => {
                         <Tabs.Tab value={2} />
                       </Tabs.List>
                     </Tabs.Root>
-                  </DirectionProvider>,
-                );
+                  </DirectionProvider>
+                ));
 
-                const [firstTab] = getAllByRole('tab');
+                const [firstTab] = screen.getAllByRole('tab');
 
                 await user.keyboard('[Tab]');
                 expect(firstTab).toHaveFocus();
@@ -828,19 +803,17 @@ describe('<Tabs.Root />', () => {
         it('when `activateOnFocus = false`, moves focus to the first tab without activating it', async () => {
           const handleChange = spy();
           const handleKeyDown = spy();
-          const { getAllByRole } = await render(
+          render(() => (
             <Tabs.Root onValueChange={handleChange} onKeyDown={handleKeyDown} value={2}>
               <Tabs.List activateOnFocus={false}>
                 <Tabs.Tab value={0} />
                 <Tabs.Tab value={1} />
                 <Tabs.Tab value={2} />
               </Tabs.List>
-            </Tabs.Root>,
-          );
-          const [firstTab, , lastTab] = getAllByRole('tab');
-          await act(async () => {
-            lastTab.focus();
-          });
+            </Tabs.Root>
+          ));
+          const [firstTab, , lastTab] = screen.getAllByRole('tab');
+          lastTab.focus();
 
           fireEvent.keyDown(lastTab, { key: 'Home' });
           await flushMicrotasks();
@@ -854,19 +827,17 @@ describe('<Tabs.Root />', () => {
         it('when `activateOnFocus = true`, moves focus to the first tab while activating it', async () => {
           const handleChange = spy();
           const handleKeyDown = spy();
-          const { getAllByRole } = await render(
+          render(() => (
             <Tabs.Root onValueChange={handleChange} onKeyDown={handleKeyDown} value={2}>
               <Tabs.List>
                 <Tabs.Tab value={0} />
                 <Tabs.Tab value={1} />
                 <Tabs.Tab value={2} />
               </Tabs.List>
-            </Tabs.Root>,
-          );
-          const [firstTab, , lastTab] = getAllByRole('tab');
-          await act(async () => {
-            lastTab.focus();
-          });
+            </Tabs.Root>
+          ));
+          const [firstTab, , lastTab] = screen.getAllByRole('tab');
+          lastTab.focus();
 
           fireEvent.keyDown(lastTab, { key: 'Home' });
           await flushMicrotasks();
@@ -882,19 +853,17 @@ describe('<Tabs.Root />', () => {
           it(`when \`activateOnFocus = ${activateOnFocusProp}\`, moves focus to a disabled tab without activating it`, async () => {
             const handleChange = spy();
             const handleKeyDown = spy();
-            const { getAllByRole } = await render(
+            render(() => (
               <Tabs.Root onKeyDown={handleKeyDown} onValueChange={handleChange} value={2}>
                 <Tabs.List activateOnFocus={activateOnFocusProp}>
                   <Tabs.Tab value={0} disabled />
                   <Tabs.Tab value={1} />
                   <Tabs.Tab value={2} />
                 </Tabs.List>
-              </Tabs.Root>,
-            );
-            const [disabledTab, , lastTab] = getAllByRole('tab');
-            await act(async () => {
-              lastTab.focus();
-            });
+              </Tabs.Root>
+            ));
+            const [disabledTab, , lastTab] = screen.getAllByRole('tab');
+            lastTab.focus();
 
             fireEvent.keyDown(lastTab, { key: 'Home' });
             await flushMicrotasks();
@@ -911,19 +880,17 @@ describe('<Tabs.Root />', () => {
         it('when `activateOnFocus = false`, moves focus to the last tab without activating it', async () => {
           const handleChange = spy();
           const handleKeyDown = spy();
-          const { getAllByRole } = await render(
+          render(() => (
             <Tabs.Root onValueChange={handleChange} onKeyDown={handleKeyDown} value={0}>
               <Tabs.List activateOnFocus={false}>
                 <Tabs.Tab value={0} />
                 <Tabs.Tab value={1} />
                 <Tabs.Tab value={2} />
               </Tabs.List>
-            </Tabs.Root>,
-          );
-          const [firstTab, , lastTab] = getAllByRole('tab');
-          await act(async () => {
-            firstTab.focus();
-          });
+            </Tabs.Root>
+          ));
+          const [firstTab, , lastTab] = screen.getAllByRole('tab');
+          firstTab.focus();
 
           fireEvent.keyDown(firstTab, { key: 'End' });
           await flushMicrotasks();
@@ -937,19 +904,17 @@ describe('<Tabs.Root />', () => {
         it('when `activateOnFocus = true`, moves focus to the last tab while activating it', async () => {
           const handleChange = spy();
           const handleKeyDown = spy();
-          const { getAllByRole } = await render(
+          render(() => (
             <Tabs.Root onValueChange={handleChange} onKeyDown={handleKeyDown} value={0}>
               <Tabs.List>
                 <Tabs.Tab value={0} />
                 <Tabs.Tab value={1} />
                 <Tabs.Tab value={2} />
               </Tabs.List>
-            </Tabs.Root>,
-          );
-          const [firstTab, , lastTab] = getAllByRole('tab');
-          await act(async () => {
-            firstTab.focus();
-          });
+            </Tabs.Root>
+          ));
+          const [firstTab, , lastTab] = screen.getAllByRole('tab');
+          firstTab.focus();
 
           fireEvent.keyDown(firstTab, { key: 'End' });
           await flushMicrotasks();
@@ -965,20 +930,18 @@ describe('<Tabs.Root />', () => {
           it(`when \`activateOnFocus = ${activateOnFocusProp}\`, moves focus to a disabled tab without activating it`, async () => {
             const handleChange = spy();
             const handleKeyDown = spy();
-            const { getAllByRole } = await render(
+            render(() => (
               <Tabs.Root onKeyDown={handleKeyDown} onValueChange={handleChange} value={0}>
                 <Tabs.List activateOnFocus={activateOnFocusProp}>
                   <Tabs.Tab value={0} />
                   <Tabs.Tab value={1} />
                   <Tabs.Tab value={2} disabled />
                 </Tabs.List>
-              </Tabs.Root>,
-            );
+              </Tabs.Root>
+            ));
 
-            const [firstTab, , disabledTab] = getAllByRole('tab');
-            await act(async () => {
-              firstTab.focus();
-            });
+            const [firstTab, , disabledTab] = screen.getAllByRole('tab');
+            firstTab.focus();
 
             fireEvent.keyDown(firstTab, { key: 'End' });
             await flushMicrotasks();
@@ -993,16 +956,16 @@ describe('<Tabs.Root />', () => {
     });
 
     it('should allow to focus first tab when there are no active tabs', async () => {
-      const { getAllByRole } = await render(
+      render(() => (
         <Tabs.Root defaultValue={0}>
           <Tabs.List>
             <Tabs.Tab value={0} />
             <Tabs.Tab value={1} />
           </Tabs.List>
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
-      expect(getAllByRole('tab').map((tab) => tab.getAttribute('tabIndex'))).to.deep.equal([
+      expect(screen.getAllByRole('tab').map((tab) => tab.getAttribute('tabIndex'))).to.deep.equal([
         '0',
         '-1',
       ]);
@@ -1011,55 +974,47 @@ describe('<Tabs.Root />', () => {
 
   describe.skipIf(isJSDOM)('activation direction', () => {
     it('should set the `data-activation-direction` attribute on the tabs root with orientation=horizontal', async () => {
-      const { getAllByRole, getByTestId } = await render(
+      render(() => (
         <Tabs.Root data-testid="root">
           <Tabs.List>
             <Tabs.Tab />
             <Tabs.Tab />
           </Tabs.List>
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
-      const root = getByTestId('root');
-      const [tab1, tab2] = getAllByRole('tab');
+      const root = screen.getByTestId('root');
+      const [tab1, tab2] = screen.getAllByRole('tab');
 
       expect(root).to.have.attribute('data-activation-direction', 'none');
-      await act(async () => {
-        tab2.click();
-      });
+      tab2.click();
 
       expect(root).to.have.attribute('data-activation-direction', 'right');
 
-      await act(async () => {
-        tab1.click();
-      });
+      tab1.click();
 
       expect(root).to.have.attribute('data-activation-direction', 'left');
     });
 
     it('should set the `data-activation-direction` attribute on the tabs root with orientation=vertical', async () => {
-      const { getAllByRole, getByTestId } = await render(
+      render(() => (
         <Tabs.Root data-testid="root" orientation="vertical">
           <Tabs.List>
             <Tabs.Tab style={{ display: 'block' }} />
             <Tabs.Tab style={{ display: 'block' }} />
           </Tabs.List>
-        </Tabs.Root>,
-      );
+        </Tabs.Root>
+      ));
 
-      const root = getByTestId('root');
-      const [tab1, tab2] = getAllByRole('tab');
+      const root = screen.getByTestId('root');
+      const [tab1, tab2] = screen.getAllByRole('tab');
 
       expect(root).to.have.attribute('data-activation-direction', 'none');
-      await act(async () => {
-        tab2.click();
-      });
+      tab2.click();
 
       expect(root).to.have.attribute('data-activation-direction', 'down');
 
-      await act(async () => {
-        tab1.click();
-      });
+      tab1.click();
 
       expect(root).to.have.attribute('data-activation-direction', 'up');
     });
@@ -1091,7 +1046,7 @@ describe('<Tabs.Root />', () => {
         );
       }
 
-      const { user } = await render(<ExamplePopover />);
+      const { user } = render(() => <ExamplePopover />);
 
       const trigger = screen.getByRole('button', { name: 'Open' });
 
@@ -1133,7 +1088,7 @@ describe('<Tabs.Root />', () => {
         );
       }
 
-      const { user } = await render(<ExampleDialog />);
+      const { user } = render(() => <ExampleDialog />);
 
       const trigger = screen.getByRole('button', { name: 'Open' });
 
@@ -1153,28 +1108,29 @@ describe('<Tabs.Root />', () => {
   });
 
   it('updates the highlighted index when value changes externally', async () => {
-    const { getAllByRole, setProps } = await render(
-      <Tabs.Root value={0}>
+    const [value, setValue] = createSignal(0);
+    render(() => (
+      <Tabs.Root value={value()}>
         <Tabs.List activateOnFocus={false}>
           <Tabs.Tab value={0} />
           <Tabs.Tab value={1} />
           <Tabs.Tab value={2} />
         </Tabs.List>
-      </Tabs.Root>,
-    );
+      </Tabs.Root>
+    ));
 
-    const [firstTab, secondTab, thirdTab] = getAllByRole('tab');
+    const [firstTab, secondTab, thirdTab] = screen.getAllByRole('tab');
 
     expect(firstTab.tabIndex).to.equal(0);
 
-    await setProps({ value: 2 });
+    setValue(2);
     await flushMicrotasks();
 
     expect(firstTab.tabIndex).to.equal(-1);
     expect(secondTab.tabIndex).to.equal(-1);
     expect(thirdTab.tabIndex).to.equal(0);
 
-    await setProps({ value: 1 });
+    setValue(1);
     await flushMicrotasks();
 
     expect(firstTab.tabIndex).to.equal(-1);

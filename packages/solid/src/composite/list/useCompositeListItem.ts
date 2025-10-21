@@ -78,7 +78,7 @@ export function useCompositeListItem<Metadata extends MaybeAccessor<unknown>>(
   createEffect(() => {
     const node = componentRef();
     if (node) {
-      context.register(node, params.metadata);
+      context.register(node, access(params.metadata));
       context.subscribeMapChange(onMapChange);
     }
 

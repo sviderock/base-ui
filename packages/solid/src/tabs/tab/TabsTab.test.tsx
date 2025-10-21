@@ -1,17 +1,26 @@
-import * as React from 'react';
-import { Tabs } from '@base-ui-components/react/tabs';
 import { createRenderer, describeConformance } from '#test-utils';
+import { Tabs } from '@base-ui-components/solid/tabs';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Tabs.Tab />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Tabs.Tab value="1" />, () => ({
-    render: (node) =>
-      render(
-        <Tabs.Root>
-          <Tabs.List>{node}</Tabs.List>
-        </Tabs.Root>,
-      ),
-    refInstanceof: window.HTMLButtonElement,
-  }));
+  describeConformance(
+    (props) => <Tabs.Tab {...props} ref={props.ref} value="1" />,
+    () => ({
+      render: (node, elementProps = {}) => {
+        return render(
+          () => (
+            <Tabs.Root>
+              <Tabs.List>
+                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+              </Tabs.List>
+            </Tabs.Root>
+          ),
+          elementProps,
+        );
+      },
+      refInstanceof: window.HTMLButtonElement,
+    }),
+  );
 });

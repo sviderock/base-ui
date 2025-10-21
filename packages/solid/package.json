@@ -57,6 +57,7 @@
     "./slider": "./src/slider/index.ts",
     "./switch": "./src/switch/index.ts",
     "./solid-helpers": "./src/solid-helpers.ts",
+    "./tabs": "./src/tabs/index.ts",
     "./unstable-no-ssr": "./src/unstable-no-ssr/index.ts",
     "./unstable-use-media-query": "./src/unstable-use-media-query/index.ts",
     "./utils": "./src/utils/index.ts"
