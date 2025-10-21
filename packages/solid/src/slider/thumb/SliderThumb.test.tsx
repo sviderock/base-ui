@@ -1,9 +1,10 @@
-import * as React from 'react';
+import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+import { Slider } from '@base-ui-components/solid/slider';
+import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { fireEvent, screen } from '@mui/internal-test-utils';
-import { Slider } from '@base-ui-components/react/slider';
-import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+import { createSignal } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import { isWebKit } from '../../utils/detectBrowser';
 
 type Touches = Array<Pick<Touch, 'identifier' | 'clientX' | 'clientY'>>;
@@ -35,9 +36,16 @@ function createTouches(touches: Touches) {
 describe('<Slider.Thumb />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Slider.Thumb />, () => ({
-    render: (node) => {
-      return render(<Slider.Root>{node}</Slider.Root>);
+  describeConformance(Slider.Thumb, () => ({
+    render: (node, elementProps = {}) => {
+      return render(
+        () => (
+          <Slider.Root>
+            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+          </Slider.Root>
+        ),
+        elementProps,
+      );
     },
     refInstanceof: window.HTMLDivElement,
   }));
@@ -49,7 +57,7 @@ describe('<Slider.Thumb />', () => {
   describe.skipIf(isJSDOM || isWebKit || typeof Touch === 'undefined')('positioning styles', () => {
     describe('positions the thumb when dragged', () => {
       it('single thumb', async () => {
-        const { getByTestId } = await render(
+        render(() => (
           <Slider.Root
             style={{
               width: '1000px',
@@ -61,12 +69,12 @@ describe('<Slider.Thumb />', () => {
                 <Slider.Thumb data-testid="thumb" />
               </Slider.Track>
             </Slider.Control>
-          </Slider.Root>,
-        );
+          </Slider.Root>
+        ));
 
-        const sliderControl = getByTestId('control');
+        const sliderControl = screen.getByTestId('control');
 
-        const thumbStyles = getComputedStyle(getByTestId('thumb'));
+        const thumbStyles = getComputedStyle(screen.getByTestId('thumb'));
 
         stub(sliderControl, 'getBoundingClientRect').callsFake(
           () => GETBOUNDINGCLIENTRECT_HORIZONTAL_SLIDER_RETURN_VAL,
@@ -99,7 +107,7 @@ describe('<Slider.Thumb />', () => {
       });
 
       it('multiple thumbs', async () => {
-        const { getByTestId, getAllByTestId } = await render(
+        render(() => (
           <Slider.Root
             defaultValue={[20, 40]}
             style={{
@@ -113,14 +121,14 @@ describe('<Slider.Thumb />', () => {
                 <Slider.Thumb data-testid="thumb" />
               </Slider.Track>
             </Slider.Control>
-          </Slider.Root>,
-        );
+          </Slider.Root>
+        ));
 
-        const sliderControl = getByTestId('control');
+        const sliderControl = screen.getByTestId('control');
 
         const computedStyles = {
-          thumb1: getComputedStyle(getAllByTestId('thumb')[0]),
-          thumb2: getComputedStyle(getAllByTestId('thumb')[1]),
+          thumb1: getComputedStyle(screen.getAllByTestId('thumb')[0]),
+          thumb2: getComputedStyle(screen.getAllByTestId('thumb')[1]),
         };
 
         stub(sliderControl, 'getBoundingClientRect').callsFake(
@@ -155,7 +163,7 @@ describe('<Slider.Thumb />', () => {
       });
 
       it('thumbs cannot be dragged past each other', async () => {
-        const { getByTestId } = await render(
+        render(() => (
           <Slider.Root
             defaultValue={[20, 40]}
             style={{
@@ -169,12 +177,12 @@ describe('<Slider.Thumb />', () => {
                 <Slider.Thumb />
               </Slider.Track>
             </Slider.Control>
-          </Slider.Root>,
-        );
+          </Slider.Root>
+        ));
 
-        const sliderControl = getByTestId('control');
+        const sliderControl = screen.getByTestId('control');
 
-        const computedStyles = getComputedStyle(getByTestId('thumb1'));
+        const computedStyles = getComputedStyle(screen.getByTestId('thumb1'));
 
         stub(sliderControl, 'getBoundingClientRect').callsFake(
           () => GETBOUNDINGCLIENTRECT_HORIZONTAL_SLIDER_RETURN_VAL,
@@ -196,9 +204,9 @@ describe('<Slider.Thumb />', () => {
     describe('positions the thumb when the controlled value changes externally', () => {
       it('single thumb', async () => {
         function App() {
-          const [val, setVal] = React.useState(20);
+          const [val, setVal] = createSignal(20);
           return (
-            <React.Fragment>
+            <>
               <button onClick={() => setVal(55)} />
               <Slider.Root
                 value={val}
@@ -214,23 +222,23 @@ describe('<Slider.Thumb />', () => {
                   </Slider.Track>
                 </Slider.Control>
               </Slider.Root>
-            </React.Fragment>
+            </>
           );
         }
-        const { getByTestId, getByRole } = await render(<App />);
+        render(() => <App />);
 
-        const thumbStyles = getComputedStyle(getByTestId('thumb'));
+        const thumbStyles = getComputedStyle(screen.getByTestId('thumb'));
         expect(thumbStyles.getPropertyValue('left')).to.equal('20px');
 
-        fireEvent.click(getByRole('button'));
+        fireEvent.click(screen.getByRole('button'));
         expect(thumbStyles.getPropertyValue('left')).to.equal('55px');
       });
 
       it('multiple thumbs', async () => {
         function App() {
-          const [val, setVal] = React.useState([20, 50]);
+          const [val, setVal] = createSignal([20, 50]);
           return (
-            <React.Fragment>
+            <>
               <button onClick={() => setVal([33, 72])} />
               <Slider.Root
                 value={val}
@@ -247,20 +255,20 @@ describe('<Slider.Thumb />', () => {
                   </Slider.Track>
                 </Slider.Control>
               </Slider.Root>
-            </React.Fragment>
+            </>
           );
         }
-        const { getAllByTestId, getByRole } = await render(<App />);
+        render(() => <App />);
 
         const computedStyles = {
-          thumb1: getComputedStyle(getAllByTestId('thumb')[0]),
-          thumb2: getComputedStyle(getAllByTestId('thumb')[1]),
+          thumb1: getComputedStyle(screen.getAllByTestId('thumb')[0]),
+          thumb2: getComputedStyle(screen.getAllByTestId('thumb')[1]),
         };
 
         expect(computedStyles.thumb1.getPropertyValue('left')).to.equal('20px');
         expect(computedStyles.thumb2.getPropertyValue('left')).to.equal('50px');
 
-        fireEvent.click(getByRole('button'));
+        fireEvent.click(screen.getByRole('button'));
         expect(computedStyles.thumb1.getPropertyValue('left')).to.equal('33px');
         expect(computedStyles.thumb2.getPropertyValue('left')).to.equal('72px');
       });
@@ -268,9 +276,9 @@ describe('<Slider.Thumb />', () => {
 
     it('thumb should not go out of bounds when the controlled value goes out of bounds', async () => {
       function App() {
-        const [val, setVal] = React.useState(50);
+        const [val, setVal] = createSignal(50);
         return (
-          <React.Fragment>
+          <>
             <button onClick={() => setVal(119.9)}>max</button>
             <button onClick={() => setVal(-7.31)}>min</button>
             <Slider.Root
@@ -287,10 +295,10 @@ describe('<Slider.Thumb />', () => {
                 </Slider.Track>
               </Slider.Control>
             </Slider.Root>
-          </React.Fragment>
+          </>
         );
       }
-      const { user } = await render(<App />);
+      const { user } = render(() => <App />);
 
       const thumbStyles = getComputedStyle(screen.getByTestId('thumb'));
       expect(thumbStyles.getPropertyValue('left')).to.equal('50px');

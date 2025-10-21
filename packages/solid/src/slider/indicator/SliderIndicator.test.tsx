@@ -1,13 +1,20 @@
-import * as React from 'react';
-import { Slider } from '@base-ui-components/react/slider';
 import { createRenderer, describeConformance } from '#test-utils';
+import { Slider } from '@base-ui-components/solid/slider';
+import { Dynamic } from 'solid-js/web';
 
 describe('<Slider.Indicator />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Slider.Indicator />, () => ({
-    render: (node) => {
-      return render(<Slider.Root>{node}</Slider.Root>);
+  describeConformance(Slider.Indicator, () => ({
+    render: (node, elementProps = {}) => {
+      return render(
+        () => (
+          <Slider.Root>
+            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+          </Slider.Root>
+        ),
+        elementProps,
+      );
     },
     refInstanceof: window.HTMLDivElement,
   }));
