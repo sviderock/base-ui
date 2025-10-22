@@ -59,6 +59,9 @@
     "./solid-helpers": "./src/solid-helpers.ts",
     "./tabs": "./src/tabs/index.ts",
     "./toast": "./src/toast/index.ts",
+    "./toggle": "./src/toggle/index.ts",
+    "./toggle-group": "./src/toggle-group/index.ts",
+    "./toolbar": "./src/toolbar/index.ts",
     "./unstable-no-ssr": "./src/unstable-no-ssr/index.ts",
     "./unstable-use-media-query": "./src/unstable-use-media-query/index.ts",
     "./utils": "./src/utils/index.ts"
