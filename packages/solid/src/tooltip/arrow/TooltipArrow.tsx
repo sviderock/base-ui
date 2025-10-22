@@ -16,7 +16,8 @@ import { useTooltipPositionerContext } from '../positioner/TooltipPositionerCont
 export function TooltipArrow(componentProps: TooltipArrow.Props) {
   const [, , elementProps] = splitComponentProps(componentProps, []);
 
-  const { open, refs, side, align, arrowUncentered, arrowStyles } = useTooltipPositionerContext();
+  const { open, setArrowRef, side, align, arrowUncentered, arrowStyles } =
+    useTooltipPositionerContext();
 
   const state = createMemo<TooltipArrow.State>(() => ({
     open: open(),
@@ -30,7 +31,7 @@ export function TooltipArrow(componentProps: TooltipArrow.Props) {
       element="div"
       componentProps={componentProps}
       ref={(el) => {
-        refs.arrowRef = el;
+        setArrowRef(el);
         if (typeof componentProps.ref === 'function') {
           componentProps.ref(el);
         } else {

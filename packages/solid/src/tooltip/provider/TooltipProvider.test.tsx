@@ -1,8 +1,7 @@
-import * as React from 'react';
-import { Tooltip } from '@base-ui-components/react/tooltip';
-import { screen, fireEvent, flushMicrotasks } from '@mui/internal-test-utils';
+import { createRenderer, flushMicrotasks } from '#test-utils';
+import { Tooltip } from '@base-ui-components/solid/tooltip';
+import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { createRenderer } from '#test-utils';
 import { OPEN_DELAY } from '../utils/constants';
 
 describe('<Tooltip.Provider />', () => {
@@ -12,7 +11,7 @@ describe('<Tooltip.Provider />', () => {
     clock.withFakeTimers();
 
     it('waits for the delay before showing the tooltip', async () => {
-      await render(
+      render(() => (
         <Tooltip.Provider delay={10_000}>
           <Tooltip.Root>
             <Tooltip.Trigger />
@@ -22,8 +21,8 @@ describe('<Tooltip.Provider />', () => {
               </Tooltip.Positioner>
             </Tooltip.Portal>
           </Tooltip.Root>
-        </Tooltip.Provider>,
-      );
+        </Tooltip.Provider>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -44,7 +43,7 @@ describe('<Tooltip.Provider />', () => {
     });
 
     it('respects delay=0', async () => {
-      await render(
+      render(() => (
         <Tooltip.Provider delay={0}>
           <Tooltip.Root>
             <Tooltip.Trigger />
@@ -54,8 +53,8 @@ describe('<Tooltip.Provider />', () => {
               </Tooltip.Positioner>
             </Tooltip.Portal>
           </Tooltip.Root>
-        </Tooltip.Provider>,
-      );
+        </Tooltip.Provider>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -68,7 +67,7 @@ describe('<Tooltip.Provider />', () => {
     });
 
     it('respects root delay prop over provider delay prop', async () => {
-      await render(
+      render(() => (
         <Tooltip.Provider delay={10}>
           <Tooltip.Root delay={100}>
             <Tooltip.Trigger />
@@ -78,8 +77,8 @@ describe('<Tooltip.Provider />', () => {
               </Tooltip.Positioner>
             </Tooltip.Portal>
           </Tooltip.Root>
-        </Tooltip.Provider>,
-      );
+        </Tooltip.Provider>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -104,7 +103,7 @@ describe('<Tooltip.Provider />', () => {
     clock.withFakeTimers();
 
     it('waits for the closeDelay before hiding the tooltip', async () => {
-      await render(
+      render(() => (
         <Tooltip.Provider closeDelay={400}>
           <Tooltip.Root>
             <Tooltip.Trigger />
@@ -114,8 +113,8 @@ describe('<Tooltip.Provider />', () => {
               </Tooltip.Positioner>
             </Tooltip.Portal>
           </Tooltip.Root>
-        </Tooltip.Provider>,
-      );
+        </Tooltip.Provider>
+      ));
 
       const trigger = screen.getByRole('button');
 

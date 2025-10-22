@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, type Accessor, type JSX } from 'solid-js';
+import { createContext, useContext, type Accessor, type JSX, type Setter } from 'solid-js';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
 
 export interface TooltipPositionerContext {
@@ -10,6 +10,7 @@ export interface TooltipPositionerContext {
   arrowStyles: Accessor<JSX.CSSProperties>;
   anchorHidden: Accessor<boolean>;
   arrowRef: Accessor<Element | null | undefined>;
+  setArrowRef: Setter<Element | null | undefined>;
 }
 
 export const TooltipPositionerContext = createContext<TooltipPositionerContext | undefined>(

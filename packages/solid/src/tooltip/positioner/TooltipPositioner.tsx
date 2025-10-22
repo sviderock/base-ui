@@ -101,6 +101,7 @@ export function TooltipPositioner(componentProps: TooltipPositioner.Props) {
     align: () => state().align,
     anchorHidden: () => state().anchorHidden,
     arrowRef: positioner.refs.arrowRef,
+    setArrowRef: positioner.refs.setArrowRef,
     arrowStyles: positioner.arrowStyles,
     arrowUncentered: positioner.arrowUncentered,
   };

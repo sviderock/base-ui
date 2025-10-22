@@ -1,6 +1,5 @@
 'use client';
-import type { JSX } from 'solid-js';
-import { createMemo } from 'solid-js/types/server/reactive.js';
+import { createMemo, type JSX } from 'solid-js';
 import { FloatingDelayGroup } from '../../floating-ui-solid';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import { TooltipProviderContext } from './TooltipProviderContext';
@@ -25,7 +24,7 @@ export function TooltipProvider(props: TooltipProvider.Props) {
 
   return (
     <TooltipProviderContext.Provider value={contextValue}>
-      <FloatingDelayGroup delay={delayValue()} timeoutMs={timeout()}>
+      <FloatingDelayGroup delay={delayValue} timeoutMs={timeout()}>
         {props.children}
       </FloatingDelayGroup>
     </TooltipProviderContext.Provider>

@@ -1,26 +1,28 @@
-import * as React from 'react';
-import { Tooltip } from '@base-ui-components/react/tooltip';
-import { screen } from '@mui/internal-test-utils';
-import { expect } from 'chai';
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+import { Tooltip } from '@base-ui-components/solid/tooltip';
+import { screen } from '@solidjs/testing-library';
+import { expect } from 'chai';
+import { Dynamic } from 'solid-js/web';
 
-const Trigger = React.forwardRef(function Trigger(
-  props: Tooltip.Trigger.Props,
-  ref: React.ForwardedRef<HTMLDivElement>,
-) {
-  return <Tooltip.Trigger {...props} ref={ref} render={<div />} />;
-});
+function Trigger(props: Tooltip.Trigger.Props) {
+  return <Tooltip.Trigger {...props} ref={props.ref} render={(p) => <div {...p()} />} />;
+}
 
 describe('<Tooltip.Positioner />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Tooltip.Positioner />, () => ({
+  describeConformance(Tooltip.Positioner, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node) {
+    render(node, elementProps = {}) {
       return render(
-        <Tooltip.Root open>
-          <Tooltip.Portal>{node}</Tooltip.Portal>
-        </Tooltip.Root>,
+        () => (
+          <Tooltip.Root open>
+            <Tooltip.Portal>
+              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+            </Tooltip.Portal>
+          </Tooltip.Root>
+        ),
+        elementProps,
       );
     },
   }));
@@ -31,13 +33,13 @@ describe('<Tooltip.Positioner />', () => {
   const popupHeight = 24;
   const anchorWidth = 72;
   const anchorHeight = 36;
-  const triggerStyle = { width: anchorWidth, height: anchorHeight };
-  const popupStyle = { width: popupWidth, height: popupHeight };
+  const triggerStyle = { width: `${anchorWidth}px`, height: `${anchorHeight}px` };
+  const popupStyle = { width: `${popupWidth}px`, height: `${popupHeight}px` };
 
   describe.skipIf(isJSDOM)('prop: sideOffset', () => {
     it('offsets the side when a number is specified', async () => {
       const sideOffset = 7;
-      await render(
+      render(() => (
         <Tooltip.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Tooltip.Portal>
@@ -45,8 +47,8 @@ describe('<Tooltip.Positioner />', () => {
               <Tooltip.Popup style={popupStyle}>Popup</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Tooltip.Root>,
-      );
+        </Tooltip.Root>
+      ));
 
       expect(screen.getByTestId('positioner').style.transform).to.equal(
         `translate(${baselineX}px, ${baselineY + sideOffset}px)`,
@@ -54,7 +56,7 @@ describe('<Tooltip.Positioner />', () => {
     });
 
     it('offsets the side when a function is specified', async () => {
-      await render(
+      render(() => (
         <Tooltip.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Tooltip.Portal>
@@ -65,8 +67,8 @@ describe('<Tooltip.Positioner />', () => {
               <Tooltip.Popup style={popupStyle}>Popup</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Tooltip.Root>,
-      );
+        </Tooltip.Root>
+      ));
 
       expect(screen.getByTestId('positioner').style.transform).to.equal(
         `translate(${baselineX}px, ${baselineY + popupWidth + anchorWidth}px)`,
@@ -75,7 +77,7 @@ describe('<Tooltip.Positioner />', () => {
 
     it('can read the latest side inside sideOffset', async () => {
       let side = 'none';
-      await render(
+      render(() => (
         <Tooltip.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Tooltip.Portal>
@@ -90,8 +92,8 @@ describe('<Tooltip.Positioner />', () => {
               <Tooltip.Popup style={popupStyle}>Popup</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Tooltip.Root>,
-      );
+        </Tooltip.Root>
+      ));
 
       // correctly flips the side in the browser
       expect(side).to.equal('right');
@@ -99,7 +101,7 @@ describe('<Tooltip.Positioner />', () => {
 
     it('can read the latest align inside sideOffset', async () => {
       let align = 'none';
-      await render(
+      render(() => (
         <Tooltip.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Tooltip.Portal>
@@ -115,8 +117,8 @@ describe('<Tooltip.Positioner />', () => {
               <Tooltip.Popup style={popupStyle}>Popup</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Tooltip.Root>,
-      );
+        </Tooltip.Root>
+      ));
 
       // correctly flips the align in the browser
       expect(align).to.equal('end');
@@ -124,7 +126,7 @@ describe('<Tooltip.Positioner />', () => {
 
     it('reads logical side inside sideOffset', async () => {
       let side = 'none';
-      await render(
+      render(() => (
         <Tooltip.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Tooltip.Portal>
@@ -139,8 +141,8 @@ describe('<Tooltip.Positioner />', () => {
               <Tooltip.Popup style={popupStyle}>Popup</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Tooltip.Root>,
-      );
+        </Tooltip.Root>
+      ));
 
       // correctly flips the side in the browser
       expect(side).to.equal('inline-end');
@@ -150,7 +152,7 @@ describe('<Tooltip.Positioner />', () => {
   describe.skipIf(isJSDOM)('prop: alignOffset', () => {
     it('offsets the align when a number is specified', async () => {
       const alignOffset = 7;
-      await render(
+      render(() => (
         <Tooltip.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Tooltip.Portal>
@@ -158,8 +160,8 @@ describe('<Tooltip.Positioner />', () => {
               <Tooltip.Popup style={popupStyle}>Popup</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Tooltip.Root>,
-      );
+        </Tooltip.Root>
+      ));
 
       expect(screen.getByTestId('positioner').style.transform).to.equal(
         `translate(${baselineX + alignOffset}px, ${baselineY}px)`,
@@ -167,7 +169,7 @@ describe('<Tooltip.Positioner />', () => {
     });
 
     it('offsets the align when a function is specified', async () => {
-      await render(
+      render(() => (
         <Tooltip.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Tooltip.Portal>
@@ -178,8 +180,8 @@ describe('<Tooltip.Positioner />', () => {
               <Tooltip.Popup style={popupStyle}>Popup</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Tooltip.Root>,
-      );
+        </Tooltip.Root>
+      ));
 
       expect(screen.getByTestId('positioner').style.transform).to.equal(
         `translate(${baselineX + popupWidth}px, ${baselineY}px)`,
@@ -188,7 +190,7 @@ describe('<Tooltip.Positioner />', () => {
 
     it('can read the latest side inside alignOffset', async () => {
       let side = 'none';
-      await render(
+      render(() => (
         <Tooltip.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Tooltip.Portal>
@@ -203,8 +205,8 @@ describe('<Tooltip.Positioner />', () => {
               <Tooltip.Popup style={popupStyle}>Popup</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Tooltip.Root>,
-      );
+        </Tooltip.Root>
+      ));
 
       // correctly flips the side in the browser
       expect(side).to.equal('right');
@@ -212,7 +214,7 @@ describe('<Tooltip.Positioner />', () => {
 
     it('can read the latest align inside alignOffset', async () => {
       let align = 'none';
-      await render(
+      render(() => (
         <Tooltip.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Tooltip.Portal>
@@ -228,8 +230,8 @@ describe('<Tooltip.Positioner />', () => {
               <Tooltip.Popup style={popupStyle}>Popup</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Tooltip.Root>,
-      );
+        </Tooltip.Root>
+      ));
 
       // correctly flips the align in the browser
       expect(align).to.equal('end');
@@ -237,7 +239,7 @@ describe('<Tooltip.Positioner />', () => {
 
     it('reads logical side inside alignOffset', async () => {
       let side = 'none';
-      await render(
+      render(() => (
         <Tooltip.Root open>
           <Trigger style={triggerStyle}>Trigger</Trigger>
           <Tooltip.Portal>
@@ -252,8 +254,8 @@ describe('<Tooltip.Positioner />', () => {
               <Tooltip.Popup style={popupStyle}>Popup</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Tooltip.Root>,
-      );
+        </Tooltip.Root>
+      ));
 
       // correctly flips the side in the browser
       expect(side).to.equal('inline-end');

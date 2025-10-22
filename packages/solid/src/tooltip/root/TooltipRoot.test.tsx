@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { Tooltip } from '@base-ui-components/react/tooltip';
-import { act, fireEvent, flushMicrotasks, screen, waitFor } from '@mui/internal-test-utils';
+import { createRenderer, flushMicrotasks, isJSDOM, popupConformanceTests } from '#test-utils';
+import { Tooltip } from '@base-ui-components/solid/tooltip';
+import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { createRenderer, isJSDOM, popupConformanceTests } from '#test-utils';
+import { createSignal } from 'solid-js';
 import { OPEN_DELAY } from '../utils/constants';
 
 function Root(props: Tooltip.Root.Props) {
@@ -28,7 +28,7 @@ describe('<Tooltip.Root />', () => {
         </Tooltip.Portal>
       </Tooltip.Root>
     ),
-    render,
+    render: (...args) => render(...(args as Parameters<typeof render>)),
     triggerMouseAction: 'hover',
   });
 
@@ -36,7 +36,7 @@ describe('<Tooltip.Root />', () => {
     clock.withFakeTimers();
 
     it('should open when the trigger is hovered', async () => {
-      await render(
+      render(() => (
         <Root>
           <Tooltip.Trigger />
           <Tooltip.Portal>
@@ -44,8 +44,8 @@ describe('<Tooltip.Root />', () => {
               <Tooltip.Popup>Content</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -61,7 +61,7 @@ describe('<Tooltip.Root />', () => {
     });
 
     it('should close when the trigger is unhovered', async () => {
-      await render(
+      render(() => (
         <Root>
           <Tooltip.Trigger />
           <Tooltip.Portal>
@@ -69,8 +69,8 @@ describe('<Tooltip.Root />', () => {
               <Tooltip.Popup>Content</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -92,7 +92,7 @@ describe('<Tooltip.Root />', () => {
         skip();
       }
 
-      await render(
+      render(() => (
         <Root>
           <Tooltip.Trigger />
           <Tooltip.Portal>
@@ -100,12 +100,12 @@ describe('<Tooltip.Root />', () => {
               <Tooltip.Popup>Content</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
-      await act(async () => trigger.focus());
+      trigger.focus();
 
       await flushMicrotasks();
 
@@ -113,7 +113,7 @@ describe('<Tooltip.Root />', () => {
     });
 
     it('should close when the trigger is blurred', async () => {
-      await render(
+      render(() => (
         <Root>
           <Tooltip.Trigger />
           <Tooltip.Portal>
@@ -121,21 +121,17 @@ describe('<Tooltip.Root />', () => {
               <Tooltip.Popup>Content</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
-      await act(async () => {
-        trigger.focus();
-      });
+      trigger.focus();
 
       clock.tick(OPEN_DELAY);
       await flushMicrotasks();
 
-      await act(async () => {
-        trigger.blur();
-      });
+      trigger.blur();
 
       clock.tick(OPEN_DELAY);
 
@@ -149,13 +145,13 @@ describe('<Tooltip.Root />', () => {
       const handleChange = spy();
 
       function App() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
 
         return (
           <Root
             open={open}
             onOpenChange={(nextOpen) => {
-              handleChange(open);
+              handleChange(open());
               setOpen(nextOpen);
             }}
           >
@@ -169,7 +165,7 @@ describe('<Tooltip.Root />', () => {
         );
       }
 
-      await render(<App />);
+      render(() => <App />);
 
       expect(screen.queryByText('Content')).to.equal(null);
 
@@ -196,13 +192,13 @@ describe('<Tooltip.Root />', () => {
       const handleChange = spy();
 
       function App() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
 
         return (
           <Root
             open={open}
             onOpenChange={(nextOpen) => {
-              handleChange(open);
+              handleChange(open());
               setOpen(nextOpen);
             }}
           >
@@ -216,7 +212,7 @@ describe('<Tooltip.Root />', () => {
         );
       }
 
-      await render(<App />);
+      render(() => <App />);
 
       expect(screen.queryByText('Content')).to.equal(null);
 
@@ -237,7 +233,7 @@ describe('<Tooltip.Root />', () => {
 
   describe('prop: defaultOpen', () => {
     it('should open when the component is rendered', async () => {
-      await render(
+      render(() => (
         <Root defaultOpen>
           <Tooltip.Trigger />
           <Tooltip.Portal>
@@ -245,8 +241,8 @@ describe('<Tooltip.Root />', () => {
               <Tooltip.Popup>Content</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       await flushMicrotasks();
 
@@ -254,7 +250,7 @@ describe('<Tooltip.Root />', () => {
     });
 
     it('should not open when the component is rendered and open is controlled', async () => {
-      await render(
+      render(() => (
         <Root defaultOpen open={false}>
           <Tooltip.Trigger />
           <Tooltip.Portal>
@@ -262,8 +258,8 @@ describe('<Tooltip.Root />', () => {
               <Tooltip.Popup>Content</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       await flushMicrotasks();
 
@@ -271,7 +267,7 @@ describe('<Tooltip.Root />', () => {
     });
 
     it('should not close when the component is rendered and open is controlled', async () => {
-      await render(
+      render(() => (
         <Root defaultOpen open>
           <Tooltip.Trigger />
           <Tooltip.Portal>
@@ -279,8 +275,8 @@ describe('<Tooltip.Root />', () => {
               <Tooltip.Popup>Content</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       await flushMicrotasks();
 
@@ -288,7 +284,7 @@ describe('<Tooltip.Root />', () => {
     });
 
     it('should remain uncontrolled', async () => {
-      await render(
+      render(() => (
         <Root defaultOpen>
           <Tooltip.Trigger />
           <Tooltip.Portal>
@@ -296,8 +292,8 @@ describe('<Tooltip.Root />', () => {
               <Tooltip.Popup>Content</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       await flushMicrotasks();
 
@@ -317,7 +313,7 @@ describe('<Tooltip.Root />', () => {
     clock.withFakeTimers();
 
     it('should open after rest delay', async () => {
-      await render(
+      render(() => (
         <Root delay={100}>
           <Tooltip.Trigger />
           <Tooltip.Portal>
@@ -325,8 +321,8 @@ describe('<Tooltip.Root />', () => {
               <Tooltip.Popup>Content</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -349,7 +345,7 @@ describe('<Tooltip.Root />', () => {
     clock.withFakeTimers();
 
     it('should close after delay', async () => {
-      await render(
+      render(() => (
         <Root closeDelay={100}>
           <Tooltip.Trigger />
           <Tooltip.Portal>
@@ -357,8 +353,8 @@ describe('<Tooltip.Root />', () => {
               <Tooltip.Popup>Content</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -384,12 +380,10 @@ describe('<Tooltip.Root />', () => {
   describe('prop: actionsRef', () => {
     it('unmounts the tooltip when the `unmount` method is called', async () => {
       const actionsRef = {
-        current: {
-          unmount: spy(),
-        },
+        unmount: spy(),
       };
 
-      const { user } = await render(
+      const { user } = render(() => (
         <Root actionsRef={actionsRef}>
           <Tooltip.Trigger data-testid="trigger" />
           <Tooltip.Portal>
@@ -397,8 +391,8 @@ describe('<Tooltip.Root />', () => {
               <Tooltip.Popup>Content</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByTestId('trigger');
       await user.hover(trigger);
@@ -413,7 +407,7 @@ describe('<Tooltip.Root />', () => {
         expect(screen.queryByTestId('positioner')).not.to.equal(null);
       });
 
-      await act(async () => actionsRef.current.unmount());
+      actionsRef.unmount();
 
       await waitFor(() => {
         expect(screen.queryByTestId('positioner')).to.equal(null);
@@ -426,7 +420,7 @@ describe('<Tooltip.Root />', () => {
       const onOpenChangeComplete = spy();
 
       function Test() {
-        const [open, setOpen] = React.useState(true);
+        const [open, setOpen] = createSignal(true);
         return (
           <div>
             <button onClick={() => setOpen(false)}>Close</button>
@@ -441,7 +435,7 @@ describe('<Tooltip.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       const closeButton = screen.getByText('Close');
       await user.click(closeButton);
@@ -472,17 +466,17 @@ describe('<Tooltip.Root />', () => {
           }
         `;
 
-        const [open, setOpen] = React.useState(true);
+        const [open, setOpen] = createSignal(true);
 
         return (
           <div>
-            {/* eslint-disable-next-line react/no-danger */}
-            <style dangerouslySetInnerHTML={{ __html: style }} />
+            {/* eslint-disable-next-line solid/no-innerhtml */}
+            <style innerHTML={style} />
             <button onClick={() => setOpen(false)}>Close</button>
             <Tooltip.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
               <Tooltip.Portal>
                 <Tooltip.Positioner>
-                  <Tooltip.Popup className="animation-test-indicator" data-testid="popup" />
+                  <Tooltip.Popup class="animation-test-indicator" data-testid="popup" />
                 </Tooltip.Positioner>
               </Tooltip.Portal>
             </Tooltip.Root>
@@ -490,7 +484,7 @@ describe('<Tooltip.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       expect(screen.getByTestId('popup')).not.to.equal(null);
 
@@ -513,7 +507,7 @@ describe('<Tooltip.Root />', () => {
       const onOpenChangeComplete = spy();
 
       function Test() {
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
         return (
           <div>
             <button onClick={() => setOpen(true)}>Open</button>
@@ -528,7 +522,7 @@ describe('<Tooltip.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       const openButton = screen.getByText('Open');
       await user.click(openButton);
@@ -559,12 +553,12 @@ describe('<Tooltip.Root />', () => {
           }
         `;
 
-        const [open, setOpen] = React.useState(false);
+        const [open, setOpen] = createSignal(false);
 
         return (
           <div>
-            {/* eslint-disable-next-line react/no-danger */}
-            <style dangerouslySetInnerHTML={{ __html: style }} />
+            {/* eslint-disable-next-line solid/no-innerhtml */}
+            <style innerHTML={style} />
             <button onClick={() => setOpen(true)}>Open</button>
             <Tooltip.Root
               open={open}
@@ -573,7 +567,7 @@ describe('<Tooltip.Root />', () => {
             >
               <Tooltip.Portal>
                 <Tooltip.Positioner>
-                  <Tooltip.Popup className="animation-test-indicator" data-testid="popup" />
+                  <Tooltip.Popup class="animation-test-indicator" data-testid="popup" />
                 </Tooltip.Positioner>
               </Tooltip.Portal>
             </Tooltip.Root>
@@ -581,7 +575,7 @@ describe('<Tooltip.Root />', () => {
         );
       }
 
-      const { user } = await render(<Test />);
+      const { user } = render(() => <Test />);
 
       const openButton = screen.getByText('Open');
       await user.click(openButton);
@@ -597,15 +591,15 @@ describe('<Tooltip.Root />', () => {
     it('does not get called on mount when not open', async () => {
       const onOpenChangeComplete = spy();
 
-      await render(
+      render(() => (
         <Tooltip.Root onOpenChangeComplete={onOpenChangeComplete}>
           <Tooltip.Portal>
             <Tooltip.Positioner>
               <Tooltip.Popup />
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Tooltip.Root>,
-      );
+        </Tooltip.Root>
+      ));
 
       expect(onOpenChangeComplete.callCount).to.equal(0);
     });
@@ -613,7 +607,7 @@ describe('<Tooltip.Root />', () => {
 
   describe('prop: disabled', () => {
     it('should not open when disabled', async () => {
-      await render(
+      render(() => (
         <Root disabled delay={0}>
           <Tooltip.Trigger />
           <Tooltip.Portal>
@@ -621,8 +615,8 @@ describe('<Tooltip.Root />', () => {
               <Tooltip.Popup>Content</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -634,14 +628,14 @@ describe('<Tooltip.Root />', () => {
 
       expect(screen.queryByText('Content')).to.equal(null);
 
-      await act(async () => trigger.focus());
+      trigger.focus();
 
       expect(screen.queryByText('Content')).to.equal(null);
     });
 
     it('should close if open when becoming disabled', async () => {
       function App() {
-        const [disabled, setDisabled] = React.useState(false);
+        const [disabled, setDisabled] = createSignal(false);
         return (
           <div>
             <Root defaultOpen disabled={disabled} delay={0}>
@@ -662,7 +656,7 @@ describe('<Tooltip.Root />', () => {
         );
       }
 
-      await render(<App />);
+      render(() => <App />);
 
       expect(screen.queryByText('Content')).not.to.equal(null);
 
@@ -675,7 +669,7 @@ describe('<Tooltip.Root />', () => {
 
   describe('prop: hoverable', () => {
     it('applies pointer-events: none to the positioner when not hoverable', async () => {
-      await render(
+      render(() => (
         <Root delay={0} hoverable={false}>
           <Tooltip.Trigger />
           <Tooltip.Portal>
@@ -683,8 +677,8 @@ describe('<Tooltip.Root />', () => {
               <Tooltip.Popup>Content</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('button');
 
@@ -698,7 +692,7 @@ describe('<Tooltip.Root />', () => {
     });
 
     it('does not apply pointer-events: none to the positioner when hoverable', async () => {
-      await render(
+      render(() => (
         <Root delay={0} hoverable>
           <Tooltip.Trigger />
           <Tooltip.Portal>
@@ -706,8 +700,8 @@ describe('<Tooltip.Root />', () => {
               <Tooltip.Popup>Content</Tooltip.Popup>
             </Tooltip.Positioner>
           </Tooltip.Portal>
-        </Root>,
-      );
+        </Root>
+      ));
 
       const trigger = screen.getByRole('button');
 

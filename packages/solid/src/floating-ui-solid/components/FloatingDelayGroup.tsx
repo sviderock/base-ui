@@ -49,7 +49,7 @@ export interface FloatingDelayGroupProps {
   /**
    * The delay to use for the group when it's not in the instant phase.
    */
-  delay: Delay;
+  delay: MaybeAccessor<Delay>;
   /**
    * An optional explicit timeout to use for the group, which represents when
    * grouping logic will no longer be active after the close delay completes.
@@ -70,13 +70,10 @@ export interface FloatingDelayGroupProps {
  * @internal
  */
 export function FloatingDelayGroup(props: FloatingDelayGroupProps): JSX.Element {
-  // eslint-disable-next-line solid/reactivity
-  const initialDelayRef = props.delay;
-  const [hasProvider, setHasProvider] = createSignal(false);
-  // eslint-disable-next-line solid/reactivity
+  const initialDelayRef = access(props.delay);
+  const [hasProvider, setHasProvider] = createSignal(true);
   const [timeoutMs, setTimeoutMs] = createSignal(props.timeoutMs ?? 0);
-  // eslint-disable-next-line solid/reactivity
-  const [delayRef, setDelayRef] = createSignal(props.delay);
+  const [delayRef, setDelayRef] = createSignal(initialDelayRef);
   const [currentIdRef, setCurrentIdRef] = createSignal<any>(null);
   const currentContextRef: ContextValue['currentContextRef'] = null;
   const timeout = useTimeout();
@@ -202,10 +199,8 @@ export function useDelayGroup(
     }
   });
 
-  createEffect(() => {
-    onCleanup(() => {
-      groupContext.currentContextRef = null;
-    });
+  onCleanup(() => {
+    groupContext.currentContextRef = null;
   });
 
   return {
