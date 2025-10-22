@@ -15,7 +15,7 @@ import { sliderStyleHookMapping } from '../root/styleHooks';
  * Documentation: [Base UI Slider](https://base-ui.com/react/components/slider)
  */
 export function SliderValue(componentProps: SliderValue.Props) {
-  const [, local, elementProps] = splitComponentProps(componentProps, ['aria-live']);
+  const [renderProps, local, elementProps] = splitComponentProps(componentProps, ['aria-live']);
 
   const { thumbArray, state, values, refs, locale } = useSliderRootContext();
 
@@ -51,12 +51,8 @@ export function SliderValue(componentProps: SliderValue.Props) {
     <RenderElement
       element="output"
       componentProps={{
-        ...componentProps,
-        children: (
-          <Show when={componentProps.children} fallback={defaultDisplayValue()}>
-            {componentProps.children?.(formattedValues, values)}
-          </Show>
-        ),
+        render: renderProps.render,
+        class: renderProps.class,
       }}
       ref={componentProps.ref}
       params={{
@@ -70,7 +66,11 @@ export function SliderValue(componentProps: SliderValue.Props) {
           elementProps,
         ],
       }}
-    />
+    >
+      <Show when={componentProps.children} fallback={defaultDisplayValue()}>
+        {componentProps.children?.(formattedValues, values)}
+      </Show>
+    </RenderElement>
   );
 }
 

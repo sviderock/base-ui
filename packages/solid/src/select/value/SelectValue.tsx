@@ -17,7 +17,7 @@ const customStyleHookMapping: CustomStyleHookMapping<SelectValue.State> = {
  * Documentation: [Base UI Select](https://base-ui.com/react/components/select)
  */
 export function SelectValue(componentProps: SelectValue.Props) {
-  const [, , elementProps] = splitComponentProps(componentProps, []);
+  const [renderProps, , elementProps] = splitComponentProps(componentProps, []);
 
   const { store, refs } = useSelectRootContext();
 
@@ -39,15 +39,8 @@ export function SelectValue(componentProps: SelectValue.Props) {
     <RenderElement
       element="span"
       componentProps={{
-        ...componentProps,
-        children: (
-          <Show
-            when={typeof componentProps.children === 'function'}
-            fallback={componentProps.children ?? labelFromItems() ?? store.value}
-          >
-            {(componentProps.children as Function)(store.value)}
-          </Show>
-        ),
+        render: renderProps.render,
+        class: renderProps.class,
       }}
       ref={(el) => {
         refs.valueRef = el;
@@ -62,7 +55,14 @@ export function SelectValue(componentProps: SelectValue.Props) {
         props: elementProps,
         customStyleHookMapping,
       }}
-    />
+    >
+      <Show
+        when={typeof componentProps.children === 'function'}
+        fallback={componentProps.children ?? labelFromItems() ?? store.value}
+      >
+        {(componentProps.children as Function)(store.value)}
+      </Show>
+    </RenderElement>
   );
 }
 

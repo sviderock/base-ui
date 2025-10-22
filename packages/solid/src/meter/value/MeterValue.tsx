@@ -20,22 +20,19 @@ export function MeterValue(componentProps: MeterValue.Props) {
   return (
     <RenderElement
       element="span"
-      componentProps={{
-        ...componentProps,
-        children: (
-          <Show
-            when={typeof renderProps.children === 'function'}
-            fallback={(formattedValue() || value()) ?? ''}
-          >
-            {renderProps.children?.(formattedValue(), value())}
-          </Show>
-        ),
-      }}
+      componentProps={{ class: renderProps.class, render: renderProps.render }}
       ref={componentProps.ref}
       params={{
         props: [{ 'aria-hidden': true }, elementProps],
       }}
-    />
+    >
+      <Show
+        when={typeof renderProps.children === 'function'}
+        fallback={(formattedValue() || value()) ?? ''}
+      >
+        {renderProps.children?.(formattedValue(), value())}
+      </Show>
+    </RenderElement>
   );
 }
 

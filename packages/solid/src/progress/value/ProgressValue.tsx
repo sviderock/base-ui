@@ -24,15 +24,8 @@ export function ProgressValue(componentProps: ProgressValue.Props) {
     <RenderElement
       element="span"
       componentProps={{
-        ...componentProps,
-        children: (
-          <Show
-            when={typeof renderProps.children === 'function'}
-            fallback={formattedValueDisplay()}
-          >
-            {renderProps.children?.(formattedValueArg(), value())}
-          </Show>
-        ),
+        render: renderProps.render,
+        class: renderProps.class,
       }}
       ref={componentProps.ref}
       params={{
@@ -40,7 +33,11 @@ export function ProgressValue(componentProps: ProgressValue.Props) {
         props: [{ 'aria-hidden': true }, elementProps],
         customStyleHookMapping: progressStyleHookMapping,
       }}
-    />
+    >
+      <Show when={typeof renderProps.children === 'function'} fallback={formattedValueDisplay()}>
+        {renderProps.children?.(formattedValueArg(), value())}
+      </Show>
+    </RenderElement>
   );
 }
 
