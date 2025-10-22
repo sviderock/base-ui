@@ -111,6 +111,7 @@ export function ToggleGroup(componentProps: ToggleGroup.Props) {
           state: state(),
           customStyleHookMapping,
           props: [
+            compositeItemProps?.(),
             {
               role: 'group',
             },
@@ -121,13 +122,15 @@ export function ToggleGroup(componentProps: ToggleGroup.Props) {
     );
   };
 
+  const memoizedElement = createMemo(() => element());
+
   return (
     <ToggleGroupContext.Provider value={contextValue}>
       <Show
         when={toolbarContext}
         fallback={<CompositeRoot loop={loop()} stopEventPropagation render={element} />}
       >
-        {element()}
+        {memoizedElement()}
       </Show>
     </ToggleGroupContext.Provider>
   );

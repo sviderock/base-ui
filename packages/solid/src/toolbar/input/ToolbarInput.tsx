@@ -30,7 +30,7 @@ export function ToolbarInput(componentProps: ToolbarInput.Props) {
 
   const itemMetadata = createMemo(() => ({ focusableWhenDisabled: focusableWhenDisabled() }));
 
-  const disabled = toolbarDisabled || (groupContext?.disabled ?? false) || disabledProp;
+  const disabled = () => toolbarDisabled() || (groupContext?.disabled() ?? false) || disabledProp();
 
   const { props: focusableWhenDisabledProps } = useFocusableWhenDisabled({
     composite: true,

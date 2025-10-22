@@ -1,50 +1,53 @@
-import * as React from 'react';
-import { expect } from 'chai';
-import { Toolbar } from '@base-ui-components/react/toolbar';
-import { screen } from '@mui/internal-test-utils';
 import { createRenderer, describeConformance } from '#test-utils';
+import { Toolbar } from '@base-ui-components/solid/toolbar';
+import { screen } from '@solidjs/testing-library';
+import { expect } from 'chai';
+import { Dynamic } from 'solid-js/web';
+import { CompositeRootContext } from '../../composite/root/CompositeRootContext';
 import { NOOP } from '../../utils/noop';
 import { ToolbarRootContext } from '../root/ToolbarRootContext';
-import { CompositeRootContext } from '../../composite/root/CompositeRootContext';
 
 const testCompositeContext: CompositeRootContext = {
-  highlightedIndex: 0,
+  highlightedIndex: () => 0,
   onHighlightedIndexChange: NOOP,
-  highlightItemOnHover: false,
+  highlightItemOnHover: () => false,
 };
 
 const testToolbarContext: ToolbarRootContext = {
-  disabled: false,
-  orientation: 'horizontal',
-  setItemMap: NOOP,
+  disabled: () => false,
+  orientation: () => 'horizontal',
+  setItemArray: NOOP,
 };
 
 describe('<Toolbar.Link />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Toolbar.Link />, () => ({
+  describeConformance(Toolbar.Link, () => ({
     refInstanceof: window.HTMLAnchorElement,
     testRenderPropWith: 'a',
-    render: (node) => {
+    render: (node, elementProps = {}) => {
       return render(
-        <ToolbarRootContext.Provider value={testToolbarContext}>
-          <CompositeRootContext.Provider value={testCompositeContext}>
-            {node}
-          </CompositeRootContext.Provider>
-        </ToolbarRootContext.Provider>,
+        () => (
+          <ToolbarRootContext.Provider value={testToolbarContext}>
+            <CompositeRootContext.Provider value={testCompositeContext}>
+              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+            </CompositeRootContext.Provider>
+          </ToolbarRootContext.Provider>
+        ),
+        elementProps,
       );
     },
   }));
 
   describe('ARIA attributes', () => {
     it('renders an anchor', async () => {
-      const { getByTestId } = await render(
+      render(() => (
         <Toolbar.Root>
           <Toolbar.Link data-testid="link" href="https://base-ui.com" />
-        </Toolbar.Root>,
-      );
+        </Toolbar.Root>
+      ));
 
-      expect(getByTestId('link')).to.equal(screen.getByRole('link'));
+      expect(screen.getByTestId('link')).to.equal(screen.getByRole('link'));
     });
   });
 });

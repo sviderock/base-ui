@@ -1,54 +1,57 @@
-import * as React from 'react';
+import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+import { NumberField } from '@base-ui-components/solid/number-field';
+import { Toolbar } from '@base-ui-components/solid/toolbar';
+import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { Toolbar } from '@base-ui-components/react/toolbar';
-import { NumberField } from '@base-ui-components/react/number-field';
-import { screen } from '@mui/internal-test-utils';
-import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { NOOP } from '../../utils/noop';
-import { ToolbarRootContext } from '../root/ToolbarRootContext';
-import { type Orientation } from '../../utils/types';
+import { Dynamic } from 'solid-js/web';
+import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP } from '../../composite/composite';
 import { CompositeRootContext } from '../../composite/root/CompositeRootContext';
-import { ARROW_UP, ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT } from '../../composite/composite';
+import { NOOP } from '../../utils/noop';
+import { type Orientation } from '../../utils/types';
+import { ToolbarRootContext } from '../root/ToolbarRootContext';
 
 const testCompositeContext: CompositeRootContext = {
-  highlightedIndex: 0,
+  highlightedIndex: () => 0,
   onHighlightedIndexChange: NOOP,
-  highlightItemOnHover: false,
+  highlightItemOnHover: () => false,
 };
 
 const testToolbarContext: ToolbarRootContext = {
-  disabled: false,
-  orientation: 'horizontal',
-  setItemMap: NOOP,
+  disabled: () => false,
+  orientation: () => 'horizontal',
+  setItemArray: NOOP,
 };
 
 describe('<Toolbar.Input />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Toolbar.Input />, () => ({
+  describeConformance(Toolbar.Input, () => ({
     refInstanceof: window.HTMLInputElement,
     testRenderPropWith: 'input',
-    render: (node) => {
+    render: (node, elementProps = {}) => {
       return render(
-        <ToolbarRootContext.Provider value={testToolbarContext}>
-          <CompositeRootContext.Provider value={testCompositeContext}>
-            {node}
-          </CompositeRootContext.Provider>
-        </ToolbarRootContext.Provider>,
+        () => (
+          <ToolbarRootContext.Provider value={testToolbarContext}>
+            <CompositeRootContext.Provider value={testCompositeContext}>
+              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+            </CompositeRootContext.Provider>
+          </ToolbarRootContext.Provider>
+        ),
+        elementProps,
       );
     },
   }));
 
   describe('ARIA attributes', () => {
     it('renders a textbox', async () => {
-      const { getByTestId } = await render(
+      render(() => (
         <Toolbar.Root>
           <Toolbar.Input data-testid="input" />
-        </Toolbar.Root>,
-      );
+        </Toolbar.Root>
+      ));
 
-      expect(getByTestId('input')).to.equal(screen.getByRole('textbox'));
+      expect(screen.getByTestId('input')).to.equal(screen.getByRole('textbox'));
     });
   });
 
@@ -63,18 +66,19 @@ describe('<Toolbar.Input />', () => {
       const [orientation, nextKey, prevKey] = entry;
 
       it(`orientation: ${orientation}`, async () => {
-        const { getAllByRole, getByRole, user } = await render(
+        const { user } = render(() => (
           <Toolbar.Root orientation={orientation as Orientation}>
             <Toolbar.Button />
             <Toolbar.Input defaultValue="abcd" />
             <Toolbar.Button />
-          </Toolbar.Root>,
-        );
-        const input = getByRole('textbox') as HTMLInputElement;
-        const [button1, button2] = getAllByRole('button');
+          </Toolbar.Root>
+        ));
+        const input = screen.getByRole('textbox') as HTMLInputElement;
+        const button1 = () => screen.getAllByRole('button')[0];
+        const button2 = () => screen.getAllByRole('button')[1];
 
         await user.keyboard('[Tab]');
-        expect(button1).toHaveFocus();
+        expect(button1()).toHaveFocus();
 
         await user.keyboard(`[${nextKey}]`);
         expect(input).toHaveFocus();
@@ -86,7 +90,7 @@ describe('<Toolbar.Input />', () => {
         await user.keyboard(`[${ARROW_RIGHT}]`);
         await user.keyboard(`[${nextKey}]`);
 
-        expect(button2).toHaveFocus();
+        expect(button2()).toHaveFocus();
 
         await user.keyboard(`[${prevKey}]`);
         expect(input).toHaveFocus();
@@ -94,45 +98,45 @@ describe('<Toolbar.Input />', () => {
         await user.keyboard(`[${ARROW_LEFT}]`);
         await user.keyboard(`[${prevKey}]`);
 
-        expect(button1).toHaveFocus();
+        expect(button1()).toHaveFocus();
       });
     });
   });
 
   describe('rendering NumberField', () => {
     it('renders NumberField.Input', async () => {
-      await render(
+      render(() => (
         <Toolbar.Root>
           <NumberField.Root>
             <NumberField.Group>
-              <Toolbar.Input render={<NumberField.Input />} />
+              <Toolbar.Input render={(p) => <NumberField.Input {...p()} />} />
             </NumberField.Group>
           </NumberField.Root>
-        </Toolbar.Root>,
-      );
+        </Toolbar.Root>
+      ));
 
       expect(screen.getByRole('textbox')).to.have.attribute('aria-roledescription', 'Number field');
     });
 
     it('handles interactions', async () => {
       const onValueChange = spy();
-      const { user } = await render(
+      const { user } = render(() => (
         <Toolbar.Root>
           <NumberField.Root min={1} max={10} defaultValue={5} onValueChange={onValueChange}>
             <NumberField.Group>
               <NumberField.Decrement />
-              <Toolbar.Input render={<NumberField.Input />} />
+              <Toolbar.Input render={(p) => <NumberField.Input {...p()} />} />
               <NumberField.Increment />
             </NumberField.Group>
           </NumberField.Root>
-        </Toolbar.Root>,
-      );
+        </Toolbar.Root>
+      ));
 
-      const input = screen.getByRole('textbox');
+      const input = () => screen.getByRole('textbox');
 
       await user.keyboard('[Tab]');
-      expect(input).to.have.attribute('tabindex', '0');
-      expect(input).toHaveFocus();
+      expect(input()).to.have.attribute('tabindex', '0');
+      expect(input()).toHaveFocus();
 
       await user.keyboard(`[${ARROW_UP}]`);
       expect(onValueChange.callCount).to.equal(1);
@@ -145,27 +149,27 @@ describe('<Toolbar.Input />', () => {
 
     it('disabled state', async () => {
       const onValueChange = spy();
-      const { user } = await render(
+      const { user } = render(() => (
         <Toolbar.Root>
           <NumberField.Root min={1} max={10} defaultValue={5} onValueChange={onValueChange}>
             <NumberField.Group>
               <NumberField.Decrement />
-              <Toolbar.Input disabled render={<NumberField.Input />} />
+              <Toolbar.Input disabled render={(p) => <NumberField.Input {...p()} />} />
               <NumberField.Increment />
             </NumberField.Group>
           </NumberField.Root>
-        </Toolbar.Root>,
-      );
+        </Toolbar.Root>
+      ));
 
-      const input = screen.getByRole('textbox');
+      const input = () => screen.getByRole('textbox');
 
-      expect(input).to.not.have.attribute('disabled');
-      expect(input).to.have.attribute('data-disabled');
-      expect(input).to.have.attribute('aria-disabled', 'true');
+      expect(input()).to.not.have.attribute('disabled');
+      expect(input()).to.have.attribute('data-disabled');
+      expect(input()).to.have.attribute('aria-disabled', 'true');
 
       await user.keyboard('[Tab]');
-      expect(input).to.have.attribute('tabindex', '0');
-      expect(input).toHaveFocus();
+      expect(input()).to.have.attribute('tabindex', '0');
+      expect(input()).toHaveFocus();
 
       await user.keyboard(`[${ARROW_UP}]`);
       await user.keyboard(`[${ARROW_DOWN}]`);

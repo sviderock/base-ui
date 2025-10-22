@@ -1,5 +1,5 @@
 'use client';
-import { batch, createMemo } from 'solid-js';
+import { batch, createMemo, onMount } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button';
@@ -47,7 +47,7 @@ export function ToolbarButton(componentProps: ToolbarButton.Props) {
 
   return (
     <CompositeItem<ToolbarRoot.ItemMetadata>
-      metadata={itemMetadata()}
+      metadata={itemMetadata}
       render={(p) => (
         <RenderElement
           element="button"

@@ -1,6 +1,6 @@
 'use client';
-import { createMemo, createSignal } from 'solid-js';
-import type { MaybeAccessor } from '../../solid-helpers';
+import { batch, createEffect, createMemo, createSignal, onMount } from 'solid-js';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import type { HTMLProps } from '../../utils/types';
 import { useCompositeListItem } from '../list/useCompositeListItem';
 import { useCompositeRootContext } from '../root/CompositeRootContext';
@@ -38,8 +38,10 @@ export function useCompositeItem<Metadata extends MaybeAccessor<unknown>>(
     props,
     ref: itemRef,
     setRef: (el: HTMLElement | null) => {
-      setItemRef(el);
-      listItem.setRef(el);
+      batch(() => {
+        setItemRef(el);
+        listItem.setRef(el);
+      });
     },
     index: listItem.index,
   };

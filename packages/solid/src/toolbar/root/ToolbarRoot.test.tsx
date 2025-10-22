@@ -1,24 +1,26 @@
-import * as React from 'react';
-import { expect } from 'chai';
-import { Toolbar } from '@base-ui-components/react/toolbar';
+import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import {
   DirectionProvider,
   type TextDirection,
-} from '@base-ui-components/react/direction-provider';
-import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
+} from '@base-ui-components/solid/direction-provider';
+import { Toolbar } from '@base-ui-components/solid/toolbar';
+import { screen } from '@solidjs/testing-library';
+import { expect } from 'chai';
+import type { JSX } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import { type Orientation } from '../../utils/types';
 
 describe('<Toolbar.Root />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Toolbar.Root />, () => ({
+  describeConformance(Toolbar.Root, () => ({
     refInstanceof: window.HTMLDivElement,
     render,
   }));
 
   describe('ARIA attributes', () => {
     it('has role="toolbar"', async () => {
-      const { container } = await render(<Toolbar.Root />);
+      const { container } = render(() => <Toolbar.Root />);
 
       expect(container.firstElementChild as HTMLElement).to.have.attribute('role', 'toolbar');
     });
@@ -35,9 +37,9 @@ describe('<Toolbar.Root />', () => {
 
       describe(direction, () => {
         it(`orientation: ${orientation}`, async () => {
-          const { getAllByRole, getByRole, getByText, user } = await render(
+          const { user } = render(() => (
             <DirectionProvider direction={direction as TextDirection}>
-              <Toolbar.Root dir={direction} orientation={orientation as Orientation}>
+              <Toolbar.Root dir={direction as JSX.HTMLDir} orientation={orientation as Orientation}>
                 <Toolbar.Button />
                 <Toolbar.Link href="https://base-ui.com">Link</Toolbar.Link>
                 <Toolbar.Group>
@@ -46,36 +48,39 @@ describe('<Toolbar.Root />', () => {
                 </Toolbar.Group>
                 <Toolbar.Input defaultValue="" />
               </Toolbar.Root>
-            </DirectionProvider>,
-          );
-          const [button1, groupedButton1, groupedButton2] = getAllByRole('button');
-          const link = getByText('Link');
-          const input = getByRole('textbox');
+            </DirectionProvider>
+          ));
+
+          const button1 = () => screen.getAllByRole('button')[0];
+          const groupedButton1 = () => screen.getAllByRole('button')[1];
+          const groupedButton2 = () => screen.getAllByRole('button')[2];
+          const link = () => screen.getByText('Link');
+          const input = () => screen.getByRole('textbox');
 
           await user.keyboard('[Tab]');
-          expect(button1).toHaveFocus();
+          expect(button1()).toHaveFocus();
 
           await user.keyboard(`[${nextKey}]`);
-          expect(link).toHaveFocus();
+          expect(link()).toHaveFocus();
 
           await user.keyboard(`[${nextKey}]`);
-          expect(groupedButton1).toHaveFocus();
+          expect(groupedButton1()).toHaveFocus();
 
           await user.keyboard(`[${nextKey}]`);
-          expect(groupedButton2).toHaveFocus();
+          expect(groupedButton2()).toHaveFocus();
 
           await user.keyboard(`[${nextKey}]`);
-          expect(input).toHaveFocus();
+          expect(input()).toHaveFocus();
 
           // loop to the beginning
           await user.keyboard(`[${nextKey}]`);
-          expect(button1).toHaveFocus();
+          expect(button1()).toHaveFocus();
 
           await user.keyboard(`[${prevKey}]`);
-          expect(input).toHaveFocus();
+          expect(input()).toHaveFocus();
 
           await user.keyboard(`[${prevKey}]`);
-          expect(groupedButton2).toHaveFocus();
+          expect(groupedButton2()).toHaveFocus();
         });
       });
     });
@@ -83,7 +88,7 @@ describe('<Toolbar.Root />', () => {
 
   describe('prop: disabled', () => {
     it('disables all toolbar items except links', async () => {
-      const { getAllByRole, getByRole, getAllByText } = await render(
+      render(() => (
         <Toolbar.Root disabled>
           <Toolbar.Button />
           <Toolbar.Link href="https://base-ui.com">Link</Toolbar.Link>
@@ -93,17 +98,19 @@ describe('<Toolbar.Root />', () => {
             <Toolbar.Link href="https://base-ui.com">Link</Toolbar.Link>
             <Toolbar.Input defaultValue="" />
           </Toolbar.Group>
-        </Toolbar.Root>,
+        </Toolbar.Root>
+      ));
+
+      [...screen.getAllByRole('button'), ...screen.getAllByRole('textbox')].forEach(
+        (toolbarItem) => {
+          expect(toolbarItem).to.have.attribute('aria-disabled', 'true');
+          expect(toolbarItem).to.have.attribute('data-disabled');
+        },
       );
 
-      [...getAllByRole('button'), ...getAllByRole('textbox')].forEach((toolbarItem) => {
-        expect(toolbarItem).to.have.attribute('aria-disabled', 'true');
-        expect(toolbarItem).to.have.attribute('data-disabled');
-      });
+      expect(screen.getByRole('group')).to.have.attribute('data-disabled');
 
-      expect(getByRole('group')).to.have.attribute('data-disabled');
-
-      getAllByText('Link').forEach((link) => {
+      screen.getAllByText('Link').forEach((link) => {
         expect(link).to.not.have.attribute('data-disabled');
         expect(link).to.not.have.attribute('aria-disabled');
       });
@@ -118,7 +125,7 @@ describe('<Toolbar.Root />', () => {
     }
 
     it('toolbar items can be focused when disabled by default', async () => {
-      const { getAllByRole, getByRole, user } = await render(
+      const { user } = render(() => (
         <Toolbar.Root>
           <Toolbar.Button disabled />
           <Toolbar.Group>
@@ -126,42 +133,44 @@ describe('<Toolbar.Root />', () => {
             <Toolbar.Button disabled />
           </Toolbar.Group>
           <Toolbar.Input defaultValue="" disabled />
-        </Toolbar.Root>,
-      );
+        </Toolbar.Root>
+      ));
 
-      const input = getByRole('textbox');
-      const buttons = getAllByRole('button');
-      [input, ...buttons].forEach((item) => {
+      const input = () => screen.getByRole('textbox');
+      const buttons = () => screen.getAllByRole('button');
+      [input(), ...buttons()].forEach((item) => {
         expect(item).to.not.have.attribute('disabled');
       });
 
-      const [button1, groupedButton1, groupedButton2] = buttons;
+      const button1 = () => buttons()[0];
+      const groupedButton1 = () => buttons()[1];
+      const groupedButton2 = () => buttons()[2];
 
       await user.keyboard('[Tab]');
-      expect(button1).toHaveFocus();
+      expect(button1()).toHaveFocus();
 
       await user.keyboard('[ArrowRight]');
-      expectFocusedWhenDisabled(groupedButton1);
+      expectFocusedWhenDisabled(groupedButton1());
 
       await user.keyboard('[ArrowRight]');
-      expectFocusedWhenDisabled(groupedButton2);
+      expectFocusedWhenDisabled(groupedButton2());
 
       await user.keyboard('[ArrowRight]');
-      expectFocusedWhenDisabled(input);
+      expectFocusedWhenDisabled(input());
 
       // loop to the beginning
       await user.keyboard('[ArrowRight]');
-      expect(button1).to.have.attribute('tabindex', '0');
+      expect(button1()).to.have.attribute('tabindex', '0');
 
       await user.keyboard('[ArrowLeft]');
-      expectFocusedWhenDisabled(input);
+      expectFocusedWhenDisabled(input());
 
       await user.keyboard('[ArrowLeft]');
-      expectFocusedWhenDisabled(groupedButton2);
+      expectFocusedWhenDisabled(groupedButton2());
     });
 
     it('toolbar items can individually disable focusableWhenDisabled', async () => {
-      const { getAllByRole, getByRole, user } = await render(
+      const { user } = render(() => (
         <Toolbar.Root>
           <Toolbar.Button disabled />
           <Toolbar.Group>
@@ -169,39 +178,40 @@ describe('<Toolbar.Root />', () => {
             <Toolbar.Button disabled focusableWhenDisabled={false} />
           </Toolbar.Group>
           <Toolbar.Input defaultValue="" disabled />
-        </Toolbar.Root>,
-      );
+        </Toolbar.Root>
+      ));
 
-      const input = getByRole('textbox');
-      const buttons = getAllByRole('button');
-      const focusableWhenDisabledButtons = buttons.filter(
-        (button) => button.getAttribute('data-focusable') != null,
-      );
-      [input, ...focusableWhenDisabledButtons].forEach((item) => {
+      const input = () => screen.getByRole('textbox');
+      const buttons = () => screen.getAllByRole('button');
+      const focusableWhenDisabledButtons = () =>
+        buttons().filter((button) => button.getAttribute('data-focusable') != null);
+      [input(), ...focusableWhenDisabledButtons()].forEach((item) => {
         expect(item).to.not.have.attribute('disabled');
       });
 
-      const [button1, groupedButton1, groupedButton2] = buttons;
-      expect(groupedButton2).to.have.attribute('disabled');
+      const button1 = () => buttons()[0];
+      const groupedButton1 = () => buttons()[1];
+      const groupedButton2 = () => buttons()[2];
+      expect(groupedButton2()).to.have.attribute('disabled');
 
       await user.keyboard('[Tab]');
-      expect(button1).toHaveFocus();
+      expect(button1()).toHaveFocus();
 
       await user.keyboard('[ArrowRight]');
-      expectFocusedWhenDisabled(groupedButton1);
+      expectFocusedWhenDisabled(groupedButton1());
 
       await user.keyboard('[ArrowRight]');
-      expectFocusedWhenDisabled(input);
+      expectFocusedWhenDisabled(input());
 
       // loop to the beginning
       await user.keyboard('[ArrowRight]');
-      expect(button1).to.have.attribute('tabindex', '0');
+      expect(button1()).to.have.attribute('tabindex', '0');
 
       await user.keyboard('[ArrowLeft]');
-      expectFocusedWhenDisabled(input);
+      expectFocusedWhenDisabled(input());
 
       await user.keyboard('[ArrowLeft]');
-      expectFocusedWhenDisabled(groupedButton1);
+      expectFocusedWhenDisabled(groupedButton1());
     });
   });
 });

@@ -2,8 +2,8 @@
 import { createEffect, splitProps, type ComponentProps, type JSX } from 'solid-js';
 import { useCompositeRootContext } from '../composite/root/CompositeRootContext';
 import { makeEventPreventable, mergeProps } from '../merge-props';
-import { access, callEventHandler, type MaybeAccessor, type ReactLikeRef } from '../solid-helpers';
-import { HTMLProps, type BaseUIEvent } from '../utils/types';
+import { access, callEventHandler, type MaybeAccessor } from '../solid-helpers';
+import { HTMLProps } from '../utils/types';
 import { useFocusableWhenDisabled } from '../utils/useFocusableWhenDisabled';
 
 export function useButton(parameters: useButton.Parameters = {}): useButton.ReturnValue {
