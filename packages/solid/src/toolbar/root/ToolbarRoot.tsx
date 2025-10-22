@@ -1,4 +1,5 @@
 'use client';
+import { createMemo, createSignal } from 'solid-js';
 import type { CompositeMetadata } from '../../composite/list/CompositeList';
 import { CompositeRoot } from '../../composite/root/CompositeRoot';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
@@ -12,70 +13,82 @@ import { ToolbarRootContext } from './ToolbarRootContext';
  *
  * Documentation: [Base UI Toolbar](https://base-ui.com/react/components/toolbar)
  */
-export const ToolbarRoot = React.forwardRef(function ToolbarRoot(
-  componentProps: ToolbarRoot.Props,
-  forwardedRef: React.ForwardedRef<HTMLDivElement>,
-) {
-  const {
-    cols = 1,
-    disabled = false,
-    loop = true,
-    orientation = 'horizontal',
-    className,
-    render,
-    ...elementProps
-  } = componentProps;
+export function ToolbarRoot(componentProps: ToolbarRoot.Props) {
+  const [, local, elementProps] = splitComponentProps(componentProps, [
+    'cols',
+    'disabled',
+    'loop',
+    'orientation',
+  ]);
+  const cols = () => access(local.cols) ?? 1;
+  const disabled = () => access(local.disabled) ?? false;
+  const loop = () => access(local.loop) ?? true;
+  const orientation = () => access(local.orientation) ?? 'horizontal';
 
-  const [itemMap, setItemMap] = React.useState(
-    () => new Map<Node, CompositeMetadata<ToolbarRoot.ItemMetadata> | null>(),
-  );
+  const [itemArray, setItemArray] = createSignal<
+    Array<CompositeMetadata<ToolbarRoot.ItemMetadata> | null>
+  >([]);
 
-  const disabledIndices = React.useMemo(() => {
+  const disabledIndices = createMemo(() => {
     const output: number[] = [];
-    for (const itemMetadata of itemMap.values()) {
+    for (const itemMetadata of itemArray()) {
       if (itemMetadata?.index && !itemMetadata.focusableWhenDisabled) {
         output.push(itemMetadata.index);
       }
     }
     return output;
-  }, [itemMap]);
-
-  const toolbarRootContext: ToolbarRootContext = React.useMemo(
-    () => ({
-      disabled,
-      orientation,
-      setItemMap,
-    }),
-    [disabled, orientation, setItemMap],
-  );
-
-  const state = React.useMemo(() => ({ disabled, orientation }), [disabled, orientation]);
-
-  const element = useRenderElement('div', componentProps, {
-    state,
-    ref: forwardedRef,
-    props: [
-      {
-        'aria-orientation': orientation,
-        role: 'toolbar',
-      },
-      elementProps,
-    ],
   });
+
+  const toolbarRootContext: ToolbarRootContext = {
+    disabled,
+    orientation,
+    setItemArray,
+  };
+
+  const state = createMemo<ToolbarRoot.State>(() => ({
+    disabled: disabled(),
+    orientation: orientation(),
+  }));
 
   return (
     <ToolbarRootContext.Provider value={toolbarRootContext}>
-      <CompositeRoot
-        cols={cols}
-        disabledIndices={disabledIndices}
-        loop={loop}
-        onMapChange={setItemMap}
-        orientation={orientation}
-        render={element}
+      <CompositeRoot<ToolbarRoot.ItemMetadata>
+        cols={cols()}
+        disabledIndices={disabledIndices()}
+        loop={loop()}
+        onMapChange={(newMap) => {
+          setItemArray(Array.from(newMap.values()));
+        }}
+        orientation={orientation()}
+        render={(p) => (
+          <RenderElement
+            element="div"
+            componentProps={componentProps}
+            ref={(el) => {
+              p().ref(el);
+              if (typeof componentProps.ref === 'function') {
+                componentProps.ref(el);
+              } else {
+                componentProps.ref = el;
+              }
+            }}
+            params={{
+              state: state(),
+              props: [
+                p(),
+                {
+                  'aria-orientation': orientation(),
+                  role: 'toolbar',
+                },
+                elementProps,
+              ],
+            }}
+          />
+        )}
       />
     </ToolbarRootContext.Provider>
   );
-});
+}
 
 export namespace ToolbarRoot {
   export interface ItemMetadata {
