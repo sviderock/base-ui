@@ -1,13 +1,5 @@
 'use client';
-import {
-  children,
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-  onMount,
-  Show,
-} from 'solid-js';
+import { createMemo, onCleanup, onMount, Show } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useId } from '../../utils/useId';
@@ -21,53 +13,40 @@ import { useToastRootContext } from '../root/ToastRootContext';
  * Documentation: [Base UI Toast](https://base-ui.com/react/components/toast)
  */
 export function ToastTitle(componentProps: ToastTitle.Props) {
-  const [, local, elementProps] = splitComponentProps(componentProps, ['id']);
-  const [shouldRender, setShouldRender] = createSignal(false);
+  const [renderProps, local, elementProps] = splitComponentProps(componentProps, ['id']);
 
   const { toast } = useToastRootContext();
 
-  const safeChildren = children(() => shouldRender() && (componentProps.children ?? toast().title));
-
   const id = useId(() => local.id);
 
-  const { setTitleId } = useToastRootContext();
+  const { setTitleIdAccessor } = useToastRootContext();
 
   onMount(() => {
-    setShouldRender(true);
-  });
-
-  createEffect(() => {
-    if (!shouldRender()) {
-      return;
-    }
-
-    setTitleId(id());
-
+    setTitleIdAccessor(id);
     onCleanup(() => {
-      setTitleId(undefined);
+      setTitleIdAccessor(() => undefined);
     });
   });
 
   const state = createMemo<ToastTitle.State>(() => ({ type: toast().type }));
 
-  const element = useRenderElement('h2', componentProps, {
-    ref: forwardedRef,
-    state,
-    props: {
-      ...elementProps,
-      id,
-      children,
-    },
-  });
-
   return (
-    <Show when={Boolean(safeChildren())}>
+    <Show when={Boolean(componentProps.children ?? toast().title)}>
       <RenderElement
         element="h2"
-        componentProps={{ ...componentProps, children: safeChildren() }}
+        componentProps={{
+          render: renderProps.render,
+          class: renderProps.class,
+        }}
         ref={componentProps.ref}
-        params={{ state: state(), props: [{ id: id() }, elementProps] }}
-      />
+        params={{
+          state: state(),
+          props: [{ id: id() }, elementProps],
+          enabled: Boolean(componentProps.children ?? toast().title),
+        }}
+      >
+        {componentProps.children ?? toast().title}
+      </RenderElement>
     </Show>
   );
 }

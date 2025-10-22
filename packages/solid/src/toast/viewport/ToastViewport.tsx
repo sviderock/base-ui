@@ -1,5 +1,6 @@
 'use client';
-import { createEffect, createMemo, onCleanup } from 'solid-js';
+import { createEffect, createMemo, onCleanup, type ComponentProps } from 'solid-js';
+import { DelegatedEvents } from 'solid-js/web';
 import { activeElement, contains, getTarget } from '../../floating-ui-solid/utils';
 import { splitComponentProps } from '../../solid-helpers';
 import { FocusGuard } from '../../utils/FocusGuard';
@@ -17,7 +18,7 @@ import { ToastViewportContext } from './ToastViewportContext';
  * Documentation: [Base UI Toast](https://base-ui.com/react/components/toast)
  */
 export function ToastViewport(componentProps: ToastViewport.Props) {
-  const [, , elementProps] = splitComponentProps(componentProps, []);
+  const [renderProps, , elementProps] = splitComponentProps(componentProps, []);
 
   const {
     toasts,
@@ -67,7 +68,7 @@ export function ToastViewport(componentProps: ToastViewport.Props) {
 
   createEffect(() => {
     if (!refs.viewportRef || !numToasts()) {
-      return undefined;
+      return;
     }
 
     const win = ownerWindow(refs.viewportRef);
@@ -176,7 +177,7 @@ export function ToastViewport(componentProps: ToastViewport.Props) {
     resumeTimers();
   }
 
-  const props = createMemo(() => ({
+  const props = createMemo<ComponentProps<'div'>>(() => ({
     role: 'region' as const,
     tabIndex: -1,
     'aria-label': `${numToasts()} notification${numToasts() !== 1 ? 's' : ''} (F6)`,
@@ -201,14 +202,8 @@ export function ToastViewport(componentProps: ToastViewport.Props) {
       <RenderElement
         element="div"
         componentProps={{
-          ...componentProps,
-          children: (
-            <>
-              {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
-              {componentProps.children}
-              {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
-            </>
-          ),
+          render: renderProps.render,
+          class: renderProps.class,
         }}
         ref={(el) => {
           refs.viewportRef = el;
@@ -222,7 +217,11 @@ export function ToastViewport(componentProps: ToastViewport.Props) {
           state: state(),
           props: [props(), elementProps],
         }}
-      />
+      >
+        {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
+        {componentProps.children}
+        {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
+      </RenderElement>
     </ToastViewportContext.Provider>
   );
 }

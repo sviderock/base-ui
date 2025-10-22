@@ -29,8 +29,10 @@ export function Button() {
  * @internal
  */
 export function List() {
+  const { toasts } = Toast.useToastManager();
+
   return (
-    <For each={Toast.useToastManager().toasts}>
+    <For each={toasts()}>
       {(toastItem) => (
         <Toast.Root toast={toastItem} data-testid="root">
           <Toast.Title data-testid="title" />

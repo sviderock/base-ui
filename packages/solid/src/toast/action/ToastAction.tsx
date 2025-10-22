@@ -1,5 +1,13 @@
 'use client';
-import { ComponentProps, createMemo, Show, splitProps } from 'solid-js';
+import {
+  children,
+  ComponentProps,
+  createMemo,
+  createSignal,
+  onMount,
+  Show,
+  splitProps,
+} from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -13,7 +21,10 @@ import { useToastRootContext } from '../root/ToastRootContext';
  * Documentation: [Base UI Toast](https://base-ui.com/react/components/toast)
  */
 export function ToastAction(componentProps: ToastAction.Props) {
-  const [, local, elementProps] = splitComponentProps(componentProps, ['disabled', 'nativeButton']);
+  const [renderProps, local, elementProps] = splitComponentProps(componentProps, [
+    'disabled',
+    'nativeButton',
+  ]);
   const disabled = () => access(local.disabled);
   const nativeButton = () => access(local.nativeButton) ?? true;
 
@@ -39,12 +50,12 @@ export function ToastAction(componentProps: ToastAction.Props) {
   }));
 
   return (
-    <Show when={toast().actionProps?.children ?? componentProps.children}>
+    <Show when={Boolean(toast().actionProps?.children ?? componentProps.children)}>
       <RenderElement
         element="button"
         componentProps={{
-          ...componentProps,
-          children: toast().actionProps?.children ?? componentProps.children,
+          render: renderProps.render,
+          class: renderProps.class,
         }}
         ref={(el) => {
           if (typeof componentProps.ref === 'function') {
@@ -58,7 +69,9 @@ export function ToastAction(componentProps: ToastAction.Props) {
           state: state(),
           props: [elementProps, toastActionProps(), getButtonProps],
         }}
-      />
+      >
+        {toast().actionProps?.children ?? componentProps.children}
+      </RenderElement>
     </Show>
   );
 }

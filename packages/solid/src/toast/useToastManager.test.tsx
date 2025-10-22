@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { Toast } from '@base-ui-components/react/toast';
-import { fireEvent, flushMicrotasks, screen } from '@mui/internal-test-utils';
+import { createRenderer, flushMicrotasks } from '#test-utils';
+import { Toast } from '@base-ui-components/solid/toast';
+import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { createRenderer } from '#test-utils';
+import { createEffect, createSignal, For } from 'solid-js';
 import { useToastManager } from './useToastManager';
 import { List } from './utils/test-utils';
 
@@ -29,14 +29,14 @@ describe('useToast', () => {
         );
       }
 
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <List />
           </Toast.Viewport>
           <AddButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const button = screen.getByRole('button', { name: 'add' });
       fireEvent.click(button);
@@ -55,14 +55,14 @@ describe('useToast', () => {
           return <button onClick={() => add({ title: 'test', timeout: 1000 })}>add</button>;
         }
 
-        await render(
+        render(() => (
           <Toast.Provider>
             <Toast.Viewport>
               <List />
             </Toast.Viewport>
             <AddButton />
-          </Toast.Provider>,
-        );
+          </Toast.Provider>
+        ));
 
         const button = screen.getByRole('button', { name: 'add' });
         fireEvent.click(button);
@@ -95,21 +95,25 @@ describe('useToast', () => {
 
         function CustomList() {
           const { toasts } = useToastManager();
-          return toasts.map((t) => (
-            <Toast.Root key={t.id} toast={t} data-testid="root">
-              <Toast.Title data-testid="title">{t.title}</Toast.Title>
-            </Toast.Root>
-          ));
+          return (
+            <For each={toasts()}>
+              {(t) => (
+                <Toast.Root toast={t} data-testid="root">
+                  <Toast.Title data-testid="title">{t.title}</Toast.Title>
+                </Toast.Root>
+              )}
+            </For>
+          );
         }
 
-        await render(
+        render(() => (
           <Toast.Provider>
             <Toast.Viewport>
               <CustomList />
             </Toast.Viewport>
             <AddButton />
-          </Toast.Provider>,
-        );
+          </Toast.Provider>
+        ));
 
         const button = screen.getByRole('button', { name: 'add' });
         fireEvent.click(button);
@@ -138,21 +142,25 @@ describe('useToast', () => {
 
         function CustomList() {
           const { toasts } = useToastManager();
-          return toasts.map((t) => (
-            <Toast.Root key={t.id} toast={t} data-testid="root">
-              <Toast.Description data-testid="description">{t.description}</Toast.Description>
-            </Toast.Root>
-          ));
+          return (
+            <For each={toasts()}>
+              {(t) => (
+                <Toast.Root toast={t} data-testid="root">
+                  <Toast.Description data-testid="description">{t.description}</Toast.Description>
+                </Toast.Root>
+              )}
+            </For>
+          );
         }
 
-        await render(
+        render(() => (
           <Toast.Provider>
             <Toast.Viewport>
               <CustomList />
             </Toast.Viewport>
             <AddButton />
-          </Toast.Provider>,
-        );
+          </Toast.Provider>
+        ));
 
         const button = screen.getByRole('button', { name: 'add' });
         fireEvent.click(button);
@@ -170,22 +178,26 @@ describe('useToast', () => {
 
         function CustomList() {
           const { toasts } = useToastManager();
-          return toasts.map((t) => (
-            <Toast.Root key={t.id} toast={t} data-testid="root">
-              <Toast.Title data-testid="title">{t.title}</Toast.Title>
-              <span>{t.type}</span>
-            </Toast.Root>
-          ));
+          return (
+            <For each={toasts()}>
+              {(t) => (
+                <Toast.Root toast={t} data-testid="root">
+                  <Toast.Title data-testid="title">{t.title}</Toast.Title>
+                  <span>{t.type}</span>
+                </Toast.Root>
+              )}
+            </For>
+          );
         }
 
-        await render(
+        render(() => (
           <Toast.Provider>
             <Toast.Viewport>
               <CustomList />
             </Toast.Viewport>
             <AddButton />
-          </Toast.Provider>,
-        );
+          </Toast.Provider>
+        ));
 
         const button = screen.getByRole('button', { name: 'add' });
         fireEvent.click(button);
@@ -201,12 +213,12 @@ describe('useToast', () => {
 
         function AddButton() {
           const { add, close } = useToastManager();
-          const idRef = React.useRef<string | null>(null);
+          let idRef: string | undefined;
           return (
-            <React.Fragment>
+            <>
               <button
                 onClick={() => {
-                  idRef.current = add({
+                  idRef = add({
                     title: 'test',
                     onClose: onCloseSpy,
                   });
@@ -216,25 +228,25 @@ describe('useToast', () => {
               </button>
               <button
                 onClick={() => {
-                  if (idRef.current) {
-                    close(idRef.current);
+                  if (idRef) {
+                    close(idRef);
                   }
                 }}
               >
                 close
               </button>
-            </React.Fragment>
+            </>
           );
         }
 
-        await render(
+        render(() => (
           <Toast.Provider>
             <Toast.Viewport>
               <List />
             </Toast.Viewport>
             <AddButton />
-          </Toast.Provider>,
-        );
+          </Toast.Provider>
+        ));
 
         const addButton = screen.getByRole('button', { name: 'add' });
         fireEvent.click(addButton);
@@ -267,14 +279,14 @@ describe('useToast', () => {
           );
         }
 
-        await render(
+        render(() => (
           <Toast.Provider>
             <Toast.Viewport>
               <List />
             </Toast.Viewport>
             <AddButton />
-          </Toast.Provider>,
-        );
+          </Toast.Provider>
+        ));
 
         const button = screen.getByRole('button', { name: 'add' });
         fireEvent.click(button);
@@ -293,12 +305,12 @@ describe('useToast', () => {
 
         function AddButton() {
           const { add, close } = useToastManager();
-          const idRef = React.useRef<string | null>(null);
+          let idRef: string | undefined;
           return (
-            <React.Fragment>
+            <>
               <button
                 onClick={() => {
-                  idRef.current = add({
+                  idRef = add({
                     title: 'test',
                     onRemove: onRemoveSpy,
                   });
@@ -308,25 +320,25 @@ describe('useToast', () => {
               </button>
               <button
                 onClick={() => {
-                  if (idRef.current) {
-                    close(idRef.current);
+                  if (idRef) {
+                    close(idRef);
                   }
                 }}
               >
                 close
               </button>
-            </React.Fragment>
+            </>
           );
         }
 
-        await render(
+        render(() => (
           <Toast.Provider>
             <Toast.Viewport>
               <List />
             </Toast.Viewport>
             <AddButton />
-          </Toast.Provider>,
-        );
+          </Toast.Provider>
+        ));
 
         const addButton = screen.getByRole('button', { name: 'add' });
         fireEvent.click(addButton);
@@ -345,25 +357,25 @@ describe('useToast', () => {
         function AddButton() {
           const { add } = useToastManager();
           return (
-            <React.Fragment>
+            <>
               <button onClick={() => add({ title: 'high priority', priority: 'high' })}>
                 add high
               </button>
               <button onClick={() => add({ title: 'low priority', priority: 'low' })}>
                 add low
               </button>
-            </React.Fragment>
+            </>
           );
         }
 
-        await render(
+        render(() => (
           <Toast.Provider>
             <Toast.Viewport>
               <List />
             </Toast.Viewport>
             <AddButton />
-          </Toast.Provider>,
-        );
+          </Toast.Provider>
+        ));
 
         const highPriorityButton = screen.getByRole('button', { name: 'add high' });
         fireEvent.click(highPriorityButton);
@@ -398,13 +410,17 @@ describe('useToast', () => {
 
     function CustomList() {
       const { toasts } = useToastManager();
-      return toasts.map((t) => (
-        <Toast.Root key={t.id} toast={t} data-testid="root">
-          <Toast.Title data-testid="title">{t.title}</Toast.Title>
-          <Toast.Description data-testid="description">{t.description}</Toast.Description>
-          <span>{t.type}</span>
-        </Toast.Root>
-      ));
+      return (
+        <For each={toasts()}>
+          {(t) => (
+            <Toast.Root toast={t} data-testid="root">
+              <Toast.Title data-testid="title">{t.title}</Toast.Title>
+              <Toast.Description data-testid="description">{t.description}</Toast.Description>
+              <span>{t.type}</span>
+            </Toast.Root>
+          )}
+        </For>
+      );
     }
 
     it('displays success state as description after promise resolves', async () => {
@@ -432,14 +448,14 @@ describe('useToast', () => {
         );
       }
 
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <CustomList />
           </Toast.Viewport>
           <AddButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const button = screen.getByRole('button', { name: 'add' });
       fireEvent.click(button);
@@ -479,14 +495,14 @@ describe('useToast', () => {
         );
       }
 
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <CustomList />
           </Toast.Viewport>
           <AddButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const button = screen.getByRole('button', { name: 'add' });
       fireEvent.click(button);
@@ -522,14 +538,14 @@ describe('useToast', () => {
         );
       }
 
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <CustomList />
           </Toast.Viewport>
           <AddButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const button = screen.getByRole('button', { name: 'add' });
       fireEvent.click(button);
@@ -567,14 +583,14 @@ describe('useToast', () => {
         );
       }
 
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <CustomList />
           </Toast.Viewport>
           <AddButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const button = screen.getByRole('button', { name: 'add' });
       fireEvent.click(button);
@@ -613,14 +629,14 @@ describe('useToast', () => {
         );
       }
 
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <CustomList />
           </Toast.Viewport>
           <AddButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const button = screen.getByRole('button', { name: 'add' });
       fireEvent.click(button);
@@ -639,23 +655,27 @@ describe('useToast', () => {
 
     function CustomList() {
       const { toasts } = useToastManager();
-      return toasts.map((t) => (
-        <Toast.Root key={t.id} toast={t} data-testid="root">
-          <Toast.Title data-testid="title">{t.title}</Toast.Title>
-        </Toast.Root>
-      ));
+      return (
+        <For each={toasts()}>
+          {(t) => (
+            <Toast.Root toast={t} data-testid="root">
+              <Toast.Title data-testid="title">{t.title}</Toast.Title>
+            </Toast.Root>
+          )}
+        </For>
+      );
     }
 
     it('updates the toast', async () => {
       function AddButton() {
         const { add, update } = useToastManager();
-        const idRef = React.useRef<string | null>(null);
+        let idRef: string | undefined;
         return (
-          <React.Fragment>
+          <>
             <button
               type="button"
               onClick={() => {
-                idRef.current = add({ title: 'test' });
+                idRef = add({ title: 'test' });
               }}
             >
               add
@@ -663,25 +683,25 @@ describe('useToast', () => {
             <button
               type="button"
               onClick={() => {
-                if (idRef.current) {
-                  update(idRef.current, { title: 'updated' });
+                if (idRef) {
+                  update(idRef, { title: 'updated' });
                 }
               }}
             >
               update
             </button>
-          </React.Fragment>
+          </>
         );
       }
 
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <CustomList />
           </Toast.Viewport>
           <AddButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const button = screen.getByRole('button', { name: 'add' });
       fireEvent.click(button);
@@ -702,47 +722,51 @@ describe('useToast', () => {
 
     function CustomList() {
       const { toasts } = useToastManager();
-      return toasts.map((t) => (
-        <Toast.Root key={t.id} toast={t} data-testid="root">
-          <Toast.Title data-testid="title">{t.title}</Toast.Title>
-        </Toast.Root>
-      ));
+      return (
+        <For each={toasts()}>
+          {(t) => (
+            <Toast.Root toast={t} data-testid="root">
+              <Toast.Title data-testid="title">{t.title}</Toast.Title>
+            </Toast.Root>
+          )}
+        </For>
+      );
     }
 
     it('closes a toast', async () => {
       function AddButton() {
         const { add, close } = useToastManager();
-        const idRef = React.useRef<string | null>(null);
+        let idRef: string | undefined;
         return (
-          <React.Fragment>
+          <>
             <button
               onClick={() => {
-                idRef.current = add({ title: 'test' });
+                idRef = add({ title: 'test' });
               }}
             >
               add
             </button>
             <button
               onClick={() => {
-                if (idRef.current) {
-                  close(idRef.current);
+                if (idRef) {
+                  close(idRef);
                 }
               }}
             >
               close
             </button>
-          </React.Fragment>
+          </>
         );
       }
 
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <CustomList />
           </Toast.Viewport>
           <AddButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const addButton = screen.getByRole('button', { name: 'add' });
       fireEvent.click(addButton);
@@ -762,61 +786,61 @@ describe('useToast', () => {
     clock.withFakeTimers();
 
     function TestList() {
-      const [count, setCount] = React.useState(0);
+      const [count, setCount] = createSignal(0);
       const { toasts, add } = useToastManager();
+
       return (
-        <React.Fragment>
-          {toasts.map((t) => (
-            <Toast.Root key={t.id} toast={t} data-testid={t.title}>
-              <Toast.Close data-testid={`close-${t.title}`} />
-            </Toast.Root>
-          ))}
+        <>
+          <For each={toasts()}>
+            {(t) => (
+              <Toast.Root toast={t} data-testid={t.title}>
+                <Toast.Close data-testid={`close-${t.title}`} />
+              </Toast.Root>
+            )}
+          </For>
           <button
             onClick={() => {
-              const nextCount = count + 1;
+              const nextCount = count() + 1;
               setCount(nextCount);
               add({ title: `toast-${nextCount}` });
             }}
           >
             add
           </button>
-        </React.Fragment>
+        </>
       );
     }
 
     it('marks toasts as limited when the limit is exceeded', async () => {
-      await render(
+      render(() => (
         <Toast.Provider limit={2}>
           <Toast.Viewport>
             <TestList />
           </Toast.Viewport>
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const addButton = screen.getByRole('button', { name: 'add' });
 
       fireEvent.click(addButton);
-      const toast1 = screen.getByTestId('toast-1');
-      expect(toast1).not.to.have.attribute('data-limited');
+      expect(screen.getByTestId('toast-1')).not.to.have.attribute('data-limited');
 
       fireEvent.click(addButton);
-      const toast2 = screen.getByTestId('toast-2');
-      expect(toast2).not.to.have.attribute('data-limited');
+      expect(screen.getByTestId('toast-2')).not.to.have.attribute('data-limited');
 
       fireEvent.click(addButton);
-      const toast3 = screen.getByTestId('toast-3');
-      expect(toast3).not.to.have.attribute('data-limited');
-      expect(toast1).to.have.attribute('data-limited');
+      expect(screen.getByTestId('toast-3')).not.to.have.attribute('data-limited');
+      expect(screen.getByTestId('toast-1')).to.have.attribute('data-limited');
     });
 
     it('unmarks toasts as limited when the limit is not exceeded', async () => {
-      await render(
+      render(() => (
         <Toast.Provider limit={2}>
           <Toast.Viewport>
             <TestList />
           </Toast.Viewport>
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const addButton = screen.getByRole('button', { name: 'add' });
 

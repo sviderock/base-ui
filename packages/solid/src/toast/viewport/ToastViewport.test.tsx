@@ -1,29 +1,36 @@
-import * as React from 'react';
-import { Toast } from '@base-ui-components/react/toast';
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { act, fireEvent, screen } from '@mui/internal-test-utils';
+import { Toast } from '@base-ui-components/solid/toast';
+import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { List, Button } from '../utils/test-utils';
+import { Dynamic } from 'solid-js/web';
+import { Button, List } from '../utils/test-utils';
 
 describe('<Toast.Viewport />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Toast.Viewport />, () => ({
+  describeConformance(Toast.Viewport, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node) {
-      return render(<Toast.Provider>{node}</Toast.Provider>);
+    render(node, elementProps = {}) {
+      return render(
+        () => (
+          <Toast.Provider>
+            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+          </Toast.Provider>
+        ),
+        elementProps,
+      );
     },
   }));
 
   it('gets focused when F6 is pressed', async () => {
-    const { user } = await render(
+    const { user } = render(() => (
       <Toast.Provider>
         <Toast.Viewport data-testid="viewport">
           <List />
         </Toast.Viewport>
         <Button />
-      </Toast.Provider>,
-    );
+      </Toast.Provider>
+    ));
 
     const button = screen.getByRole('button', { name: 'add' });
 
@@ -34,14 +41,14 @@ describe('<Toast.Viewport />', () => {
   });
 
   it('focuses first toast upon tab after viewport is focused', async () => {
-    const { user } = await render(
+    const { user } = render(() => (
       <Toast.Provider>
         <Toast.Viewport>
           <List />
         </Toast.Viewport>
         <Button />
-      </Toast.Provider>,
-    );
+      </Toast.Provider>
+    ));
 
     const button = screen.getByRole('button', { name: 'add' });
 
@@ -53,14 +60,14 @@ describe('<Toast.Viewport />', () => {
   });
 
   it('returns focus to previous element when pressing shift+Tab on first toast', async () => {
-    const { user } = await render(
+    const { user } = render(() => (
       <Toast.Provider>
         <Toast.Viewport>
           <List />
         </Toast.Viewport>
         <Button />
-      </Toast.Provider>,
-    );
+      </Toast.Provider>
+    ));
 
     const button = screen.getByRole('button', { name: 'add' });
 
@@ -73,14 +80,14 @@ describe('<Toast.Viewport />', () => {
   });
 
   it('returns focus to previous element when pressing shift+Tab on last toast', async () => {
-    const { user } = await render(
+    const { user } = render(() => (
       <Toast.Provider>
         <Toast.Viewport>
           <List />
         </Toast.Viewport>
         <Button />
-      </Toast.Provider>,
-    );
+      </Toast.Provider>
+    ));
 
     const button = screen.getByRole('button', { name: 'add' });
 
@@ -105,18 +112,18 @@ describe('<Toast.Viewport />', () => {
     clock.withFakeTimers();
 
     it('pauses timers when hovering', async () => {
-      await renderFakeTimers(
+      renderFakeTimers(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <List />
           </Toast.Viewport>
           <Button />
-        </Toast.Provider>,
-      );
-
+        </Toast.Provider>
+      ));
       const button = screen.getByRole('button', { name: 'add' });
 
       fireEvent.click(button);
+
       fireEvent.mouseEnter(screen.getByTestId('root'));
 
       clock.tick(5001);
@@ -125,14 +132,14 @@ describe('<Toast.Viewport />', () => {
     });
 
     it('resumes timers when not hovering', async () => {
-      await renderFakeTimers(
+      renderFakeTimers(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <List />
           </Toast.Viewport>
           <Button />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const button = screen.getByRole('button', { name: 'add' });
 
@@ -153,14 +160,14 @@ describe('<Toast.Viewport />', () => {
     });
 
     it('pauses timers when the viewport is focused', async () => {
-      await renderFakeTimers(
+      renderFakeTimers(() => (
         <Toast.Provider>
           <Toast.Viewport data-testid="viewport">
             <List />
           </Toast.Viewport>
           <Button />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const button = screen.getByRole('button', { name: 'add' });
 
@@ -173,14 +180,14 @@ describe('<Toast.Viewport />', () => {
     });
 
     it.skipIf(!isJSDOM)('resumes timers when the viewport is blurred', async () => {
-      await renderFakeTimers(
+      renderFakeTimers(() => (
         <Toast.Provider>
           <Toast.Viewport data-testid="viewport">
             <List />
           </Toast.Viewport>
           <Button />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const button = screen.getByRole('button', { name: 'add' });
 
@@ -189,7 +196,7 @@ describe('<Toast.Viewport />', () => {
 
       clock.tick(5001);
 
-      await act(async () => button.focus());
+      button.focus();
 
       clock.tick(5001);
 

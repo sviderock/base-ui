@@ -1,9 +1,10 @@
-import * as React from 'react';
-import { Toast } from '@base-ui-components/react/toast';
-import { act, screen, fireEvent, waitFor } from '@mui/internal-test-utils';
-import { expect } from 'chai';
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { List, Button } from '../utils/test-utils';
+import { Toast } from '@base-ui-components/solid/toast';
+import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
+import { expect } from 'chai';
+import { For } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
+import { Button, List } from '../utils/test-utils';
 
 const toast: Toast.Root.ToastObject = {
   id: 'test',
@@ -13,31 +14,39 @@ const toast: Toast.Root.ToastObject = {
 describe('<Toast.Root />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Toast.Root toast={toast} />, () => ({
-    refInstanceof: window.HTMLDivElement,
-    render(node) {
-      return render(
-        <Toast.Provider>
-          <Toast.Viewport>{node}</Toast.Viewport>
-        </Toast.Provider>,
-      );
-    },
-  }));
+  describeConformance(
+    (props: any) => <Toast.Root {...props} ref={props.ref} toast={toast} />,
+    () => ({
+      refInstanceof: window.HTMLDivElement,
+      render(node, elementProps = {}) {
+        return render(
+          () => (
+            <Toast.Provider>
+              <Toast.Viewport>
+                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+              </Toast.Viewport>
+            </Toast.Provider>
+          ),
+          elementProps,
+        );
+      },
+    }),
+  );
 
   // requires :focus-visible check
   it.skipIf(isJSDOM)('closes when pressing escape', async () => {
-    const { user } = await render(
+    const { user } = render(() => (
       <Toast.Provider>
         <Toast.Viewport>
           <List />
         </Toast.Viewport>
         <Button />
-      </Toast.Provider>,
-    );
+      </Toast.Provider>
+    ));
 
     const button = screen.getByRole('button', { name: 'add' });
 
-    await act(async () => button.focus());
+    button.focus();
     await user.click(button);
 
     await user.keyboard('{F6}');
@@ -66,23 +75,29 @@ describe('<Toast.Root />', () => {
     }
 
     function AccessibilityTestList() {
-      return Toast.useToastManager().toasts.map((toastItem) => (
-        <Toast.Root key={toastItem.id} toast={toastItem} data-testid="root">
-          <Toast.Title>{toastItem.title}</Toast.Title>
-          <Toast.Description data-testid="description">{toastItem.description}</Toast.Description>
-          <Toast.Close aria-label="close" />
-        </Toast.Root>
-      ));
+      return (
+        <For each={Toast.useToastManager().toasts()}>
+          {(toastItem) => (
+            <Toast.Root toast={toastItem} data-testid="root">
+              <Toast.Title>{toastItem.title}</Toast.Title>
+              <Toast.Description data-testid="description">
+                {toastItem.description}
+              </Toast.Description>
+              <Toast.Close aria-label="close" />
+            </Toast.Root>
+          )}
+        </For>
+      );
     }
 
-    await render(
+    render(() => (
       <Toast.Provider>
         <Toast.Viewport>
           <AccessibilityTestList />
         </Toast.Viewport>
         <AccessibilityTestButton />
-      </Toast.Provider>,
-    );
+      </Toast.Provider>
+    ));
 
     fireEvent.click(screen.getByRole('button', { name: 'add' }));
 
@@ -113,22 +128,21 @@ describe('<Toast.Root />', () => {
       );
     }
 
-    function SwipeTestToast({
-      swipeDirection,
-    }: {
-      swipeDirection: Toast.Root.Props['swipeDirection'];
-    }) {
-      return Toast.useToastManager().toasts.map((toastItem) => (
-        <Toast.Root
-          key={toastItem.id}
-          toast={toastItem}
-          data-testid="toast-root"
-          swipeDirection={swipeDirection}
-        >
-          <Toast.Title>{toastItem.title}</Toast.Title>
-          <Toast.Description>{toastItem.description}</Toast.Description>
-        </Toast.Root>
-      ));
+    function SwipeTestToast(props: { swipeDirection: Toast.Root.Props['swipeDirection'] }) {
+      return (
+        <For each={Toast.useToastManager().toasts()}>
+          {(toastItem) => (
+            <Toast.Root
+              toast={toastItem}
+              data-testid="toast-root"
+              swipeDirection={props.swipeDirection}
+            >
+              <Toast.Title>{toastItem.title}</Toast.Title>
+              <Toast.Description>{toastItem.description}</Toast.Description>
+            </Toast.Root>
+          )}
+        </For>
+      );
     }
 
     function simulateSwipe(
@@ -178,14 +192,14 @@ describe('<Toast.Root />', () => {
     }
 
     it('closes toast when swiping in the specified direction beyond threshold', async () => {
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <SwipeTestToast swipeDirection="up" />
           </Toast.Viewport>
           <SwipeTestButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       fireEvent.click(screen.getByRole('button', { name: 'add toast' }));
 
@@ -200,14 +214,14 @@ describe('<Toast.Root />', () => {
     });
 
     it('does not close toast when swiping in the specified direction below threshold', async () => {
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <SwipeTestToast swipeDirection="up" />
           </Toast.Viewport>
           <SwipeTestButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       fireEvent.click(screen.getByRole('button', { name: 'add toast' }));
 
@@ -220,14 +234,14 @@ describe('<Toast.Root />', () => {
     });
 
     it('does not close toast when swiping in a non-specified direction', async () => {
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <SwipeTestToast swipeDirection="up" />
           </Toast.Viewport>
           <SwipeTestButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       fireEvent.click(screen.getByRole('button', { name: 'add toast' }));
 
@@ -240,14 +254,14 @@ describe('<Toast.Root />', () => {
     });
 
     it('supports multiple swipe directions', async () => {
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <SwipeTestToast swipeDirection={['up', 'right']} />
           </Toast.Viewport>
           <SwipeTestButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       fireEvent.click(screen.getByRole('button', { name: 'add toast' }));
 
@@ -262,14 +276,14 @@ describe('<Toast.Root />', () => {
     });
 
     it('cancels swipe when direction is reversed beyond threshold', async () => {
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <SwipeTestToast swipeDirection="up" />
           </Toast.Viewport>
           <SwipeTestButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       fireEvent.click(screen.getByRole('button', { name: 'add toast' }));
 
@@ -287,14 +301,14 @@ describe('<Toast.Root />', () => {
     });
 
     it('applies [data-swiping] attribute when swiping', async () => {
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <SwipeTestToast swipeDirection="up" />
           </Toast.Viewport>
           <SwipeTestButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       fireEvent.click(screen.getByRole('button', { name: 'add toast' }));
 
@@ -306,14 +320,14 @@ describe('<Toast.Root />', () => {
     });
 
     it('dismisses toast when swiped down with downward swipe direction', async () => {
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <SwipeTestToast swipeDirection="down" />
           </Toast.Viewport>
           <SwipeTestButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       fireEvent.click(screen.getByRole('button', { name: 'add toast' }));
 
@@ -324,14 +338,14 @@ describe('<Toast.Root />', () => {
     });
 
     it('dismisses toast when swiped left with leftward swipe direction', async () => {
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <SwipeTestToast swipeDirection="left" />
           </Toast.Viewport>
           <SwipeTestButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       fireEvent.click(screen.getByRole('button', { name: 'add toast' }));
 
@@ -342,14 +356,14 @@ describe('<Toast.Root />', () => {
     });
 
     it('dismisses toast when swiped right with rightward swipe direction', async () => {
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <SwipeTestToast swipeDirection="right" />
           </Toast.Viewport>
           <SwipeTestButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       fireEvent.click(screen.getByRole('button', { name: 'add toast' }));
 
@@ -360,14 +374,14 @@ describe('<Toast.Root />', () => {
     });
 
     it('allows swiping in multiple directions when specified', async () => {
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <SwipeTestToast swipeDirection={['up', 'right']} />
           </Toast.Viewport>
           <SwipeTestButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       fireEvent.click(screen.getByRole('button', { name: 'add toast' }));
 
@@ -387,14 +401,14 @@ describe('<Toast.Root />', () => {
     });
 
     it('does not dismiss when swiped in non-specified direction', async () => {
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <SwipeTestToast swipeDirection="up" />
           </Toast.Viewport>
           <SwipeTestButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       fireEvent.click(screen.getByRole('button', { name: 'add toast' }));
 
@@ -412,14 +426,14 @@ describe('<Toast.Root />', () => {
     });
 
     it('does not dismiss when swipe distance is below threshold', async () => {
-      await render(
+      render(() => (
         <Toast.Provider>
           <Toast.Viewport>
             <SwipeTestToast swipeDirection="up" />
           </Toast.Viewport>
           <SwipeTestButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       fireEvent.click(screen.getByRole('button', { name: 'add toast' }));
 

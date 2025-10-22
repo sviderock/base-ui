@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { Toast } from '@base-ui-components/react/toast';
-import { screen } from '@mui/internal-test-utils';
-import { expect } from 'chai';
 import { createRenderer, describeConformance } from '#test-utils';
-import { List, Button } from '../utils/test-utils';
+import { Toast } from '@base-ui-components/solid/toast';
+import { screen } from '@solidjs/testing-library';
+import { expect } from 'chai';
+import { Dynamic } from 'solid-js/web';
+import { Button, List } from '../utils/test-utils';
 
 describe('<Toast.Action />', () => {
   const { render } = createRenderer();
@@ -13,28 +13,40 @@ describe('<Toast.Action />', () => {
     title: 'title',
   };
 
-  describeConformance(<Toast.Action>action</Toast.Action>, () => ({
-    refInstanceof: window.HTMLButtonElement,
-    render(node) {
-      return render(
-        <Toast.Provider>
-          <Toast.Viewport>
-            <Toast.Root toast={toast}>{node}</Toast.Root>
-          </Toast.Viewport>
-        </Toast.Provider>,
-      );
-    },
-  }));
+  describeConformance(
+    (props: any) => (
+      <Toast.Action {...props} ref={props.ref}>
+        action
+      </Toast.Action>
+    ),
+    () => ({
+      refInstanceof: window.HTMLButtonElement,
+      render(node, elementProps = {}) {
+        return render(
+          () => (
+            <Toast.Provider>
+              <Toast.Viewport>
+                <Toast.Root toast={toast}>
+                  <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+                </Toast.Root>
+              </Toast.Viewport>
+            </Toast.Provider>
+          ),
+          elementProps,
+        );
+      },
+    }),
+  );
 
   it('performs an action when clicked', async () => {
-    const { user } = await render(
+    const { user } = render(() => (
       <Toast.Provider>
         <Toast.Viewport>
           <List />
         </Toast.Viewport>
         <Button />
-      </Toast.Provider>,
-    );
+      </Toast.Provider>
+    ));
 
     const button = screen.getByRole('button', { name: 'add' });
 
@@ -62,14 +74,14 @@ describe('<Toast.Action />', () => {
       );
     }
 
-    const { user } = await render(
+    const { user } = render(() => (
       <Toast.Provider>
         <Toast.Viewport>
           <List />
         </Toast.Viewport>
         <AddButton />
-      </Toast.Provider>,
-    );
+      </Toast.Provider>
+    ));
 
     const button = screen.getByRole('button', { name: 'add' });
     await user.click(button);

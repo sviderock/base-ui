@@ -134,47 +134,56 @@ export function ToastProvider(props: ToastProvider.Props) {
   };
 
   const close = (toastId: string) => {
-    setToasts('list', (prevToasts) => {
-      const toastsWithEnding = prevToasts.map((toast) =>
-        toast.id === toastId ? { ...toast, transitionStatus: 'ending' as const, height: 0 } : toast,
-      );
+    batch(() => {
+      setToasts('list', (prevToasts) => {
+        const toastsWithEnding = prevToasts.map((toast) =>
+          toast.id === toastId
+            ? { ...toast, transitionStatus: 'ending' as const, height: 0 }
+            : toast,
+        );
 
-      const activeToasts = toastsWithEnding.filter((t) => t.transitionStatus !== 'ending');
+        const activeToasts = toastsWithEnding.filter((t) => t.transitionStatus !== 'ending');
 
-      return toastsWithEnding.map((toast) => {
-        if (toast.transitionStatus === 'ending') {
-          return toast;
-        }
-        const isActiveToastLimited = activeToasts.indexOf(toast) >= limit();
-        return { ...toast, limited: isActiveToastLimited };
+        return toastsWithEnding.map((toast) => {
+          if (toast.transitionStatus === 'ending') {
+            return toast;
+          }
+          const isActiveToastLimited = activeToasts.indexOf(toast) >= limit();
+          return { ...toast, limited: isActiveToastLimited };
+        });
       });
+
+      const timer = timersRef.get(toastId);
+      if (timer && timer.timeout) {
+        timer.timeout.clear();
+        timersRef.delete(toastId);
+      }
+
+      const toast = toasts.list.find((t) => t.id === toastId);
+      toast?.onClose?.();
+
+      handleFocusManagement(toastId);
+
+      if (toasts.list.length === 1) {
+        batch(() => {
+          setHovering(false);
+          setFocused(false);
+        });
+      }
     });
-
-    const timer = timersRef.get(toastId);
-    if (timer && timer.timeout) {
-      timer.timeout.clear();
-      timersRef.delete(toastId);
-    }
-
-    const toast = toasts.list.find((t) => t.id === toastId);
-    toast?.onClose?.();
-
-    handleFocusManagement(toastId);
-
-    if (toasts.list.length === 1) {
-      batch(() => {
-        setHovering(false);
-        setFocused(false);
-      });
-    }
   };
 
   const remove = (toastId: string) => {
-    batch(() => {
-      setToasts('list', (prev) => prev.filter((toast) => toast.id !== toastId));
-      const toast = toasts.list.find((t) => t.id === toastId);
-      toast?.onRemove?.();
-    });
+    let onRemoveCallback: (() => void) | undefined;
+    setToasts('list', (prev) =>
+      prev.filter((toast) => {
+        if (toast.id === toastId) {
+          onRemoveCallback = toast.onRemove;
+        }
+        return toast.id !== toastId;
+      }),
+    );
+    onRemoveCallback?.();
   };
 
   const scheduleTimer = (id: string, delay: number, callback: () => void) => {
@@ -205,35 +214,37 @@ export function ToastProvider(props: ToastProvider.Props) {
       id,
       transitionStatus: 'starting',
     };
+    batch(() => {
+      setToasts('list', (prev) => {
+        const updatedToasts = [toastToAdd, ...prev];
+        const activeToasts = updatedToasts.filter((t) => t.transitionStatus !== 'ending');
 
-    setToasts('list', (prev) => {
-      const updatedToasts = [toastToAdd, ...prev];
-      const activeToasts = updatedToasts.filter((t) => t.transitionStatus !== 'ending');
+        // Mark oldest toasts for removal when over limit
+        if (activeToasts.length > limit()) {
+          const excessCount = activeToasts.length - limit();
+          const oldestActiveToasts = activeToasts.slice(-excessCount);
 
-      // Mark oldest toasts for removal when over limit
-      if (activeToasts.length > limit()) {
-        const excessCount = activeToasts.length - limit();
-        const oldestActiveToasts = activeToasts.slice(-excessCount);
+          const res = updatedToasts.map((t) =>
+            oldestActiveToasts.some((old) => old.id === t.id)
+              ? { ...t, limited: true }
+              : { ...t, limited: false },
+          );
 
-        return updatedToasts.map((t) =>
-          oldestActiveToasts.some((old) => old.id === t.id)
-            ? { ...t, limited: true }
-            : { ...t, limited: false },
-        );
+          return res;
+        }
+
+        return updatedToasts.map((t) => ({ ...t, limited: false }));
+      });
+
+      const duration = toastToAdd.timeout ?? timeout();
+      if (toastToAdd.type !== 'loading' && duration > 0) {
+        scheduleTimer(id, duration, () => close(id));
       }
 
-      return updatedToasts.map((t) => ({ ...t, limited: false }));
+      if (hovering() || focused() || !refs.windowFocusedRef) {
+        pauseTimers();
+      }
     });
-
-    const duration = toastToAdd.timeout ?? timeout();
-    if (toastToAdd.type !== 'loading' && duration > 0) {
-      scheduleTimer(id, duration, () => close(id));
-    }
-
-    if (hovering() || focused() || !refs.windowFocusedRef) {
-      pauseTimers();
-    }
-
     return id;
   };
 
@@ -257,31 +268,33 @@ export function ToastProvider(props: ToastProvider.Props) {
 
     const handledPromise = promiseValue
       .then((result: Value) => {
-        update(id, {
-          ...resolvePromiseOptions(options.success, result),
-          type: 'success',
+        batch(() => {
+          update(id, {
+            ...resolvePromiseOptions(options.success, result),
+            type: 'success',
+          });
+
+          scheduleTimer(id, timeout(), () => close(id));
+
+          if (hovering() || focused() || !refs.windowFocusedRef) {
+            pauseTimers();
+          }
         });
-
-        scheduleTimer(id, timeout(), () => close(id));
-
-        if (hovering() || focused() || !refs.windowFocusedRef) {
-          pauseTimers();
-        }
-
         return result;
       })
       .catch((error) => {
-        update(id, {
-          ...resolvePromiseOptions(options.error, error),
-          type: 'error',
+        batch(() => {
+          update(id, {
+            ...resolvePromiseOptions(options.error, error),
+            type: 'error',
+          });
+
+          scheduleTimer(id, timeout(), () => close(id));
+
+          if (hovering() || focused() || !refs.windowFocusedRef) {
+            pauseTimers();
+          }
         });
-
-        scheduleTimer(id, timeout(), () => close(id));
-
-        if (hovering() || focused() || !refs.windowFocusedRef) {
-          pauseTimers();
-        }
-
         return Promise.reject(error);
       });
 

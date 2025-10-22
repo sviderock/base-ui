@@ -1,4 +1,4 @@
-import { createContext, useContext, type Accessor, type Setter } from 'solid-js';
+import { createContext, useContext, type Accessor } from 'solid-js';
 import type { ToastObject } from '../useToastManager';
 
 export interface ToastRootContext {
@@ -7,9 +7,9 @@ export interface ToastRootContext {
     rootRef: HTMLElement | null | undefined;
   };
   titleId: Accessor<string | undefined>;
-  setTitleId: Setter<string | undefined>;
+  setTitleIdAccessor: (newTitleIdAccessor: Accessor<string | undefined>) => void;
   descriptionId: Accessor<string | undefined>;
-  setDescriptionId: Setter<string | undefined>;
+  setDescriptionIdAccessor: (newDescriptionAccessor: Accessor<string | undefined>) => void;
   swipeDirection: Accessor<'up' | 'down' | 'left' | 'right' | undefined>;
   renderScreenReaderContent: Accessor<boolean>;
   swiping: Accessor<boolean>;

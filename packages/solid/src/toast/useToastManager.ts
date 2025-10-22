@@ -1,12 +1,5 @@
 'use client';
-import {
-  useContext,
-  type Component,
-  type ComponentProps,
-  type JSX,
-  type ValidComponent,
-} from 'solid-js';
-import type { Store } from 'solid-js/store';
+import { useContext, type Accessor, type ComponentProps } from 'solid-js';
 import { ToastContext } from './provider/ToastProviderContext';
 
 /**
@@ -22,7 +15,7 @@ export function useToastManager(): useToastManager.ReturnValue {
   const { toasts, add, close, update, promise } = context;
 
   return {
-    toasts: toasts.list,
+    toasts: () => toasts.list,
     add,
     close,
     update,
@@ -32,7 +25,7 @@ export function useToastManager(): useToastManager.ReturnValue {
 
 export namespace useToastManager {
   export interface ReturnValue {
-    toasts: Store<ToastContext<any>['toasts']>['list'];
+    toasts: Accessor<ToastContext<any>['toasts']['list']>;
     add: <Data extends object>(options: AddOptions<Data>) => string;
     close: (toastId: string) => void;
     update: <Data extends object>(toastId: string, options: UpdateOptions<Data>) => void;

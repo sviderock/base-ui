@@ -1,13 +1,5 @@
 'use client';
-import {
-  children,
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-  onMount,
-  Show,
-} from 'solid-js';
+import { createMemo, onCleanup, onMount, Show } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useId } from '../../utils/useId';
@@ -22,48 +14,39 @@ import { useToastRootContext } from '../root/ToastRootContext';
  * Documentation: [Base UI Toast](https://base-ui.com/react/components/toast)
  */
 export function ToastDescription(componentProps: ToastDescription.Props) {
-  const [, local, elementProps] = splitComponentProps(componentProps, ['id']);
-  const [shouldRender, setShouldRender] = createSignal(false);
+  const [renderProps, local, elementProps] = splitComponentProps(componentProps, ['id']);
 
   const { toast } = useToastRootContext();
 
-  const safeChildren = children(
-    () => shouldRender() && (componentProps.children ?? toast().description),
-  );
-
   const id = useId(() => local.id);
 
-  const { setDescriptionId } = useToastRootContext();
+  const { setDescriptionIdAccessor } = useToastRootContext();
 
   onMount(() => {
-    setShouldRender(true);
-  });
-
-  createEffect(() => {
-    if (!shouldRender()) {
-      return;
-    }
-
-    setDescriptionId(id());
-
+    setDescriptionIdAccessor(id);
     onCleanup(() => {
-      setDescriptionId(undefined);
+      setDescriptionIdAccessor(() => undefined);
     });
   });
 
   const state = createMemo<ToastDescription.State>(() => ({ type: toast().type }));
 
   return (
-    <Show when={Boolean(safeChildren())}>
+    <Show when={Boolean(componentProps.children ?? toast().description)}>
       <RenderElement
         element="p"
-        componentProps={{ ...componentProps, children: safeChildren() }}
+        componentProps={{
+          render: renderProps.render,
+          class: renderProps.class,
+        }}
         ref={componentProps.ref}
         params={{
           state: state(),
           props: [{ id: id() }, elementProps],
         }}
-      />
+      >
+        {componentProps.children ?? toast().description}
+      </RenderElement>
     </Show>
   );
 }

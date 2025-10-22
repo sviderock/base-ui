@@ -1,8 +1,7 @@
-import * as React from 'react';
-import { Toast } from '@base-ui-components/react/toast';
-import { fireEvent, flushMicrotasks, screen } from '@mui/internal-test-utils';
+import { createRenderer, flushMicrotasks } from '#test-utils';
+import { Toast } from '@base-ui-components/solid/toast';
+import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { createRenderer } from '#test-utils';
 import { List } from './utils/test-utils';
 
 describe('Manager', () => {
@@ -28,14 +27,14 @@ describe('Manager', () => {
         );
       }
 
-      await render(
+      render(() => (
         <Toast.Provider toastManager={toastManager}>
           <Toast.Viewport>
             <List />
           </Toast.Viewport>
           <AddButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       expect(screen.queryByTestId('title')).to.equal(null);
 
@@ -87,14 +86,14 @@ describe('Manager', () => {
         );
       }
 
-      await render(
+      render(() => (
         <Toast.Provider toastManager={toastManager}>
           <Toast.Viewport>
             <List />
           </Toast.Viewport>
           <AddButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const button = screen.getByRole('button', { name: 'add' });
       fireEvent.click(button);
@@ -136,14 +135,14 @@ describe('Manager', () => {
         );
       }
 
-      await render(
+      render(() => (
         <Toast.Provider toastManager={toastManager}>
           <Toast.Viewport>
             <List />
           </Toast.Viewport>
           <AddButton />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const button = screen.getByRole('button', { name: 'add' });
       fireEvent.click(button);
@@ -173,25 +172,25 @@ describe('Manager', () => {
 
       function Buttons() {
         return (
-          <React.Fragment>
+          <>
             <button type="button" onClick={add}>
               add
             </button>
             <button type="button" onClick={update}>
               update method
             </button>
-          </React.Fragment>
+          </>
         );
       }
 
-      await render(
+      render(() => (
         <Toast.Provider toastManager={toastManager}>
           <Toast.Viewport>
             <List />
           </Toast.Viewport>
           <Buttons />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const button = screen.getByRole('button', { name: 'add' });
       fireEvent.click(button);
@@ -221,25 +220,25 @@ describe('Manager', () => {
 
       function Buttons() {
         return (
-          <React.Fragment>
+          <>
             <button type="button" onClick={add}>
               add
             </button>
             <button type="button" onClick={close}>
               close
             </button>
-          </React.Fragment>
+          </>
         );
       }
 
-      await render(
+      render(() => (
         <Toast.Provider toastManager={toastManager}>
           <Toast.Viewport>
             <List />
           </Toast.Viewport>
           <Buttons />
-        </Toast.Provider>,
-      );
+        </Toast.Provider>
+      ));
 
       const button = screen.getByRole('button', { name: 'add' });
       fireEvent.click(button);

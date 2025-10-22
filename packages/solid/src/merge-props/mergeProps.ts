@@ -1,4 +1,5 @@
 import type { Component, ComponentProps, JSX, ValidComponent } from 'solid-js';
+import { DelegatedEvents, delegateEvents } from 'solid-js/web';
 import { mergeObjects } from '../utils/mergeObjects';
 import type { BaseUIEvent, WithBaseUIEvent } from '../utils/types';
 
@@ -161,6 +162,25 @@ function isEventHandler(key: string, value: unknown) {
       (code2 === 58 /* : */ && code3 >= 97 /* a */ && code3 <= 122)) /* z */ &&
     (typeof value === 'function' || typeof value === 'undefined')
   );
+}
+
+/**
+ * TODO: can it be generic here?
+ * Checks if the event is potentially delegatable.
+ */
+function shouldDelegateEvent(key: string) {
+  const code0 = key.charCodeAt(0);
+  const code1 = key.charCodeAt(1);
+  const code2 = key.charCodeAt(2);
+  const isPotentiallyDelegatable =
+    code0 === 111 /* o */ && code1 === 110 /* n */ && code2 >= 65 /* A */ && code2 <= 90; /* Z */
+
+  if (isPotentiallyDelegatable === false) {
+    return false;
+  }
+
+  const ev = key.slice(2, key.length).toLowerCase();
+  return DelegatedEvents.has(ev) ? false : ev;
 }
 
 function isPropsGetter<T extends Component>(

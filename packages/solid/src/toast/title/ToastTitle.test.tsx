@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { Toast } from '@base-ui-components/react/toast';
 import { createRenderer, describeConformance } from '#test-utils';
-import { screen } from '@mui/internal-test-utils';
+import { Toast } from '@base-ui-components/solid/toast';
+import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { List, Button } from '../utils/test-utils';
+import { Dynamic } from 'solid-js/web';
+import { Button, List } from '../utils/test-utils';
 
 const toast = {
   id: 'test',
@@ -13,28 +13,40 @@ const toast = {
 describe('<Toast.Title />', () => {
   const { render } = createRenderer();
 
-  describeConformance(<Toast.Title>title</Toast.Title>, () => ({
-    refInstanceof: window.HTMLHeadingElement,
-    render(node) {
-      return render(
-        <Toast.Provider>
-          <Toast.Viewport>
-            <Toast.Root toast={toast}>{node}</Toast.Root>
-          </Toast.Viewport>
-        </Toast.Provider>,
-      );
-    },
-  }));
+  describeConformance(
+    (props: any) => (
+      <Toast.Title {...props} ref={props.ref}>
+        title
+      </Toast.Title>
+    ),
+    () => ({
+      refInstanceof: window.HTMLHeadingElement,
+      render(node, elementProps = {}) {
+        return render(
+          () => (
+            <Toast.Provider>
+              <Toast.Viewport>
+                <Toast.Root toast={toast}>
+                  <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
+                </Toast.Root>
+              </Toast.Viewport>
+            </Toast.Provider>
+          ),
+          elementProps,
+        );
+      },
+    }),
+  );
 
   it('adds aria-labelledby to the root element', async () => {
-    const { user } = await render(
+    const { user } = render(() => (
       <Toast.Provider>
         <Toast.Viewport>
           <List />
         </Toast.Viewport>
         <Button />
-      </Toast.Provider>,
-    );
+      </Toast.Provider>
+    ));
 
     const button = screen.getByRole('button', { name: 'add' });
     await user.click(button);
@@ -57,14 +69,14 @@ describe('<Toast.Title />', () => {
       );
     }
 
-    const { user } = await render(
+    const { user } = render(() => (
       <Toast.Provider>
         <Toast.Viewport>
           <List />
         </Toast.Viewport>
         <AddButton />
-      </Toast.Provider>,
-    );
+      </Toast.Provider>
+    ));
 
     const button = screen.getByRole('button', { name: 'add' });
     await user.click(button);
@@ -74,14 +86,14 @@ describe('<Toast.Title />', () => {
   });
 
   it('renders the title by default', async () => {
-    const { user } = await render(
+    const { user } = render(() => (
       <Toast.Provider>
         <Toast.Viewport>
           <List />
         </Toast.Viewport>
         <Button />
-      </Toast.Provider>,
-    );
+      </Toast.Provider>
+    ));
 
     const button = screen.getByRole('button', { name: 'add' });
     await user.click(button);
