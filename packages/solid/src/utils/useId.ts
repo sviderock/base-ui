@@ -14,7 +14,7 @@ import { access, type MaybeAccessor } from '../solid-helpers';
 export function useId(
   idOverride?: MaybeAccessor<string | undefined>,
   prefix: string = 'mui',
-): Accessor<string | undefined> {
+): Accessor<string> {
   const id = createMemo(() => access(idOverride) || `${prefix}-${createUniqueId()}`);
   return id;
 }

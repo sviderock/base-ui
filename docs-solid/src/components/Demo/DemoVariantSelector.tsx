@@ -1,0 +1,164 @@
+'use client';
+import { type DemoVariant } from 'docs-solid/src/blocks/Demo';
+import { useDemoContext } from 'docs-solid/src/blocks/Demo/DemoContext';
+import * as Select from 'docs-solid/src/components/Select';
+import { batch, createEffect, createMemo, For, splitProps, type JSX } from 'solid-js';
+import { useDemoVariantSelectorContext } from './DemoVariantSelectorProvider';
+
+const translations = {
+  variants: {
+    default: 'Default',
+    system: 'MUI System',
+    css: 'Plain CSS',
+    'css-modules': 'CSS Modules',
+    tailwind: 'Tailwind CSS',
+  } as Record<string, string>,
+  languages: {
+    ts: 'TS',
+    js: 'JS',
+  },
+};
+
+export interface DemoVariantSelectorProps extends JSX.HTMLAttributes<HTMLDivElement> {
+  onVariantChange?: () => void;
+  showLanguageSelector?: boolean;
+}
+
+export function DemoVariantSelector(componentProps: DemoVariantSelectorProps) {
+  const [local, props] = splitProps(componentProps, [
+    'class',
+    'onVariantChange',
+    'showLanguageSelector',
+  ]);
+  /*
+    The "local" variant is the one that is selected in the current demo.
+    The "global" one is the one that comes from the DemoVariantSelectorContext.
+
+    The global variant is just a preference, it doesn't mean that the demo has that variant.
+    If the demo doesn't have the global variant, it will fallback to the first one that it has (but it won't set the global setting to it).
+  */
+
+  const {
+    variants,
+    setSelectedVariant: setLocalVariant,
+    selectedVariant: selectedLocalVariant,
+  } = useDemoContext();
+
+  const {
+    selectedLanguage: selectedGlobalLanguageId,
+    setSelectedLanguage: setGlobalLanguageId,
+    selectedVariant: selectedGlobalVariantId,
+    setSelectedVariant: setGlobalVariantId,
+  } = useDemoVariantSelectorContext();
+
+  const variantsMap = createMemo(() => getAvailableVariants(variants()));
+
+  // Whenever user changes a setting, we update the global preference and not set the local one directly.
+  const handleVariantChange = (value: unknown) => {
+    batch(() => {
+      local.onVariantChange?.();
+      setGlobalVariantId(value as string);
+    });
+  };
+
+  const currentVariantLanguages = createMemo(() =>
+    variantsMap()[selectedLocalVariant().name].map((v) => ({
+      value: v.language,
+      label: translations.languages[v.language],
+      demo: v.demo,
+    })),
+  );
+
+  // As above.
+  const handleLanguageChange = (value: string) => {
+    batch(() => {
+      local.onVariantChange?.();
+      const language = currentVariantLanguages().find((item) => item.value === value);
+      if (language) {
+        setGlobalLanguageId(language.value);
+      }
+    });
+  };
+
+  // When the global variant changes, we update the local one
+  createEffect(() => {
+    if (variantsMap()[selectedGlobalVariantId()]) {
+      const variantInPreferredLanguage = variantsMap()[selectedGlobalVariantId()].find(
+        (v) => v.language === selectedGlobalLanguageId(),
+      );
+      if (variantInPreferredLanguage) {
+        setLocalVariant(variantInPreferredLanguage.demo);
+      } else {
+        setLocalVariant(variantsMap()[selectedGlobalVariantId()][0].demo);
+      }
+    } else {
+      // The global variant is not available in the current demo.
+      // We keep using the already selected variant.
+      const currentVariant = variantsMap()[selectedLocalVariant().name];
+
+      // But perhaps we can match the globally selected language?
+      const currentVariantInPreferredLanguage = currentVariant.find(
+        (v) => v.language === selectedGlobalLanguageId(),
+      );
+
+      if (currentVariantInPreferredLanguage) {
+        setLocalVariant(currentVariantInPreferredLanguage.demo);
+      }
+
+      // If we can't, we do not change anything.
+    }
+  });
+
+  const renderVariantSelector = () => Object.keys(variantsMap()).length > 1;
+  const renderLanguageSelector = () =>
+    currentVariantLanguages().length > 1 && local.showLanguageSelector;
+
+  return (
+    <div {...props}>
+      {renderLanguageSelector() && (
+        <Select.Root
+          items={translations.languages}
+          value={selectedLocalVariant().language}
+          onValueChange={handleLanguageChange}
+        >
+          <Select.Trigger />
+          <Select.Popup>
+            <For each={currentVariantLanguages()}>
+              {(language) => <Select.Item value={language.value}>{language.label}</Select.Item>}
+            </For>
+          </Select.Popup>
+        </Select.Root>
+      )}
+
+      {renderVariantSelector() && (
+        <Select.Root
+          items={translations.variants}
+          value={selectedLocalVariant().name}
+          onValueChange={handleVariantChange}
+        >
+          <Select.Trigger aria-label="Styling method" />
+          <Select.Popup>
+            <For each={Object.keys(variantsMap())}>
+              {(variantName) => (
+                <Select.Item value={variantName}>{translations.variants[variantName]}</Select.Item>
+              )}
+            </For>
+          </Select.Popup>
+        </Select.Root>
+      )}
+    </div>
+  );
+}
+
+function getAvailableVariants(demoVariants: DemoVariant[]) {
+  const variantsMap: Record<string, { language: 'js' | 'ts'; demo: DemoVariant }[]> = {};
+  for (const variant of demoVariants) {
+    if (!variantsMap[variant.name]) {
+      variantsMap[variant.name] = [];
+    }
+
+    variantsMap[variant.name].push({ language: variant.language, demo: variant });
+  }
+
+  return variantsMap;
+}
