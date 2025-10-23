@@ -34,7 +34,7 @@ import {
   useListNavigation,
   useRole,
 } from '../../src/floating-ui-solid';
-import { callEventHandler, type ReactLikeRef } from '../../src/solid-helpers';
+import { callEventHandler } from '../../src/solid-helpers';
 
 type MenuContextType = {
   getItemProps: (userProps?: JSX.HTMLAttributes<HTMLElement>) => Record<string, unknown>;
@@ -62,12 +62,14 @@ interface MenuProps {
   label: string;
   nested?: boolean;
   children?: JSX.Element;
-  virtualItemRef: ReactLikeRef<HTMLElement>;
+  refs?: {
+    virtualItemRef: HTMLElement | null | undefined;
+  };
 }
 
 /** @internal */
 export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>) {
-  const [local, elementProps] = splitProps(props, ['children', 'label', 'virtualItemRef']);
+  const [local, elementProps] = splitProps(props, ['children', 'label', 'refs']);
   const [isOpen, setIsOpen] = createSignal(false);
   const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
   const [allowHover, setAllowHover] = createSignal(false);
@@ -113,7 +115,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
     onNavigate: setActiveIndex,
     virtual: true,
     // eslint-disable-next-line solid/reactivity
-    virtualItemRef: local.virtualItemRef,
+    refs: props.refs,
   });
 
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
@@ -262,7 +264,7 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLElement>
             onKeyDown(event) {
               if (event.key === ' ' || event.key === 'Enter') {
                 // eslint-disable-next-line
-                console.log('clicked', local.virtualItemRef);
+                console.log('clicked', props.refs?.virtualItemRef);
               }
             },
           })}
@@ -388,13 +390,13 @@ export function Menu(props: MenuProps & JSX.HTMLAttributes<HTMLElement>) {
 
 /** @internal */
 export function Main() {
-  const virtualItemRef: ReactLikeRef<HTMLElement> = { current: null };
+  const refs = { virtualItemRef: null } as any;
 
   return (
     <>
       <h1 class="mb-8 text-5xl font-bold">Menu Virtual</h1>
       <div class="border-slate-400 mb-4 grid h-[20rem] place-items-center rounded border lg:w-[40rem]">
-        <Menu label="Edit" virtualItemRef={virtualItemRef}>
+        <Menu label="Edit" refs={refs}>
           <MenuItem
             label="Undo"
             onClick={() => {
@@ -404,10 +406,10 @@ export function Main() {
           />
           <MenuItem label="Redo" />
           <MenuItem label="Cut" disabled />
-          <Menu label="Copy as" virtualItemRef={virtualItemRef}>
+          <Menu label="Copy as" refs={refs}>
             <MenuItem label="Text" />
             <MenuItem label="Video" />
-            <Menu label="Image" virtualItemRef={virtualItemRef}>
+            <Menu label="Image" refs={refs}>
               <MenuItem label=".png" />
               <MenuItem label=".jpg" />
               <MenuItem label=".svg" />
@@ -415,7 +417,7 @@ export function Main() {
             </Menu>
             <MenuItem label="Audio" />
           </Menu>
-          <Menu label="Share" virtualItemRef={virtualItemRef}>
+          <Menu label="Share" refs={refs}>
             <MenuItem label="Mail" />
             <MenuItem label="Instagram" />
           </Menu>

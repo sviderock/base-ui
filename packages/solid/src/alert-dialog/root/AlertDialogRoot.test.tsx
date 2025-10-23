@@ -134,9 +134,7 @@ describe('<AlertDialog.Root />', () => {
   describe('prop: actionsRef', () => {
     it('unmounts the alert dialog when the `unmount` method is called', async () => {
       const actionsRef = {
-        current: {
-          unmount: spy(),
-        },
+        unmount: spy(),
       };
 
       const { user } = render(() => (
@@ -161,7 +159,7 @@ describe('<AlertDialog.Root />', () => {
         expect(screen.queryByRole('alertdialog')).not.to.equal(null);
       });
 
-      actionsRef.current.unmount();
+      actionsRef.unmount();
 
       await waitFor(() => {
         expect(screen.queryByRole('alertdialog')).to.equal(null);

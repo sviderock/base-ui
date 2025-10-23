@@ -1106,15 +1106,15 @@ describe('useListNavigation', () => {
   );
 
   it('virtual nested Home or End key press', async () => {
-    const ref = { current: null } as any;
+    const refs = { virtualItemRef: null } as any;
     render(() => (
-      <Menu label="Edit" virtualItemRef={ref}>
+      <Menu label="Edit" refs={refs}>
         <MenuItem label="Undo" />
         <MenuItem label="Redo" />
-        <Menu label="Copy as" virtualItemRef={ref}>
+        <Menu label="Copy as" refs={refs}>
           <MenuItem label="Text" />
           <MenuItem label="Video" />
-          <Menu label="Image" virtualItemRef={ref}>
+          <Menu label="Image" refs={refs}>
             <MenuItem label=".png" />
             <MenuItem label=".jpg" />
             <MenuItem label=".svg" />
@@ -1122,7 +1122,7 @@ describe('useListNavigation', () => {
           </Menu>
           <MenuItem label="Audio" />
         </Menu>
-        <Menu label="Share" virtualItemRef={ref}>
+        <Menu label="Share" refs={refs}>
           <MenuItem label="Mail" />
           <MenuItem label="Instagram" />
         </Menu>
@@ -1143,17 +1143,17 @@ describe('useListNavigation', () => {
   });
 
   it('domReference trigger in nested virtual menu is set as virtual item', async () => {
-    const ref = { current: null } as any;
+    const refs = { virtualItemRef: null } as any;
     // eslint-disable-next-line @typescript-eslint/no-shadow
     function App() {
       return (
-        <Menu label="Edit" virtualItemRef={ref}>
+        <Menu label="Edit" refs={refs}>
           <MenuItem label="Undo" />
           <MenuItem label="Redo" />
-          <Menu label="Copy as" data-testid="copy" virtualItemRef={ref}>
+          <Menu label="Copy as" data-testid="copy" refs={refs}>
             <MenuItem label="Text" />
             <MenuItem label="Video" />
-            <Menu label="Image" virtualItemRef={ref}>
+            <Menu label="Image" refs={refs}>
               <MenuItem label=".png" />
               <MenuItem label=".jpg" />
               <MenuItem label=".svg" />
@@ -1161,7 +1161,7 @@ describe('useListNavigation', () => {
             </Menu>
             <MenuItem label="Audio" />
           </Menu>
-          <Menu label="Share" virtualItemRef={ref}>
+          <Menu label="Share" refs={refs}>
             <MenuItem label="Mail" />
             <MenuItem label="Instagram" />
           </Menu>
@@ -1183,7 +1183,7 @@ describe('useListNavigation', () => {
 
     await userEvent.keyboard('{ArrowLeft}'); // close Copy as submenu
 
-    expect(ref.current).toBe(screen.getByTestId('copy'));
+    expect(refs.virtualItemRef).toBe(screen.getByTestId('copy'));
   });
 
   it('Home or End key press is ignored for typeable combobox reference', async () => {

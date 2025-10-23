@@ -1,12 +1,5 @@
 import { isHTMLElement } from '@floating-ui/utils/dom';
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-  onMount,
-  type Accessor,
-} from 'solid-js';
+import { createEffect, createMemo, createSignal, onCleanup, type Accessor } from 'solid-js';
 import {
   activeElement,
   contains,
@@ -28,12 +21,7 @@ import {
   stopEvent,
 } from '../utils';
 
-import {
-  access,
-  type MaybeAccessor,
-  type MaybeAccessorValue,
-  type ReactLikeRef,
-} from '../../solid-helpers';
+import { access, type MaybeAccessor, type MaybeAccessorValue } from '../../solid-helpers';
 import { useFloatingParentNodeId, useFloatingTree } from '../components/FloatingTree';
 import type { Dimensions, ElementProps, FloatingRootContext } from '../types';
 import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP } from '../utils/constants';
@@ -222,14 +210,17 @@ export interface UseListNavigationProps {
    * value uses nearest options.
    */
   scrollItemIntoView?: MaybeAccessor<boolean | ScrollIntoViewOptions>;
-  /**
-   * When using virtual focus management, this holds a ref to the
-   * virtually-focused item. This allows nested virtual navigation to be
-   * enabled, and lets you know when a nested element is virtually focused from
-   * the root reference handling the events. Requires `FloatingTree` to be
-   * setup.
-   */
-  virtualItemRef?: ReactLikeRef<HTMLElement>;
+  refs?: {
+    /**
+     * When using virtual focus management, this holds a ref to the
+     * virtually-focused item. This allows nested virtual navigation to be
+     * enabled, and lets you know when a nested element is virtually focused from
+     * the root reference handling the events. Requires `FloatingTree` to be
+     * setup.
+     */
+    virtualItemRef?: HTMLElement | null | undefined;
+  };
+
   /**
    * Only for `cols > 1`, specify sizes for grid items.
    * `{ width: 2, height: 2 }` means an item is 2 columns wide and 2 rows tall.
@@ -341,8 +332,9 @@ export function useListNavigation(
         }
         setActiveId(item.id);
         tree?.events.emit('virtualfocus', item);
-        if (props.virtualItemRef) {
-          props.virtualItemRef.current = item;
+        console.log('virtualfocus');
+        if (props.refs) {
+          props.refs.virtualItemRef = item;
         }
       } else {
         enqueueFocus(item, {
@@ -515,8 +507,8 @@ export function useListNavigation(
     function handleVirtualFocus(item: HTMLElement) {
       setVirtualId(item.id);
 
-      if (props.virtualItemRef) {
-        props.virtualItemRef.current = item;
+      if (props.refs) {
+        props.refs.virtualItemRef = item;
       }
     }
 
@@ -893,7 +885,7 @@ export function useListNavigation(
           const rootNode = tree?.nodesRef.find((node) => node.parentId == null);
           const deepestNode = tree && rootNode ? getDeepestNode(tree.nodesRef, rootNode.id) : null;
 
-          if (isMoveKey && deepestNode && props.virtualItemRef) {
+          if (isMoveKey && deepestNode && props.refs?.virtualItemRef) {
             const eventObject = new KeyboardEvent('keydown', {
               key: event.key,
               bubbles: true,

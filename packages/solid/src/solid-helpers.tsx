@@ -27,10 +27,6 @@ export type MaybeAccessorValue<T extends MaybeAccessor<any>> = T extends () => a
   ? ReturnType<T>
   : T;
 
-export type ReactLikeRef<T> = {
-  current: T | null | undefined;
-};
-
 export function autofocus(element: HTMLElement, autofocusProp: Accessor<boolean>) {
   if (autofocusProp?.() === false) {
     return;

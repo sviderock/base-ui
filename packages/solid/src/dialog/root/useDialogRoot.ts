@@ -17,7 +17,7 @@ import {
   type OpenChangeReason as FloatingUIOpenChangeReason,
 } from '../../floating-ui-solid';
 import { getTarget } from '../../floating-ui-solid/utils';
-import { access, type MaybeAccessor, type ReactLikeRef } from '../../solid-helpers';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import {
   translateOpenChangeReason,
   type BaseOpenChangeReason,
@@ -37,6 +37,7 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
   const dismissible = () => access(params.dismissible);
   const modal = () => access(params.modal);
   const openParam = () => access(params.open);
+  const actionsRef = () => access(params.actionsRef);
 
   const [open, setOpenUnwrapped] = useControlled({
     controlled: openParam,
@@ -73,7 +74,7 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
   };
 
   useOpenChangeComplete({
-    enabled: () => !params.actionsRef,
+    enabled: () => !actionsRef(),
     open,
     ref: () => refs.popupRef,
     onComplete() {
@@ -84,8 +85,8 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
   });
 
   onMount(() => {
-    if (params.actionsRef) {
-      params.actionsRef.current = { unmount: handleUnmount };
+    if (actionsRef()) {
+      actionsRef()!.unmount = handleUnmount;
     }
   });
 
@@ -238,7 +239,7 @@ export namespace useDialogRoot {
      * Instead, the `unmount` function must be called to unmount the dialog manually.
      * Useful when the dialog's animation is controlled by an external library.
      */
-    actionsRef?: ReactLikeRef<{ unmount: () => void }>;
+    actionsRef?: MaybeAccessor<{ unmount: () => void } | undefined>;
   }
 
   export interface Parameters
@@ -257,7 +258,7 @@ export namespace useDialogRoot {
     /**
      * A ref to imperative actions.
      */
-    actionsRef?: ReactLikeRef<Actions>;
+    actionsRef?: MaybeAccessor<Actions | undefined>;
   }
 
   export interface ReturnValue {

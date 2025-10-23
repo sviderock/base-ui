@@ -676,9 +676,7 @@ describe('<Dialog.Root />', () => {
   describe('prop: actionsRef', () => {
     it('unmounts the dialog when the `unmount` method is called', async () => {
       const actionsRef = {
-        current: {
-          unmount: spy(),
-        },
+        unmount: spy(),
       };
 
       const { user } = render(() => (
@@ -703,7 +701,7 @@ describe('<Dialog.Root />', () => {
         expect(screen.queryByRole('dialog')).not.to.equal(null);
       });
 
-      actionsRef.current.unmount();
+      actionsRef.unmount();
 
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).to.equal(null);
