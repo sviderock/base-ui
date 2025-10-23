@@ -109,6 +109,8 @@ export function GoogleAnalytics(props: GoogleAnalytics.Props) {
       colorSchemeOS: preferredColorScheme(),
     });
   });
+
+  return null;
 }
 
 export namespace GoogleAnalytics {
