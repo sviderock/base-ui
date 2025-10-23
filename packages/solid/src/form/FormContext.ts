@@ -1,8 +1,8 @@
 'use client';
-import type { MaybeAccessor } from '@base-ui-components/solid/solid-helpers';
 import { createContext, useContext, type Accessor } from 'solid-js';
 import type { SetStoreFunction, Store } from 'solid-js/store';
 import type { FieldValidityData } from '../field/root/FieldRoot';
+import type { MaybeAccessor } from '../solid-helpers';
 import { NOOP } from '../utils/noop';
 
 export type Errors = Record<string, string | string[]>;

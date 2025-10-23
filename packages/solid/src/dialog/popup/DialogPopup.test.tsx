@@ -1,11 +1,9 @@
 import { Dialog } from '@base-ui-components/solid/dialog';
 import { expect } from 'chai';
 // import { AlertDialog } from '@base-ui-components/solid/alert-dialog';
-import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#test-utils';
-import type { ReactLikeRef } from '@base-ui-components/solid/solid-helpers';
+import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { screen, waitFor } from '@solidjs/testing-library';
-import { userEvent } from '@testing-library/user-event';
-import { createSignal, onMount } from 'solid-js';
+import { createSignal } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 
 describe('<Dialog.Popup />', () => {

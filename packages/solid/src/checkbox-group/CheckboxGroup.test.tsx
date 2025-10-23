@@ -3,11 +3,11 @@ import { Checkbox } from '@base-ui-components/solid/checkbox';
 import { CheckboxGroup } from '@base-ui-components/solid/checkbox-group';
 import { Field } from '@base-ui-components/solid/field';
 import { Form } from '@base-ui-components/solid/form';
-import type { MaybeAccessorValue } from '@base-ui-components/solid/solid-helpers';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { createSignal } from 'solid-js';
+import type { MaybeAccessorValue } from '../solid-helpers';
 
 describe('<CheckboxGroup />', () => {
   const { render } = createRenderer();

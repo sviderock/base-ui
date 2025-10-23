@@ -1,11 +1,11 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { NumberField } from '@base-ui-components/solid/number-field';
-import type { MaybeAccessor } from '@base-ui-components/solid/solid-helpers';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { createEffect, createSignal } from 'solid-js';
+import { createSignal } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
+import type { MaybeAccessor } from '../../solid-helpers';
 
 describe('<NumberField.Input />', () => {
   const { render } = createRenderer();

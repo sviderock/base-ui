@@ -56,7 +56,6 @@
     "./separator": "./src/separator/index.ts",
     "./slider": "./src/slider/index.ts",
     "./switch": "./src/switch/index.ts",
-    "./solid-helpers": "./src/solid-helpers.ts",
     "./tabs": "./src/tabs/index.ts",
     "./toast": "./src/toast/index.ts",
     "./toggle": "./src/toggle/index.ts",
