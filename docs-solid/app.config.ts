@@ -22,6 +22,15 @@ const config = defineConfig({
     ssr: true,
   },
   extensions: ['mdx', 'md', 'tsx'],
+  server: {
+    esbuild: {
+      options: {
+        supported: {
+          'top-level-await': true,
+        },
+      },
+    },
+  },
   vite: {
     plugins: [
       tsconfigPaths(),
