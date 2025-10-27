@@ -49,7 +49,11 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     ...options,
     elements: {
       floating: rootContext.elements.floating,
-      reference: positionReference as Accessor<NarrowedElement<RT> | null | undefined>,
+      reference: () =>
+        (positionReference() ?? rootContext.elements.reference()) as
+          | NarrowedElement<RT>
+          | null
+          | undefined,
     },
   });
 

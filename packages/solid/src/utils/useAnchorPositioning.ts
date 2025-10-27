@@ -420,8 +420,10 @@ export function useAnchorPositioning(
 
   const arrowStyles = createMemo<JSX.CSSProperties>(() => ({
     position: 'absolute' as const,
-    top: `${middlewareData().arrow?.y || 0}px`,
-    left: `${middlewareData().arrow?.x || 0}px`,
+    top:
+      middlewareData().arrow?.y === undefined ? undefined : `${middlewareData().arrow?.y || 0}px`,
+    left:
+      middlewareData().arrow?.x === undefined ? undefined : `${middlewareData().arrow?.x || 0}px`,
   }));
 
   const arrowUncentered = () => middlewareData().arrow?.centerOffset !== 0;

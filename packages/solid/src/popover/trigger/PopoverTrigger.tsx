@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createMemo } from 'solid-js';
+import { batch, createMemo } from 'solid-js';
 import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
@@ -57,13 +57,15 @@ export function PopoverTrigger(componentProps: PopoverTrigger.Props) {
       element="button"
       componentProps={componentProps}
       ref={(el) => {
-        buttonRef(el);
-        setTriggerElement(el);
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
+        batch(() => {
+          buttonRef(el);
+          setTriggerElement(el);
+          if (typeof componentProps.ref === 'function') {
+            componentProps.ref(el);
+          } else {
+            componentProps.ref = el;
+          }
+        });
       }}
       params={{
         state: state(),
