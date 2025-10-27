@@ -20,7 +20,25 @@ const configWithDisabledReactRules = defaultConfig
 const config = [
   ...defaultConfig,
   // TODO: really annoying suddenly
-  { rules: { ...configWithDisabledReactRules, '@typescript-eslint/no-namespace': 'off' } },
+  {
+    rules: {
+      ...configWithDisabledReactRules,
+      '@typescript-eslint/no-namespace': 'off',
+
+      /**
+       * TODO: Rules are disabled in order to allow exported clientOnly variables
+       * to be named appropriately.
+       */
+      'no-underscore-dangle': 'off',
+      '@typescript-eslint/naming-convention': [
+        'warn',
+        {
+          selector: ['function', 'variable'],
+          leadingUnderscore: 'allow',
+        },
+      ],
+    },
+  },
   { ...solid },
 ];
 
