@@ -170,7 +170,10 @@ function kebabToPascal(str: string): string {
 }
 
 // TODO make this less dependent on the structure of the repo
-const componentsDir = path.resolve(process.cwd(), '../../packages/react/src');
+const componentsDir = path.resolve(
+  process.cwd(),
+  `../../packages/${process.env.FRAMEWORK ?? 'react'}/src`,
+);
 const componentNames: string[] = fs
   .readdirSync(componentsDir, { withFileTypes: true })
   .filter((dirent) => dirent.isDirectory())
