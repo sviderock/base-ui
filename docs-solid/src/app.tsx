@@ -12,11 +12,11 @@ export default function App() {
   return (
     <Router
       root={(props) => (
-        <MetaProvider>
-          <MDXProvider components={mdxComponents}>
-            <Suspense>{props.children}</Suspense>
-          </MDXProvider>
-        </MetaProvider>
+        <Suspense>
+          <MetaProvider>
+            <MDXProvider components={mdxComponents}>{props.children}</MDXProvider>
+          </MetaProvider>
+        </Suspense>
       )}
     >
       <FileRoutes />

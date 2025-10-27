@@ -1,5 +1,3 @@
-import type { Component } from 'solid-js';
-
 export interface DemoFile {
   /**
    * Absolute path to the file.
@@ -33,9 +31,9 @@ export interface DemoVariant {
    */
   language: 'ts' | 'js';
   /**
-   * Runnable demo component.
+   * Relative path to the runnable demo component.
    */
-  component: Component;
+  componentPath: string;
   /**
    * Files the demo consists of.
    */

@@ -1,5 +1,5 @@
-'use client';
 import { Collapsible } from '@base-ui-components/solid/collapsible';
+import { clientOnly } from '@solidjs/start';
 import clsx from 'clsx';
 import * as BaseDemo from 'docs-solid/src/blocks/Demo';
 import { CheckIcon } from 'docs-solid/src/icons/CheckIcon';
@@ -18,7 +18,9 @@ export interface DemoProps extends ComponentProps<typeof BaseDemo.Root> {
   compact?: boolean;
 }
 
-export function Demo(componentProps: DemoProps) {
+export const Demo = clientOnly(async () => ({ default: _Demo }), { lazy: true });
+
+function _Demo(componentProps: DemoProps) {
   const [local, props] = splitProps(componentProps, ['defaultOpen', 'compact', 'class', 'title']);
   const defaultOpen = () => local.defaultOpen ?? false;
   const compact = () => local.compact ?? false;

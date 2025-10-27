@@ -1,4 +1,4 @@
-import { createEffect, onCleanup } from 'solid-js';
+import { createEffect, on, onCleanup } from 'solid-js';
 import { access, type MaybeAccessor } from '../solid-helpers';
 import { isIOS, isWebKit } from './detectBrowser';
 import { NOOP } from './noop';
@@ -158,7 +158,7 @@ class ScrollLocker {
     if (this.lockCount === 1 && this.restore === null) {
       this.timeoutLock.start(0, () => this.lock(referenceElement));
     }
-    return this.release;
+    return this.release();
   }
 
   release = () => {

@@ -1,8 +1,7 @@
-import { NoSsr } from '@base-ui-components/solid/unstable-no-ssr';
 import { splitProps, type Component, type ComponentProps } from 'solid-js';
 import { Code } from './components/Code';
-import CodeBlock from './components/CodeBlock';
-// import { DemoLoader } from './components/Demo/DemoLoader';
+import * as CodeBlock from './components/CodeBlock';
+import { DemoLoader } from './components/Demo/DemoLoader';
 import { HeadingLink } from './components/HeadingLink';
 import { Kbd } from './components/Kbd/Kbd';
 import { Link } from './components/Link';
@@ -91,14 +90,8 @@ export const mdxComponents: MDXComponents = {
   td: Table.Cell,
 
   // Custom components
-  // Demo:
-  //   process.env.DISABLE_DEMO_SSR === 'true'
-  //     ? (props) => (
-  //         <NoSsr>
-  //           <DemoLoader class="mt-5 mb-6" {...props} />
-  //         </NoSsr>
-  //       )
-  //     : (props) => <DemoLoader class="mt-5 mb-6" {...props} />,
+  // TODO: do we need disable demo ssr in Solid?
+  Demo: (props: any) => <DemoLoader class="mt-5 mb-6" {...props} />,
   QuickNav,
   Meta: (props: ComponentProps<'meta'>) => {
     if (props.name === 'description' && String(props.content).length > 170) {

@@ -1,7 +1,10 @@
-import { visit } from 'unist-util-visit';
-import { join, dirname } from 'path';
+import { valueToEstree } from 'estree-util-value-to-estree';
 import camelCase from 'lodash/camelCase.js';
 import upperFirst from 'lodash/upperFirst.js';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { dirname, join } from 'path';
+import { createReference, serialize, toJSON } from 'seroval';
+import { visit } from 'unist-util-visit';
 
 /**
  * Enhances `<Demo>` components in MDX:
@@ -35,32 +38,6 @@ export function rehypeDemos() {
         paths.push(path.value);
         const importName = upperFirst(camelCase(path.value));
         path.value = join(dirname(file.path), path.value);
-
-        // Add `scope` prop
-        node.attributes.push({
-          type: 'mdxJsxAttribute',
-          name: 'scope',
-          value: {
-            type: 'mdxJsxAttributeValueExpression',
-            value: importName,
-            data: {
-              estree: {
-                type: 'Program',
-                body: [
-                  {
-                    type: 'ExpressionStatement',
-                    expression: {
-                      type: 'Identifier',
-                      name: importName,
-                    },
-                  },
-                ],
-                sourceType: 'module',
-                comments: [],
-              },
-            },
-          },
-        });
       }
     });
 

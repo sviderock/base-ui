@@ -98,7 +98,7 @@ export function Pre(componentProps: ComponentProps<'pre'>) {
       <ScrollArea.Viewport
         style={{ overflow: undefined }}
         render={(p) => (
-          <pre {...props} id={codeId()} class={clsx('CodeBlockPre', local.class)} {...p()} />
+          <pre {...p()} {...props} id={codeId()} class={clsx('CodeBlockPre', local.class)} />
         )}
       />
       <ScrollArea.Scrollbar orientation="horizontal" />

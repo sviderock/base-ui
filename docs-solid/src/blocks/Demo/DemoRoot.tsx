@@ -1,9 +1,11 @@
-'use client';
+import { clientOnly } from '@solidjs/start';
 import { createEffect, createSignal, splitProps, type JSX } from 'solid-js';
 import { DemoContext } from './DemoContext';
 import { DemoFile, DemoVariant } from './types';
 
-export function DemoRoot(props: DemoRoot.Props) {
+export const DemoRoot = clientOnly(async () => ({ default: _DemoRoot }), { lazy: true });
+
+function _DemoRoot(props: DemoRoot.Props) {
   const [local, other] = splitProps(props, ['variants', 'children']);
 
   if (local.variants.length === 0) {

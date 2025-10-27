@@ -1,9 +1,14 @@
-'use client';
+import { clientOnly } from '@solidjs/start';
 import type { JSX } from 'solid-js';
-import { useContext } from 'solid-js';
+import { createMemo, lazy, Suspense, useContext } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import { DemoContext } from './DemoContext';
 
-export function DemoPlayground(props: DemoPlayground.Props) {
+export const DemoPlayground = clientOnly(async () => ({ default: _DemoPlayground }), {
+  lazy: true,
+});
+
+function _DemoPlayground(props: DemoPlayground.Props) {
   const demoContext = useContext(DemoContext);
   if (!demoContext) {
     throw new Error('Demo.Playground must be used within a Demo.Root');
@@ -11,11 +16,13 @@ export function DemoPlayground(props: DemoPlayground.Props) {
 
   const { selectedVariant } = demoContext;
 
-  const DemoComponent = () => selectedVariant().component({});
+  const Comp = createMemo(() => lazy(() => import(selectedVariant().componentPath)));
 
   return (
     <div {...props}>
-      <DemoComponent />
+      <Suspense>
+        <Dynamic component={Comp()} />
+      </Suspense>
     </div>
   );
 }

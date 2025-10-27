@@ -1,4 +1,4 @@
-'use client';
+import { clientOnly } from '@solidjs/start';
 import type { JSX } from 'solid-js';
 import { createContext, createSignal, onMount, useContext, type Accessor } from 'solid-js';
 
@@ -29,7 +29,12 @@ interface DemoVariantSelectorProviderProps {
 const VARIANT_STORAGE_KEY = 'preferredDemoVariant';
 const LANGUAGE_STORAGE_KEY = 'preferredDemoLanguage';
 
-export function DemoVariantSelectorProvider(props: DemoVariantSelectorProviderProps) {
+export const DemoVariantSelectorProvider = clientOnly(
+  async () => ({ default: _DemoVariantSelectorProvider }),
+  { lazy: true },
+);
+
+function _DemoVariantSelectorProvider(props: DemoVariantSelectorProviderProps) {
   const [selectedVariant, setSelectedVariant] = createSignal(props.defaultVariant);
   const [selectedLanguage, setSelectedLanguage] = createSignal(props.defaultLanguage);
 

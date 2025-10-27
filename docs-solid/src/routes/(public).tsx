@@ -1,19 +1,20 @@
-// import { DocsProviders } from 'docs-solid/src/components/DocsProviders';
 import 'docs-solid/src/app.css';
+import { DocsProviders } from 'docs-solid/src/components/DocsProviders';
+import { GoogleAnalytics } from 'docs-solid/src/components/GoogleAnalytics';
 import type { ParentProps } from 'solid-js';
 import './(public).css';
 
 export default function PublicLayout(props: ParentProps) {
   return (
-    // <DocsProviders>
-    <div class="RootLayout">
-      <div class="RootLayoutContainer">
-        <div class="RootLayoutContent">{props.children}</div>
-        <span class="RootLayoutFooter" />
+    <DocsProviders>
+      <div class="RootLayout">
+        <div class="RootLayoutContainer">
+          <div class="RootLayoutContent">{props.children}</div>
+          <span class="RootLayoutFooter" />
+        </div>
       </div>
-    </div>
-    // <GoogleAnalytics />
-    // </DocsProviders>
+      {/* <GoogleAnalytics /> */}
+    </DocsProviders>
   );
 }
 

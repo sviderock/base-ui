@@ -1,5 +1,5 @@
-'use client';
 import { callEventHandler } from '@base-ui-components/solid/solid-helpers';
+import { clientOnly } from '@solidjs/start';
 import copy from 'clipboard-copy';
 import {
   createMemo,
@@ -12,7 +12,11 @@ import {
 } from 'solid-js';
 import { useDemoContext } from './DemoContext';
 
-export function DemoSourceCopy(props: DemoSourceCopy.Props) {
+export const DemoSourceCopy = clientOnly(async () => ({ default: _DemoSourceCopy }), {
+  lazy: true,
+});
+
+function _DemoSourceCopy(props: DemoSourceCopy.Props) {
   const [local, other] = splitProps(props, ['onCopied', 'onError', 'onClick', 'render']);
 
   const { selectedFile } = useDemoContext();

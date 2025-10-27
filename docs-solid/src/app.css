@@ -28,7 +28,7 @@
 @import './fonts/index.css';
 @import './syntax-highlighting/index.css';
 @import './components/Code.css';
-@import './components/CodeBlock.css';
+@import './components/CodeBlock/CodeBlock.css';
 @import './components/Demo/Demo.css';
 @import './components/GhostButton.css';
 @import './components/Header.css';
@@ -43,7 +43,7 @@
 @import './components/SideNav/SideNav.css';
 @import './components/SkipNav.css';
 @import './components/Subtitle/Subtitle.css';
-@import './components/Table.css';
+@import './components/Table/Table.css';
 
 /* Handy link to the default Tailwind theme:
  /* https://github.com/tailwindlabs/tailwindcss/blob/next/packages/tailwindcss/theme.css */

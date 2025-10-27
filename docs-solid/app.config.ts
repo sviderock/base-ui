@@ -1,3 +1,4 @@
+import { CompileOptions } from '@mdx-js/mdx';
 import { defineConfig } from '@solidjs/start/config';
 import rehypeExtractToc from '@stefanprobst/rehype-extract-toc';
 import pkg from '@vinxi/plugin-mdx';
@@ -26,11 +27,13 @@ const config = defineConfig({
       tsconfigPaths(),
       mdx.withImports({})({
         jsx: true,
-        jsxImportSource: 'solid-js/h',
+        jsxImportSource: 'solid-js',
         providerImportSource: 'solid-mdx',
         remarkPlugins: [remarkGfm, remarkTypography],
+        elementAttributeNameCase: 'html',
+        stylePropertyNameCase: 'css',
         rehypePlugins: [
-          // rehypeDemos,
+          rehypeDemos,
           rehypeReference,
           ...rehypeSyntaxHighlighting,
           rehypeSlug,
@@ -40,8 +43,11 @@ const config = defineConfig({
           rehypeSubtitle,
           rehypeKbd,
         ],
+      } satisfies CompileOptions),
+      solid({
+        extensions: ['mdx', 'md', 'tsx'],
+        ssr: true,
       }),
-      solid({ extensions: ['mdx', 'md', 'tsx'], ssr: true }),
     ],
   },
 });

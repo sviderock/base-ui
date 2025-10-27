@@ -1,4 +1,4 @@
-'use client';
+import { clientOnly } from '@solidjs/start';
 import { useDemoContext } from 'docs-solid/src/blocks/Demo/DemoContext';
 import { createCodeSandbox } from 'docs-solid/src/blocks/createCodeSandbox/createCodeSandbox';
 import { ExternalLinkIcon } from 'docs-solid/src/icons/ExternalLinkIcon';
@@ -44,7 +44,11 @@ interface CodeSandboxLinkProps extends ComponentProps<'button'> {
   description?: string;
 }
 
-export function CodeSandboxLink(componentProps: CodeSandboxLinkProps) {
+export const CodeSandboxLink = clientOnly(async () => ({ default: _CodeSandboxLink }), {
+  lazy: true,
+});
+
+function _CodeSandboxLink(componentProps: CodeSandboxLinkProps) {
   const [local, props] = splitProps(componentProps, ['title', 'description']);
   const { selectedVariant } = useDemoContext();
 

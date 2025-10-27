@@ -1,13 +1,17 @@
-'use client';
 import { Tabs } from '@base-ui-components/solid/tabs';
+import { clientOnly } from '@solidjs/start';
 import { DemoContext } from 'docs-solid/src/blocks/Demo';
-import { For, Show, useContext } from 'solid-js';
+import { batch, For, Show, useContext } from 'solid-js';
 
 interface DemoFileSelectorProps {
   onTabChange?: () => void;
 }
 
-export function DemoFileSelector(props: DemoFileSelectorProps) {
+export const DemoFileSelector = clientOnly(async () => ({ default: _DemoFileSelector }), {
+  lazy: true,
+});
+
+function _DemoFileSelector(props: DemoFileSelectorProps) {
   const demoContext = useContext(DemoContext);
   if (!demoContext) {
     throw new Error('Missing DemoContext');
@@ -23,8 +27,10 @@ export function DemoFileSelector(props: DemoFileSelectorProps) {
       <Tabs.Root
         value={selectedFile}
         onValueChange={(value) => {
-          setSelectedFile(value);
-          props.onTabChange?.();
+          batch(() => {
+            setSelectedFile(value);
+            props.onTabChange?.();
+          });
         }}
       >
         <Tabs.List class="DemoTabsList" aria-label="Files">

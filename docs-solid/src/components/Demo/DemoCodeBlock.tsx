@@ -1,4 +1,5 @@
 import { Collapsible } from '@base-ui-components/solid/collapsible';
+import { clientOnly } from '@solidjs/start';
 import * as BaseDemo from 'docs-solid/src/blocks/Demo';
 import { Show, useContext, type ComponentProps } from 'solid-js';
 import * as ScrollArea from '../ScrollArea';
@@ -32,7 +33,11 @@ function Root(props: ComponentProps<typeof ScrollArea.Root>) {
   );
 }
 
-export function DemoCodeBlock(props: DemoCodeBlockProps) {
+export const DemoCodeBlock = clientOnly(async () => ({ default: _DemoCodeBlock }), {
+  lazy: true,
+});
+
+function _DemoCodeBlock(props: DemoCodeBlockProps) {
   const collapsibleLinesThreshold = () => props.collapsibleLinesThreshold ?? 12;
   const demoContext = useContext(BaseDemo.DemoContext);
 
