@@ -16,7 +16,7 @@
 @font-face {
   font-family: 'Unica 77';
   font-weight: normal;
-  src: url('./fonts/regular.woff2');
+  src: url('/fonts/regular.woff2');
 
   /* Default ascent/descent values for future reference */
   /* ascent-override: 97%; */
@@ -26,13 +26,13 @@
 @font-face {
   font-family: 'Unica 77';
   font-weight: 500;
-  src: url('./fonts/medium.woff2');
+  src: url('/fonts/medium.woff2');
 }
 
 @font-face {
   font-family: 'Unica 77';
   font-weight: bold;
-  src: url('./fonts/bold.woff2');
+  src: url('/fonts/bold.woff2');
 }
 
 @font-face {
