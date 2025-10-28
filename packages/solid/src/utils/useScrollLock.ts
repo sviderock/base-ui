@@ -158,7 +158,7 @@ class ScrollLocker {
     if (this.lockCount === 1 && this.restore === null) {
       this.timeoutLock.start(0, () => this.lock(referenceElement));
     }
-    return this.release();
+    return this.release;
   }
 
   release = () => {
@@ -243,6 +243,6 @@ export function useScrollLock(params: {
       return;
     }
 
-    onCleanup(() => SCROLL_LOCKER.acquire(referenceElement()));
+    onCleanup(SCROLL_LOCKER.acquire(referenceElement()));
   });
 }
