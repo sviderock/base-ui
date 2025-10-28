@@ -2,8 +2,11 @@ import { CompileOptions } from '@mdx-js/mdx';
 import { defineConfig } from '@solidjs/start/config';
 import rehypeExtractToc from '@stefanprobst/rehype-extract-toc';
 import pkg from '@vinxi/plugin-mdx';
+import { readFileSync } from 'fs';
+import path from 'path';
 import remarkGfm from 'remark-gfm';
 import remarkTypography from 'remark-typography';
+import { fileURLToPath } from 'url';
 import solid from 'vite-plugin-solid';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { rehypeDemos } from './src/components/Demo/rehypeDemos.mjs';
@@ -16,6 +19,11 @@ import { rehypeSubtitle } from './src/components/Subtitle/rehypeSubtitle.mjs';
 import { rehypeSyntaxHighlighting } from './src/syntax-highlighting/index.mjs';
 
 const { default: mdx } = pkg;
+const currentDirectory = fileURLToPath(new URL('.', import.meta.url));
+const workspaceRoot = path.resolve(currentDirectory, '../');
+
+const rootPackage = loadPackageJson();
+
 const config = defineConfig({
   solid: {
     extensions: ['mdx', 'md', 'tsx'],
@@ -32,6 +40,9 @@ const config = defineConfig({
     },
   },
   vite: {
+    define: {
+      'process.env.LIB_VERSION': JSON.stringify(rootPackage.version),
+    },
     plugins: [
       tsconfigPaths(),
       mdx.withImports({})({
@@ -53,12 +64,20 @@ const config = defineConfig({
           rehypeKbd,
         ],
       } satisfies CompileOptions),
-      solid({
-        extensions: ['mdx', 'md', 'tsx'],
-        ssr: true,
-      }),
+      // solid({
+      //   extensions: ['mdx', 'md', 'tsx'],
+      //   ssr: true,
+      // }),
     ],
   },
 });
+
+/**
+ * @returns {{version: string}}
+ */
+function loadPackageJson() {
+  const pkgContent = readFileSync(path.resolve(workspaceRoot, 'package.json'), 'utf8');
+  return JSON.parse(pkgContent);
+}
 
 export default config;
