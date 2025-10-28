@@ -1,12 +1,5 @@
 'use client';
-import {
-  batch,
-  createEffect,
-  createMemo,
-  createSignal,
-  type ComponentProps,
-  type JSX,
-} from 'solid-js';
+import { createEffect, createMemo, createSignal, type ComponentProps, type JSX } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { CompositeList } from '../../composite/list/CompositeList';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
