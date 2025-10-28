@@ -59,7 +59,7 @@ function _CodeSandboxLink(componentProps: CodeSandboxLinkProps) {
       additionalHtmlHeadContent += tailwindSetup;
 
       selectedVariant().files.forEach((file) => {
-        const cssClasses = file.content.matchAll(/className="(.+?)"/gs);
+        const cssClasses = file.content.matchAll(/class="(.+?)"/gs);
         additionalHtmlHeadContent += `
 
     <!-- Inject classes used so that Tailwind loaded from the CDN can pre-render them. -->

@@ -1,6 +1,5 @@
 import { Header } from 'docs-solid/src/components/Header';
 import { ArrowRightIcon } from 'docs-solid/src/icons/ArrowRightIcon';
-import type { Metadata } from 'next';
 import '../../(content).css';
 import '../../index.css';
 

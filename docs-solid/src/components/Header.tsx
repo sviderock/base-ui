@@ -8,7 +8,6 @@ import MobileNav from './MobileNav';
 import { SkipNav } from './SkipNav';
 
 const VERSION = process.env.LIB_VERSION;
-console.log('VERSION', process.env.LIB_VERSION);
 export const HEADER_HEIGHT = 48;
 
 export function Header() {
