@@ -123,6 +123,13 @@ function mutablyMergeInto<T extends ElementType>(
 
   // eslint-disable-next-line guard-for-in
   for (const propName in externalProps) {
+    /**
+     * TODO: in Solid children are resolved once the value is accessed for the first time
+     * So we need to skip accessing the children property here to avoid resolving it prematurely.
+     */
+    if (propName === 'children') {
+      continue;
+    }
     const externalPropValue = externalProps[propName];
     switch (propName) {
       case 'style': {

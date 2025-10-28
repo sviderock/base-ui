@@ -58,7 +58,9 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
   const [hiddenState, setHiddenState] = createStore({
     scrollbarYHidden: false,
     scrollbarXHidden: false,
-    cornerHidden: false,
+    get cornerHidden() {
+      return this.scrollbarYHidden || this.scrollbarXHidden;
+    },
   });
 
   function handleScroll(scrollPosition: { x: number; y: number }) {

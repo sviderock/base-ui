@@ -4,12 +4,16 @@ import copy from 'clipboard-copy';
 import clsx from 'clsx';
 import {
   createContext,
+  createEffect,
   createSignal,
+  onCleanup,
+  onMount,
   splitProps,
   useContext,
   type Accessor,
   type ComponentProps,
 } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import { CheckIcon } from '../icons/CheckIcon';
 import { CopyIcon } from '../icons/CopyIcon';
 import { GhostButton } from './GhostButton';
@@ -98,7 +102,20 @@ export function Pre(componentProps: ComponentProps<'pre'>) {
       <ScrollArea.Viewport
         style={{ overflow: undefined }}
         render={(p) => (
-          <pre {...p()} {...props} id={codeId()} class={clsx('CodeBlockPre', local.class)} />
+          <pre
+            {...p()}
+            {...props}
+            id={codeId()}
+            class={clsx('CodeBlockPre', p().class, local.class)}
+            ref={(el) => {
+              p().ref(el);
+              if (typeof props.ref === 'function') {
+                props.ref(el);
+              } else {
+                props.ref = el;
+              }
+            }}
+          />
         )}
       />
       <ScrollArea.Scrollbar orientation="horizontal" />

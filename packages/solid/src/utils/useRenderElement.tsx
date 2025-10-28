@@ -1,11 +1,16 @@
 import {
   children,
+  createEffect,
   createMemo,
+  createSignal,
   Match,
+  onCleanup,
+  onMount,
   Show,
   splitProps,
   Switch,
   untrack,
+  type Accessor,
   type JSX,
   type Ref,
 } from 'solid-js';
@@ -37,88 +42,71 @@ export function RenderElement<
   params: RenderElement.Parameters<State, TagName, RenderedElementType, Enabled>;
   children?: JSX.Element;
 }): JSX.Element {
-  const state = () => access(props.params.state) ?? (EMPTY_OBJECT as MaybeAccessorValue<State>);
-  const enabled = () => props.params.enabled ?? true;
-  const classProp = () => props.componentProps.class;
-  const renderProp = untrack(() => props.componentProps.render);
-  const disableStyleHooks = () => props.params.disableStyleHooks;
-  const customStyleHookMapping = () => props.params.customStyleHookMapping;
-  const paramsProps = () => props.params.props;
-  const resolvedChildren = children(() => {
-    if (typeof props.element === 'string') {
-      return props.componentProps.children ?? props.children;
-    }
-
-    return false;
-  });
+  const state = createMemo(
+    () => access(props.params.state) ?? (EMPTY_OBJECT as MaybeAccessorValue<State>),
+  );
+  const enabled = createMemo(() => props.params.enabled ?? true);
+  const renderProp = createMemo(() => props.componentProps.render);
+  const resolvedChildren = children(() => props.componentProps.children ?? props.children);
 
   const styleHooks = createMemo((): Record<string, string> | undefined => {
-    if (disableStyleHooks() !== true) {
+    if (props.params.disableStyleHooks !== true) {
       return enabled()
-        ? getStyleHookProps(
-            state(),
-            customStyleHookMapping() as CustomStyleHookMapping<MaybeAccessorValue<State>>,
-          )
+        ? getStyleHookProps(state(), props.params.customStyleHookMapping)
         : EMPTY_OBJECT;
     }
     return undefined;
   });
 
-  const flattenedParamsProps = createMemo(() => {
-    const p = paramsProps();
-    return Array.isArray(p) ? mergePropsN(p) : p;
-  });
-
-  const propsParams = createMemo(() => {
-    const mergedParams = flattenedParamsProps();
-
-    if (mergedParams === undefined) {
-      return undefined;
-    }
-
-    const [, rest] = splitProps(mergedParams as JSX.HTMLAttributes<RenderedElementType>, [
-      'children',
-    ]);
-
-    return {
-      ...rest,
-      children: resolvedChildren,
-    };
-  });
-
   const outProps = createMemo<JSX.HTMLAttributes<any>>(() => {
-    if (enabled()) {
-      const mergedProps = mergeProps(styleHooks(), propsParams(), {
-        class: resolveClassName(classProp(), state()),
-        ref: props.ref,
-      });
-
-      return mergedProps;
+    if (enabled() === false) {
+      return EMPTY_OBJECT;
     }
 
-    return EMPTY_OBJECT;
+    const p = props.params.props;
+    const mergedParams = Array.isArray(p) ? mergePropsN(p) : p;
+    if (mergedParams === undefined) {
+      return EMPTY_OBJECT;
+    }
+
+    const [, rest] = splitProps(mergedParams, ['children']);
+    const mergedProps = mergeProps(styleHooks(), rest, {
+      class: resolveClassName(props.componentProps.class, state()),
+      ref: props.ref,
+    });
+
+    if (props.componentProps.render) {
+      mergedProps.children = resolvedChildren();
+    }
+
+    return mergedProps;
   });
+
+  const memoizedRender = createMemo<JSX.Element>(() => {
+    if (enabled() === false) {
+      return null;
+    }
+
+    const cachedRender = renderProp();
+    if (cachedRender) {
+      return cachedRender(outProps as Accessor<Record<string, unknown>>, state);
+    }
+
+    return null;
+  }) as unknown as JSX.Element;
 
   return (
     <Switch>
-      <Match when={enabled() === false}>{null}</Match>
-
-      <Match when={renderProp}>
-        <Show
-          when={typeof renderProp === 'function' && renderProp}
-          fallback={renderProp as JSX.Element}
-        >
-          <>{(renderProp as Function)(outProps, state)}</>
-        </Show>
-      </Match>
-
-      <Match when={props.element && typeof props.element === 'string'}>
+      <Match when={enabled() === true && props.componentProps.render}>{memoizedRender}</Match>
+      <Match when={enabled() === true}>
         <Dynamic
           component={props.element as keyof JSX.IntrinsicElements}
           {...(props.element === 'button' ? { type: 'button' } : {})}
           {...(props.element === 'img' ? { alt: '' } : {})}
           {...outProps()}
-        />
+        >
+          {resolvedChildren()}
+        </Dynamic>
       </Match>
     </Switch>
   );
@@ -171,7 +159,7 @@ export namespace RenderElement {
     /**
      * A mapping of state to style hooks.
      */
-    customStyleHookMapping?: CustomStyleHookMapping<State>;
+    customStyleHookMapping?: CustomStyleHookMapping<MaybeAccessorValue<State>>;
   } /* This typing ensures `disableStyleHookMapping` is constantly defined or undefined */ & (
     | {
         /**
@@ -196,7 +184,7 @@ export namespace RenderElement {
     /**
      * The render prop or Solid element to override the default element.
      */
-    render?: ComponentRenderFn<Record<string, unknown>, State> | JSX.Element;
+    render?: ComponentRenderFn<Record<string, unknown>, State>;
     /**
      * The children to render.
      */

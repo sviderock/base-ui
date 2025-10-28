@@ -16,6 +16,7 @@ function _DemoPlayground(props: DemoPlayground.Props) {
 
   const { selectedVariant } = demoContext;
 
+  /* @vite-ignore */
   const Comp = createMemo(() => lazy(() => import(selectedVariant().componentPath)));
 
   return (

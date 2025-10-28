@@ -332,7 +332,6 @@ export function useListNavigation(
         }
         setActiveId(item.id);
         tree?.events.emit('virtualfocus', item);
-        console.log('virtualfocus');
         if (props.refs) {
           props.refs.virtualItemRef = item;
         }

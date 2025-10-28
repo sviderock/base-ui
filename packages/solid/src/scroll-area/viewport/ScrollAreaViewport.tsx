@@ -1,5 +1,6 @@
 'use client';
-import { createEffect, on, onCleanup, splitProps } from 'solid-js';
+import { batch, createEffect, on, onCleanup, onMount, splitProps } from 'solid-js';
+import { produce } from 'solid-js/store';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { clamp } from '../../utils/clamp';
 import { styleDisableScrollbar } from '../../utils/styles';
@@ -127,66 +128,50 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
       }
     }
 
-    context.setHiddenState((prevState) => {
-      const cornerHidden = scrollbarYHidden || scrollbarXHidden;
-
-      if (
-        prevState.scrollbarYHidden === scrollbarYHidden &&
-        prevState.scrollbarXHidden === scrollbarXHidden &&
-        prevState.cornerHidden === cornerHidden
-      ) {
-        return prevState;
-      }
-
-      return {
-        scrollbarYHidden,
-        scrollbarXHidden,
-        cornerHidden,
-      };
-    });
+    context.setHiddenState(
+      produce((state) => {
+        state.scrollbarYHidden = scrollbarYHidden;
+        state.scrollbarXHidden = scrollbarXHidden;
+      }),
+    );
   }
 
-  createEffect(() => {
+  onMount(() => {
     const viewportEl = context.refs.viewportRef;
-    if (viewportEl) {
-      onCleanup(() => {
-        onVisible(viewportEl, computeThumbPosition)();
-      });
-    }
-  });
-
-  createEffect(
-    on([() => context.hiddenState, direction], () => {
-      // Wait for scrollbar-related refs to be set
-      queueMicrotask(computeThumbPosition);
-    }),
-  );
-
-  createEffect(() => {
-    // `onMouseEnter` doesn't fire upon load, so we need to check if the viewport is already
-    // being hovered.
-    const viewportEl = context.refs.viewportRef;
-    if (viewportEl?.matches(':hover')) {
-      context.setHovering(true);
-    }
-  });
-
-  createEffect(() => {
-    if (typeof ResizeObserver === 'undefined') {
+    if (!viewportEl) {
       return;
     }
 
-    const viewportEl = context.refs.viewportRef;
-    const ro = new ResizeObserver(computeThumbPosition);
-
-    if (viewportEl) {
-      ro.observe(viewportEl);
+    // `onMouseEnter` doesn't fire upon load, so we need to check if the viewport is already
+    // being hovered.
+    if (viewportEl.matches(':hover')) {
+      context.setHovering(true);
     }
 
-    onCleanup(() => {
-      ro.disconnect();
-    });
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(computeThumbPosition);
+      ro.observe(viewportEl);
+      onCleanup(() => ro.disconnect());
+    }
+
+    const cleanup = onVisible(viewportEl, computeThumbPosition);
+    onCleanup(cleanup);
   });
+
+  createEffect(
+    on(
+      [
+        () => context.hiddenState.scrollbarYHidden,
+        () => context.hiddenState.scrollbarXHidden,
+        direction,
+      ],
+      () => {
+        // Wait for scrollbar-related refs to be set
+
+        queueMicrotask(computeThumbPosition);
+      },
+    ),
+  );
 
   function handleUserInteraction() {
     programmaticScrollRef = false;
@@ -202,13 +187,15 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
         element="div"
         componentProps={componentProps}
         ref={(el) => {
-          viewportEl = el;
-          context.refs.viewportRef = el;
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
+          batch(() => {
+            viewportEl = el;
+            context.refs.viewportRef = el;
+            if (typeof componentProps.ref === 'function') {
+              componentProps.ref(el);
+            } else {
+              componentProps.ref = el;
+            }
+          });
         }}
         params={{
           props: [
@@ -255,8 +242,7 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
               onPointerEnter: handleUserInteraction,
               onKeyDown: handleUserInteraction,
             },
-            // TODO: fix typing
-            elementProps as any,
+            elementProps,
           ],
         }}
       />

@@ -34,7 +34,6 @@ export interface ScrollAreaRootContext {
   setHiddenState: SetStoreFunction<{
     scrollbarYHidden: boolean;
     scrollbarXHidden: boolean;
-    cornerHidden: boolean;
   }>;
 }
 

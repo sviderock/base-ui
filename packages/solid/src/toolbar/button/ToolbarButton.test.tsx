@@ -795,16 +795,16 @@ describe('<Toolbar.Button />', () => {
         const { user } = render(() => (
           <Toolbar.Root>
             <Toolbar.Button
-              render={(p) => <Toggle {...p()} q={1} onPressedChange={onPressedChange} />}
+              render={(p) => <Toggle {...p()} onPressedChange={onPressedChange} />}
               value="apple"
             />
             <ToggleGroup>
               <Toolbar.Button
-                render={(p) => <Toggle {...p()} q={2} onPressedChange={onPressedChange} />}
+                render={(p) => <Toggle {...p()} onPressedChange={onPressedChange} />}
                 value="one"
               />
               <Toolbar.Button
-                render={(p) => <Toggle {...p()} q={3} onPressedChange={onPressedChange} />}
+                render={(p) => <Toggle {...p()} onPressedChange={onPressedChange} />}
                 value="two"
               />
             </ToggleGroup>

@@ -64,6 +64,8 @@ describe('<Avatar.Fallback />', () => {
     clock.withFakeTimers();
 
     it('shows the fallback when the delay has elapsed', async () => {
+      (useImageLoadingStatus as Mock).mockReturnValue(() => undefined);
+
       const { queryByText } = renderFakeTimers(() => (
         <Avatar.Root>
           <Avatar.Image />
