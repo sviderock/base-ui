@@ -1,0 +1,30 @@
+{
+  "name": "ToastAction",
+  "description": "Performs an action when clicked.\nRenders a `<button>` element.",
+  "props": {
+    "class": {
+      "type": "string | ((state: Toast.Action.State) => string)",
+      "description": "CSS class applied to the element, or a function that\nreturns a class based on the component’s state."
+    },
+    "nativeButton": {
+      "type": "MaybeAccessor",
+      "default": "true",
+      "description": "Whether the component renders a native `<button>` element when replacing it\nvia the `render` prop.\nSet to `false` if the rendered element is not a button (e.g. `<div>`)."
+    },
+    "disabled": {
+      "type": "MaybeAccessor",
+      "description": "Whether the button is currently disabled."
+    },
+    "render": {
+      "type": "((props: Accessor<HTMLProps<any>>, state: Accessor<State>) => Element)",
+      "description": "Allows you to replace the component’s HTML element\nwith a different tag, or compose it with another component.\n\nAccepts a `ReactElement` or a function that returns the element to render."
+    }
+  },
+  "dataAttributes": {
+    "data-type": {
+      "description": "The type of the toast.",
+      "type": "string"
+    }
+  },
+  "cssVariables": {}
+}

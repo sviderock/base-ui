@@ -1,0 +1,20 @@
+{
+  "name": "AvatarFallback",
+  "description": "Rendered when the image fails to load or when no image is provided.\nRenders a `<span>` element.",
+  "props": {
+    "class": {
+      "type": "string | ((state: Avatar.Root.State) => string)",
+      "description": "CSS class applied to the element, or a function that\nreturns a class based on the component’s state."
+    },
+    "delay": {
+      "type": "MaybeAccessor",
+      "description": "How long to wait before showing the fallback. Specified in milliseconds."
+    },
+    "render": {
+      "type": "((props: Accessor<HTMLProps<any>>, state: Accessor<State>) => Element)",
+      "description": "Allows you to replace the component’s HTML element\nwith a different tag, or compose it with another component.\n\nAccepts a `ReactElement` or a function that returns the element to render."
+    }
+  },
+  "dataAttributes": {},
+  "cssVariables": {}
+}

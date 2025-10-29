@@ -1,0 +1,33 @@
+{
+  "name": "CollapsibleRoot",
+  "description": "Groups all parts of the collapsible.\nRenders a `<div>` element.",
+  "props": {
+    "defaultOpen": {
+      "type": "boolean",
+      "default": "false",
+      "description": "Whether the collapsible panel is initially open.\n\nTo render a controlled collapsible, use the `open` prop instead."
+    },
+    "open": {
+      "type": "boolean",
+      "description": "Whether the collapsible panel is currently open.\n\nTo render an uncontrolled collapsible, use the `defaultOpen` prop instead."
+    },
+    "onOpenChange": {
+      "type": "((open: boolean) => void)",
+      "description": "Event handler called when the panel is opened or closed."
+    },
+    "class": {
+      "type": "string | ((state: Collapsible.Root.State) => string)",
+      "description": "CSS class applied to the element, or a function that\nreturns a class based on the component’s state."
+    },
+    "disabled": {
+      "type": "boolean",
+      "default": "false",
+      "description": "Whether the component should ignore user interaction."
+    },
+    "render": {
+      "type": "((props: Accessor<HTMLProps<any>>, state: Accessor<State>) => Element) | null"
+    }
+  },
+  "dataAttributes": {},
+  "cssVariables": {}
+}

@@ -1,0 +1,58 @@
+{
+  "name": "ToggleGroup",
+  "description": "Provides a shared state to a series of toggle buttons.",
+  "props": {
+    "defaultValue": {
+      "type": "MaybeAccessor",
+      "description": "The open state of the toggle group represented by an array of\nthe values of all pressed toggle buttons.\nThis is the uncontrolled counterpart of `value`."
+    },
+    "value": {
+      "type": "MaybeAccessor",
+      "description": "The open state of the toggle group represented by an array of\nthe values of all pressed toggle buttons.\nThis is the controlled counterpart of `defaultValue`."
+    },
+    "onValueChange": {
+      "type": "((groupValue: any[], event: Event) => void)",
+      "description": "Callback fired when the pressed states of the toggle group changes."
+    },
+    "class": {
+      "type": "string | ((state: Toggle.Group.State) => string)",
+      "description": "CSS class applied to the element, or a function that\nreturns a class based on the component’s state."
+    },
+    "toggleMultiple": {
+      "type": "MaybeAccessor",
+      "default": "false",
+      "description": "When `false` only one item in the group can be pressed. If any item in\nthe group becomes pressed, the others will become unpressed.\nWhen `true` multiple items can be pressed."
+    },
+    "disabled": {
+      "type": "MaybeAccessor",
+      "default": "false",
+      "description": "Whether the toggle group should ignore user interaction."
+    },
+    "loop": {
+      "type": "MaybeAccessor",
+      "default": "true",
+      "description": "Whether to loop keyboard focus back to the first item\nwhen the end of the list is reached while using the arrow keys."
+    },
+    "orientation": {
+      "type": "MaybeAccessor",
+      "default": "'horizontal'"
+    },
+    "render": {
+      "type": "((props: Accessor<HTMLProps<any>>, state: Accessor<State>) => Element)",
+      "description": "Allows you to replace the component’s HTML element\nwith a different tag, or compose it with another component.\n\nAccepts a `ReactElement` or a function that returns the element to render."
+    }
+  },
+  "dataAttributes": {
+    "data-orientation": {
+      "description": "Indicates the orientation of the toggle group.",
+      "type": "'horizontal' | 'vertical'"
+    },
+    "data-disabled": {
+      "description": "Present when the toggle group is disabled."
+    },
+    "data-multiple": {
+      "description": "Present when the toggle group allows multiple buttons to be in the pressed state at the same time."
+    }
+  },
+  "cssVariables": {}
+}

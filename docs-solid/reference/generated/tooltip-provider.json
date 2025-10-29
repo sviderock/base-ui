@@ -1,0 +1,24 @@
+{
+  "name": "TooltipProvider",
+  "description": "Provides a shared delay for multiple tooltips. The grouping logic ensures that\nonce a tooltip becomes visible, the adjacent tooltips will be shown instantly.",
+  "props": {
+    "delay": {
+      "type": "MaybeAccessor",
+      "description": "How long to wait before opening a tooltip. Specified in milliseconds."
+    },
+    "closeDelay": {
+      "type": "MaybeAccessor",
+      "description": "How long to wait before closing a tooltip. Specified in milliseconds."
+    },
+    "timeout": {
+      "type": "MaybeAccessor",
+      "default": "400",
+      "description": "Another tooltip will open instantly if the previous tooltip\nis closed within this timeout. Specified in milliseconds."
+    },
+    "children": {
+      "type": "Element"
+    }
+  },
+  "dataAttributes": {},
+  "cssVariables": {}
+}

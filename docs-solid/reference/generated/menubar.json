@@ -1,0 +1,36 @@
+{
+  "name": "Menubar",
+  "description": "The container for menus.",
+  "props": {
+    "class": {
+      "type": "string | ((state: Menubar.State) => string)",
+      "description": "CSS class applied to the element, or a function that\nreturns a class based on the component’s state."
+    },
+    "modal": {
+      "type": "MaybeAccessor",
+      "default": "true",
+      "description": "Whether the menubar is modal."
+    },
+    "disabled": {
+      "type": "MaybeAccessor",
+      "default": "false",
+      "description": "Whether the whole menubar is disabled."
+    },
+    "loop": {
+      "type": "MaybeAccessor",
+      "default": "true",
+      "description": "Whether to loop keyboard focus back to the first item\nwhen the end of the list is reached while using the arrow keys."
+    },
+    "orientation": {
+      "type": "MaybeAccessor",
+      "default": "'horizontal'",
+      "description": "The orientation of the menubar."
+    },
+    "render": {
+      "type": "((props: Accessor<HTMLProps<any>>, state: Accessor<State>) => Element)",
+      "description": "Allows you to replace the component’s HTML element\nwith a different tag, or compose it with another component.\n\nAccepts a `ReactElement` or a function that returns the element to render."
+    }
+  },
+  "dataAttributes": {},
+  "cssVariables": {}
+}

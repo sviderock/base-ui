@@ -1,0 +1,80 @@
+{
+  "name": "SelectRoot",
+  "description": "Groups all parts of the select.\nDoesn’t render its own HTML element.",
+  "props": {
+    "name": {
+      "type": "MaybeAccessor",
+      "description": "Identifies the field when a form is submitted."
+    },
+    "defaultValue": {
+      "type": "MaybeAccessor",
+      "default": "null",
+      "description": "The uncontrolled value of the select when it’s initially rendered.\n\nTo render a controlled select, use the `value` prop instead."
+    },
+    "value": {
+      "type": "MaybeAccessor",
+      "description": "The value of the select."
+    },
+    "onValueChange": {
+      "type": "((value: Value, event: Event | undefined) => void)",
+      "description": "Callback fired when the value of the select changes. Use when controlled."
+    },
+    "defaultOpen": {
+      "type": "MaybeAccessor",
+      "default": "false",
+      "description": "Whether the select menu is initially open.\n\nTo render a controlled select menu, use the `open` prop instead."
+    },
+    "open": {
+      "type": "MaybeAccessor",
+      "description": "Whether the select menu is currently open."
+    },
+    "onOpenChange": {
+      "type": "(open: boolean, event?: Event, reason?: Select.Root.OpenChangeReason) => void",
+      "description": "Event handler called when the select menu is opened or closed."
+    },
+    "actionsRef": {
+      "type": "MaybeAccessor",
+      "description": "A ref to imperative actions.\n- `unmount`: When specified, the select will not be unmounted when closed.\nInstead, the `unmount` function must be called to unmount the select manually.\nUseful when the select's animation is controlled by an external library."
+    },
+    "items": {
+      "type": "MaybeAccessor",
+      "description": "Data structure of the items rendered in the select menu.\nWhen specified, `<Select.Value>` renders the label of the selected item instead of the raw value."
+    },
+    "modal": {
+      "type": "MaybeAccessor",
+      "default": "true",
+      "description": "Determines if the select enters a modal state when open.\n- `true`: user interaction is limited to the select: document page scroll is locked and and pointer interactions on outside elements are disabled.\n- `false`: user interaction with the rest of the document is allowed."
+    },
+    "onOpenChangeComplete": {
+      "type": "((open: boolean) => void)",
+      "description": "Event handler called after any animations complete when the select menu is opened or closed."
+    },
+    "refs": {
+      "type": "{ inputRef: HTMLInputElement | null }"
+    },
+    "disabled": {
+      "type": "MaybeAccessor",
+      "default": "false",
+      "description": "Whether the component should ignore user interaction."
+    },
+    "readOnly": {
+      "type": "MaybeAccessor",
+      "default": "false",
+      "description": "Whether the user should be unable to choose a different option from the select menu."
+    },
+    "required": {
+      "type": "MaybeAccessor",
+      "default": "false",
+      "description": "Whether the user must choose a value before submitting a form."
+    },
+    "id": {
+      "type": "MaybeAccessor",
+      "description": "The id of the Select."
+    },
+    "children": {
+      "type": "Element"
+    }
+  },
+  "dataAttributes": {},
+  "cssVariables": {}
+}
