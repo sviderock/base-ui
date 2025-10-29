@@ -1,13 +1,21 @@
-'use server';
+import { createAsync, query } from '@solidjs/router';
 import { inlineMdxComponents } from 'docs-solid/src/mdx-components';
 import { createMdxComponent } from 'docs-solid/src/mdx/createMdxComponent';
 import { rehypeSyntaxHighlighting } from 'docs-solid/src/syntax-highlighting';
 import type { MDXContent } from 'mdx/types';
-import { createSignal, For, onMount, splitProps, type ComponentProps } from 'solid-js';
+import { For, splitProps, type ComponentProps } from 'solid-js';
 import Table from '../Table';
 import { TableCode } from '../TableCode';
 import { ReferenceTablePopover } from './ReferenceTablePopover';
 import type { PropDef } from './types';
+
+interface Item {
+  name: string;
+  prop: PropDef;
+  PropType: MDXContent;
+  PropDefault: MDXContent;
+  PropDescription: MDXContent;
+}
 
 interface PropsReferenceTableProps extends ComponentProps<typeof Table.Root> {
   data: Record<string, PropDef>;
@@ -17,41 +25,7 @@ interface PropsReferenceTableProps extends ComponentProps<typeof Table.Root> {
 export function PropsReferenceTable(props: PropsReferenceTableProps) {
   const [local, rest] = splitProps(props, ['data', 'type']);
   const type = () => local.type ?? 'props';
-  const [items, setItems] = createSignal<
-    {
-      name: string;
-      prop: PropDef;
-      PropType: MDXContent;
-      PropDefault: MDXContent;
-      PropDescription: MDXContent;
-    }[]
-  >([]);
-
-  onMount(async () => {
-    const newItems: ReturnType<typeof items> = [];
-    for (const name of Object.keys(local.data)) {
-      const prop = local.data[name];
-
-      const PropType = await createMdxComponent(`\`${prop.type}\``, {
-        rehypePlugins: rehypeSyntaxHighlighting,
-        useMDXComponents: () => ({ code: TableCode }),
-      });
-
-      const PropDefault = await createMdxComponent(`\`${prop.required ? '—' : prop.default}\``, {
-        rehypePlugins: rehypeSyntaxHighlighting,
-        useMDXComponents: () => ({ code: TableCode }),
-      });
-
-      const PropDescription = await createMdxComponent(prop.description, {
-        rehypePlugins: rehypeSyntaxHighlighting,
-        useMDXComponents: () => inlineMdxComponents,
-      });
-
-      newItems.push({ name, prop, PropType, PropDefault, PropDescription });
-    }
-
-    setItems(newItems);
-  });
+  const items = createAsync(() => getItems(local.data), { initialValue: [] });
 
   return (
     <Table.Root {...rest}>
@@ -117,3 +91,28 @@ export function PropsReferenceTable(props: PropsReferenceTableProps) {
     </Table.Root>
   );
 }
+
+const getItems = query(async (data: Record<string, PropDef>) => {
+  const newItems: Item[] = [];
+  for (const name of Object.keys(data)) {
+    const prop = data[name];
+    const PropType = await createMdxComponent(`\`${prop.type}\``, {
+      rehypePlugins: rehypeSyntaxHighlighting,
+      useMDXComponents: () => ({ code: TableCode }),
+    });
+
+    const PropDefault = await createMdxComponent(`\`${prop.required ? '—' : prop.default}\``, {
+      rehypePlugins: rehypeSyntaxHighlighting,
+      useMDXComponents: () => ({ code: TableCode }),
+    });
+
+    const PropDescription = await createMdxComponent(prop.description, {
+      rehypePlugins: rehypeSyntaxHighlighting,
+      useMDXComponents: () => inlineMdxComponents,
+    });
+
+    newItems.push({ name, prop, PropType, PropDefault, PropDescription });
+  }
+
+  return newItems;
+}, 'reference-table-props');

@@ -1,13 +1,19 @@
-'use server';
+import { createAsync, query } from '@solidjs/router';
 import { inlineMdxComponents } from 'docs-solid/src/mdx-components';
 import { createMdxComponent } from 'docs-solid/src/mdx/createMdxComponent';
 import { rehypeSyntaxHighlighting } from 'docs-solid/src/syntax-highlighting';
 import type { MDXContent } from 'mdx/types';
-import { createSignal, For, onMount, splitProps, type ComponentProps } from 'solid-js';
+import { For, splitProps, type ComponentProps } from 'solid-js';
 import Table from '../Table';
 import { TableCode } from '../TableCode';
 import { ReferenceTablePopover } from './ReferenceTablePopover';
 import type { CssVariableDef } from './types';
+
+interface Item {
+  name: string;
+  cssVariable: CssVariableDef;
+  CssVaribleDescription: MDXContent;
+}
 
 interface CssVariablesReferenceTableProps extends ComponentProps<typeof Table.Root> {
   data: Record<string, CssVariableDef>;
@@ -15,24 +21,7 @@ interface CssVariablesReferenceTableProps extends ComponentProps<typeof Table.Ro
 
 export function CssVariablesReferenceTable(props: CssVariablesReferenceTableProps) {
   const [local, rest] = splitProps(props, ['data']);
-  const [items, setItems] = createSignal<
-    { name: string; cssVariable: CssVariableDef; CssVaribleDescription: MDXContent }[]
-  >([]);
-
-  onMount(async () => {
-    const newItems: ReturnType<typeof items> = [];
-    for (const name of Object.keys(local.data)) {
-      const cssVariable = local.data[name];
-      const CssVaribleDescription = await createMdxComponent(cssVariable.description, {
-        rehypePlugins: rehypeSyntaxHighlighting,
-        useMDXComponents: () => inlineMdxComponents,
-      });
-
-      newItems.push({ name, cssVariable, CssVaribleDescription });
-    }
-
-    setItems(newItems);
-  });
+  const items = createAsync(() => getItems(local.data), { initialValue: [] });
 
   return (
     <Table.Root {...rest}>
@@ -72,3 +61,17 @@ export function CssVariablesReferenceTable(props: CssVariablesReferenceTableProp
     </Table.Root>
   );
 }
+
+const getItems = query(async (data: Record<string, CssVariableDef>) => {
+  const newItems: Item[] = [];
+  for (const name of Object.keys(data)) {
+    const cssVariable = data[name];
+    const CssVaribleDescription = await createMdxComponent(cssVariable.description, {
+      rehypePlugins: rehypeSyntaxHighlighting,
+      useMDXComponents: () => inlineMdxComponents,
+    });
+
+    newItems.push({ name, cssVariable, CssVaribleDescription });
+  }
+  return newItems;
+}, 'reference-table-css-variables');

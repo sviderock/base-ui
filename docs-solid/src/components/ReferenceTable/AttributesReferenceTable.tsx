@@ -1,22 +1,19 @@
-'use server';
+import { createAsync, query } from '@solidjs/router';
 import { inlineMdxComponents } from 'docs-solid/src/mdx-components';
 import { createMdxComponent } from 'docs-solid/src/mdx/createMdxComponent';
 import { rehypeSyntaxHighlighting } from 'docs-solid/src/syntax-highlighting';
 import type { MDXContent } from 'mdx/types';
-import {
-  createMemo,
-  createResource,
-  createSignal,
-  For,
-  onMount,
-  splitProps,
-  type Component,
-  type ComponentProps,
-} from 'solid-js';
+import { For, splitProps, type ComponentProps } from 'solid-js';
 import Table from '../Table';
 import { TableCode } from '../TableCode';
 import { ReferenceTablePopover } from './ReferenceTablePopover';
 import type { AttributeDef } from './types';
+
+interface Item {
+  name: string;
+  attribute: AttributeDef;
+  AttributeDescription: MDXContent;
+}
 
 interface AttributesReferenceTableProps extends ComponentProps<typeof Table.Root> {
   data: Record<string, AttributeDef>;
@@ -24,24 +21,7 @@ interface AttributesReferenceTableProps extends ComponentProps<typeof Table.Root
 
 export function AttributesReferenceTable(props: AttributesReferenceTableProps) {
   const [local, rest] = splitProps(props, ['data']);
-  const [items, setItems] = createSignal<
-    { name: string; attribute: AttributeDef; AttributeDescription: MDXContent }[]
-  >([]);
-
-  onMount(async () => {
-    const newItems: ReturnType<typeof items> = [];
-    for (const name of Object.keys(local.data)) {
-      const attribute = local.data[name];
-      const AttributeDescription = await createMdxComponent(attribute.description, {
-        rehypePlugins: rehypeSyntaxHighlighting,
-        useMDXComponents: () => inlineMdxComponents,
-      });
-
-      newItems.push({ name, attribute, AttributeDescription });
-    }
-
-    setItems(newItems);
-  });
+  const items = createAsync(() => getItems(local.data), { initialValue: [] });
 
   return (
     <Table.Root {...rest}>
@@ -79,3 +59,17 @@ export function AttributesReferenceTable(props: AttributesReferenceTableProps) {
     </Table.Root>
   );
 }
+
+const getItems = query(async (data: Record<string, AttributeDef>) => {
+  const newItems: Item[] = [];
+  for (const name of Object.keys(data)) {
+    const attribute = data[name];
+    const AttributeDescription = await createMdxComponent(attribute.description, {
+      rehypePlugins: rehypeSyntaxHighlighting,
+      useMDXComponents: () => inlineMdxComponents,
+    });
+
+    newItems.push({ name, attribute, AttributeDescription });
+  }
+  return newItems;
+}, 'reference-table-attributes');

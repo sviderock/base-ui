@@ -1,5 +1,5 @@
 import { evaluate, EvaluateOptions } from '@mdx-js/mdx';
-import * as jsxRuntime from 'solid-js/jsx-runtime';
+import * as jsxRuntime from 'solid-js/h/jsx-runtime';
 
 export async function createMdxComponent(
   markdown = '',
@@ -7,6 +7,8 @@ export async function createMdxComponent(
   options: Partial<Record<keyof EvaluateOptions, unknown>> = {},
 ) {
   const { default: Component } = await evaluate(markdown, {
+    elementAttributeNameCase: 'html',
+    stylePropertyNameCase: 'css',
     ...jsxRuntime,
     ...options,
   } as EvaluateOptions);
