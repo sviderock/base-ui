@@ -22,13 +22,3 @@ export function useCollapsibleRootContext() {
 
   return context;
 }
-
-export function CollapsibleRootContextProvider(
-  props: ParentProps<{ value: CollapsibleRootContext }>,
-) {
-  return (
-    <CollapsibleRootContext.Provider value={props.value}>
-      {props.children}
-    </CollapsibleRootContext.Provider>
-  );
-}

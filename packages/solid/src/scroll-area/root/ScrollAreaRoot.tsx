@@ -1,7 +1,7 @@
 'use client';
-import { createSignal, splitProps } from 'solid-js';
+import { createSignal, onMount, splitProps } from 'solid-js';
 import { createStore } from 'solid-js/store';
-import { styleDisableScrollbar } from '../../utils/styles';
+import { STYLE_TAG_ID, styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { RenderElement } from '../../utils/useRenderElement';
@@ -24,7 +24,7 @@ interface Size {
  * Documentation: [Base UI Scroll Area](https://base-ui.com/react/components/scroll-area)
  */
 export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
-  const [, elementProps] = splitProps(componentProps, ['render', 'class', 'ref']);
+  const [, elementProps] = splitProps(componentProps, ['render', 'class']);
 
   const [hovering, setHovering] = createSignal(false);
   const [scrollingX, setScrollingX] = createSignal(false);
@@ -201,35 +201,42 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
     setHiddenState,
   };
 
+  onMount(() => {
+    if (!document.head.getElementsByTagName('style').namedItem(STYLE_TAG_ID)) {
+      document.head.appendChild(styleDisableScrollbar.element as Node);
+    }
+  });
+
   return (
     <ScrollAreaRootContext.Provider value={contextValue}>
-      {styleDisableScrollbar.element}
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={componentProps.ref}
-        params={{
-          props: [
-            {
-              role: 'presentation',
-              onPointerEnter: handlePointerEnterOrMove,
-              onPointerMove: handlePointerEnterOrMove,
-              onPointerDown(event) {
-                setTouchModality(event.pointerType === 'touch');
+      <>
+        <RenderElement
+          element="div"
+          componentProps={componentProps}
+          ref={componentProps.ref}
+          params={{
+            props: [
+              {
+                role: 'presentation',
+                onPointerEnter: handlePointerEnterOrMove,
+                onPointerMove: handlePointerEnterOrMove,
+                onPointerDown(event) {
+                  setTouchModality(event.pointerType === 'touch');
+                },
+                onPointerLeave() {
+                  setHovering(false);
+                },
+                style: {
+                  position: 'relative',
+                  [ScrollAreaRootCssVars.scrollAreaCornerHeight as string]: `${cornerSize.height}px`,
+                  [ScrollAreaRootCssVars.scrollAreaCornerWidth as string]: `${cornerSize.width}px`,
+                },
               },
-              onPointerLeave() {
-                setHovering(false);
-              },
-              style: {
-                position: 'relative',
-                [ScrollAreaRootCssVars.scrollAreaCornerHeight as string]: `${cornerSize.height}px`,
-                [ScrollAreaRootCssVars.scrollAreaCornerWidth as string]: `${cornerSize.width}px`,
-              },
-            },
-            elementProps,
-          ],
-        }}
-      />
+              elementProps,
+            ],
+          }}
+        />
+      </>
     </ScrollAreaRootContext.Provider>
   );
 }

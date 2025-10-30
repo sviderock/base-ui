@@ -2,7 +2,7 @@
 import { Show, splitProps } from 'solid-js';
 import { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
-import { CollapsibleRootContext, CollapsibleRootContextProvider } from './CollapsibleRootContext';
+import { CollapsibleRootContext } from './CollapsibleRootContext';
 import { collapsibleStyleHookMapping } from './styleHooks';
 import { useCollapsibleRoot } from './useCollapsibleRoot';
 
@@ -47,7 +47,7 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
   };
 
   return (
-    <CollapsibleRootContextProvider value={contextValue}>
+    <CollapsibleRootContext.Provider value={contextValue}>
       <Show when={componentProps.render !== null} fallback={componentProps.children}>
         <RenderElement
           element="div"
@@ -60,7 +60,7 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
           }}
         />
       </Show>
-    </CollapsibleRootContextProvider>
+    </CollapsibleRootContext.Provider>
   );
 }
 
