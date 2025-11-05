@@ -37,6 +37,8 @@ export type ComponentRenderFn<Props, State> = (
 /**
  * Props shared by all Base UI components.
  * Contains `class` (string or callback taking the component's state as an argument) and `render` (function to customize rendering).
+ *
+ * TODO: Removing usage of Omit sped up tsserver, presumably because it doesn't need to iterate each property of the DOM element
  */
 export type BaseUIComponentProps<
   ElementType extends keyof JSX.IntrinsicElements,
