@@ -27,7 +27,7 @@ export function RenderElement<
 >(props: {
   element: TagName;
   // TODO: needed as a separate prop to properly reassign refs https://stackoverflow.com/a/71137252
-  ref: Ref<RenderedElementType>;
+  ref: RenderedElementType['ref'];
   componentProps: RenderElement.ComponentProps<State>;
   params: RenderElement.Parameters<State, TagName, Enabled>;
   children?: JSX.Element;

@@ -11,7 +11,7 @@ import { getPseudoElementBounds } from '../../utils/getPseudoElementBounds';
 import { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { ownerDocument } from '../../utils/owner';
 import { pressableTriggerOpenStateMapping } from '../../utils/popupStateMapping';
-import { BaseUIComponentProps, type WithBaseUIEvent } from '../../utils/types';
+import { BaseUIComponentProps, type HTMLProps, type WithBaseUIEvent } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useTimeout } from '../../utils/useTimeout';
 import { useSelectRootContext } from '../root/SelectRootContext';
@@ -89,7 +89,7 @@ export function SelectTrigger(componentProps: SelectTrigger.Props) {
     timeoutMouseDown.clear();
   });
 
-  const props = createMemo<WithBaseUIEvent<any>>(() =>
+  const props = createMemo<WithBaseUIEvent<HTMLProps>>(() =>
     mergeProps<'div'>(
       store.triggerProps,
       {
