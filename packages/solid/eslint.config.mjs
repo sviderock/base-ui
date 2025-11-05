@@ -35,6 +35,7 @@ const config = [
         {
           selector: ['function', 'variable'],
           leadingUnderscore: 'allow',
+          format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
         },
       ],
     },

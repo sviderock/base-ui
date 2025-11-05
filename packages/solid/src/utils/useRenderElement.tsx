@@ -1,15 +1,9 @@
 import {
   children,
-  createEffect,
   createMemo,
-  createSignal,
   Match,
-  onCleanup,
-  onMount,
-  Show,
   splitProps,
   Switch,
-  untrack,
   type Accessor,
   type JSX,
   type Ref,
@@ -20,26 +14,22 @@ import { access, type MaybeAccessor, type MaybeAccessorValue } from '../solid-he
 import { EMPTY_OBJECT } from './constants';
 import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
 import { resolveClassName } from './resolveClassName';
-import type { ComponentRenderFn, HTMLProps } from './types';
+import type { BaseUIComponentProps, ComponentRenderFn, HTMLProps } from './types';
 
-type IntrinsicTagName = keyof HTMLElementTagNameMap;
 export type ComponentPropsToOmit<State extends Record<string, any>> =
   keyof RenderElement.ComponentProps<State>;
-export const COMPONENT_PROPS_TO_OMIT: ComponentPropsToOmit<any>[] = ['class', 'render', 'children'];
 
 export function RenderElement<
   State extends MaybeAccessor<Record<string, MaybeAccessor<any>>>,
-  TagName extends IntrinsicTagName | undefined,
-  RenderedElementType extends TagName extends keyof HTMLElementTagNameMap
-    ? HTMLElementTagNameMap[TagName]
-    : HTMLElement,
+  TagName extends keyof JSX.IntrinsicElements,
+  RenderedElementType extends JSX.IntrinsicElements[TagName],
   Enabled extends boolean | undefined = undefined,
 >(props: {
   element: TagName;
   // TODO: needed as a separate prop to properly reassign refs https://stackoverflow.com/a/71137252
-  ref: Ref<RenderedElementType | null | undefined>;
+  ref: Ref<RenderedElementType>;
   componentProps: RenderElement.ComponentProps<State>;
-  params: RenderElement.Parameters<State, TagName, RenderedElementType, Enabled>;
+  params: RenderElement.Parameters<State, TagName, Enabled>;
   children?: JSX.Element;
 }): JSX.Element {
   const state = createMemo(
@@ -69,7 +59,7 @@ export function RenderElement<
       return EMPTY_OBJECT;
     }
 
-    const [, rest] = splitProps(mergedParams, ['children']);
+    const [, rest] = splitProps(mergedParams, ['children', 'class', 'ref']);
     const mergedProps = mergeProps(styleHooks(), rest, {
       class: resolveClassName(props.componentProps.class, state()),
       ref: props.ref,
@@ -112,20 +102,15 @@ export function RenderElement<
   );
 }
 
-type RenderFunctionProps<
+type RenderFunctionProps<TagName extends keyof JSX.IntrinsicElements> = BaseUIComponentProps<
   TagName,
-  RenderedElementType extends TagName extends keyof HTMLElementTagNameMap
-    ? HTMLElementTagNameMap[TagName]
-    : HTMLElement,
-> = JSX.HTMLAttributes<RenderedElementType>;
+  Record<string, unknown>
+>;
 
 export namespace RenderElement {
   export type Parameters<
     State,
-    TagName,
-    RenderedElementType extends TagName extends keyof HTMLElementTagNameMap
-      ? HTMLElementTagNameMap[TagName]
-      : HTMLElement,
+    TagName extends keyof JSX.IntrinsicElements,
     Enabled extends boolean | undefined,
   > = {
     /**
@@ -147,13 +132,11 @@ export namespace RenderElement {
      * Intrinsic props to be spread on the rendered element.
      */
     props?:
-      | RenderFunctionProps<TagName, RenderedElementType>
+      | RenderFunctionProps<TagName>
       | Array<
-          | RenderFunctionProps<TagName, RenderedElementType>
+          | RenderFunctionProps<TagName>
           | undefined
-          | ((
-              props: RenderFunctionProps<TagName, RenderedElementType>,
-            ) => RenderFunctionProps<TagName, RenderedElementType>)
+          | ((props: RenderFunctionProps<TagName>) => RenderFunctionProps<TagName>)
         >;
 
     /**
@@ -184,7 +167,7 @@ export namespace RenderElement {
     /**
      * The render prop or Solid element to override the default element.
      */
-    render?: ComponentRenderFn<Record<string, unknown>, State>;
+    render?: ComponentRenderFn<Record<string, unknown>, State> | null;
     /**
      * The children to render.
      */

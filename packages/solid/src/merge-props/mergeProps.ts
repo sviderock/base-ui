@@ -1,10 +1,10 @@
 import type { Component, ComponentProps, JSX, ValidComponent } from 'solid-js';
-import { DelegatedEvents, delegateEvents } from 'solid-js/web';
+import { DelegatedEvents } from 'solid-js/web';
 import { mergeObjects } from '../utils/mergeObjects';
 import type { BaseUIEvent, WithBaseUIEvent } from '../utils/types';
 
 type ElementType = keyof JSX.IntrinsicElements | ValidComponent;
-type PropsOf<T extends ElementType> = WithBaseUIEvent<ComponentProps<T>>;
+type PropsOf<T extends ElementType> = WithBaseUIEvent<T>;
 type InputProps<T extends ElementType> =
   | PropsOf<T>
   | ((otherProps: PropsOf<T>) => PropsOf<T>)

@@ -128,7 +128,7 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
                   context.width() === undefined ? 'auto' : `${context.width()}px`,
               },
             },
-            elementProps as JSX.HTMLAttributes<HTMLDivElement>,
+            elementProps,
           ],
           customStyleHookMapping: collapsibleStyleHookMapping,
         }}

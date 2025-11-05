@@ -1,4 +1,4 @@
-import type { Accessor, ComponentProps, JSX } from 'solid-js';
+import type { Accessor, ComponentProps, JSX, Ref } from 'solid-js';
 
 export type HTMLProps<T = any> = JSX.HTMLAttributes<T>;
 
@@ -7,20 +7,36 @@ export type BaseUIEvent<E extends Event> = E & {
   readonly baseUIHandlerPrevented?: boolean;
 };
 
-type WithPreventBaseUIHandler<T> = T extends (event: infer E) => any
-  ? E extends Parameters<JSX.EventHandler<Element, Event>>[0]
-    ? (event: BaseUIEvent<E>) => ReturnType<T>
-    : T
-  : T extends undefined
-    ? undefined
-    : T;
+type WithPreventBaseUIHandler<
+  T,
+  K extends keyof JSX.HTMLAttributes<T>,
+  ExtractedEvent = ExtractEvent<T, K> extends infer E extends Event
+    ? BaseUIEvent<Omit<E, 'currentTarget' | 'target'> & Pick<Event, 'target' | 'currentTarget'>>
+    : false,
+> = ExtractedEvent extends false
+  ? JSX.HTMLAttributes<T>[K]
+  : K extends `${string}:${string}`
+    ? JSX.EventHandlerWithOptionsUnion<T, Event & ExtractedEvent>
+    : JSX.EventHandlerUnion<T, Event & ExtractedEvent>;
 
 /**
  * Adds a `preventBaseUIHandler` method to all event handlers.
  */
 export type WithBaseUIEvent<T> = {
-  [K in keyof T]: WithPreventBaseUIHandler<T[K]>;
+  [K in keyof JSX.HTMLAttributes<T>]: WithPreventBaseUIHandler<T, K>;
 };
+
+// TODO: this seems to slow down the tsserver a lot (2-5s for each cmd+s to complete)
+type ExtractEventHandler<T, K extends string> = K extends keyof JSX.CustomEventHandlersCamelCase<T>
+  ? Extract<JSX.CustomEventHandlersCamelCase<T>[K], Function>
+  : K extends keyof JSX.CustomEventHandlersLowerCase<T>
+    ? Extract<JSX.CustomEventHandlersLowerCase<T>[K], Function>
+    : K extends keyof JSX.CustomEventHandlersNamespaced<T>
+      ? Extract<JSX.CustomEventHandlersNamespaced<T>[K], Function>
+      : never;
+
+type ExtractEvent<T, K extends keyof JSX.HTMLAttributes<T>> =
+  Parameters<ExtractEventHandler<T, K>> extends [infer E] ? E : never;
 
 /**
  * Shape of the render prop: a function that takes props to be spread on the element and component's state and returns a React element.
@@ -38,12 +54,12 @@ export type ComponentRenderFn<Props, State> = (
  * Contains `class` (string or callback taking the component's state as an argument) and `render` (function to customize rendering).
  */
 export type BaseUIComponentProps<
-  ElementType extends keyof HTMLElementTagNameMap,
+  ElementType extends keyof JSX.IntrinsicElements,
   State,
-  RenderFunctionProps = HTMLProps,
+  RenderFunctionProps = ComponentProps<ElementType>,
 > = Omit<
-  WithBaseUIEvent<ComponentProps<ElementType>>,
-  'class' | 'color' | 'defaultValue' | 'defaultChecked'
+  WithBaseUIEvent<ElementType>,
+  'class' | 'color' | 'defaultValue' | 'defaultChecked' | 'ref'
 > & {
   /**
    * CSS class applied to the element, or a function that
@@ -57,6 +73,7 @@ export type BaseUIComponentProps<
    * Accepts a `ReactElement` or a function that returns the element to render.
    */
   render?: ComponentRenderFn<RenderFunctionProps, State>;
+  ref?: Ref<ComponentProps<ElementType>['ref']>;
 };
 
 /**

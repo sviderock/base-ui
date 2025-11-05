@@ -1,5 +1,5 @@
 'use client';
-import { createMemo, createSignal, splitProps } from 'solid-js';
+import { batch, createMemo, createSignal, splitProps } from 'solid-js';
 import type { CollapsibleRoot } from '../../collapsible/root/CollapsibleRoot';
 import { CollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
 import { useCollapsibleRoot } from '../../collapsible/root/useCollapsibleRoot';
@@ -58,8 +58,10 @@ export function AccordionItem(componentProps: AccordionItem.Props) {
   });
 
   const onOpenChange = (nextOpen: boolean) => {
-    handleValueChange(value(), nextOpen);
-    local.onOpenChange?.(nextOpen);
+    batch(() => {
+      handleValueChange(value(), nextOpen);
+      local.onOpenChange?.(nextOpen);
+    });
   };
 
   const collapsible = useCollapsibleRoot({

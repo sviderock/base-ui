@@ -1,10 +1,10 @@
 'use client';
-import { createEffect, onCleanup, splitProps } from 'solid-js';
+import { createEffect, onCleanup } from 'solid-js';
 import { getTarget } from '../../floating-ui-solid/utils';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { COMPONENT_PROPS_TO_OMIT, RenderElement } from '../../utils/useRenderElement';
+import { RenderElement } from '../../utils/useRenderElement';
 import { FieldRoot } from '../root/FieldRoot';
 import { useFieldRootContext } from '../root/FieldRootContext';
 import { fieldValidityMapping } from '../utils/constants';
