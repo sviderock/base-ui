@@ -1,7 +1,7 @@
 'use client';
-import { splitProps } from 'solid-js';
+import { createMemo } from 'solid-js';
 import { useDialogClose } from '../../dialog/close/useDialogClose';
-import { type MaybeAccessor, access } from '../../solid-helpers';
+import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
@@ -13,12 +13,7 @@ import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
  * Documentation: [Base UI Alert Dialog](https://base-ui.com/react/components/alert-dialog)
  */
 export function AlertDialogClose(componentProps: AlertDialogClose.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'render',
-    'class',
-    'disabled',
-    'nativeButton',
-  ]);
+  const [, local, elementProps] = splitComponentProps(componentProps, ['disabled', 'nativeButton']);
   const disabled = () => access(local.disabled) ?? false;
   const nativeButton = () => access(local.nativeButton) ?? true;
 
@@ -30,7 +25,7 @@ export function AlertDialogClose(componentProps: AlertDialogClose.Props) {
     nativeButton,
   });
 
-  const state: AlertDialogClose.State = { disabled };
+  const state = createMemo<AlertDialogClose.State>(() => ({ disabled: disabled() }));
 
   return (
     <RenderElement
@@ -44,7 +39,10 @@ export function AlertDialogClose(componentProps: AlertDialogClose.Props) {
         }
         dialogCloseRef(el);
       }}
-      params={{ state, props: [elementProps, getRootProps] }}
+      params={{
+        state: state(),
+        props: [elementProps, getRootProps],
+      }}
     />
   );
 }
@@ -64,6 +62,6 @@ export namespace AlertDialogClose {
     /**
      * Whether the button is currently disabled.
      */
-    disabled: MaybeAccessor<boolean>;
+    disabled: boolean;
   }
 }

@@ -1,5 +1,6 @@
 'use client';
-import { createEffect, splitProps } from 'solid-js';
+import { batch, createEffect, createMemo } from 'solid-js';
+import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import type { AvatarRoot } from '../root/AvatarRoot';
@@ -14,9 +15,7 @@ import { ImageLoadingStatus, useImageLoadingStatus } from './useImageLoadingStat
  * Documentation: [Base UI Avatar](https://base-ui.com/react/components/avatar)
  */
 export function AvatarImage(componentProps: AvatarImage.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'class',
-    'render',
+  const [, local, elementProps] = splitComponentProps(componentProps, [
     'onLoadingStatusChange',
     'referrerPolicy',
     'crossOrigin',
@@ -25,13 +24,15 @@ export function AvatarImage(componentProps: AvatarImage.Props) {
   const context = useAvatarRootContext();
   const imageLoadingStatus = useImageLoadingStatus({
     src: () => componentProps.src,
-    referrerPolicy: () => local.referrerPolicy,
-    crossOrigin: () => local.crossOrigin,
+    referrerPolicy: local.referrerPolicy,
+    crossOrigin: local.crossOrigin,
   });
 
   const handleLoadingStatusChange = (status: ImageLoadingStatus) => {
-    local.onLoadingStatusChange?.(status);
-    context.setImageLoadingStatus(status);
+    batch(() => {
+      local.onLoadingStatusChange?.(status);
+      context.setImageLoadingStatus(status);
+    });
   };
 
   createEffect(() => {
@@ -40,7 +41,9 @@ export function AvatarImage(componentProps: AvatarImage.Props) {
     }
   });
 
-  const state: AvatarRoot.State = { imageLoadingStatus };
+  const state = createMemo<AvatarRoot.State>(() => ({
+    imageLoadingStatus: imageLoadingStatus(),
+  }));
 
   return (
     <RenderElement
@@ -48,7 +51,7 @@ export function AvatarImage(componentProps: AvatarImage.Props) {
       componentProps={componentProps}
       ref={componentProps.ref}
       params={{
-        state,
+        state: state(),
         props: elementProps,
         customStyleHookMapping: avatarStyleHookMapping,
         enabled: imageLoadingStatus() === 'loaded',

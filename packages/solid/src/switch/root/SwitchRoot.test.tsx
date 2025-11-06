@@ -34,7 +34,7 @@ describe('<Switch.Root />', () => {
         return (
           <div>
             <button onClick={() => setChecked((c) => !c)}>Toggle</button>
-            <Switch.Root checked={checked} />;
+            <Switch.Root checked={checked()} />;
           </div>
         );
       }
@@ -523,7 +523,7 @@ describe('<Switch.Root />', () => {
               <Field.Label data-testid="label">
                 <Switch.Root
                   data-testid="button"
-                  render={(p) => <span {...p()} />}
+                  render={(p) => <span {...(p() as any)} />}
                   nativeButton={false}
                 />
               </Field.Label>
@@ -564,7 +564,7 @@ describe('<Switch.Root />', () => {
         it('when rendering a non-native label', async () => {
           render(() => (
             <Field.Root>
-              <Field.Label data-testid="label" render={(p) => <span {...p()} />}>
+              <Field.Label data-testid="label" render={(p) => <span {...(p() as any)} />}>
                 <Switch.Root data-testid="button" />
               </Field.Label>
             </Field.Root>

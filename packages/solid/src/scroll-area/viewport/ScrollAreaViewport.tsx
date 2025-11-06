@@ -2,6 +2,7 @@
 import { batch, createEffect, on, onCleanup, onMount, splitProps } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { useDirection } from '../../direction-provider/DirectionContext';
+import { splitComponentProps } from '../../solid-helpers';
 import { clamp } from '../../utils/clamp';
 import { styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -20,7 +21,7 @@ import { ScrollAreaViewportContext } from './ScrollAreaViewportContext';
  * Documentation: [Base UI Scroll Area](https://base-ui.com/react/components/scroll-area)
  */
 export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
-  const [, elementProps] = splitProps(componentProps, ['render', 'class']);
+  const [, , elementProps] = splitComponentProps(componentProps, []);
   let viewportEl: HTMLDivElement | undefined | null;
 
   const context = useScrollAreaRootContext();

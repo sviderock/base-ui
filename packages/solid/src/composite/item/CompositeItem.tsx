@@ -9,7 +9,7 @@ import { useCompositeItem } from './useCompositeItem';
  * @internal
  */
 export function CompositeItem<Metadata>(componentProps: CompositeItem.Props<Metadata>) {
-  const [, local, elementProps] = splitComponentProps(componentProps, ['itemRef', 'metadata']);
+  const [, local, elementProps] = splitComponentProps(componentProps, ['refs', 'metadata']);
   const metadata = () => access(local.metadata);
 
   const compositeItem = useCompositeItem({ metadata });
@@ -25,7 +25,9 @@ export function CompositeItem<Metadata>(componentProps: CompositeItem.Props<Meta
           } else {
             componentProps.ref = el;
           }
-          componentProps.itemRef = el;
+          if (componentProps.refs) {
+            componentProps.refs.itemRef = el;
+          }
           compositeItem.setRef(el);
         });
       }}
@@ -37,9 +39,11 @@ export function CompositeItem<Metadata>(componentProps: CompositeItem.Props<Meta
 export namespace CompositeItem {
   export interface State {}
 
-  export interface Props<Metadata> extends Omit<BaseUIComponentProps<'div', State>, 'itemRef'> {
+  export interface Props<Metadata> extends BaseUIComponentProps<'div', State> {
     // the itemRef name collides with https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/itemref
-    itemRef?: HTMLElement | null | undefined;
+    refs?: {
+      itemRef?: HTMLElement | null | undefined;
+    };
     metadata?: MaybeAccessor<Metadata | undefined>;
   }
 }

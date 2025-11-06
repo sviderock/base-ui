@@ -12,6 +12,7 @@ import { AlertDialogPortalContext } from './AlertDialogPortalContext';
  * Documentation: [Base UI Alert Dialog](https://base-ui.com/react/components/alert-dialog)
  */
 export function AlertDialogPortal(props: AlertDialogPortal.Props) {
+  const container = () => access(props.container);
   const keepMounted = () => access(props.keepMounted) ?? false;
 
   const { mounted } = useAlertDialogRootContext();
@@ -21,7 +22,7 @@ export function AlertDialogPortal(props: AlertDialogPortal.Props) {
   return (
     <Show when={shouldRender()} fallback={null}>
       <AlertDialogPortalContext.Provider value={keepMounted}>
-        <FloatingPortal root={props.container}>{props.children}</FloatingPortal>
+        <FloatingPortal root={container()}>{props.children}</FloatingPortal>
       </AlertDialogPortalContext.Provider>
     </Show>
   );
@@ -38,6 +39,6 @@ export namespace AlertDialogPortal {
     /**
      * A parent element to render the portal element into.
      */
-    container?: FloatingPortalProps['root'];
+    container?: MaybeAccessor<FloatingPortalProps['root'] | undefined>;
   }
 }

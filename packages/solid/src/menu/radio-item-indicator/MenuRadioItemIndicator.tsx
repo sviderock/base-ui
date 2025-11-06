@@ -1,5 +1,5 @@
 'use client';
-import type { Accessor } from 'solid-js';
+import { createMemo } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
@@ -34,12 +34,13 @@ export function MenuRadioItemIndicator(componentProps: MenuRadioItemIndicator.Pr
     },
   });
 
-  const state: MenuRadioItemIndicator.State = {
-    checked: item.checked,
-    disabled: item.disabled,
-    highlighted: item.highlighted,
-    transitionStatus,
-  };
+  const state = createMemo<MenuRadioItemIndicator.State>(() => ({
+    checked: item.checked(),
+    disabled: item.disabled(),
+    highlighted: item.highlighted(),
+    transitionStatus: transitionStatus(),
+  }));
+
   return (
     <RenderElement
       element="span"
@@ -53,7 +54,7 @@ export function MenuRadioItemIndicator(componentProps: MenuRadioItemIndicator.Pr
         }
       }}
       params={{
-        state,
+        state: state(),
         customStyleHookMapping: itemMapping,
         enabled: keepMounted() || item.checked(),
         props: [{ 'aria-hidden': true }, elementProps],
@@ -75,12 +76,12 @@ export namespace MenuRadioItemIndicator {
     /**
      * Whether the radio item is currently selected.
      */
-    checked: Accessor<boolean>;
+    checked: boolean;
     /**
      * Whether the component should ignore user interaction.
      */
-    disabled: Accessor<boolean>;
-    highlighted: Accessor<boolean>;
-    transitionStatus: Accessor<TransitionStatus>;
+    disabled: boolean;
+    highlighted: boolean;
+    transitionStatus: TransitionStatus;
   }
 }

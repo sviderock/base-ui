@@ -21,9 +21,11 @@ export function AlertDialogRoot(props: AlertDialogRoot.Props) {
   const dialogRoot = useDialogRoot({
     open,
     defaultOpen,
-    onOpenChange: (...args) => props.onOpenChange?.(...args),
+    // eslint-disable-next-line solid/reactivity
+    onOpenChange: props.onOpenChange,
     actionsRef: actionsRef(),
-    onOpenChangeComplete: (...args) => props.onOpenChangeComplete?.(...args),
+    // eslint-disable-next-line solid/reactivity
+    onOpenChangeComplete: props.onOpenChangeComplete,
     modal: true,
     dismissible: false,
     onNestedDialogClose: parentDialogRootContext?.onNestedDialogClose,
@@ -35,7 +37,8 @@ export function AlertDialogRoot(props: AlertDialogRoot.Props) {
   const contextValue: AlertDialogRootContext = {
     ...dialogRoot,
     nested,
-    onOpenChangeComplete: (...args) => props.onOpenChangeComplete?.(...args),
+    // eslint-disable-next-line solid/reactivity
+    onOpenChangeComplete: props.onOpenChangeComplete,
   };
 
   return (

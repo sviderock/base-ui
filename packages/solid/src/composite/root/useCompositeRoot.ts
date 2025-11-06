@@ -44,31 +44,33 @@ export interface UseCompositeRootParameters {
   highlightedIndex?: MaybeAccessor<number | undefined>;
   onHighlightedIndexChange?: (index: number) => void;
   dense?: MaybeAccessor<boolean | undefined>;
-  itemSizes?: MaybeAccessor<Array<Dimensions> | undefined>;
-  rootRef?: MaybeAccessor<HTMLElement | null>;
+  itemSizes?: MaybeAccessor<Dimensions[] | undefined>;
+  refs?: {
+    rootRef?: HTMLElement | null | undefined;
+  };
   /**
    * When `true`, pressing the Home key moves focus to the first item,
    * and pressing the End key moves focus to the last item.
    * @default false
    */
-  enableHomeAndEndKeys?: MaybeAccessor<boolean>;
+  enableHomeAndEndKeys?: MaybeAccessor<boolean | undefined>;
   /**
    * When `true`, keypress events on Composite's navigation keys
    * be stopped with event.stopPropagation()
    * @default false
    */
-  stopEventPropagation?: MaybeAccessor<boolean>;
+  stopEventPropagation?: MaybeAccessor<boolean | undefined>;
   /**
    * Array of item indices to be considered disabled.
    * Used for composite items that are focusable when disabled.
    */
-  disabledIndices?: MaybeAccessor<number[]>;
+  disabledIndices?: MaybeAccessor<number[] | undefined>;
   /**
    * Array of [modifier key values](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values#modifier_keys) that should allow normal keyboard actions
    * when pressed. By default, all modifier keys prevent normal actions.
    * @default []
    */
-  modifierKeys?: MaybeAccessor<ModifierKey[]>;
+  modifierKeys?: MaybeAccessor<ModifierKey[] | undefined>;
 }
 
 const EMPTY_ARRAY: never[] = [];
@@ -84,12 +86,13 @@ export function useCompositeRoot<Metadata extends MaybeAccessor<unknown>>(
   const enableHomeAndEndKeys = () => access(params.enableHomeAndEndKeys) ?? false;
   const stopEventPropagation = () => access(params.stopEventPropagation) ?? false;
   const modifierKeys = () => access(params.modifierKeys) ?? EMPTY_ARRAY;
+  const disabledIndices = () => access(params.disabledIndices);
 
   const [internalHighlightedIndex, internalSetHighlightedIndex] = createSignal(0);
 
   const isGrid = () => cols() > 1;
 
-  const [rootRef, setRootRef] = createSignal<HTMLElement | null>(null);
+  const [rootRef, setRootRef] = createSignal<HTMLElement | null | undefined>(null);
 
   const refs: CompositeList.Props<Metadata>['refs'] = {
     elements: [],
@@ -198,8 +201,8 @@ export function useCompositeRoot<Metadata extends MaybeAccessor<unknown>>(
         }
 
         let nextIndex = highlightedIndex();
-        const minIndex = getMinListIndex(refs.elements, params.disabledIndices);
-        const maxIndex = getMaxListIndex(refs.elements, params.disabledIndices);
+        const minIndex = getMinListIndex(refs.elements, disabledIndices());
+        const maxIndex = getMaxListIndex(refs.elements, disabledIndices());
 
         if (isGrid()) {
           const sizes =
@@ -213,12 +216,12 @@ export function useCompositeRoot<Metadata extends MaybeAccessor<unknown>>(
           const cellMap = createGridCellMap(sizes, cols(), dense());
           const minGridIndex = cellMap.findIndex(
             (index) =>
-              index != null && !isListIndexDisabled(refs.elements, index, params.disabledIndices),
+              index != null && !isListIndexDisabled(refs.elements, index, disabledIndices()),
           );
           // last enabled index
           const maxGridIndex = cellMap.reduce(
             (foundIndex: number, index, cellIndex) =>
-              index != null && !isListIndexDisabled(refs.elements, index, params.disabledIndices)
+              index != null && !isListIndexDisabled(refs.elements, index, disabledIndices())
                 ? cellIndex
                 : foundIndex,
             -1,
@@ -235,7 +238,7 @@ export function useCompositeRoot<Metadata extends MaybeAccessor<unknown>>(
                 // don't end up in them
                 disabledIndices: getGridCellIndices(
                   [
-                    ...(access(params.disabledIndices) ||
+                    ...(disabledIndices() ||
                       refs.elements.map((_, index) =>
                         isListIndexDisabled(refs.elements, index) ? index : undefined,
                       )),
@@ -303,7 +306,7 @@ export function useCompositeRoot<Metadata extends MaybeAccessor<unknown>>(
             nextIndex = findNonDisabledListIndex(refs.elements, {
               startingIndex: nextIndex,
               decrement: backwardKeys.includes(event.key),
-              disabledIndices: params.disabledIndices,
+              disabledIndices: disabledIndices(),
             });
           }
         }
@@ -335,9 +338,11 @@ export function useCompositeRoot<Metadata extends MaybeAccessor<unknown>>(
     disabledIndices: params.disabledIndices,
     onMapChange,
     rootRef,
-    setRootRef: (el: HTMLElement | null) => {
+    setRootRef: (el: HTMLElement | null | undefined) => {
       setRootRef(el);
-      params.rootRef = el;
+      if (params.refs) {
+        params.refs.rootRef = el;
+      }
     },
   };
 }

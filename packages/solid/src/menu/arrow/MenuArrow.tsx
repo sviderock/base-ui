@@ -1,5 +1,5 @@
 'use client';
-import type { Accessor } from 'solid-js';
+import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -20,12 +20,12 @@ export function MenuArrow(componentProps: MenuArrow.Props) {
   const { open } = useMenuRootContext();
   const { refs, side, align, arrowUncentered, arrowStyles } = useMenuPositionerContext();
 
-  const state: MenuArrow.State = {
-    open,
-    side,
-    align,
-    uncentered: arrowUncentered,
-  };
+  const state = createMemo<MenuArrow.State>(() => ({
+    open: open(),
+    side: side(),
+    align: align(),
+    uncentered: arrowUncentered(),
+  }));
 
   return (
     <RenderElement
@@ -40,7 +40,7 @@ export function MenuArrow(componentProps: MenuArrow.Props) {
         }
       }}
       params={{
-        state,
+        state: state(),
         customStyleHookMapping: popupStateMapping,
         props: [{ style: arrowStyles(), 'aria-hidden': true }, elementProps],
       }}
@@ -53,10 +53,10 @@ export namespace MenuArrow {
     /**
      * Whether the menu is currently open.
      */
-    open: Accessor<boolean>;
-    side: Accessor<Side>;
-    align: Accessor<Align>;
-    uncentered: Accessor<boolean>;
+    open: boolean;
+    side: Side;
+    align: Align;
+    uncentered: boolean;
   }
 
   export interface Props extends BaseUIComponentProps<'div', State> {}

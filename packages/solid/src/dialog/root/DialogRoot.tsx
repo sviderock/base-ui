@@ -1,5 +1,5 @@
 'use client';
-import { onCleanup, onMount, type JSX } from 'solid-js';
+import { type JSX } from 'solid-js';
 import { access } from '../../solid-helpers';
 import { DialogContext } from '../utils/DialogContext';
 import { DialogRootContext, useOptionalDialogRootContext } from './DialogRootContext';
@@ -16,17 +16,20 @@ export function DialogRoot(props: DialogRoot.Props) {
   const dismissible = () => access(props.dismissible) ?? true;
   const modal = () => access(props.modal) ?? true;
   const open = () => access(props.open);
+  const actionsRef = () => access(props.actionsRef);
 
   const parentDialogRootContext = useOptionalDialogRootContext();
 
   const dialogRoot = useDialogRoot({
     open,
     defaultOpen,
-    onOpenChange: (...args) => props.onOpenChange?.(...args),
+    // eslint-disable-next-line solid/reactivity
+    onOpenChange: props.onOpenChange,
     modal,
     dismissible,
-    actionsRef: props.actionsRef,
-    onOpenChangeComplete: (...args) => props.onOpenChangeComplete?.(...args),
+    actionsRef,
+    // eslint-disable-next-line solid/reactivity
+    onOpenChangeComplete: props.onOpenChangeComplete,
     onNestedDialogClose: parentDialogRootContext?.onNestedDialogClose,
     onNestedDialogOpen: parentDialogRootContext?.onNestedDialogOpen,
   });
@@ -36,7 +39,8 @@ export function DialogRoot(props: DialogRoot.Props) {
   const dialogContextValue: DialogContext = {
     ...dialogRoot,
     nested,
-    onOpenChangeComplete: (...args) => props.onOpenChangeComplete?.(...args),
+    // eslint-disable-next-line solid/reactivity
+    onOpenChangeComplete: props.onOpenChangeComplete,
   };
 
   const dialogRootContextValue: DialogRootContext = {

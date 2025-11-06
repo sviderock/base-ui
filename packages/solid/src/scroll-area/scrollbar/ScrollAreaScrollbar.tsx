@@ -1,6 +1,7 @@
 'use client';
-import { Accessor, createEffect, onCleanup, Show, splitProps } from 'solid-js';
+import { createEffect, createMemo, onCleanup, Show } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
+import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
@@ -15,23 +16,20 @@ import { ScrollAreaScrollbarCssVars } from './ScrollAreaScrollbarCssVars';
  * Documentation: [Base UI Scroll Area](https://base-ui.com/react/components/scroll-area)
  */
 export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'render',
-    'class',
+  const [, local, elementProps] = splitComponentProps(componentProps, [
     'orientation',
     'keepMounted',
   ]);
-  const orientation = () => local.orientation ?? 'vertical';
-  const keepMounted = () => local.keepMounted ?? false;
+  const orientation = () => access(local.orientation) ?? 'vertical';
+  const keepMounted = () => access(local.keepMounted) ?? false;
 
   const context = useScrollAreaRootContext();
 
-  const state: ScrollAreaScrollbar.State = {
-    hovering: context.hovering,
-    scrolling: () =>
-      ({ horizontal: context.scrollingX(), vertical: context.scrollingY() })[orientation()],
-    orientation,
-  };
+  const state = createMemo<ScrollAreaScrollbar.State>(() => ({
+    hovering: context.hovering(),
+    scrolling: { horizontal: context.scrollingX(), vertical: context.scrollingY() }[orientation()],
+    orientation: orientation(),
+  }));
 
   const direction = useDirection();
 
@@ -115,7 +113,7 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
             }
           }}
           params={{
-            state,
+            state: state(),
             props: [
               {
                 ...(context.rootId() && { 'data-id': `${context.rootId()}-scrollbar` }),
@@ -225,9 +223,9 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
 
 export namespace ScrollAreaScrollbar {
   export interface State {
-    hovering: Accessor<boolean>;
-    scrolling: Accessor<boolean>;
-    orientation: Accessor<'vertical' | 'horizontal'>;
+    hovering: boolean;
+    scrolling: boolean;
+    orientation: 'vertical' | 'horizontal';
   }
 
   export interface Props extends BaseUIComponentProps<'div', State> {
@@ -235,11 +233,11 @@ export namespace ScrollAreaScrollbar {
      * Whether the scrollbar controls vertical or horizontal scroll.
      * @default 'vertical'
      */
-    orientation?: 'vertical' | 'horizontal';
+    orientation?: MaybeAccessor<'vertical' | 'horizontal' | undefined>;
     /**
      * Whether to keep the HTML element in the DOM when the viewport isn’t scrollable.
      * @default false
      */
-    keepMounted?: boolean;
+    keepMounted?: MaybeAccessor<boolean | undefined>;
   }
 }

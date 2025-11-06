@@ -1,6 +1,6 @@
 'use client';
 import { getParentNode, isHTMLElement, isLastTraversableNode } from '@floating-ui/utils/dom';
-import { batch, createEffect, onMount, Show, type Accessor, type JSX } from 'solid-js';
+import { batch, createEffect, createMemo, Show, type ComponentProps, type JSX } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import { useFloatingTree } from '../../floating-ui-solid/index';
 import { contains } from '../../floating-ui-solid/utils';
@@ -124,10 +124,10 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
     );
   };
 
-  const state: MenuTrigger.State = {
-    disabled,
-    open,
-  };
+  const state = createMemo<MenuTrigger.State>(() => ({
+    disabled: disabled(),
+    open: open(),
+  }));
 
   return (
     <Show
@@ -149,7 +149,7 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
             });
           }}
           params={{
-            state,
+            state: state(),
             customStyleHookMapping: pressableTriggerOpenStateMapping,
             props: [rootTriggerProps(), elementProps, getTriggerProps],
           }}
@@ -166,7 +166,11 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
                 triggerRef = el;
                 buttonRef(el);
                 setTriggerElement(el);
-                p().ref(el);
+                if (p() && typeof p().ref === 'function') {
+                  (p().ref as Function)(el);
+                } else {
+                  p().ref = el as unknown as HTMLDivElement;
+                }
                 if (typeof componentProps.ref === 'function') {
                   componentProps.ref(el);
                 } else {
@@ -175,9 +179,14 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
               });
             }}
             params={{
-              state,
+              state: state(),
               customStyleHookMapping: pressableTriggerOpenStateMapping,
-              props: [p(), rootTriggerProps(), elementProps, getTriggerProps],
+              props: [
+                p() as ComponentProps<'button'>,
+                rootTriggerProps(),
+                elementProps,
+                getTriggerProps,
+              ],
             }}
           />
         )}
@@ -207,11 +216,11 @@ export namespace MenuTrigger {
     /**
      * Whether the menu is currently disabled.
      */
-    disabled: Accessor<boolean>;
+    disabled: boolean;
     /**
      * Whether the menu is currently open.
      */
-    open: Accessor<boolean>;
+    open: boolean;
   };
 }
 

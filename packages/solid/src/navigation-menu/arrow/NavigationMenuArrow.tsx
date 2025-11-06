@@ -1,5 +1,5 @@
 'use client';
-import { type Accessor } from 'solid-js';
+import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -20,12 +20,12 @@ export function NavigationMenuArrow(componentProps: NavigationMenuArrow.Props) {
   const { open } = useNavigationMenuRootContext();
   const { refs, side, align, arrowUncentered, arrowStyles } = useNavigationMenuPositionerContext();
 
-  const state: NavigationMenuArrow.State = {
-    open,
-    side,
-    align,
-    uncentered: arrowUncentered,
-  };
+  const state = createMemo<NavigationMenuArrow.State>(() => ({
+    open: open(),
+    side: side(),
+    align: align(),
+    uncentered: arrowUncentered(),
+  }));
 
   return (
     <RenderElement
@@ -40,7 +40,7 @@ export function NavigationMenuArrow(componentProps: NavigationMenuArrow.Props) {
         }
       }}
       params={{
-        state,
+        state: state(),
         customStyleHookMapping: popupStateMapping,
         props: [{ style: arrowStyles(), 'aria-hidden': true }, elementProps],
       }}
@@ -53,10 +53,10 @@ export namespace NavigationMenuArrow {
     /**
      * Whether the popup is currently open.
      */
-    open: Accessor<boolean>;
-    side: Accessor<Side>;
-    align: Accessor<Align>;
-    uncentered: Accessor<boolean>;
+    open: boolean;
+    side: Side;
+    align: Align;
+    uncentered: boolean;
   }
 
   export interface Props extends BaseUIComponentProps<'div', State> {}

@@ -1,5 +1,5 @@
 'use client';
-import { createMemo } from 'solid-js';
+import { createMemo, type ComponentProps } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
@@ -36,7 +36,11 @@ export function ToolbarLink(componentProps: ToolbarLink.Props) {
           element="a"
           componentProps={componentProps}
           ref={(el) => {
-            p().ref(el);
+            if (p() && typeof p().ref === 'function') {
+              (p().ref as Function)(el);
+            } else {
+              p().ref = el as unknown as HTMLDivElement;
+            }
             if (typeof componentProps.ref === 'function') {
               componentProps.ref(el);
             } else {
@@ -45,7 +49,7 @@ export function ToolbarLink(componentProps: ToolbarLink.Props) {
           }}
           params={{
             state: state(),
-            props: [p(), elementProps],
+            props: [p() as ComponentProps<'a'>, elementProps],
           }}
         />
       )}

@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, onMount, splitProps, type Accessor, type JSX } from 'solid-js';
+import { createMemo, splitProps, type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { FloatingEvents, useFloatingTree } from '../../floating-ui-solid';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
@@ -42,10 +42,10 @@ function InnerMenuItem(componentProps: InnerMenuItemProps) {
     itemMetadata: REGULAR_ITEM,
   });
 
-  const state: MenuItem.State = {
-    disabled,
-    highlighted,
-  };
+  const state = createMemo<MenuItem.State>(() => ({
+    disabled: disabled(),
+    highlighted: highlighted(),
+  }));
 
   return (
     <RenderElement
@@ -60,7 +60,7 @@ function InnerMenuItem(componentProps: InnerMenuItemProps) {
         }
       }}
       params={{
-        state,
+        state: state(),
         props: [itemProps(), elementProps, getItemProps],
       }}
     />
@@ -128,11 +128,11 @@ export namespace MenuItem {
     /**
      * Whether the item should ignore user interaction.
      */
-    disabled: Accessor<boolean>;
+    disabled: boolean;
     /**
      * Whether the item is highlighted.
      */
-    highlighted: Accessor<boolean>;
+    highlighted: boolean;
   }
 
   export interface Props extends Omit<BaseUIComponentProps<'div', State>, 'id'> {

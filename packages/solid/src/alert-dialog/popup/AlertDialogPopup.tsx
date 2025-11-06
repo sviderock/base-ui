@@ -1,8 +1,8 @@
 'use client';
-import { splitProps, type JSX } from 'solid-js';
+import { createMemo } from 'solid-js';
 import { useDialogPopup } from '../../dialog/popup/useDialogPopup';
 import { FloatingFocusManager } from '../../floating-ui-solid';
-import { access, type MaybeAccessor } from '../../solid-helpers';
+import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { inertValue } from '../../utils/inertValue';
 import { InternalBackdrop } from '../../utils/InternalBackdrop';
@@ -32,12 +32,9 @@ const customStyleHookMapping: CustomStyleHookMapping<AlertDialogPopup.State> = {
  * Documentation: [Base UI Alert Dialog](https://base-ui.com/react/components/alert-dialog)
  */
 export function AlertDialogPopup(componentProps: AlertDialogPopup.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'class',
-    'render',
+  const [, local, elementProps] = splitComponentProps(componentProps, [
     'initialFocus',
     'finalFocus',
-    'children',
   ]);
 
   const finalFocus = () => access(local.finalFocus);
@@ -83,12 +80,12 @@ export function AlertDialogPopup(componentProps: AlertDialogPopup.Props) {
 
   const nestedDialogOpen = () => nestedOpenDialogCount() > 0;
 
-  const state: AlertDialogPopup.State = {
-    open,
-    nested,
-    transitionStatus,
-    nestedDialogOpen,
-  };
+  const state = createMemo<AlertDialogPopup.State>(() => ({
+    open: open(),
+    nested: nested(),
+    transitionStatus: transitionStatus(),
+    nestedDialogOpen: nestedDialogOpen(),
+  }));
 
   return (
     <>
@@ -120,7 +117,7 @@ export function AlertDialogPopup(componentProps: AlertDialogPopup.Props) {
             }
           }}
           params={{
-            state,
+            state: state(),
             customStyleHookMapping,
             props: [
               getPopupProps(),
@@ -128,10 +125,10 @@ export function AlertDialogPopup(componentProps: AlertDialogPopup.Props) {
               {
                 style: {
                   [AlertDialogPopupCssVars.nestedDialogs]: nestedOpenDialogCount(),
-                } as JSX.CSSProperties,
+                },
                 role: 'alertdialog',
               },
-              elementProps as JSX.HTMLAttributes<HTMLDivElement>,
+              elementProps,
             ],
           }}
         />
@@ -160,15 +157,15 @@ export namespace AlertDialogPopup {
     /**
      * Whether the dialog is currently open.
      */
-    open: MaybeAccessor<boolean>;
-    transitionStatus: MaybeAccessor<TransitionStatus>;
+    open: boolean;
+    transitionStatus: TransitionStatus;
     /**
      * Whether the dialog is nested within a parent dialog.
      */
-    nested: MaybeAccessor<boolean>;
+    nested: boolean;
     /**
      * Whether the dialog has nested dialogs open.
      */
-    nestedDialogOpen: MaybeAccessor<boolean>;
+    nestedDialogOpen: boolean;
   }
 }

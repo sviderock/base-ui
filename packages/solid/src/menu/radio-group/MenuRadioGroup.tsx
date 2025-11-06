@@ -1,5 +1,5 @@
 'use client';
-import { batch, createEffect, type Accessor, type JSX } from 'solid-js';
+import { batch, createEffect, createMemo, type Accessor, type JSX } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useControlled } from '../../utils/useControlled';
@@ -36,7 +36,9 @@ export function MenuRadioGroup(componentProps: MenuRadioGroup.Props) {
     });
   };
 
-  const state = { disabled };
+  const state = createMemo<MenuRadioGroup.State>(() => ({
+    disabled: disabled(),
+  }));
 
   const context: MenuRadioGroupContext = {
     value,
@@ -51,7 +53,7 @@ export function MenuRadioGroup(componentProps: MenuRadioGroup.Props) {
         componentProps={componentProps}
         ref={componentProps.ref}
         params={{
-          state,
+          state: state(),
           props: [
             {
               role: 'group',
@@ -98,6 +100,6 @@ export namespace MenuRadioGroup {
   }
 
   export type State = {
-    disabled: Accessor<boolean>;
+    disabled: boolean;
   };
 }

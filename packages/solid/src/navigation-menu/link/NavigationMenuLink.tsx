@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, onCleanup, onMount } from 'solid-js';
+import { type ComponentProps } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import { useFloatingTree } from '../../floating-ui-solid';
 import { splitComponentProps } from '../../solid-helpers';
@@ -32,7 +32,11 @@ export function NavigationMenuLink(componentProps: NavigationMenuLink.Props) {
           element="a"
           componentProps={componentProps}
           ref={(el) => {
-            p().ref(el);
+            if (p() && typeof p().ref === 'function') {
+              (p().ref as Function)(el);
+            } else {
+              p().ref = el as unknown as HTMLDivElement;
+            }
             if (typeof componentProps.ref === 'function') {
               componentProps.ref(el);
             } else {
@@ -41,7 +45,7 @@ export function NavigationMenuLink(componentProps: NavigationMenuLink.Props) {
           }}
           params={{
             props: [
-              p(),
+              p() as ComponentProps<'a'>,
               {
                 onBlur(event) {
                   if (

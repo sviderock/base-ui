@@ -1,6 +1,6 @@
 'use client';
-import { createEffect, onCleanup, splitProps } from 'solid-js';
-import type { MaybeAccessor } from '../../solid-helpers';
+import { createEffect, createMemo, onCleanup } from 'solid-js';
+import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { RenderElement } from '../../utils/useRenderElement';
@@ -13,7 +13,7 @@ import { useFieldsetRootContext } from '../root/FieldsetRootContext';
  * Documentation: [Base UI Fieldset](https://base-ui.com/react/components/fieldset)
  */
 export function FieldsetLegend(componentProps: FieldsetLegend.Props) {
-  const [local, elementProps] = splitProps(componentProps, ['class', 'render', 'id', 'children']);
+  const [, local, elementProps] = splitComponentProps(componentProps, ['id']);
 
   const { disabled, setLegendId } = useFieldsetRootContext();
 
@@ -26,9 +26,9 @@ export function FieldsetLegend(componentProps: FieldsetLegend.Props) {
     });
   });
 
-  const state: FieldsetLegend.State = {
-    disabled: () => disabled() ?? false,
-  };
+  const state = createMemo<FieldsetLegend.State>(() => ({
+    disabled: disabled() ?? false,
+  }));
 
   return (
     <RenderElement
@@ -36,7 +36,7 @@ export function FieldsetLegend(componentProps: FieldsetLegend.Props) {
       componentProps={componentProps}
       ref={componentProps.ref}
       params={{
-        state,
+        state: state(),
         props: [{ id: id() }, elementProps],
       }}
     />
@@ -48,7 +48,7 @@ export namespace FieldsetLegend {
     /**
      * Whether the component should ignore user interaction.
      */
-    disabled: MaybeAccessor<boolean>;
+    disabled: boolean;
   }
 
   export interface Props extends BaseUIComponentProps<'div', State> {}

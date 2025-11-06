@@ -1,6 +1,6 @@
 'use client';
-import { splitProps, type JSX } from 'solid-js';
-import { type MaybeAccessor } from '../../solid-helpers';
+import { createMemo } from 'solid-js';
+import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -14,21 +14,21 @@ import { useDialogRootContext } from '../root/DialogRootContext';
  * Documentation: [Base UI Dialog](https://base-ui.com/react/components/dialog)
  */
 export function DialogTrigger(componentProps: DialogTrigger.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
+  const [, local, elementProps] = splitComponentProps(componentProps, [
     'render',
     'class',
     'disabled',
     'nativeButton',
   ]);
-  const disabled = () => local.disabled ?? false;
-  const native = () => local.nativeButton ?? true;
+  const disabled = () => access(local.disabled) ?? false;
+  const native = () => access(local.nativeButton) ?? true;
 
   const { open, setTriggerElement, triggerProps } = useDialogRootContext();
 
-  const state: DialogTrigger.State = {
-    disabled,
-    open,
-  };
+  const state = createMemo<DialogTrigger.State>(() => ({
+    disabled: disabled(),
+    open: open(),
+  }));
 
   const { getButtonProps, buttonRef } = useButton({
     disabled,
@@ -49,12 +49,8 @@ export function DialogTrigger(componentProps: DialogTrigger.Props) {
         setTriggerElement(el);
       }}
       params={{
-        state,
-        props: [
-          triggerProps,
-          elementProps as JSX.HTMLAttributes<HTMLButtonElement>,
-          getButtonProps,
-        ],
+        state: state(),
+        props: [triggerProps(), elementProps, getButtonProps],
         customStyleHookMapping: triggerOpenStateMapping,
       }}
     />
@@ -69,17 +65,17 @@ export namespace DialogTrigger {
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default true
      */
-    nativeButton?: boolean;
+    nativeButton?: MaybeAccessor<boolean | undefined>;
   }
 
   export interface State {
     /**
      * Whether the dialog is currently disabled.
      */
-    disabled: MaybeAccessor<boolean>;
+    disabled: boolean;
     /**
      * Whether the dialog is currently open.
      */
-    open: MaybeAccessor<boolean>;
+    open: boolean;
   }
 }

@@ -1,5 +1,6 @@
 'use client';
-import { createEffect, onCleanup, splitProps } from 'solid-js';
+import { createEffect, onCleanup } from 'solid-js';
+import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { RenderElement } from '../../utils/useRenderElement';
@@ -12,7 +13,7 @@ import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
  * Documentation: [Base UI Alert Dialog](https://base-ui.com/react/components/alert-dialog)
  */
 export function AlertDialogTitle(componentProps: AlertDialogTitle.Props) {
-  const [local, elementProps] = splitProps(componentProps, ['render', 'class', 'id']);
+  const [, local, elementProps] = splitComponentProps(componentProps, ['id']);
   const { setTitleElementId } = useAlertDialogRootContext();
 
   const id = useBaseUiId(() => local.id);

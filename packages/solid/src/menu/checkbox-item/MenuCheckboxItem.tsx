@@ -1,5 +1,5 @@
 'use client';
-import { splitProps, type Accessor, type JSX } from 'solid-js';
+import { createMemo, splitProps, type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { FloatingEvents, useFloatingTree } from '../../floating-ui-solid';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
@@ -57,10 +57,20 @@ function InnerMenuCheckboxItem(componentProps: InnerMenuCheckboxItemProps) {
     itemMetadata: REGULAR_ITEM,
   });
 
-  const state: MenuCheckboxItem.State = { disabled, highlighted, checked };
+  const state = createMemo<MenuCheckboxItem.State>(() => ({
+    disabled: disabled(),
+    highlighted: highlighted(),
+    checked: checked(),
+  }));
+
+  const context: MenuCheckboxItemContext = {
+    checked: () => checked(),
+    highlighted: () => highlighted(),
+    disabled: () => disabled(),
+  };
 
   return (
-    <MenuCheckboxItemContext.Provider value={state}>
+    <MenuCheckboxItemContext.Provider value={context}>
       <RenderElement
         element="div"
         componentProps={componentProps}
@@ -73,7 +83,7 @@ function InnerMenuCheckboxItem(componentProps: InnerMenuCheckboxItemProps) {
           }
         }}
         params={{
-          state,
+          state: state(),
           customStyleHookMapping: itemMapping,
           props: [
             itemProps(),
@@ -159,15 +169,15 @@ export namespace MenuCheckboxItem {
     /**
      * Whether the checkbox item should ignore user interaction.
      */
-    disabled: Accessor<boolean>;
+    disabled: boolean;
     /**
      * Whether the checkbox item is currently highlighted.
      */
-    highlighted: Accessor<boolean>;
+    highlighted: boolean;
     /**
      * Whether the checkbox item is currently ticked.
      */
-    checked: Accessor<boolean>;
+    checked: boolean;
   };
 
   export interface Props extends Omit<BaseUIComponentProps<'div', State>, 'id'> {

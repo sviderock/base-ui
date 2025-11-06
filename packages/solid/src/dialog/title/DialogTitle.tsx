@@ -1,5 +1,6 @@
 'use client';
-import { createEffect, onCleanup, splitProps, type JSX } from 'solid-js';
+import { createEffect, onCleanup } from 'solid-js';
+import { splitComponentProps } from '../../solid-helpers';
 import { type BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { RenderElement } from '../../utils/useRenderElement';
@@ -12,13 +13,12 @@ import { useDialogRootContext } from '../root/DialogRootContext';
  * Documentation: [Base UI Dialog](https://base-ui.com/react/components/dialog)
  */
 export function DialogTitle(componentProps: DialogTitle.Props) {
-  const [local, elementProps] = splitProps(componentProps, ['render', 'class', 'id']);
+  const [, local, elementProps] = splitComponentProps(componentProps, ['id']);
   const { setTitleElementId } = useDialogRootContext();
 
   const id = useBaseUiId(() => local.id);
 
   createEffect(() => {
-    // track(() => id());
     setTitleElementId(id());
     onCleanup(() => {
       setTitleElementId(undefined);
@@ -30,7 +30,7 @@ export function DialogTitle(componentProps: DialogTitle.Props) {
       element="h2"
       componentProps={componentProps}
       ref={componentProps.ref}
-      params={{ props: [{ id: id() }, elementProps as JSX.HTMLAttributes<HTMLHeadingElement>] }}
+      params={{ props: [{ id: id() }, elementProps] }}
     />
   );
 }

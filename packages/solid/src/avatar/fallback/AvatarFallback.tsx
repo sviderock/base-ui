@@ -1,6 +1,6 @@
 'use client';
-import { createEffect, createSignal, onCleanup, splitProps } from 'solid-js';
-import { type MaybeAccessor, access } from '../../solid-helpers';
+import { createEffect, createMemo, createSignal, onCleanup } from 'solid-js';
+import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useTimeout } from '../../utils/useTimeout';
@@ -15,7 +15,7 @@ import { avatarStyleHookMapping } from '../root/styleHooks';
  * Documentation: [Base UI Avatar](https://base-ui.com/react/components/avatar)
  */
 export function AvatarFallback(componentProps: AvatarFallback.Props) {
-  const [local, elementProps] = splitProps(componentProps, ['class', 'render', 'delay']);
+  const [, local, elementProps] = splitComponentProps(componentProps, ['delay']);
   const delay = () => access(local.delay);
 
   const { imageLoadingStatus } = useAvatarRootContext();
@@ -31,7 +31,9 @@ export function AvatarFallback(componentProps: AvatarFallback.Props) {
     });
   });
 
-  const state: AvatarRoot.State = { imageLoadingStatus };
+  const state = createMemo<AvatarRoot.State>(() => ({
+    imageLoadingStatus: imageLoadingStatus(),
+  }));
 
   return (
     <RenderElement
@@ -39,7 +41,7 @@ export function AvatarFallback(componentProps: AvatarFallback.Props) {
       componentProps={componentProps}
       ref={componentProps.ref}
       params={{
-        state,
+        state: state(),
         props: elementProps,
         customStyleHookMapping: avatarStyleHookMapping,
         enabled: imageLoadingStatus() !== 'loaded' && delayPassed(),

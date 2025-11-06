@@ -77,7 +77,8 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
         },
         onKeyDown(event) {
           if (!disabled()) {
-            makeEventPreventable(event);
+            // TODO: fix typing
+            makeEventPreventable(event as any);
             callEventHandler(local.onKeyDown, event);
           }
 
@@ -102,11 +103,13 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
           // https://codesandbox.io/p/sandbox/button-keyup-preventdefault-dn7f0
           // Keyboard accessibility for non interactive elements
           if (!disabled()) {
-            makeEventPreventable(event);
+            // TODO: fix typing
+            makeEventPreventable(event as any);
             callEventHandler(local.onKeyUp, event);
           }
 
-          if (event.baseUIHandlerPrevented) {
+          // TODO: fix typing
+          if ((event as any).baseUIHandlerPrevented) {
             return;
           }
 

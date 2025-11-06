@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createMemo, onCleanup, onMount, type Accessor, type JSX } from 'solid-js';
+import { createMemo, onCleanup, onMount, type JSX } from 'solid-js';
 import { FloatingFocusManager, useFloatingTree } from '../../floating-ui-solid';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { DISABLED_TRANSITIONS_STYLE, EMPTY_OBJECT } from '../../utils/constants';
@@ -72,14 +72,14 @@ export function MenuPopup(componentProps: MenuPopup.Props) {
     });
   });
 
-  const state: MenuPopup.State = {
-    transitionStatus,
-    side,
-    align,
-    open,
-    nested: () => parent.type === 'menu',
-    instant: instantType,
-  };
+  const state = createMemo<MenuPopup.State>(() => ({
+    transitionStatus: transitionStatus(),
+    side: side(),
+    align: align(),
+    open: open(),
+    nested: parent.type === 'menu',
+    instant: instantType(),
+  }));
 
   const returnFocus = createMemo(() => {
     if (parent.type === 'menubar' && lastOpenChangeReason() !== 'outside-press') {
@@ -109,7 +109,7 @@ export function MenuPopup(componentProps: MenuPopup.Props) {
           }
         }}
         params={{
-          state,
+          state: state(),
           customStyleHookMapping,
           props: [
             popupProps(),
@@ -138,14 +138,14 @@ export namespace MenuPopup {
   }
 
   export type State = {
-    transitionStatus: Accessor<TransitionStatus>;
-    side: Accessor<Side>;
-    align: Accessor<'start' | 'end' | 'center'>;
+    transitionStatus: TransitionStatus;
+    side: Side;
+    align: 'start' | 'end' | 'center';
     /**
      * Whether the menu is currently open.
      */
-    open: Accessor<boolean>;
-    nested: Accessor<boolean>;
-    instant: Accessor<InstantType | undefined>;
+    open: boolean;
+    nested: boolean;
+    instant: InstantType | undefined;
   };
 }

@@ -1,5 +1,6 @@
 'use client';
-import { Show, splitProps } from 'solid-js';
+import { Show } from 'solid-js';
+import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
@@ -11,7 +12,7 @@ import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
  * Documentation: [Base UI Scroll Area](https://base-ui.com/react/components/scroll-area)
  */
 export function ScrollAreaCorner(componentProps: ScrollAreaCorner.Props) {
-  const [, elementProps] = splitProps(componentProps, ['render', 'class']);
+  const [, , elementProps] = splitComponentProps(componentProps, []);
   const context = useScrollAreaRootContext();
 
   return (

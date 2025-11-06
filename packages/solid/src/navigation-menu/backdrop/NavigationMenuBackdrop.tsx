@@ -1,5 +1,5 @@
 'use client';
-import { type Accessor } from 'solid-js';
+import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
@@ -25,10 +25,10 @@ export function NavigationMenuBackdrop(componentProps: NavigationMenuBackdrop.Pr
 
   const { open, mounted, transitionStatus } = useNavigationMenuRootContext();
 
-  const state: NavigationMenuBackdrop.State = {
-    open,
-    transitionStatus,
-  };
+  const state = createMemo<NavigationMenuBackdrop.State>(() => ({
+    open: open(),
+    transitionStatus: transitionStatus(),
+  }));
 
   return (
     <RenderElement
@@ -36,7 +36,7 @@ export function NavigationMenuBackdrop(componentProps: NavigationMenuBackdrop.Pr
       componentProps={componentProps}
       ref={componentProps.ref}
       params={{
-        state,
+        state: state(),
         customStyleHookMapping,
         props: [
           {
@@ -59,11 +59,11 @@ export namespace NavigationMenuBackdrop {
     /**
      * If `true`, the popup is open.
      */
-    open: Accessor<boolean>;
+    open: boolean;
     /**
      * The transition status of the popup.
      */
-    transitionStatus: Accessor<TransitionStatus>;
+    transitionStatus: TransitionStatus;
   }
 
   export interface Props extends BaseUIComponentProps<'div', State> {}

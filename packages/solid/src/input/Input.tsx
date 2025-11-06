@@ -9,18 +9,7 @@ import type { BaseUIComponentProps } from '../utils/types';
  * Documentation: [Base UI Input](https://base-ui.com/react/components/input)
  */
 export function Input(props: Input.Props) {
-  return (
-    <Field.Control
-      {...props}
-      ref={(el) => {
-        if (typeof props.ref === 'function') {
-          props.ref(el);
-        } else {
-          props.ref = el;
-        }
-      }}
-    />
-  );
+  return <Field.Control {...props} />;
 }
 
 export namespace Input {

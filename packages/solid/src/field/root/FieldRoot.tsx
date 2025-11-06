@@ -1,9 +1,9 @@
 'use client';
-import { createEffect, createMemo, createSignal, splitProps } from 'solid-js';
+import { createMemo, createSignal } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { useFieldsetRootContext } from '../../fieldset/root/FieldsetRootContext';
 import { useFormContext } from '../../form/FormContext';
-import { access, type Args, type MaybeAccessor } from '../../solid-helpers';
+import { access, splitComponentProps, type Args, type MaybeAccessor } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { DEFAULT_VALIDITY_STATE, fieldValidityMapping } from '../utils/constants';
@@ -16,16 +16,13 @@ import { FieldRootContext } from './FieldRootContext';
  * Documentation: [Base UI Field](https://base-ui.com/react/components/field)
  */
 export function FieldRoot(componentProps: FieldRoot.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'class',
-    'render',
+  const [, local, elementProps] = splitComponentProps(componentProps, [
     'disabled',
     'name',
     'validate',
     'validationDebounceTime',
     'validationMode',
     'invalid',
-    'children',
   ]);
   const validationDebounceTime = () => access(local.validationDebounceTime) ?? 0;
   const validationMode = () => access(local.validationMode) ?? 'onBlur';

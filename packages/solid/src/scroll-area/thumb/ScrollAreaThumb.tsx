@@ -1,5 +1,6 @@
 'use client';
-import { splitProps, type Accessor } from 'solid-js';
+import { createMemo } from 'solid-js';
+import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
@@ -13,13 +14,15 @@ import { ScrollAreaScrollbarCssVars } from '../scrollbar/ScrollAreaScrollbarCssV
  * Documentation: [Base UI Scroll Area](https://base-ui.com/react/components/scroll-area)
  */
 export function ScrollAreaThumb(componentProps: ScrollAreaThumb.Props) {
-  const [, elementProps] = splitProps(componentProps, ['render', 'class']);
+  const [, , elementProps] = splitComponentProps(componentProps, []);
 
   const rootContext = useScrollAreaRootContext();
 
   const scrollbarContext = useScrollAreaScrollbarContext();
 
-  const state: ScrollAreaThumb.State = { orientation: scrollbarContext.orientation };
+  const state = createMemo<ScrollAreaThumb.State>(() => ({
+    orientation: scrollbarContext.orientation(),
+  }));
 
   return (
     <RenderElement
@@ -38,7 +41,7 @@ export function ScrollAreaThumb(componentProps: ScrollAreaThumb.Props) {
         }
       }}
       params={{
-        state,
+        state: state(),
         props: [
           {
             onPointerDown: rootContext.handlePointerDown,
@@ -70,7 +73,7 @@ export function ScrollAreaThumb(componentProps: ScrollAreaThumb.Props) {
 
 export namespace ScrollAreaThumb {
   export interface State {
-    orientation: Accessor<'horizontal' | 'vertical'>;
+    orientation: 'horizontal' | 'vertical';
   }
 
   export interface Props extends BaseUIComponentProps<'div', State> {}

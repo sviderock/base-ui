@@ -1,5 +1,5 @@
 'use client';
-import { splitProps, type Accessor, type JSX } from 'solid-js';
+import { createMemo, splitProps, type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { FloatingEvents, useFloatingTree } from '../../floating-ui-solid';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
@@ -49,11 +49,11 @@ function InnerMenuRadioItem(componentProps: InnerMenuRadioItemProps) {
     itemMetadata: REGULAR_ITEM,
   });
 
-  const state: MenuRadioItem.State = {
-    disabled,
-    highlighted,
-    checked,
-  };
+  const state = createMemo<MenuRadioItem.State>(() => ({
+    disabled: disabled(),
+    highlighted: highlighted(),
+    checked: checked(),
+  }));
 
   return (
     <RenderElement
@@ -68,7 +68,7 @@ function InnerMenuRadioItem(componentProps: InnerMenuRadioItemProps) {
         }
       }}
       params={{
-        state,
+        state: state(),
         customStyleHookMapping: itemMapping,
         props: [
           itemProps(),
@@ -184,15 +184,15 @@ export namespace MenuRadioItem {
     /**
      * Whether the radio item should ignore user interaction.
      */
-    disabled: Accessor<boolean>;
+    disabled: boolean;
     /**
      * Whether the radio item is currently highlighted.
      */
-    highlighted: Accessor<boolean>;
+    highlighted: boolean;
     /**
      * Whether the radio item is currently selected.
      */
-    checked: Accessor<boolean>;
+    checked: boolean;
   };
 
   export interface Props extends Omit<BaseUIComponentProps<'div', State>, 'id'> {

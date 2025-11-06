@@ -1,5 +1,5 @@
 'use client';
-import type { Accessor } from 'solid-js';
+import { createMemo } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../solid-helpers';
 import type { BaseUIComponentProps, Orientation } from '../utils/types';
 import { RenderElement } from '../utils/useRenderElement';
@@ -14,7 +14,9 @@ export function Separator(componentProps: Separator.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['orientation']);
   const orientation = () => access(local.orientation) ?? 'horizontal';
 
-  const state: Separator.State = { orientation };
+  const state = createMemo<Separator.State>(() => ({
+    orientation: orientation(),
+  }));
 
   return (
     <RenderElement
@@ -22,7 +24,7 @@ export function Separator(componentProps: Separator.Props) {
       componentProps={componentProps}
       ref={componentProps.ref}
       params={{
-        state,
+        state: state(),
         props: [{ role: 'separator', 'aria-orientation': orientation() }, elementProps],
       }}
     />
@@ -42,6 +44,6 @@ export namespace Separator {
     /**
      * The orientation of the separator.
      */
-    orientation: Accessor<Orientation>;
+    orientation: Orientation;
   }
 }

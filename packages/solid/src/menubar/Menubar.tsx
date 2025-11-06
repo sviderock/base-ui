@@ -1,5 +1,5 @@
 'use client';
-import { batch, createSignal, onCleanup, onMount, type ParentProps } from 'solid-js';
+import { batch, createMemo, createSignal, onCleanup, onMount, type ParentProps } from 'solid-js';
 import { CompositeRoot } from '../composite/root/CompositeRoot';
 import {
   FloatingNode,
@@ -39,12 +39,12 @@ export function Menubar(props: Menubar.Props) {
     referenceElement: contentElement,
   });
 
-  const id = useBaseUiId(() => idProp());
+  const id = useBaseUiId(idProp);
 
-  const state = {
-    orientation,
-    modal,
-  };
+  const state = createMemo<Menubar.State>(() => ({
+    orientation: orientation(),
+    modal: modal(),
+  }));
 
   let contentRef = null as HTMLDivElement | null | undefined;
 
@@ -78,11 +78,16 @@ export function Menubar(props: Menubar.Props) {
                     }
                     setContentElement(el);
                     contentRef = el;
-                    p().ref(el);
+
+                    if (typeof p()?.ref === 'function') {
+                      (p().ref as Function)(el);
+                    } else {
+                      p().ref = el;
+                    }
                   });
                 }}
                 params={{
-                  state,
+                  state: state(),
                   props: [p(), { role: 'menubar', id: id() }, otherProps],
                 }}
               />

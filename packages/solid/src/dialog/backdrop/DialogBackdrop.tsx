@@ -1,6 +1,6 @@
 'use client';
-import { splitProps } from 'solid-js';
-import { type MaybeAccessor } from '../../solid-helpers';
+import { createMemo } from 'solid-js';
+import { splitComponentProps } from '../../solid-helpers';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
@@ -21,13 +21,13 @@ const customStyleHookMapping: CustomStyleHookMapping<DialogBackdrop.State> = {
  * Documentation: [Base UI Dialog](https://base-ui.com/react/components/dialog)
  */
 export function DialogBackdrop(componentProps: DialogBackdrop.Props) {
-  const [, elementProps] = splitProps(componentProps, ['render', 'class']);
+  const [, , elementProps] = splitComponentProps(componentProps, []);
   const { open, nested, mounted, transitionStatus, refs } = useDialogRootContext();
 
-  const state: DialogBackdrop.State = {
-    open,
-    transitionStatus,
-  };
+  const state = createMemo<DialogBackdrop.State>(() => ({
+    open: open(),
+    transitionStatus: transitionStatus(),
+  }));
 
   return (
     <RenderElement
@@ -42,7 +42,7 @@ export function DialogBackdrop(componentProps: DialogBackdrop.Props) {
         refs.backdropRef = el;
       }}
       params={{
-        state,
+        state: state(),
         customStyleHookMapping,
         props: [
           {
@@ -68,7 +68,7 @@ export namespace DialogBackdrop {
     /**
      * Whether the dialog is currently open.
      */
-    open: MaybeAccessor<boolean>;
-    transitionStatus: MaybeAccessor<TransitionStatus>;
+    open: boolean;
+    transitionStatus: TransitionStatus;
   }
 }

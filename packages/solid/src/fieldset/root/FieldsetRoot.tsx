@@ -1,6 +1,6 @@
 'use client';
-import { createSignal, splitProps } from 'solid-js';
-import { type MaybeAccessor, access } from '../../solid-helpers';
+import { createMemo, createSignal } from 'solid-js';
+import { access, splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { FieldsetRootContext } from './FieldsetRootContext';
@@ -12,17 +12,14 @@ import { FieldsetRootContext } from './FieldsetRootContext';
  * Documentation: [Base UI Fieldset](https://base-ui.com/react/components/fieldset)
  */
 export function FieldsetRoot(componentProps: FieldsetRoot.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'class',
-    'render',
-    'disabled',
-    'children',
-  ]);
+  const [, local, elementProps] = splitComponentProps(componentProps, ['disabled']);
   const disabled = () => access(local.disabled) ?? false;
 
   const [legendId, setLegendId] = createSignal<string>();
 
-  const state: FieldsetRoot.State = { disabled };
+  const state = createMemo<FieldsetRoot.State>(() => ({
+    disabled: disabled(),
+  }));
 
   const contextValue: FieldsetRootContext = {
     legendId,
@@ -37,7 +34,7 @@ export function FieldsetRoot(componentProps: FieldsetRoot.Props) {
         componentProps={componentProps}
         ref={componentProps.ref}
         params={{
-          state,
+          state: state(),
           props: [
             {
               'aria-labelledby': legendId(),
@@ -55,7 +52,7 @@ export namespace FieldsetRoot {
     /**
      * Whether the component should ignore user interaction.
      */
-    disabled: MaybeAccessor<boolean>;
+    disabled: boolean;
   };
 
   export interface Props extends BaseUIComponentProps<'fieldset', State> {}

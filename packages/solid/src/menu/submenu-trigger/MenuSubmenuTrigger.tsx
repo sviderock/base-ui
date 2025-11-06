@@ -1,5 +1,5 @@
 'use client';
-import { type Accessor, type JSX } from 'solid-js';
+import { createMemo, type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { useFloatingTree } from '../../floating-ui-solid';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
@@ -67,11 +67,11 @@ export function MenuSubmenuTrigger(componentProps: MenuSubmenuTrigger.Props) {
     }),
   });
 
-  const state: MenuSubmenuTrigger.State = {
-    disabled,
-    highlighted,
-    open,
-  };
+  const state = createMemo<MenuSubmenuTrigger.State>(() => ({
+    disabled: disabled(),
+    highlighted: highlighted(),
+    open: open(),
+  }));
 
   return (
     <RenderElement
@@ -88,7 +88,7 @@ export function MenuSubmenuTrigger(componentProps: MenuSubmenuTrigger.Props) {
         setTriggerElement(el);
       }}
       params={{
-        state,
+        state: state(),
         customStyleHookMapping: triggerOpenStateMapping,
         props: [
           rootTriggerProps(),
@@ -129,11 +129,11 @@ export namespace MenuSubmenuTrigger {
     /**
      * Whether the component should ignore user interaction.
      */
-    disabled: Accessor<boolean>;
-    highlighted: Accessor<boolean>;
+    disabled: boolean;
+    highlighted: boolean;
     /**
      * Whether the menu is currently open.
      */
-    open: Accessor<boolean>;
+    open: boolean;
   }
 }

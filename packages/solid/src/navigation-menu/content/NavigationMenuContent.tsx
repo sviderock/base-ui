@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createSignal, Show, type Accessor, type ComponentProps } from 'solid-js';
+import { createMemo, createSignal, Show, type ComponentProps } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { CompositeRoot } from '../../composite/root/CompositeRoot';
 import { FloatingNode } from '../../floating-ui-solid';
@@ -64,11 +64,11 @@ export function NavigationMenuContent(componentProps: NavigationMenuContent.Prop
     },
   });
 
-  const state: NavigationMenuContent.State = {
-    open,
-    transitionStatus,
-    activationDirection,
-  };
+  const state = createMemo<NavigationMenuContent.State>(() => ({
+    open: open(),
+    transitionStatus: transitionStatus(),
+    activationDirection: activationDirection(),
+  }));
 
   const handleCurrentContentRef = (node: HTMLDivElement | null | undefined) => {
     if (node) {
@@ -100,7 +100,11 @@ export function NavigationMenuContent(componentProps: NavigationMenuContent.Prop
                 element="div"
                 componentProps={componentProps}
                 ref={(el) => {
-                  p().ref(el);
+                  if (p() && typeof p().ref === 'function') {
+                    (p().ref as Function)(el);
+                  } else {
+                    p().ref = el;
+                  }
                   ref = el;
                   handleCurrentContentRef(el);
                   if (typeof componentProps.ref === 'function') {
@@ -110,7 +114,7 @@ export function NavigationMenuContent(componentProps: NavigationMenuContent.Prop
                   }
                 }}
                 params={{
-                  state,
+                  state: state(),
                   customStyleHookMapping,
                   props: [
                     p(),
@@ -138,15 +142,15 @@ export namespace NavigationMenuContent {
     /**
      * If `true`, the component is open.
      */
-    open: Accessor<boolean>;
+    open: boolean;
     /**
      * The transition status of the component.
      */
-    transitionStatus: Accessor<TransitionStatus>;
+    transitionStatus: TransitionStatus;
     /**
      * The direction of the activation.
      */
-    activationDirection: Accessor<'left' | 'right' | 'up' | 'down' | null>;
+    activationDirection: 'left' | 'right' | 'up' | 'down' | null;
   }
 
   export interface Props extends BaseUIComponentProps<'div', State> {}

@@ -20,7 +20,17 @@ export function SwitchThumb(componentProps: SwitchThumb.Props) {
   const { state: fieldState } = useFieldRootContext();
 
   const state = useSwitchRootContext();
-  const extendedState = createMemo(() => ({ ...fieldState(), ...state }));
+  const extendedState = createMemo<SwitchThumb.State>(() => ({
+    touched: fieldState().touched,
+    dirty: fieldState().dirty,
+    valid: fieldState().valid,
+    filled: fieldState().filled,
+    focused: fieldState().focused,
+    checked: state.checked(),
+    readOnly: state.readOnly(),
+    required: state.required(),
+    disabled: state.disabled() ?? fieldState().disabled,
+  }));
 
   return (
     <RenderElement

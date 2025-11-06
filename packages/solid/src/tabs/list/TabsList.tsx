@@ -83,7 +83,11 @@ export function TabsList(componentProps: TabsList.Props) {
             element="div"
             componentProps={componentProps}
             ref={(el) => {
-              p().ref(el);
+              if (p() && typeof p().ref === 'function') {
+                (p().ref as Function)(el);
+              } else {
+                p().ref = el;
+              }
               refs.tabsListRef = el;
               if (typeof componentProps.ref === 'function') {
                 componentProps.ref(el);

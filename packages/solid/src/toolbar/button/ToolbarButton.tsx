@@ -1,5 +1,5 @@
 'use client';
-import { batch, createMemo, onMount } from 'solid-js';
+import { batch, createMemo, onMount, type ComponentProps } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button';
@@ -54,7 +54,11 @@ export function ToolbarButton(componentProps: ToolbarButton.Props) {
           componentProps={componentProps}
           ref={(el) => {
             batch(() => {
-              p().ref(el);
+              if (p() && typeof p().ref === 'function') {
+                (p().ref as Function)(el);
+              } else {
+                p().ref = el as unknown as HTMLDivElement;
+              }
               buttonRef(el);
               if (typeof componentProps.ref === 'function') {
                 componentProps.ref(el);
@@ -66,7 +70,7 @@ export function ToolbarButton(componentProps: ToolbarButton.Props) {
           params={{
             state: state(),
             props: [
-              p(),
+              p() as ComponentProps<'button'>,
               elementProps,
               // for integrating with Menu and Select disabled states, `disabled` is
               // intentionally duplicated even though getButtonProps includes it already

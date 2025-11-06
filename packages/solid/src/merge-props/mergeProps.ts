@@ -1,3 +1,4 @@
+/* eslint-disable solid/reactivity, id-denylist */
 import type { Component, ComponentProps, JSX, ValidComponent } from 'solid-js';
 import { mergeObjects } from '../utils/mergeObjects';
 import type { BaseUIEvent, WithBaseUIEvent } from '../utils/types';
@@ -120,7 +121,6 @@ function mutablyMergeInto<T extends ElementType>(
     return mergedProps;
   }
 
-  // eslint-disable-next-line guard-for-in
   for (const propName in externalProps) {
     /**
      * TODO: in Solid children are resolved once the value is accessed for the first time
@@ -227,6 +227,7 @@ export function makeEventPreventable<T extends Event>(event: BaseUIEvent<T>) {
 export function mergeClasses(ourClass: string | undefined, theirClass: string | undefined) {
   if (theirClass) {
     if (ourClass) {
+      // eslint-disable-next-line prefer-template
       return theirClass + ' ' + ourClass;
     }
 

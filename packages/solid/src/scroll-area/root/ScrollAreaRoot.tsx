@@ -1,6 +1,7 @@
 'use client';
-import { createSignal, onMount, splitProps } from 'solid-js';
+import { createSignal, onMount } from 'solid-js';
 import { createStore } from 'solid-js/store';
+import { splitComponentProps } from '../../solid-helpers';
 import { STYLE_TAG_ID, styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
@@ -24,7 +25,7 @@ interface Size {
  * Documentation: [Base UI Scroll Area](https://base-ui.com/react/components/scroll-area)
  */
 export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
-  const [, elementProps] = splitProps(componentProps, ['render', 'class']);
+  const [, , elementProps] = splitComponentProps(componentProps, []);
 
   const [hovering, setHovering] = createSignal(false);
   const [scrollingX, setScrollingX] = createSignal(false);

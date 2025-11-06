@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createMemo, onCleanup, type Accessor } from 'solid-js';
+import { createEffect, createMemo, onCleanup } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import {
   getNextTabbable,
@@ -40,13 +40,13 @@ export function NavigationMenuPopup(componentProps: NavigationMenuPopup.Props) {
 
   const id = useBaseUiId(() => local.id);
 
-  const state: NavigationMenuPopup.State = {
-    open,
-    transitionStatus,
-    side: positioning.side,
-    align: positioning.align,
-    anchorHidden: positioning.anchorHidden,
-  };
+  const state = createMemo<NavigationMenuPopup.State>(() => ({
+    open: open(),
+    transitionStatus: transitionStatus(),
+    side: positioning.side(),
+    align: positioning.align(),
+    anchorHidden: positioning.anchorHidden(),
+  }));
 
   // Allow the arrow to transition while the popup's size transitions.
   createEffect(() => {
@@ -114,7 +114,7 @@ export function NavigationMenuPopup(componentProps: NavigationMenuPopup.Props) {
           }
         }}
         params={{
-          state,
+          state: state(),
           customStyleHookMapping,
           props: [
             {
@@ -158,23 +158,23 @@ export namespace NavigationMenuPopup {
     /**
      * If `true`, the popup is open.
      */
-    open: Accessor<boolean>;
+    open: boolean;
     /**
      * The transition status of the popup.
      */
-    transitionStatus: Accessor<TransitionStatus>;
+    transitionStatus: TransitionStatus;
     /**
      * The side of the anchor element the popup is positioned relative to.
      */
-    side: Accessor<Side>;
+    side: Side;
     /**
      * How to align the popup relative to the specified side.
      */
-    align: Accessor<Align>;
+    align: Align;
     /**
      * If `true`, the anchor is hidden.
      */
-    anchorHidden: Accessor<boolean>;
+    anchorHidden: boolean;
   }
 
   export interface Props extends BaseUIComponentProps<'nav', State> {}

@@ -1,5 +1,6 @@
 'use client';
-import { onCleanup, onMount, splitProps } from 'solid-js';
+import { onCleanup, onMount } from 'solid-js';
+import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useScrollAreaViewportContext } from '../viewport/ScrollAreaViewportContext';
@@ -11,7 +12,7 @@ import { useScrollAreaViewportContext } from '../viewport/ScrollAreaViewportCont
  * Documentation: [Base UI Scroll Area](https://base-ui.com/react/components/scroll-area)
  */
 export function ScrollAreaContent(componentProps: ScrollAreaContent.Props) {
-  const [, elementProps] = splitProps(componentProps, ['render', 'class']);
+  const [, , elementProps] = splitComponentProps(componentProps, []);
 
   let contentWrapperRef: HTMLDivElement | null | undefined;
 

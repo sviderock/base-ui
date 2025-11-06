@@ -1,5 +1,5 @@
 'use client';
-import type { Accessor } from 'solid-js';
+import { createMemo } from 'solid-js';
 import { useContextMenuRootContext } from '../../context-menu/root/ContextMenuRootContext';
 import { splitComponentProps } from '../../solid-helpers';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
@@ -27,10 +27,10 @@ export function MenuBackdrop(componentProps: MenuBackdrop.Props) {
   const { open, mounted, transitionStatus, lastOpenChangeReason } = useMenuRootContext();
   const contextMenuContext = useContextMenuRootContext();
 
-  const state: MenuBackdrop.State = {
-    open,
-    transitionStatus,
-  };
+  const state = createMemo<MenuBackdrop.State>(() => ({
+    open: open(),
+    transitionStatus: transitionStatus(),
+  }));
 
   return (
     <RenderElement
@@ -48,7 +48,7 @@ export function MenuBackdrop(componentProps: MenuBackdrop.Props) {
         }
       }}
       params={{
-        state,
+        state: state(),
         customStyleHookMapping,
         props: [
           {
@@ -72,8 +72,8 @@ export namespace MenuBackdrop {
     /**
      * Whether the menu is currently open.
      */
-    open: Accessor<boolean>;
-    transitionStatus: Accessor<TransitionStatus>;
+    open: boolean;
+    transitionStatus: TransitionStatus;
   }
 
   export interface Props extends BaseUIComponentProps<'div', State> {}

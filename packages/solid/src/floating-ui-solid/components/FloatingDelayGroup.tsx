@@ -70,8 +70,10 @@ export interface FloatingDelayGroupProps {
  * @internal
  */
 export function FloatingDelayGroup(props: FloatingDelayGroupProps): JSX.Element {
+  // eslint-disable-next-line solid/reactivity
   const initialDelayRef = access(props.delay);
   const [hasProvider, setHasProvider] = createSignal(true);
+  // eslint-disable-next-line solid/reactivity
   const [timeoutMs, setTimeoutMs] = createSignal(props.timeoutMs ?? 0);
   const [delayRef, setDelayRef] = createSignal(initialDelayRef);
   const [currentIdRef, setCurrentIdRef] = createSignal<any>(null);

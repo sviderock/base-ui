@@ -53,7 +53,11 @@ export function ToolbarInput(componentProps: ToolbarInput.Props) {
           element="input"
           componentProps={componentProps}
           ref={(el) => {
-            p().ref(el);
+            if (p() && typeof p().ref === 'function') {
+              (p().ref as Function)(el);
+            } else {
+              p().ref = el;
+            }
             if (typeof componentProps.ref === 'function') {
               componentProps.ref(el);
             } else {
@@ -63,7 +67,7 @@ export function ToolbarInput(componentProps: ToolbarInput.Props) {
           params={{
             state: state(),
             props: [
-              p(),
+              p() as ComponentProps<'input'>,
               {
                 onClick(event) {
                   if (disabled()) {

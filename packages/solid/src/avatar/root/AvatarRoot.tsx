@@ -1,6 +1,6 @@
 'use client';
-import { createSignal, splitProps } from 'solid-js';
-import { type MaybeAccessor } from '../../solid-helpers';
+import { createMemo, createSignal } from 'solid-js';
+import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { AvatarRootContext } from './AvatarRootContext';
@@ -13,11 +13,13 @@ import { avatarStyleHookMapping } from './styleHooks';
  * Documentation: [Base UI Avatar](https://base-ui.com/react/components/avatar)
  */
 export function AvatarRoot(componentProps: AvatarRoot.Props) {
-  const [, elementProps] = splitProps(componentProps, ['class', 'render']);
+  const [, , elementProps] = splitComponentProps(componentProps, []);
 
   const [imageLoadingStatus, setImageLoadingStatus] = createSignal<ImageLoadingStatus>('idle');
 
-  const state: AvatarRoot.State = { imageLoadingStatus };
+  const state = createMemo<AvatarRoot.State>(() => ({
+    imageLoadingStatus: imageLoadingStatus(),
+  }));
 
   const contextValue = {
     imageLoadingStatus,
@@ -30,7 +32,11 @@ export function AvatarRoot(componentProps: AvatarRoot.Props) {
         element="span"
         componentProps={componentProps}
         ref={componentProps.ref}
-        params={{ state, props: elementProps, customStyleHookMapping: avatarStyleHookMapping }}
+        params={{
+          state: state(),
+          props: elementProps,
+          customStyleHookMapping: avatarStyleHookMapping,
+        }}
       />
     </AvatarRootContext.Provider>
   );
@@ -42,6 +48,6 @@ export namespace AvatarRoot {
   export interface Props extends BaseUIComponentProps<'span', State> {}
 
   export interface State {
-    imageLoadingStatus: MaybeAccessor<ImageLoadingStatus>;
+    imageLoadingStatus: ImageLoadingStatus;
   }
 }

@@ -5,8 +5,7 @@ import {
   createMemo,
   createSignal,
   onCleanup,
-  onMount,
-  type Accessor,
+  type ComponentProps,
 } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import {
@@ -20,8 +19,6 @@ import {
 } from '../../floating-ui-solid';
 import {
   contains,
-  disableFocusInside,
-  enableFocusInside,
   getNextTabbable,
   getPreviousTabbable,
   getTarget,
@@ -353,9 +350,9 @@ export function NavigationMenuTrigger(componentProps: NavigationMenuTrigger.Prop
     handleValueChange(currentWidth, currentHeight);
   };
 
-  const state: NavigationMenuTrigger.State = {
-    open: isActiveItem,
-  };
+  const state = createMemo<NavigationMenuTrigger.State>(() => ({
+    open: isActiveItem(),
+  }));
 
   function handleSetPointerType(event: PointerEvent) {
     setPointerType(event.pointerType as 'mouse' | 'touch' | 'pen' | '');
@@ -369,7 +366,11 @@ export function NavigationMenuTrigger(componentProps: NavigationMenuTrigger.Prop
             element="button"
             componentProps={componentProps}
             ref={(el) => {
-              p().ref(el);
+              if (p() && typeof p().ref === 'function') {
+                (p().ref as Function)(el);
+              } else {
+                p().ref = el as unknown as HTMLDivElement;
+              }
               setTriggerElement(el);
               if (typeof componentProps.ref === 'function') {
                 componentProps.ref(el);
@@ -378,10 +379,10 @@ export function NavigationMenuTrigger(componentProps: NavigationMenuTrigger.Prop
               }
             }}
             params={{
-              state,
+              state: state(),
               customStyleHookMapping: pressableTriggerOpenStateMapping,
               props: [
-                p(),
+                p() as ComponentProps<'button'>,
                 getReferenceProps,
                 {
                   tabIndex: 0,
@@ -492,7 +493,7 @@ export namespace NavigationMenuTrigger {
     /**
      * If `true`, the popup is open and the item is active.
      */
-    open: Accessor<boolean>;
+    open: boolean;
   }
 
   export interface Props extends BaseUIComponentProps<'button', State> {}

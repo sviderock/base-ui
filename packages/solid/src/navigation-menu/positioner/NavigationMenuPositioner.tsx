@@ -5,7 +5,6 @@ import {
   createMemo,
   createSignal,
   onCleanup,
-  type Accessor,
   type ComponentProps,
   type JSX,
 } from 'solid-js';
@@ -203,13 +202,13 @@ export function NavigationMenuPositioner(componentProps: NavigationMenuPositione
     };
   });
 
-  const state: NavigationMenuPositioner.State = {
-    open,
-    side: positioning.side,
-    align: positioning.align,
-    anchorHidden: positioning.anchorHidden,
-    instant,
-  };
+  const state = createMemo<NavigationMenuPositioner.State>(() => ({
+    open: open(),
+    side: positioning.side(),
+    align: positioning.align(),
+    anchorHidden: positioning.anchorHidden(),
+    instant: instant(),
+  }));
 
   return (
     <NavigationMenuPositionerContext.Provider value={positioning}>
@@ -226,7 +225,7 @@ export function NavigationMenuPositioner(componentProps: NavigationMenuPositione
           }
         }}
         params={{
-          state,
+          state: state(),
           customStyleHookMapping: popupStateMapping,
           props: [
             defaultProps(),
@@ -262,14 +261,14 @@ export namespace NavigationMenuPositioner {
     /**
      * Whether the navigation menu is currently open.
      */
-    open: Accessor<boolean>;
-    side: Accessor<Side>;
-    align: Accessor<Align>;
-    anchorHidden: Accessor<boolean>;
+    open: boolean;
+    side: Side;
+    align: Align;
+    anchorHidden: boolean;
     /**
      * Whether CSS transitions should be disabled.
      */
-    instant: Accessor<boolean>;
+    instant: boolean;
   }
 
   export interface Props

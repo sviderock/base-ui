@@ -41,14 +41,14 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
     'required',
     'disabled',
   ]);
-  const checkedProp = () => access(local.checked);
+  const checkedProp = () => local.checked;
   const defaultChecked = () => access(local.defaultChecked);
   const idProp = () => access(local.id);
   const nativeButton = () => access(local.nativeButton) ?? true;
   const readOnly = () => access(local.readOnly) ?? false;
   const required = () => access(local.required) ?? false;
   const disabledProp = () => access(local.disabled) ?? false;
-  const nameProp = () => access(elementProps.name);
+  const nameProp = () => elementProps.name;
 
   const { clearErrors } = useFormContext();
   const {
@@ -255,10 +255,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
 
 export namespace SwitchRoot {
   export interface Props
-    extends Omit<
-      BaseUIComponentProps<'button', SwitchRoot.State>,
-      'onChange' | 'id' | 'disabled' | 'name'
-    > {
+    extends Omit<BaseUIComponentProps<'button', SwitchRoot.State>, 'onChange' | 'id' | 'disabled'> {
     /**
      * The id of the switch element.
      */
@@ -268,7 +265,7 @@ export namespace SwitchRoot {
      *
      * To render an uncontrolled switch, use the `defaultChecked` prop instead.
      */
-    checked?: MaybeAccessor<boolean | undefined>;
+    checked?: boolean | undefined;
     /**
      * Whether the switch is initially active.
      *
@@ -290,7 +287,7 @@ export namespace SwitchRoot {
     /**
      * Identifies the field when a form is submitted.
      */
-    name?: MaybeAccessor<string | undefined>;
+    name?: string | undefined;
     /**
      * Whether the component renders a native `<button>` element when replacing it
      * via the `render` prop.

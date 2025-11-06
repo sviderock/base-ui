@@ -1,14 +1,6 @@
 'use client';
 import { isHTMLElement } from '@floating-ui/utils/dom';
-import {
-  batch,
-  createEffect,
-  createMemo,
-  createSignal,
-  Show,
-  splitProps,
-  type Accessor,
-} from 'solid-js';
+import { batch, createMemo, createSignal, Show, splitProps } from 'solid-js';
 import {
   FloatingTree,
   useFloatingNodeId,
@@ -196,17 +188,18 @@ function TreeContext(componentProps: NavigationMenuRoot.Props) {
 
   const { open } = useNavigationMenuRootContext();
 
-  const state: NavigationMenuRoot.State = {
-    open,
-    nested,
-  };
+  const state = createMemo<NavigationMenuRoot.State>(() => ({
+    open: open(),
+    nested: nested(),
+  }));
 
   return (
     <NavigationMenuTreeContext.Provider value={nodeId}>
       <RenderElement
         element={nested() ? 'div' : 'nav'}
         componentProps={componentProps}
-        ref={(el) => {
+        // TODO: fix this type
+        ref={(el: any) => {
           refs.rootRef = el;
           if (typeof componentProps.ref === 'function') {
             componentProps.ref(el);
@@ -215,7 +208,7 @@ function TreeContext(componentProps: NavigationMenuRoot.Props) {
           }
         }}
         params={{
-          state,
+          state: state(),
           props: [{ 'aria-orientation': orientation() }, elementProps],
         }}
       />
@@ -228,11 +221,11 @@ export namespace NavigationMenuRoot {
     /**
      * If `true`, the popup is open.
      */
-    open: Accessor<boolean>;
+    open: boolean;
     /**
      * Whether the navigation menu is nested.
      */
-    nested: Accessor<boolean>;
+    nested: boolean;
   }
 
   export interface Props extends BaseUIComponentProps<'nav', State> {

@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createMemo, onCleanup, onMount, type Accessor, type JSX } from 'solid-js';
+import { createEffect, createMemo, onCleanup, onMount, type JSX } from 'solid-js';
 import { CompositeList } from '../../composite/list/CompositeList';
 import { useContextMenuRootContext } from '../../context-menu/root/ContextMenuRootContext';
 import {
@@ -169,13 +169,13 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
     menuEvents.emit('openchange', { open: open(), nodeId: nodeId(), parentNodeId });
   });
 
-  const state: MenuPositioner.State = {
-    open,
-    side: positioner.side,
-    align: positioner.align,
-    anchorHidden: positioner.anchorHidden,
-    nested: () => parent.type === 'menu',
-  };
+  const state = createMemo<MenuPositioner.State>(() => ({
+    open: open(),
+    side: positioner.side(),
+    align: positioner.align(),
+    anchorHidden: positioner.anchorHidden(),
+    nested: parent.type === 'menu',
+  }));
 
   const contextValue: MenuPositionerContext = {
     side: positioner.side,
@@ -231,7 +231,7 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
               }
             }}
             params={{
-              state,
+              state: state(),
               customStyleHookMapping: popupStateMapping,
               props: [positionerProps(), elementProps],
             }}
@@ -247,11 +247,11 @@ export namespace MenuPositioner {
     /**
      * Whether the menu is currently open.
      */
-    open: Accessor<boolean>;
-    side: Accessor<Side>;
-    align: Accessor<Align>;
-    anchorHidden: Accessor<boolean>;
-    nested: Accessor<boolean>;
+    open: boolean;
+    side: Side;
+    align: Align;
+    anchorHidden: boolean;
+    nested: boolean;
   }
 
   export interface Props

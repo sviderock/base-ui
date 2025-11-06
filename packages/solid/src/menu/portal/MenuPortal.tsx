@@ -12,6 +12,7 @@ import { MenuPortalContext } from './MenuPortalContext';
  * Documentation: [Base UI Menu](https://base-ui.com/react/components/menu)
  */
 export function MenuPortal(props: MenuPortal.Props) {
+  const container = () => access(props.container);
   const keepMounted = () => access(props.keepMounted) ?? false;
 
   const { mounted } = useMenuRootContext();
@@ -19,9 +20,9 @@ export function MenuPortal(props: MenuPortal.Props) {
   const shouldRender = () => mounted() || keepMounted();
 
   return (
-    <Show when={shouldRender()} fallback={null}>
+    <Show when={shouldRender()}>
       <MenuPortalContext.Provider value={keepMounted}>
-        <FloatingPortal root={props.container}>{props.children}</FloatingPortal>
+        <FloatingPortal root={container()}>{props.children}</FloatingPortal>
       </MenuPortalContext.Provider>
     </Show>
   );
@@ -38,6 +39,6 @@ export namespace MenuPortal {
     /**
      * A parent element to render the portal element into.
      */
-    container?: FloatingPortalProps['root'];
+    container?: MaybeAccessor<FloatingPortalProps['root'] | undefined>;
   }
 }

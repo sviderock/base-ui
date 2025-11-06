@@ -1,5 +1,5 @@
 'use client';
-import type { Accessor } from 'solid-js';
+import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -20,9 +20,9 @@ export function NavigationMenuIcon(componentProps: NavigationMenuIcon.Props) {
 
   const isActiveItem = () => open() && value() === itemValue();
 
-  const state: NavigationMenuIcon.State = {
-    open: isActiveItem,
-  };
+  const state = createMemo<NavigationMenuIcon.State>(() => ({
+    open: isActiveItem(),
+  }));
 
   return (
     <RenderElement
@@ -30,7 +30,7 @@ export function NavigationMenuIcon(componentProps: NavigationMenuIcon.Props) {
       componentProps={componentProps}
       ref={componentProps.ref}
       params={{
-        state,
+        state: state(),
         customStyleHookMapping: triggerOpenStateMapping,
         props: [{ 'aria-hidden': true, children: '▼' }, elementProps],
       }}
@@ -43,7 +43,7 @@ export namespace NavigationMenuIcon {
     /**
      * Whether the navigation menu is open and the item is active.
      */
-    open: Accessor<boolean>;
+    open: boolean;
   }
 
   export interface Props extends BaseUIComponentProps<'span', State> {}

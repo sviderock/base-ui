@@ -1,6 +1,6 @@
 'use client';
-import { splitProps } from 'solid-js';
-import { type MaybeAccessor } from '../../solid-helpers';
+import { createMemo } from 'solid-js';
+import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import { useDialogRootContext } from '../root/DialogRootContext';
@@ -13,14 +13,9 @@ import { useDialogClose } from './useDialogClose';
  * Documentation: [Base UI Dialog](https://base-ui.com/react/components/dialog)
  */
 export function DialogClose(componentProps: DialogClose.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'render',
-    'class',
-    'disabled',
-    'nativeButton',
-  ]);
-  const disabled = () => local.disabled ?? false;
-  const nativeButton = () => local.nativeButton ?? true;
+  const [, local, elementProps] = splitComponentProps(componentProps, ['disabled', 'nativeButton']);
+  const disabled = () => access(local.disabled) ?? false;
+  const nativeButton = () => access(local.nativeButton) ?? true;
 
   const { open, setOpen } = useDialogRootContext();
   const { getRootProps, dialogCloseRef } = useDialogClose({
@@ -30,7 +25,9 @@ export function DialogClose(componentProps: DialogClose.Props) {
     nativeButton,
   });
 
-  const state: DialogClose.State = { disabled };
+  const state = createMemo<DialogClose.State>(() => ({
+    disabled: disabled(),
+  }));
 
   return (
     <RenderElement
@@ -45,7 +42,7 @@ export function DialogClose(componentProps: DialogClose.Props) {
         dialogCloseRef(el);
       }}
       params={{
-        state,
+        state: state(),
         props: [elementProps, getRootProps],
       }}
     />
@@ -60,13 +57,13 @@ export namespace DialogClose {
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default true
      */
-    nativeButton?: boolean;
+    nativeButton?: MaybeAccessor<boolean | undefined>;
   }
 
   export interface State {
     /**
      * Whether the button is currently disabled.
      */
-    disabled: MaybeAccessor<boolean>;
+    disabled: boolean;
   }
 }

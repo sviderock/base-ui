@@ -1,5 +1,5 @@
 'use client';
-import type { Accessor } from 'solid-js';
+import { createMemo } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
@@ -34,12 +34,12 @@ export function MenuCheckboxItemIndicator(componentProps: MenuCheckboxItemIndica
     },
   });
 
-  const state: MenuCheckboxItemIndicator.State = {
-    checked: item.checked,
-    disabled: item.disabled,
-    highlighted: item.highlighted,
-    transitionStatus,
-  };
+  const state = createMemo<MenuCheckboxItemIndicator.State>(() => ({
+    checked: item.checked(),
+    disabled: item.disabled(),
+    highlighted: item.highlighted(),
+    transitionStatus: transitionStatus(),
+  }));
 
   return (
     <RenderElement
@@ -54,7 +54,7 @@ export function MenuCheckboxItemIndicator(componentProps: MenuCheckboxItemIndica
         }
       }}
       params={{
-        state,
+        state: state(),
         customStyleHookMapping: itemMapping,
         props: [{ 'aria-hidden': true }, elementProps],
         enabled: keepMounted() || item.checked(),
@@ -76,12 +76,12 @@ export namespace MenuCheckboxItemIndicator {
     /**
      * Whether the checkbox item is currently ticked.
      */
-    checked: Accessor<boolean>;
+    checked: boolean;
     /**
      * Whether the component should ignore user interaction.
      */
-    disabled: Accessor<boolean>;
-    highlighted: Accessor<boolean>;
-    transitionStatus: Accessor<TransitionStatus>;
+    disabled: boolean;
+    highlighted: boolean;
+    transitionStatus: TransitionStatus;
   }
 }

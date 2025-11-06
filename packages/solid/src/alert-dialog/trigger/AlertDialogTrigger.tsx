@@ -1,6 +1,6 @@
 'use client';
-import { splitProps } from 'solid-js';
-import { access, type MaybeAccessor } from '../../solid-helpers';
+import { createMemo } from 'solid-js';
+import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -14,21 +14,16 @@ import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
  * Documentation: [Base UI Alert Dialog](https://base-ui.com/react/components/alert-dialog)
  */
 export function AlertDialogTrigger(componentProps: AlertDialogTrigger.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'render',
-    'class',
-    'disabled',
-    'nativeButton',
-  ]);
+  const [, local, elementProps] = splitComponentProps(componentProps, ['disabled', 'nativeButton']);
   const disabled = () => access(local.disabled) ?? false;
   const native = () => access(local.nativeButton) ?? true;
 
   const { open, setTriggerElement, triggerProps } = useAlertDialogRootContext();
 
-  const state: AlertDialogTrigger.State = {
-    disabled,
-    open,
-  };
+  const state = createMemo<AlertDialogTrigger.State>(() => ({
+    disabled: disabled(),
+    open: open(),
+  }));
 
   const { getButtonProps, buttonRef } = useButton({
     disabled,
@@ -49,7 +44,7 @@ export function AlertDialogTrigger(componentProps: AlertDialogTrigger.Props) {
         setTriggerElement(el);
       }}
       params={{
-        state,
+        state: state(),
         props: [triggerProps(), elementProps, getButtonProps],
         customStyleHookMapping: triggerOpenStateMapping,
       }}
@@ -72,10 +67,10 @@ export namespace AlertDialogTrigger {
     /**
      * Whether the dialog is currently disabled.
      */
-    disabled: MaybeAccessor<boolean>;
+    disabled: boolean;
     /**
      * Whether the dialog is currently open.
      */
-    open: MaybeAccessor<boolean>;
+    open: boolean;
   }
 }

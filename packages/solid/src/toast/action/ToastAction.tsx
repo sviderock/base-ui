@@ -1,13 +1,5 @@
 'use client';
-import {
-  children,
-  ComponentProps,
-  createMemo,
-  createSignal,
-  onMount,
-  Show,
-  splitProps,
-} from 'solid-js';
+import { ComponentProps, createMemo, Show, splitProps } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import type { BaseUIComponentProps } from '../../utils/types';
