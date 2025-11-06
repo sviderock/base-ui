@@ -1,5 +1,5 @@
 'use client';
-import { batch, createEffect, createMemo, onCleanup, Show } from 'solid-js';
+import { createEffect, createMemo, onCleanup, Show } from 'solid-js';
 import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
@@ -100,15 +100,13 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
         element="div"
         componentProps={componentProps}
         ref={(el) => {
-          batch(() => {
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-            context.refs.panelRef = el;
-            panel.ref(el);
-          });
+          if (typeof componentProps.ref === 'function') {
+            componentProps.ref(el);
+          } else {
+            componentProps.ref = el;
+          }
+          context.refs.panelRef = el;
+          panel.ref(el);
         }}
         params={{
           state: context.state(),

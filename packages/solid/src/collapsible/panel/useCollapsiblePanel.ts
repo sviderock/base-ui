@@ -346,12 +346,11 @@ export function useCollapsiblePanel<T extends HTMLElement>(
 
   return {
     ref: (el) => {
-      parameters.refs.panelRef = el;
-      // handlePanelRef(el);
-      // TODO: figure this out as it's not working as expected
-      queueMicrotask(() => {
-        handlePanelRef(el);
-      });
+      /**
+       * TODO: putting it into onMount seems to properly time the measurement.
+       * Otherwise the ref is set slightly too early.
+       */
+      onMount(() => handlePanelRef(el));
     },
     props: () => ({
       hidden: hidden(),

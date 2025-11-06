@@ -97,7 +97,7 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
     },
   });
 
-  const { props, ref } = useCollapsiblePanel({
+  const panel = useCollapsiblePanel({
     animationType,
     setAnimationType,
     height,
@@ -139,13 +139,13 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
             componentProps.ref = el;
           }
           refs.panelRef = el;
-          ref(el);
+          panel.ref(el);
         }}
         params={{
           state: panelState(),
           customStyleHookMapping: accordionStyleHookMapping,
           props: [
-            props(),
+            panel.props(),
             {
               'aria-labelledby': triggerId?.(),
               role: 'region',
