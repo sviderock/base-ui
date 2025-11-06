@@ -1,6 +1,5 @@
 import { clientOnly } from '@solidjs/start';
-import type { JSX } from 'solid-js';
-import { createMemo, lazy, Suspense, useContext } from 'solid-js';
+import { createMemo, lazy, on, Suspense, useContext, type Component, type JSX } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { DemoContext } from './DemoContext';
 
@@ -14,11 +13,16 @@ function _DemoPlayground(props: DemoPlayground.Props) {
     throw new Error('Demo.Playground must be used within a Demo.Root');
   }
 
-  const { selectedVariant } = demoContext;
+  const { variants, selectedVariant } = demoContext;
+  const variantComponents = createMemo(() => {
+    const components: Record<string, Component> = {};
+    for (const variant of variants()) {
+      components[variant.name] = lazy(() => import(/* @vite-ignore */ variant.componentPath));
+    }
+    return components;
+  });
 
-  const Comp = createMemo(() =>
-    lazy(() => import(/* @vite-ignore */ selectedVariant().componentPath)),
-  );
+  const Comp = createMemo(() => variantComponents()[selectedVariant().name]);
 
   return (
     <div {...props}>
