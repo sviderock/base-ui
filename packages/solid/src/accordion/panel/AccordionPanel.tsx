@@ -1,8 +1,8 @@
 'use client';
-import { createEffect, onCleanup, Show, splitProps } from 'solid-js';
+import { createEffect, createMemo, onCleanup, Show } from 'solid-js';
 import { useCollapsiblePanel } from '../../collapsible/panel/useCollapsiblePanel';
 import { useCollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
-import { type MaybeAccessor, access } from '../../solid-helpers';
+import { access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
 import { RenderElement } from '../../utils/useRenderElement';
@@ -22,20 +22,19 @@ import { AccordionPanelCssVars } from './AccordionPanelCssVars';
  * Documentation: [Base UI Accordion](https://base-ui.com/react/components/accordion)
  */
 export function AccordionPanel(componentProps: AccordionPanel.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'class',
+  const [, local, elementProps] = splitComponentProps(componentProps, [
     'hiddenUntilFound',
     'keepMounted',
-    'render',
     'id',
-    'children',
   ]);
 
   const { hiddenUntilFound: contextHiddenUntilFound, keepMounted: contextKeepMounted } =
     useAccordionRootContext();
 
+  const hiddenUntilFound = () => access(local.hiddenUntilFound) ?? contextHiddenUntilFound();
+  const keepMounted = () => access(local.keepMounted) ?? contextKeepMounted();
+
   const {
-    abortControllerRef,
     animationType,
     setAnimationType,
     height,
@@ -58,9 +57,6 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
     setPanelIdState,
     transitionStatus,
   } = useCollapsibleRootContext();
-
-  const hiddenUntilFound = () => access(local.hiddenUntilFound) ?? contextHiddenUntilFound();
-  const keepMounted = () => access(local.keepMounted) ?? contextKeepMounted();
 
   if (process.env.NODE_ENV !== 'production') {
     createEffect(() => {
@@ -91,7 +87,7 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
 
   useOpenChangeComplete({
     open,
-    ref: refs.panelRef,
+    ref: () => refs.panelRef,
     onComplete() {
       if (!open()) {
         return;
@@ -101,8 +97,7 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
     },
   });
 
-  const { props } = useCollapsiblePanel({
-    abortControllerRef,
+  const { props, ref } = useCollapsiblePanel({
     animationType,
     setAnimationType,
     height,
@@ -112,7 +107,7 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
     mounted,
     onOpenChange,
     open,
-    panelRef: refs.panelRef,
+    refs,
     runOnceAnimationsFinish,
     setDimensions,
     setMounted,
@@ -126,14 +121,14 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
 
   const { state, triggerId } = useAccordionItemContext();
 
-  const panelState: AccordionPanel.State = {
+  const panelState = createMemo<AccordionPanel.State>(() => ({
     ...state(),
     transitionStatus: transitionStatus(),
-  };
+  }));
 
   const shouldRender = () => keepMounted() || hiddenUntilFound() || (!keepMounted() && mounted());
   return (
-    <Show when={shouldRender()} fallback={null}>
+    <Show when={shouldRender()}>
       <RenderElement
         element="div"
         componentProps={componentProps}
@@ -144,12 +139,13 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
             componentProps.ref = el;
           }
           refs.panelRef = el;
+          ref(el);
         }}
         params={{
-          state: panelState,
+          state: panelState(),
           customStyleHookMapping: accordionStyleHookMapping,
           props: [
-            props,
+            props(),
             {
               'aria-labelledby': triggerId?.(),
               role: 'region',
@@ -170,7 +166,7 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
 
 export namespace AccordionPanel {
   export interface State extends AccordionItem.State {
-    transitionStatus: MaybeAccessor<TransitionStatus>;
+    transitionStatus: TransitionStatus;
   }
 
   export interface Props

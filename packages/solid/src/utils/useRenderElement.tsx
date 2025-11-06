@@ -1,13 +1,4 @@
-import {
-  children,
-  createMemo,
-  Match,
-  splitProps,
-  Switch,
-  type Accessor,
-  type JSX,
-  type Ref,
-} from 'solid-js';
+import { children, createMemo, Match, splitProps, Switch, type Accessor, type JSX } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { mergeProps, mergePropsN } from '../merge-props';
 import { access, type MaybeAccessor, type MaybeAccessorValue } from '../solid-helpers';
@@ -101,12 +92,6 @@ export function RenderElement<
     </Switch>
   );
 }
-
-type RenderFunctionProps<TagName extends keyof JSX.IntrinsicElements> = BaseUIComponentProps<
-  TagName,
-  Record<string, unknown>
->;
-
 export namespace RenderElement {
   export type Parameters<
     State,
@@ -132,11 +117,11 @@ export namespace RenderElement {
      * Intrinsic props to be spread on the rendered element.
      */
     props?:
-      | RenderFunctionProps<TagName>
+      | BaseUIComponentProps<TagName, State>
       | Array<
-          | RenderFunctionProps<TagName>
+          | BaseUIComponentProps<TagName, State>
           | undefined
-          | ((props: RenderFunctionProps<TagName>) => RenderFunctionProps<TagName>)
+          | ((props: BaseUIComponentProps<TagName, State>) => BaseUIComponentProps<TagName, State>)
         >;
 
     /**

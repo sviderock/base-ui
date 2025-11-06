@@ -1,7 +1,7 @@
 'use client';
-import { createEffect, createMemo, onCleanup, splitProps, type JSX } from 'solid-js';
+import { createEffect, createMemo, onCleanup, type JSX } from 'solid-js';
 import { useCollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
-import { access, type MaybeAccessor } from '../../solid-helpers';
+import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping';
 import { BaseUIComponentProps } from '../../utils/types';
@@ -17,15 +17,12 @@ import { useAccordionItemContext } from '../item/AccordionItemContext';
  */
 
 export function AccordionTrigger(componentProps: AccordionTrigger.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'class',
+  const [, local, elementProps] = splitComponentProps(componentProps, [
     'disabled',
     'id',
-    'render',
     'nativeButton',
   ]);
   const disabledProp = () => access(local.disabled) ?? false;
-  const idProp = () => access(local.id);
   const native = () => access(local.nativeButton) ?? true;
 
   const { panelId, open, handleTrigger, disabled: contextDisabled } = useCollapsibleRootContext();
@@ -41,8 +38,8 @@ export function AccordionTrigger(componentProps: AccordionTrigger.Props) {
   const { state, setTriggerId, triggerId: id } = useAccordionItemContext();
 
   createEffect(() => {
-    if (idProp()) {
-      setTriggerId(idProp());
+    if (local.id) {
+      setTriggerId(local.id);
     }
 
     onCleanup(() => {

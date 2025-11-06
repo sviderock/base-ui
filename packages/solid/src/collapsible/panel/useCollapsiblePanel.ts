@@ -2,14 +2,15 @@
 import {
   createEffect,
   createMemo,
+  on,
   onCleanup,
   onMount,
   Setter,
   type Accessor,
   type JSX,
-  type Ref,
 } from 'solid-js';
 import { AccordionRootDataAttributes } from '../../accordion/root/AccordionRootDataAttributes';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { HTMLProps } from '../../utils/types';
 import { AnimationFrame } from '../../utils/useAnimationFrame';
 import { warn } from '../../utils/warn';
@@ -19,10 +20,19 @@ import { CollapsiblePanelDataAttributes } from './CollapsiblePanelDataAttributes
 export function useCollapsiblePanel<T extends HTMLElement>(
   parameters: useCollapsiblePanel.Parameters<T>,
 ): useCollapsiblePanel.ReturnValue<T> {
+  const height = () => access(parameters.height);
+  const hiddenUntilFound = () => access(parameters.hiddenUntilFound);
+  const id = () => access(parameters.id);
+  const keepMounted = () => access(parameters.keepMounted);
+  const mounted = () => access(parameters.mounted);
+  const open = () => access(parameters.open);
+  const visible = () => access(parameters.visible);
+  const width = () => access(parameters.width);
+
   let isBeforeMatchRef = false;
   let latestAnimationNameRef = null as string | null;
-  let shouldCancelInitialOpenAnimationRef = parameters.open();
-  let shouldCancelInitialOpenTransitionRef = parameters.open();
+  let shouldCancelInitialOpenAnimationRef = open();
+  let shouldCancelInitialOpenTransitionRef = open();
 
   /**
    * When opening, the `hidden` attribute is removed immediately.
@@ -30,10 +40,10 @@ export function useCollapsiblePanel<T extends HTMLElement>(
    */
   const hidden = createMemo(() => {
     if (parameters.animationType() === 'css-animation') {
-      return !parameters.visible();
+      return !visible();
     }
 
-    return !parameters.open() && !parameters.mounted();
+    return !open() && !mounted();
   });
 
   /**
@@ -44,9 +54,9 @@ export function useCollapsiblePanel<T extends HTMLElement>(
    * time it opens. If the panel is in the middle of a close transition that is
    * interrupted and re-opens, this won't run as the panel was not unmounted.
    */
-  function handlePanelRef(element: T | null | undefined) {
+  function handlePanelRef(element: T) {
     if (!element) {
-      return undefined;
+      return;
     }
     if (parameters.animationType() == null || parameters.transitionDimension() == null) {
       const panelStyles = getComputedStyle(element);
@@ -91,7 +101,7 @@ export function useCollapsiblePanel<T extends HTMLElement>(
     }
 
     if (parameters.animationType() !== 'css-transition') {
-      return undefined;
+      return;
     }
 
     /**
@@ -102,7 +112,7 @@ export function useCollapsiblePanel<T extends HTMLElement>(
      */
     element.style.setProperty('display', 'block', 'important');
 
-    if (parameters.height() === undefined || parameters.width() === undefined) {
+    if (height() === undefined || width() === undefined) {
       parameters.setDimensions({ height: element.scrollHeight, width: element.scrollWidth });
       element.style.removeProperty('display');
 
@@ -129,89 +139,101 @@ export function useCollapsiblePanel<T extends HTMLElement>(
       });
     });
 
-    return () => {
+    onCleanup(() => {
       AnimationFrame.cancel(frame);
       AnimationFrame.cancel(nextFrame);
-    };
+    });
   }
 
-  createEffect(() => {
-    if (parameters.animationType() !== 'css-transition') {
-      return undefined;
-    }
+  createEffect(
+    on(
+      [
+        parameters.animationType,
+        hiddenUntilFound,
+        keepMounted,
+        mounted,
+        open,
+        parameters.transitionDimension,
+      ],
+      () => {
+        if (parameters.animationType() !== 'css-transition') {
+          return;
+        }
 
-    const panel = parameters.panelRef;
+        const panel = parameters.refs.panelRef;
 
-    if (!panel) {
-      return undefined;
-    }
+        if (!panel) {
+          return;
+        }
 
-    let resizeFrame = -1;
+        let resizeFrame = -1;
 
-    if (parameters.abortControllerRef != null) {
-      parameters.abortControllerRef.abort();
-      parameters.abortControllerRef = null;
-    }
+        if (parameters.refs.abortControllerRef != null) {
+          parameters.refs.abortControllerRef.abort();
+          parameters.refs.abortControllerRef = null;
+        }
 
-    if (parameters.open()) {
-      /* opening */
-      panel.style.setProperty('display', 'block', 'important');
+        if (open()) {
+          /* opening */
+          panel.style.setProperty('display', 'block', 'important');
 
-      /**
-       * When `keepMounted={false}` and the panel is initially closed, the very
-       * first time it opens (not any subsequent opens) `data-starting-style` is
-       * off or missing by a frame so we need to set it manually. Otherwise any
-       * CSS properties expected to transition using [data-starting-style] may
-       * be mis-timed and appear to be complete skipped.
-       */
-      if (!shouldCancelInitialOpenTransitionRef && !parameters.keepMounted()) {
-        panel.setAttribute(CollapsiblePanelDataAttributes.startingStyle, '');
-      }
+          /**
+           * When `keepMounted={false}` and the panel is initially closed, the very
+           * first time it opens (not any subsequent opens) `data-starting-style` is
+           * off or missing by a frame so we need to set it manually. Otherwise any
+           * CSS properties expected to transition using [data-starting-style] may
+           * be mis-timed and appear to be complete skipped.
+           */
+          if (!shouldCancelInitialOpenTransitionRef && !keepMounted()) {
+            panel.setAttribute(CollapsiblePanelDataAttributes.startingStyle, '');
+          }
 
-      parameters.setDimensions({ height: panel.scrollHeight, width: panel.scrollWidth });
+          parameters.setDimensions({ height: panel.scrollHeight, width: panel.scrollWidth });
 
-      resizeFrame = AnimationFrame.request(() => {
-        panel.style.removeProperty('display');
-      });
-    } else {
-      /* closing */
-      parameters.setDimensions({ height: panel.scrollHeight, width: panel.scrollWidth });
-
-      parameters.abortControllerRef = new AbortController();
-      const signal = parameters.abortControllerRef.signal;
-
-      let frame2 = -1;
-      const frame1 = AnimationFrame.request(() => {
-        // Wait until the `[data-ending-style]` attribute is added.
-        frame2 = AnimationFrame.request(() => {
-          parameters.runOnceAnimationsFinish(() => {
-            parameters.setDimensions({ height: 0, width: 0 });
-            panel.style.removeProperty('content-visibility');
+          resizeFrame = AnimationFrame.request(() => {
             panel.style.removeProperty('display');
-            parameters.setMounted(false);
-            parameters.abortControllerRef = null;
-          }, signal);
+          });
+        } else {
+          /* closing */
+          parameters.setDimensions({ height: panel.scrollHeight, width: panel.scrollWidth });
+
+          parameters.refs.abortControllerRef = new AbortController();
+          const signal = parameters.refs.abortControllerRef.signal;
+
+          let frame2 = -1;
+          const frame1 = AnimationFrame.request(() => {
+            // Wait until the `[data-ending-style]` attribute is added.
+            frame2 = AnimationFrame.request(() => {
+              parameters.runOnceAnimationsFinish(() => {
+                parameters.setDimensions({ height: 0, width: 0 });
+                panel.style.removeProperty('content-visibility');
+                panel.style.removeProperty('display');
+                parameters.setMounted(false);
+                parameters.refs.abortControllerRef = null;
+              }, signal);
+            });
+          });
+
+          onCleanup(() => {
+            AnimationFrame.cancel(frame1);
+            AnimationFrame.cancel(frame2);
+          });
+          return;
+        }
+
+        onCleanup(() => {
+          AnimationFrame.cancel(resizeFrame);
         });
-      });
-
-      onCleanup(() => {
-        AnimationFrame.cancel(frame1);
-        AnimationFrame.cancel(frame2);
-      });
-      return undefined;
-    }
-
-    onCleanup(() => {
-      AnimationFrame.cancel(resizeFrame);
-    });
-  });
+      },
+    ),
+  );
 
   createEffect(() => {
     if (parameters.animationType() !== 'css-animation') {
       return;
     }
 
-    const panel = parameters.panelRef;
+    const panel = parameters.refs.panelRef;
     if (!panel) {
       return;
     }
@@ -226,20 +248,20 @@ export function useCollapsiblePanel<T extends HTMLElement>(
       panel.style.removeProperty('animation-name');
     }
 
-    if (parameters.open()) {
-      if (parameters.abortControllerRef != null) {
-        parameters.abortControllerRef.abort();
-        parameters.abortControllerRef = null;
+    if (open()) {
+      if (parameters.refs.abortControllerRef != null) {
+        parameters.refs.abortControllerRef.abort();
+        parameters.refs.abortControllerRef = null;
       }
       parameters.setMounted(true);
       parameters.setVisible(true);
     } else {
-      parameters.abortControllerRef = new AbortController();
+      parameters.refs.abortControllerRef = new AbortController();
       parameters.runOnceAnimationsFinish(() => {
         parameters.setMounted(false);
         parameters.setVisible(false);
-        parameters.abortControllerRef = null;
-      }, parameters.abortControllerRef.signal);
+        parameters.refs.abortControllerRef = null;
+      }, parameters.refs.abortControllerRef.signal);
     }
   });
 
@@ -251,11 +273,11 @@ export function useCollapsiblePanel<T extends HTMLElement>(
   });
 
   createEffect(() => {
-    if (!parameters.hiddenUntilFound()) {
+    if (!hiddenUntilFound()) {
       return;
     }
 
-    const panel = parameters.panelRef;
+    const panel = parameters.refs.panelRef;
     if (!panel) {
       return;
     }
@@ -263,7 +285,7 @@ export function useCollapsiblePanel<T extends HTMLElement>(
     let frame = -1;
     let nextFrame = -1;
 
-    if (parameters.open() && isBeforeMatchRef) {
+    if (open() && isBeforeMatchRef) {
       panel.style.transitionDuration = '0s';
       parameters.setDimensions({ height: panel.scrollHeight, width: panel.scrollWidth });
       frame = AnimationFrame.request(() => {
@@ -283,9 +305,9 @@ export function useCollapsiblePanel<T extends HTMLElement>(
   });
 
   createEffect(() => {
-    const panel = parameters.panelRef;
+    const panel = parameters.refs.panelRef;
 
-    if (panel && parameters.hiddenUntilFound() && hidden()) {
+    if (panel && hiddenUntilFound() && hidden()) {
       /**
        * React only supports a boolean for the `hidden` attribute and forces
        * legit string values to booleans so we have to force it back in the DOM
@@ -305,9 +327,9 @@ export function useCollapsiblePanel<T extends HTMLElement>(
   });
 
   createEffect(function registerBeforeMatchListener() {
-    const panel = parameters.panelRef;
+    const panel = parameters.refs.panelRef;
     if (!panel) {
-      return undefined;
+      return;
     }
 
     function handleBeforeMatch() {
@@ -317,56 +339,64 @@ export function useCollapsiblePanel<T extends HTMLElement>(
     }
 
     panel.addEventListener('beforematch', handleBeforeMatch);
-
     onCleanup(() => {
       panel.removeEventListener('beforematch', handleBeforeMatch);
     });
   });
 
   return {
-    ref: handlePanelRef,
+    ref: (el) => {
+      parameters.refs.panelRef = el;
+      // handlePanelRef(el);
+      // TODO: figure this out as it's not working as expected
+      queueMicrotask(() => {
+        handlePanelRef(el);
+      });
+    },
     props: () => ({
       hidden: hidden(),
-      id: parameters.id(),
+      id: id(),
     }),
   };
 }
 
 export namespace useCollapsiblePanel {
   export interface Parameters<T extends HTMLElement> {
-    abortControllerRef: AbortController | null;
     animationType: Accessor<AnimationType>;
     setAnimationType: Setter<AnimationType>;
     /**
      * The height of the panel.
      */
-    height: Accessor<number | undefined>;
+    height: MaybeAccessor<number | undefined>;
     /**
      * Allows the browser’s built-in page search to find and expand the panel contents.
      *
      * Overrides the `keepMounted` prop and uses `hidden="until-found"`
      * to hide the element without removing it from the DOM.
      */
-    hiddenUntilFound: Accessor<boolean>;
+    hiddenUntilFound: MaybeAccessor<boolean>;
     /**
      * The `id` attribute of the panel.
      */
-    id: Accessor<JSX.HTMLAttributes<Element>['id']>;
+    id: MaybeAccessor<JSX.HTMLAttributes<Element>['id']>;
     /**
      * Whether to keep the element in the DOM while the panel is closed.
      * This prop is ignored when `hiddenUntilFound` is used.
      */
-    keepMounted: Accessor<boolean>;
+    keepMounted: MaybeAccessor<boolean>;
     /**
      * Whether the collapsible panel is currently mounted.
      */
-    mounted: Accessor<boolean>;
+    mounted: MaybeAccessor<boolean>;
     onOpenChange: (open: boolean) => void;
     /**
      * Whether the collapsible panel is currently open.
      */
-    open: Accessor<boolean>;
-    panelRef: T | null | undefined;
+    open: MaybeAccessor<boolean>;
+    refs: {
+      abortControllerRef: AbortController | null;
+      panelRef: T | null | undefined;
+    };
     runOnceAnimationsFinish: (fnToExecute: () => void, signal?: AbortSignal | null) => void;
     setDimensions: (nextDimensions: Dimensions) => void;
     setMounted: (nextMounted: boolean) => void;
@@ -378,19 +408,19 @@ export namespace useCollapsiblePanel {
      * The visible state of the panel used to determine the `[hidden]` attribute
      * only when CSS keyframe animations are used.
      */
-    visible: Accessor<boolean>;
+    visible: MaybeAccessor<boolean>;
     /**
      * The width of the panel.
      */
-    width: Accessor<number | undefined>;
+    width: MaybeAccessor<number | undefined>;
   }
 
   export interface ReturnValue<T extends HTMLElement> {
-    ref: Ref<T | null | undefined>;
+    ref: (el: T) => void;
     /**
      * TODO: provide better explanation
      * Ref should be ommited as Solid handles refs differently than React.
      */
-    props: Accessor<Omit<HTMLProps, 'ref'>>;
+    props: Accessor<HTMLProps>;
   }
 }

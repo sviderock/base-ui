@@ -1,7 +1,9 @@
 'use client';
-import { Show, splitProps } from 'solid-js';
+import { createMemo, Show } from 'solid-js';
+import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
+import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { CollapsibleRootContext } from './CollapsibleRootContext';
 import { collapsibleStyleHookMapping } from './styleHooks';
 import { useCollapsibleRoot } from './useCollapsibleRoot';
@@ -13,32 +15,32 @@ import { useCollapsibleRoot } from './useCollapsibleRoot';
  * Documentation: [Base UI Collapsible](https://base-ui.com/solid/components/collapsible)
  */
 export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'class',
+  const [, local, elementProps] = splitComponentProps(componentProps, [
     'defaultOpen',
     'disabled',
     'onOpenChange',
     'open',
-    'ref',
-    'children',
   ]);
+  const open = () => access(local.open);
+  const defaultOpen = () => access(local.defaultOpen) ?? false;
+  const disabled = () => access(local.disabled) ?? false;
 
-  const onOpenChange = (open: boolean) => {
-    local.onOpenChange?.(open);
+  const onOpenChange = (newOpen: boolean) => {
+    local.onOpenChange?.(newOpen);
   };
 
   const collapsible = useCollapsibleRoot({
-    open: () => local.open,
-    defaultOpen: local.defaultOpen,
+    open,
+    defaultOpen,
     onOpenChange,
-    disabled: () => local.disabled ?? false,
+    disabled,
   });
 
-  const state: CollapsibleRoot.State = {
-    open: collapsible.open,
-    disabled: collapsible.disabled,
-    transitionStatus: collapsible.transitionStatus,
-  };
+  const state = createMemo<CollapsibleRoot.State>(() => ({
+    open: collapsible.open(),
+    disabled: collapsible.disabled(),
+    transitionStatus: collapsible.transitionStatus(),
+  }));
 
   const contextValue: CollapsibleRootContext = {
     ...collapsible,
@@ -54,7 +56,7 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
           componentProps={componentProps}
           ref={componentProps.ref}
           params={{
-            state,
+            state: state(),
             props: elementProps,
             customStyleHookMapping: collapsibleStyleHookMapping,
           }}
@@ -65,16 +67,20 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
 }
 
 export namespace CollapsibleRoot {
-  export interface State
-    extends Pick<useCollapsibleRoot.ReturnValue, 'open' | 'disabled' | 'transitionStatus'> {}
+  export interface State {
+    open: boolean;
+    disabled: boolean;
+    transitionStatus: TransitionStatus;
+    hidden?: boolean;
+  }
 
-  export interface Props extends Omit<BaseUIComponentProps<'div', State>, 'render'> {
+  export interface Props extends BaseUIComponentProps<'div', State> {
     /**
      * Whether the collapsible panel is currently open.
      *
      * To render an uncontrolled collapsible, use the `defaultOpen` prop instead.
      */
-    open?: boolean;
+    open?: MaybeAccessor<boolean | undefined>;
 
     /**
      * Whether the collapsible panel is initially open.
@@ -82,7 +88,7 @@ export namespace CollapsibleRoot {
      * To render a controlled collapsible, use the `open` prop instead.
      * @default false
      */
-    defaultOpen?: boolean;
+    defaultOpen?: MaybeAccessor<boolean | undefined>;
     /**
      * Event handler called when the panel is opened or closed.
      */
@@ -91,7 +97,6 @@ export namespace CollapsibleRoot {
      * Whether the component should ignore user interaction.
      * @default false
      */
-    disabled?: boolean;
-    render?: BaseUIComponentProps<'div', State>['render'] | null;
+    disabled?: MaybeAccessor<boolean | undefined>;
   }
 }

@@ -1,5 +1,6 @@
 'use client';
-import { createMemo, mergeProps, splitProps, type JSX } from 'solid-js';
+import { createMemo, type JSX } from 'solid-js';
+import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
@@ -21,31 +22,25 @@ const styleHookMapping: CustomStyleHookMapping<CollapsibleRoot.State> = {
  * Documentation: [Base UI Collapsible](https://base-ui.com/react/components/collapsible)
  */
 export function CollapsibleTrigger(componentProps: CollapsibleTrigger.Props): JSX.Element {
-  const context = useCollapsibleRootContext();
-
-  const merged = mergeProps(
-    { nativeButton: true, disabled: context.disabled() } satisfies CollapsibleTrigger.Props,
-    componentProps,
-  );
-  const [local, elementProps] = splitProps(merged, [
-    'class',
+  const [, local, elementProps] = splitComponentProps(componentProps, [
     'disabled',
     'id',
-    'render',
     'nativeButton',
-    'ref',
   ]);
+  const context = useCollapsibleRootContext();
+  const nativeButton = () => access(local.nativeButton) ?? true;
+  const disabled = () => access(local.disabled) ?? context.disabled();
 
   const button = useButton({
-    disabled: () => local.disabled,
-    focusableWhenDisabled: () => true,
-    native: () => local.nativeButton,
+    disabled,
+    focusableWhenDisabled: true,
+    native: nativeButton,
   });
 
   const props = createMemo(() => ({
     'aria-controls': context.open() ? context.panelId() : undefined,
     'aria-expanded': context.open(),
-    disabled: local.disabled,
+    disabled: disabled(),
     onClick: context.handleTrigger,
   }));
 
@@ -62,7 +57,7 @@ export function CollapsibleTrigger(componentProps: CollapsibleTrigger.Props): JS
         button.buttonRef(el);
       }}
       params={{
-        state: context.state,
+        state: context.state(),
         props: [props(), elementProps, button.getButtonProps()],
         customStyleHookMapping: styleHookMapping,
       }}
@@ -78,6 +73,6 @@ export namespace CollapsibleTrigger {
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default true
      */
-    nativeButton?: boolean;
+    nativeButton?: MaybeAccessor<boolean | undefined>;
   }
 }

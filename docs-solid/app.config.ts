@@ -47,7 +47,7 @@ const config = defineConfig({
       tsconfigPaths(),
       mdx.withImports({})({
         jsx: true,
-        jsxImportSource: 'solid-js',
+        jsxImportSource: 'solid-js/h',
         providerImportSource: 'solid-mdx',
         remarkPlugins: [remarkGfm, remarkTypography],
         elementAttributeNameCase: 'html',
@@ -64,10 +64,6 @@ const config = defineConfig({
           rehypeKbd,
         ],
       } satisfies CompileOptions),
-      // solid({
-      //   extensions: ['mdx', 'md', 'tsx'],
-      //   ssr: true,
-      // }),
     ],
   },
 });

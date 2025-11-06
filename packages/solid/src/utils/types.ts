@@ -56,7 +56,7 @@ export type BaseUIComponentProps<
    *
    * Accepts a `ReactElement` or a function that returns the element to render.
    */
-  render?: ComponentRenderFn<RenderFunctionProps, State>;
+  render?: ComponentRenderFn<RenderFunctionProps, State> | null;
 };
 
 /**

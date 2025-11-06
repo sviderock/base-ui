@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createMemo, splitProps } from 'solid-js';
+import { createEffect, createMemo } from 'solid-js';
 import {
   ARROW_DOWN,
   ARROW_LEFT,
@@ -11,7 +11,7 @@ import {
 } from '../../composite/composite';
 import { CompositeList } from '../../composite/list/CompositeList';
 import { useDirection } from '../../direction-provider/DirectionContext';
-import { access, type MaybeAccessor } from '../../solid-helpers';
+import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { isElementDisabled } from '../../utils/isElementDisabled';
 import { BaseUIComponentProps, Orientation } from '../../utils/types';
 import { useControlled } from '../../utils/useControlled';
@@ -50,8 +50,7 @@ function getActiveTriggers(
  * Documentation: [Base UI Accordion](https://base-ui.com/react/components/accordion)
  */
 export function AccordionRoot(componentProps: AccordionRoot.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'class',
+  const [, local, elementProps] = splitComponentProps(componentProps, [
     'disabled',
     'hiddenUntilFound',
     'keepMounted',
@@ -61,7 +60,6 @@ export function AccordionRoot(componentProps: AccordionRoot.Props) {
     'orientation',
     'value',
     'defaultValue',
-    'children',
   ]);
   const disabled = () => access(local.disabled) ?? false;
   const hiddenUntilFoundProp = () => access(local.hiddenUntilFound);
@@ -123,11 +121,11 @@ export function AccordionRoot(componentProps: AccordionRoot.Props) {
   const isRtl = () => direction() === 'rtl';
   const isHorizontal = () => orientation() === 'horizontal';
 
-  const state: AccordionRoot.State = {
-    value,
-    disabled,
-    orientation,
-  };
+  const state = createMemo<AccordionRoot.State>(() => ({
+    value: value(),
+    disabled: disabled(),
+    orientation: orientation(),
+  }));
 
   const contextValue: AccordionRootContext = {
     accordionItemElements,
@@ -137,7 +135,7 @@ export function AccordionRoot(componentProps: AccordionRoot.Props) {
     hiddenUntilFound: () => hiddenUntilFoundProp() ?? false,
     keepMounted: () => keepMountedProp() ?? false,
     orientation,
-    state: () => state,
+    state,
     value,
   };
 
@@ -149,7 +147,7 @@ export function AccordionRoot(componentProps: AccordionRoot.Props) {
           componentProps={componentProps}
           ref={componentProps.ref}
           params={{
-            state,
+            state: state(),
             customStyleHookMapping: rootStyleHookMapping,
             props: [
               {
@@ -244,12 +242,12 @@ export type AccordionValue = (any | null)[];
 
 export namespace AccordionRoot {
   export interface State {
-    value: MaybeAccessor<AccordionValue>;
+    value: AccordionValue;
     /**
      * Whether the component should ignore user interaction.
      */
-    disabled: MaybeAccessor<boolean>;
-    orientation: MaybeAccessor<Orientation>;
+    disabled: boolean;
+    orientation: Orientation;
   }
 
   export interface Props extends BaseUIComponentProps<'div', State> {

@@ -1,5 +1,13 @@
 'use client';
-import { createEffect, createSignal, on, type Accessor, type JSX, type Setter } from 'solid-js';
+import {
+  batch,
+  createEffect,
+  createSignal,
+  on,
+  type Accessor,
+  type JSX,
+  type Setter,
+} from 'solid-js';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useAnimationsFinished } from '../../utils/useAnimationsFinished';
 import { useBaseUiId } from '../../utils/useBaseUiId';
@@ -42,9 +50,9 @@ export function useCollapsibleRoot(
   const [hiddenUntilFound, setHiddenUntilFound] = createSignal(false);
   const [keepMounted, setKeepMounted] = createSignal(false);
 
-  let abortControllerRef = null as AbortController | null;
   const refs: useCollapsibleRoot.ReturnValue['refs'] = {
     panelRef: null,
+    abortControllerRef: null,
   };
 
   const [animationType, setAnimationType] = createSignal<AnimationType>(null);
@@ -52,40 +60,42 @@ export function useCollapsibleRoot(
     null,
   );
 
-  const runOnceAnimationsFinish = useAnimationsFinished(refs.panelRef, () => false);
+  const runOnceAnimationsFinish = useAnimationsFinished(refs.panelRef, false);
 
   function handleTrigger() {
     const nextOpen = !open();
 
-    if (animationType() === 'css-animation' && refs.panelRef != null) {
-      refs.panelRef!.style.removeProperty('animation-name');
-    }
+    batch(() => {
+      if (animationType() === 'css-animation' && refs.panelRef != null) {
+        refs.panelRef!.style.removeProperty('animation-name');
+      }
 
-    if (!hiddenUntilFound() && !keepMounted()) {
-      if (animationType() != null && animationType() !== 'css-animation') {
-        if (!mounted() && nextOpen) {
-          setMounted(true);
+      if (!hiddenUntilFound() && !keepMounted()) {
+        if (animationType() != null && animationType() !== 'css-animation') {
+          if (!mounted() && nextOpen) {
+            setMounted(true);
+          }
+        }
+
+        if (animationType() === 'css-animation') {
+          if (!visible() && nextOpen) {
+            setVisible(true);
+          }
+          if (!mounted() && nextOpen) {
+            setMounted(true);
+          }
         }
       }
 
-      if (animationType() === 'css-animation') {
-        if (!visible() && nextOpen) {
-          setVisible(true);
-        }
-        if (!mounted() && nextOpen) {
-          setMounted(true);
+      setOpen(nextOpen);
+      parameters.onOpenChange(nextOpen);
+
+      if (animationType() === 'none') {
+        if (mounted() && !nextOpen) {
+          setMounted(false);
         }
       }
-    }
-
-    setOpen(nextOpen);
-    parameters.onOpenChange(nextOpen);
-
-    if (animationType() === 'none') {
-      if (mounted() && !nextOpen) {
-        setMounted(false);
-      }
-    }
+    });
   }
 
   createEffect(
@@ -101,16 +111,14 @@ export function useCollapsibleRoot(
   );
 
   return {
-    abortControllerRef,
+    refs,
     animationType,
     setAnimationType,
     disabled,
     handleTrigger,
-    height: () => dimensions().height,
     mounted,
     open,
     panelId,
-    refs,
     runOnceAnimationsFinish,
     setDimensions,
     setHiddenUntilFound,
@@ -123,6 +131,7 @@ export function useCollapsibleRoot(
     setTransitionDimension,
     transitionStatus,
     visible,
+    height: () => dimensions().height,
     width: () => dimensions().width,
   };
 }
@@ -154,7 +163,6 @@ export namespace useCollapsibleRoot {
   }
 
   export interface ReturnValue {
-    abortControllerRef: AbortController | null;
     animationType: Accessor<AnimationType>;
     setAnimationType: Setter<AnimationType>;
     /**
@@ -176,6 +184,7 @@ export namespace useCollapsibleRoot {
     open: Accessor<boolean>;
     panelId: Accessor<JSX.HTMLAttributes<Element>['id']>;
     refs: {
+      abortControllerRef: AbortController | null;
       panelRef: HTMLElement | null | undefined;
     };
     runOnceAnimationsFinish: (fnToExecute: () => void, signal?: AbortSignal | null) => void;

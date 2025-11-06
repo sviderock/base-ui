@@ -1,9 +1,9 @@
 'use client';
-import { type Accessor, createEffect, type JSX, onCleanup, Show, splitProps } from 'solid-js';
+import { batch, createEffect, createMemo, onCleanup, Show } from 'solid-js';
+import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
 import { RenderElement } from '../../utils/useRenderElement';
-import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { warn } from '../../utils/warn';
 import type { CollapsibleRoot } from '../root/CollapsibleRoot';
 import { useCollapsibleRootContext } from '../root/CollapsibleRootContext';
@@ -18,18 +18,17 @@ import { useCollapsiblePanel } from './useCollapsiblePanel';
  * Documentation: [Base UI Collapsible](https://base-ui.com/react/components/collapsible)
  */
 export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'class',
+  const [, local, elementProps] = splitComponentProps(componentProps, [
     'hiddenUntilFound',
     'keepMounted',
-    'render',
     'id',
-    'ref',
   ]);
+  const hiddenUntilFound = () => access(local.hiddenUntilFound) ?? false;
+  const keepMounted = () => access(local.keepMounted) ?? false;
 
   if (process.env.NODE_ENV !== 'production') {
     createEffect(() => {
-      if (local.hiddenUntilFound && local.keepMounted === false) {
+      if (hiddenUntilFound() && keepMounted() === false) {
         warn(
           'The `keepMounted={false}` prop on a Collapsible will be ignored when using `hiddenUntilFound` since it requires the Panel to remain mounted even when closed.',
         );
@@ -38,8 +37,6 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
   }
 
   const context = useCollapsibleRootContext();
-  const hiddenUntilFound = () => local.hiddenUntilFound ?? false;
-  const keepMounted = () => local.keepMounted ?? false;
 
   createEffect(() => {
     if (local.id) {
@@ -60,7 +57,6 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
   });
 
   const panel = useCollapsiblePanel({
-    abortControllerRef: context.abortControllerRef,
     animationType: context.animationType,
     setAnimationType: context.setAnimationType,
     height: context.height,
@@ -70,7 +66,7 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
     mounted: context.mounted,
     onOpenChange: context.onOpenChange,
     open: context.open,
-    panelRef: context.refs.panelRef,
+    refs: context.refs,
     runOnceAnimationsFinish: context.runOnceAnimationsFinish,
     setDimensions: context.setDimensions,
     setMounted: context.setMounted,
@@ -84,7 +80,7 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
 
   useOpenChangeComplete({
     open: context.open,
-    ref: context.refs.panelRef,
+    ref: () => context.refs.panelRef,
     onComplete() {
       if (!context.open()) {
         return;
@@ -94,30 +90,28 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
     },
   });
 
-  const panelState: CollapsiblePanel.State = {
-    ...context.state,
-    transitionStatus: context.transitionStatus,
-  };
-
-  const shouldRender = () =>
-    keepMounted() || hiddenUntilFound() || (!keepMounted() && context.mounted());
+  const shouldRender = createMemo(
+    () => keepMounted() || hiddenUntilFound() || (!keepMounted() && context.mounted()),
+  );
 
   return (
-    <Show when={shouldRender()} fallback={null}>
+    <Show when={shouldRender()}>
       <RenderElement
         element="div"
         componentProps={componentProps}
         ref={(el) => {
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-          context.refs.panelRef = el;
-          panel.ref = el;
+          batch(() => {
+            if (typeof componentProps.ref === 'function') {
+              componentProps.ref(el);
+            } else {
+              componentProps.ref = el;
+            }
+            context.refs.panelRef = el;
+            panel.ref(el);
+          });
         }}
         params={{
-          state: panelState,
+          state: context.state(),
           props: [
             panel.props(),
             {
@@ -138,9 +132,7 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
 }
 
 export namespace CollapsiblePanel {
-  export interface State extends CollapsibleRoot.State {
-    transitionStatus: Accessor<TransitionStatus>;
-  }
+  export interface State extends CollapsibleRoot.State {}
 
   export interface Props extends BaseUIComponentProps<'div', CollapsibleRoot.State> {
     /**
@@ -151,12 +143,12 @@ export namespace CollapsiblePanel {
      *
      * @default false
      */
-    hiddenUntilFound?: boolean;
+    hiddenUntilFound?: MaybeAccessor<boolean | undefined>;
     /**
      * Whether to keep the element in the DOM while the panel is hidden.
      * This prop is ignored when `hiddenUntilFound` is used.
      * @default false
      */
-    keepMounted?: boolean;
+    keepMounted?: MaybeAccessor<boolean | undefined>;
   }
 }

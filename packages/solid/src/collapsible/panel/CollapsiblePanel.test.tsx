@@ -1,6 +1,6 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { Collapsible } from '@base-ui-components/solid/collapsible';
-import { fireEvent } from '@solidjs/testing-library';
+import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { createSignal } from 'solid-js';
@@ -37,31 +37,31 @@ describe('<Collapsible.Panel />', () => {
         );
       }
 
-      const { queryByText, getByRole } = render(() => <App />);
+      render(() => <App />);
 
-      const trigger = getByRole('button');
+      const trigger = screen.getByRole('button');
 
       expect(trigger).to.have.attribute('aria-expanded', 'false');
-      expect(queryByText(PANEL_CONTENT)).to.not.equal(null);
-      expect(queryByText(PANEL_CONTENT)).not.toBeVisible();
-      expect(queryByText(PANEL_CONTENT)).to.have.attribute('data-closed');
+      expect(screen.queryByText(PANEL_CONTENT)).to.not.equal(null);
+      expect(screen.queryByText(PANEL_CONTENT)).not.toBeVisible();
+      expect(screen.queryByText(PANEL_CONTENT)).to.have.attribute('data-closed');
 
       fireEvent.click(trigger);
 
       expect(trigger).to.have.attribute('aria-expanded', 'true');
       expect(trigger.getAttribute('aria-controls')).to.equal(
-        queryByText(PANEL_CONTENT)?.getAttribute('id'),
+        screen.queryByText(PANEL_CONTENT)?.getAttribute('id'),
       );
-      expect(queryByText(PANEL_CONTENT)).toBeVisible();
-      expect(queryByText(PANEL_CONTENT)).to.have.attribute('data-open');
+      expect(screen.queryByText(PANEL_CONTENT)).toBeVisible();
+      expect(screen.queryByText(PANEL_CONTENT)).to.have.attribute('data-open');
       expect(trigger).to.have.attribute('data-panel-open');
 
       fireEvent.click(trigger);
 
       expect(trigger).to.have.attribute('aria-expanded', 'false');
       expect(trigger.getAttribute('aria-controls')).to.equal(null);
-      expect(queryByText(PANEL_CONTENT)).not.toBeVisible();
-      expect(queryByText(PANEL_CONTENT)).to.have.attribute('data-closed');
+      expect(screen.queryByText(PANEL_CONTENT)).not.toBeVisible();
+      expect(screen.queryByText(PANEL_CONTENT)).to.have.attribute('data-closed');
     });
   });
 
@@ -70,7 +70,7 @@ describe('<Collapsible.Panel />', () => {
     it('uses `hidden="until-found" to hide panel when true', () => {
       const handleOpenChange = spy();
 
-      const { queryByText } = render(() => (
+      render(() => (
         <Collapsible.Root defaultOpen={false} onOpenChange={handleOpenChange}>
           <Collapsible.Trigger />
           <Collapsible.Panel hiddenUntilFound keepMounted>
@@ -79,7 +79,7 @@ describe('<Collapsible.Panel />', () => {
         </Collapsible.Root>
       ));
 
-      const panel = queryByText(PANEL_CONTENT);
+      const panel = screen.queryByText(PANEL_CONTENT);
 
       const event = new window.Event('beforematch', {
         bubbles: true,

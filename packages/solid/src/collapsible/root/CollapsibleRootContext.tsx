@@ -1,12 +1,12 @@
 'use client';
-import { createContext, useContext, type Accessor, type ParentProps } from 'solid-js';
+import { createContext, useContext, type Accessor } from 'solid-js';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import type { CollapsibleRoot } from './CollapsibleRoot';
 import type { useCollapsibleRoot } from './useCollapsibleRoot';
 
 export interface CollapsibleRootContext extends useCollapsibleRoot.ReturnValue {
   onOpenChange: (open: boolean) => void;
-  state: CollapsibleRoot.State;
+  state: Accessor<CollapsibleRoot.State>;
   transitionStatus: Accessor<TransitionStatus>;
 }
 

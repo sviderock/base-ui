@@ -1,5 +1,5 @@
 'use client';
-import { splitProps } from 'solid-js';
+import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { RenderElement } from '../../utils/useRenderElement';
 import type { AccordionItem } from '../item/AccordionItem';
@@ -13,7 +13,7 @@ import { accordionStyleHookMapping } from '../item/styleHooks';
  * Documentation: [Base UI Accordion](https://base-ui.com/solid/components/accordion)
  */
 export function AccordionHeader(componentProps: AccordionHeader.Props) {
-  const [, elementProps] = splitProps(componentProps, ['render', 'class', 'ref', 'children']);
+  const [, , elementProps] = splitComponentProps(componentProps, []);
 
   const { state } = useAccordionItemContext();
   return (

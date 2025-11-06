@@ -1,10 +1,10 @@
 'use client';
-import { batch, createMemo, createSignal, splitProps } from 'solid-js';
+import { batch, createMemo, createSignal } from 'solid-js';
 import type { CollapsibleRoot } from '../../collapsible/root/CollapsibleRoot';
 import { CollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
 import { useCollapsibleRoot } from '../../collapsible/root/useCollapsibleRoot';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
-import { type MaybeAccessor, access } from '../../solid-helpers';
+import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { RenderElement } from '../../utils/useRenderElement';
@@ -20,11 +20,9 @@ import { accordionStyleHookMapping } from './styleHooks';
  * Documentation: [Base UI Accordion](https://base-ui.com/solid/components/accordion)
  */
 export function AccordionItem(componentProps: AccordionItem.Props) {
-  const [local, elementProps] = splitProps(componentProps, [
-    'class',
+  const [, local, elementProps] = splitComponentProps(componentProps, [
     'disabled',
     'onOpenChange',
-    'render',
     'value',
   ]);
   const disabledProp = () => access(local.disabled) ?? false;
@@ -70,11 +68,12 @@ export function AccordionItem(componentProps: AccordionItem.Props) {
     disabled,
   });
 
-  const collapsibleState: CollapsibleRoot.State = {
-    open: collapsible.open,
-    disabled: collapsible.disabled,
-    hidden: () => !collapsible.mounted(),
-  };
+  const collapsibleState = createMemo<CollapsibleRoot.State>(() => ({
+    open: collapsible.open(),
+    disabled: collapsible.disabled(),
+    hidden: !collapsible.mounted(),
+    transitionStatus: collapsible.transitionStatus(),
+  }));
 
   const collapsibleContext: CollapsibleRootContext = {
     ...collapsible,
@@ -85,9 +84,9 @@ export function AccordionItem(componentProps: AccordionItem.Props) {
 
   const state = createMemo<AccordionItem.State>(() => ({
     ...rootState(),
-    index,
-    disabled,
-    open: isOpen,
+    index: index(),
+    disabled: disabled(),
+    open: isOpen(),
   }));
 
   const initialTriggerId = useBaseUiId();
@@ -129,8 +128,8 @@ export type AccordionItemValue = any | null;
 
 export namespace AccordionItem {
   export interface State extends AccordionRoot.State {
-    index: MaybeAccessor<number>;
-    open: MaybeAccessor<boolean>;
+    index: number;
+    open: boolean;
   }
 
   export interface Props
