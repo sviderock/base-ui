@@ -29,3 +29,5 @@
   - animation broken when many toasts added
   - undo toast dissappear when hovered
   - toasts don't get dismissed properly
+- Tooltip demo:
+  - Keyboard navigation should trigger instant tooltip show without animation
