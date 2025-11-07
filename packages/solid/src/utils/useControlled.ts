@@ -24,16 +24,18 @@ export interface UseControlledProps<T = unknown> {
 }
 
 export function useControlled<T = unknown>(props: UseControlledProps<T>): Signal<T> {
-  // isControlled is ignored in the hook dependency lists as it should never change.
+  const controlledProp = () => access(props.controlled);
+  const defaultProp = () => access(props.default);
+
   // eslint-disable-next-line solid/reactivity
-  const isControlled = access(props.controlled) !== undefined;
+  const isControlled = controlledProp() !== undefined;
   const [valueState, setValue] = createSignal(access(props.default));
-  const value = () => (isControlled ? access(props.controlled) : valueState());
+  const value = () => (isControlled ? controlledProp() : valueState());
   const state = () => props.state ?? 'value';
 
   if (process.env.NODE_ENV !== 'production') {
     createEffect(() => {
-      if (isControlled !== (access(props.controlled) !== undefined)) {
+      if (isControlled !== (controlledProp() !== undefined)) {
         console.error(
           [
             `Base UI: A component is changing the ${
@@ -49,12 +51,12 @@ export function useControlled<T = unknown>(props: UseControlledProps<T>): Signal
       }
     });
 
-    const defaultValue = access(props.default);
+    const defaultValue = defaultProp();
 
     createEffect(() => {
       // Object.is() is not equivalent to the === operator.
       // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is for more details.
-      if (!isControlled && !Object.is(defaultValue, access(props.default))) {
+      if (!isControlled && !Object.is(defaultValue, defaultProp())) {
         console.error(
           [
             `Base UI: A component is changing the default ${state()} state of an uncontrolled ${props.name} after being initialized. ` +

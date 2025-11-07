@@ -1,5 +1,5 @@
 'use client';
-import { createMemo, splitProps, type JSX } from 'solid-js';
+import { batch, createMemo, splitProps, type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { FloatingEvents, useFloatingTree } from '../../floating-ui-solid';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
@@ -40,7 +40,7 @@ function InnerMenuCheckboxItem(componentProps: InnerMenuCheckboxItemProps) {
 
   const [checked, setChecked] = useControlled({
     controlled: checkedProp,
-    default: () => defaultChecked() ?? false,
+    default: defaultChecked,
     name: 'MenuCheckboxItem',
     state: 'checked',
   });
@@ -91,8 +91,10 @@ function InnerMenuCheckboxItem(componentProps: InnerMenuCheckboxItemProps) {
               role: 'menuitemcheckbox',
               'aria-checked': checked(),
               onClick: (event) => {
-                setChecked((currentlyChecked) => !currentlyChecked);
-                local.onCheckedChange?.(checked(), event);
+                batch(() => {
+                  setChecked((currentlyChecked) => !currentlyChecked);
+                  local.onCheckedChange?.(!checked(), event);
+                });
               },
             },
             elementProps,

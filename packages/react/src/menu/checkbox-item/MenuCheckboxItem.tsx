@@ -1,16 +1,16 @@
 'use client';
 import * as React from 'react';
-import { FloatingEvents, useFloatingTree } from '../../floating-ui-react';
-import { MenuCheckboxItemContext } from './MenuCheckboxItemContext';
-import { REGULAR_ITEM, useMenuItem } from '../item/useMenuItem';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
-import { useMenuRootContext } from '../root/MenuRootContext';
-import { useRenderElement } from '../../utils/useRenderElement';
-import { useBaseUiId } from '../../utils/useBaseUiId';
+import { FloatingEvents, useFloatingTree } from '../../floating-ui-react';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
-import { useForkRef } from '../../utils/useForkRef';
-import { itemMapping } from '../utils/styleHookMapping';
+import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
+import { useForkRef } from '../../utils/useForkRef';
+import { useRenderElement } from '../../utils/useRenderElement';
+import { REGULAR_ITEM, useMenuItem } from '../item/useMenuItem';
+import { useMenuRootContext } from '../root/MenuRootContext';
+import { itemMapping } from '../utils/styleHookMapping';
+import { MenuCheckboxItemContext } from './MenuCheckboxItemContext';
 
 const InnerMenuCheckboxItem = React.memo(
   React.forwardRef(function InnerMenuCheckboxItem(
@@ -68,6 +68,7 @@ const InnerMenuCheckboxItem = React.memo(
           role: 'menuitemcheckbox',
           'aria-checked': checked,
           onClick: (event: React.MouseEvent) => {
+            console.log(checked, setChecked);
             setChecked((currentlyChecked) => !currentlyChecked);
             onCheckedChange?.(!checked, event.nativeEvent);
           },
