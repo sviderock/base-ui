@@ -1,12 +1,12 @@
 'use client';
 import * as React from 'react';
+import { FieldRootContext } from './FieldRootContext';
+import { DEFAULT_VALIDITY_STATE, fieldValidityMapping } from '../utils/constants';
 import { useFieldsetRootContext } from '../../fieldset/root/FieldsetRootContext';
+import { useEventCallback } from '../../utils/useEventCallback';
 import { useFormContext } from '../../form/FormContext';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useEventCallback } from '../../utils/useEventCallback';
 import { useRenderElement } from '../../utils/useRenderElement';
-import { DEFAULT_VALIDITY_STATE, fieldValidityMapping } from '../utils/constants';
-import { FieldRootContext } from './FieldRootContext';
 
 /**
  * Groups all parts of the field.

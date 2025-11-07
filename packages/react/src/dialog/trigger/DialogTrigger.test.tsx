@@ -1,8 +1,8 @@
-import { createRenderer, describeConformance } from '#test-utils';
+import * as React from 'react';
+import { expect } from 'chai';
 import { Dialog } from '@base-ui-components/react/dialog';
 import { screen } from '@mui/internal-test-utils';
-import { expect } from 'chai';
-import * as React from 'react';
+import { createRenderer, describeConformance } from '#test-utils';
 
 describe('<Dialog.Trigger />', () => {
   const { render } = createRenderer();

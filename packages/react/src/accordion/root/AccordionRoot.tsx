@@ -1,23 +1,23 @@
 'use client';
 import * as React from 'react';
-import {
-  ARROW_DOWN,
-  ARROW_LEFT,
-  ARROW_RIGHT,
-  ARROW_UP,
-  END,
-  HOME,
-  stopEvent,
-} from '../../composite/composite';
-import { CompositeList } from '../../composite/list/CompositeList';
-import { useDirection } from '../../direction-provider/DirectionContext';
-import { isElementDisabled } from '../../utils/isElementDisabled';
 import { BaseUIComponentProps, Orientation } from '../../utils/types';
+import { isElementDisabled } from '../../utils/isElementDisabled';
 import { useControlled } from '../../utils/useControlled';
 import { useEventCallback } from '../../utils/useEventCallback';
 import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
 import { useRenderElement } from '../../utils/useRenderElement';
 import { warn } from '../../utils/warn';
+import {
+  ARROW_DOWN,
+  ARROW_UP,
+  ARROW_RIGHT,
+  ARROW_LEFT,
+  HOME,
+  END,
+  stopEvent,
+} from '../../composite/composite';
+import { CompositeList } from '../../composite/list/CompositeList';
+import { useDirection } from '../../direction-provider/DirectionContext';
 import { AccordionRootContext } from './AccordionRootContext';
 
 const SUPPORTED_KEYS = new Set([ARROW_DOWN, ARROW_UP, ARROW_RIGHT, ARROW_LEFT, HOME, END]);

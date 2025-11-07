@@ -1,9 +1,9 @@
 'use client';
 import * as React from 'react';
 import type { BaseUIComponentProps } from '../utils/types';
+import { FormContext } from './FormContext';
 import { useEventCallback } from '../utils/useEventCallback';
 import { useRenderElement } from '../utils/useRenderElement';
-import { FormContext } from './FormContext';
 
 const EMPTY = {};
 
@@ -48,9 +48,9 @@ export const Form = React.forwardRef(function Form(
 
     submittedRef.current = false;
 
-    const invalidFields = Array.from(formRef.current.fields.values()).filter((field) => {
-      return field.validityData.state.valid === false;
-    });
+    const invalidFields = Array.from(formRef.current.fields.values()).filter(
+      (field) => field.validityData.state.valid === false,
+    );
 
     if (invalidFields.length) {
       focusControl(invalidFields[0].controlRef.current);

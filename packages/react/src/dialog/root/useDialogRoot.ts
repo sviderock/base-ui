@@ -10,18 +10,18 @@ import {
   type OpenChangeReason as FloatingUIOpenChangeReason,
 } from '../../floating-ui-react';
 import { getTarget } from '../../floating-ui-react/utils';
-import {
-  translateOpenChangeReason,
-  type BaseOpenChangeReason,
-} from '../../utils/translateOpenChangeReason';
-import type { HTMLProps, RequiredExcept } from '../../utils/types';
 import { useControlled } from '../../utils/useControlled';
-import { type InteractionType } from '../../utils/useEnhancedClickHandler';
 import { useEventCallback } from '../../utils/useEventCallback';
-import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useOpenInteractionType } from '../../utils/useOpenInteractionType';
 import { useScrollLock } from '../../utils/useScrollLock';
 import { useTransitionStatus, type TransitionStatus } from '../../utils/useTransitionStatus';
+import { type InteractionType } from '../../utils/useEnhancedClickHandler';
+import type { RequiredExcept, HTMLProps } from '../../utils/types';
+import { useOpenInteractionType } from '../../utils/useOpenInteractionType';
+import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
+import {
+  type BaseOpenChangeReason,
+  translateOpenChangeReason,
+} from '../../utils/translateOpenChangeReason';
 
 export type DialogOpenChangeReason = BaseOpenChangeReason | 'close-press';
 

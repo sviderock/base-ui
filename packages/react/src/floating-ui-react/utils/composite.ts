@@ -1,8 +1,8 @@
 import { floor } from '@floating-ui/utils';
 
 import type { Dimensions } from '../types';
-import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP } from './constants';
 import { stopEvent } from './event';
+import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP } from './constants';
 
 type DisabledIndices = Array<number> | ((index: number) => boolean);
 

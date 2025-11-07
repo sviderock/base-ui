@@ -1,18 +1,18 @@
+import * as React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import * as React from 'react';
-import { describe, it, vi } from 'vitest';
+import { vi, it, describe } from 'vitest';
 
+import { useClick, useDismiss, useFloating, useInteractions, useListNavigation } from '../index';
+import type { UseListNavigationProps } from '../types';
 import { Main as ComplexGrid } from '../../../test/floating-ui-tests/ComplexGrid';
-import { Main as EmojiPicker } from '../../../test/floating-ui-tests/EmojiPicker';
 import { Main as Grid } from '../../../test/floating-ui-tests/Grid';
+import { Main as EmojiPicker } from '../../../test/floating-ui-tests/EmojiPicker';
 import { Main as ListboxFocus } from '../../../test/floating-ui-tests/ListboxFocus';
 import { Main as NestedMenu } from '../../../test/floating-ui-tests/Menu';
 import { HorizontalMenu } from '../../../test/floating-ui-tests/MenuOrientation';
 import { Menu, MenuItem } from '../../../test/floating-ui-tests/MenuVirtual';
 import { isJSDOM } from '../../utils/detectBrowser';
-import { useClick, useDismiss, useFloating, useInteractions, useListNavigation } from '../index';
-import type { UseListNavigationProps } from '../types';
 
 /* eslint-disable testing-library/no-unnecessary-act */
 
@@ -943,9 +943,7 @@ describe('useListNavigation', () => {
 
     await act(async () => {});
 
-    await waitFor(() => {
-      expect(screen.getByRole('textbox')).toHaveFocus();
-    });
+    expect(screen.getByRole('textbox')).toHaveFocus();
 
     await userEvent.keyboard('appl');
     await userEvent.keyboard('{ArrowDown}');
@@ -1010,7 +1008,6 @@ describe('useListNavigation', () => {
   // In JSDOM it will not focus the first item, but will in the browser
   it.skipIf(!isJSDOM)('focus management in nested lists', async () => {
     render(<NestedMenu />);
-
     await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
     await userEvent.keyboard('{ArrowDown}');
     await userEvent.keyboard('{ArrowDown}');

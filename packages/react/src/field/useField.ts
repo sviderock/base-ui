@@ -1,9 +1,9 @@
 import * as ReactDOM from 'react-dom';
-import { useFormContext } from '../form/FormContext';
-import { useLatestRef } from '../utils/useLatestRef';
 import { useModernLayoutEffect } from '../utils/useModernLayoutEffect';
-import { useFieldRootContext } from './root/FieldRootContext';
 import { getCombinedFieldValidityData } from './utils/getCombinedFieldValidityData';
+import { useFormContext } from '../form/FormContext';
+import { useFieldRootContext } from './root/FieldRootContext';
+import { useLatestRef } from '../utils/useLatestRef';
 
 export function useField(params: useField.Parameters) {
   const { formRef } = useFormContext();
@@ -43,7 +43,6 @@ export function useField(params: useField.Parameters) {
           }
 
           markedDirtyRef.current = true;
-
           // Synchronously update the validity state so the submit event can be prevented.
           ReactDOM.flushSync(() => commitValidation(nextValue));
         },

@@ -1,9 +1,9 @@
 'use client';
 import * as React from 'react';
 import { EMPTY_OBJECT } from '../../utils/constants';
-import { useAnimationFrame } from '../../utils/useAnimationFrame';
 import type { ElementProps, FloatingRootContext } from '../types';
 import { isMouseLikePointerType } from '../utils';
+import { useAnimationFrame } from '../../utils/useAnimationFrame';
 
 export interface UseClickProps {
   /**
@@ -85,7 +85,6 @@ export function useClick(context: FloatingRootContext, props: UseClickProps = {}
         );
         // Wait until focus is set on the element. This is an alternative to
         // `event.preventDefault()` to avoid :focus-visible from appearing when using a pointer.
-
         frame.request(() => {
           onOpenChange(nextOpen, nativeEvent, 'click');
         });

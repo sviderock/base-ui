@@ -8,13 +8,13 @@ import {
   screen,
   waitFor,
 } from '@mui/internal-test-utils';
-import userEvent from '@testing-library/user-event';
 import * as React from 'react';
-import { test, vi } from 'vitest';
-import { Popover } from '../../../test/floating-ui-tests/Popover';
-import { isJSDOM } from '../../utils/detectBrowser';
+import { vi, test } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { useFloating, useHover, useInteractions } from '../index';
 import type { UseHoverProps } from './useHover';
+import { Popover } from '../../../test/floating-ui-tests/Popover';
+import { isJSDOM } from '../../utils/detectBrowser';
 
 vi.useFakeTimers();
 
@@ -24,7 +24,6 @@ function App({ showReference = true, ...props }: UseHoverProps & { showReference
     open,
     onOpenChange: setOpen,
   });
-
   const { getReferenceProps, getFloatingProps } = useInteractions([useHover(context, props)]);
 
   return (
@@ -365,6 +364,7 @@ describe.skipIf(!isJSDOM)('useHover', () => {
     fireEvent.mouseLeave(screen.getByRole('dialog', { name: 'Child title' }));
     expect(screen.getByText('Child title')).toBeInTheDocument();
     await user.click(screen.getByText('Parent title'));
+    // screen.debug();
     expect(screen.getByText('Parent title')).toBeInTheDocument();
 
     vi.useFakeTimers();

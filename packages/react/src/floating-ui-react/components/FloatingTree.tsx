@@ -39,7 +39,6 @@ export function useFloatingNodeId(customParentId?: string): string | undefined {
     }
     const node = { id, parentId };
     tree?.addNode(node);
-
     return () => {
       tree?.removeNode(node);
     };

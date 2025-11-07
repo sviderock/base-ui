@@ -1,8 +1,8 @@
-import { createRenderer } from '#test-utils';
-import { ScrollArea } from '@base-ui-components/react/scroll-area';
-import { fireEvent, screen } from '@mui/internal-test-utils';
-import { expect } from 'chai';
 import * as React from 'react';
+import { ScrollArea } from '@base-ui-components/react/scroll-area';
+import { screen, fireEvent } from '@mui/internal-test-utils';
+import { createRenderer } from '#test-utils';
+import { expect } from 'chai';
 import { describeConformance } from '../../../test/describeConformance';
 import { SCROLL_TIMEOUT } from '../constants';
 

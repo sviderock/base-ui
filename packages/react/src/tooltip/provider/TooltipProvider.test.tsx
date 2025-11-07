@@ -1,8 +1,8 @@
-import { createRenderer } from '#test-utils';
-import { Tooltip } from '@base-ui-components/react/tooltip';
-import { fireEvent, flushMicrotasks, screen } from '@mui/internal-test-utils';
-import { expect } from 'chai';
 import * as React from 'react';
+import { Tooltip } from '@base-ui-components/react/tooltip';
+import { screen, fireEvent, flushMicrotasks } from '@mui/internal-test-utils';
+import { expect } from 'chai';
+import { createRenderer } from '#test-utils';
 import { OPEN_DELAY } from '../utils/constants';
 
 describe('<Tooltip.Provider />', () => {
@@ -25,22 +25,17 @@ describe('<Tooltip.Provider />', () => {
         </Tooltip.Provider>,
       );
 
-      console.log(1);
       const trigger = screen.getByRole('button');
 
-      console.log(2);
       fireEvent.mouseEnter(trigger);
       fireEvent.mouseMove(trigger);
 
-      console.log(3);
       expect(screen.queryByText('Content')).to.equal(null);
 
       clock.tick(1_000);
 
-      console.log(4);
       expect(screen.queryByText('Content')).to.equal(null);
 
-      console.log(5);
       clock.tick(9_000);
 
       await flushMicrotasks();

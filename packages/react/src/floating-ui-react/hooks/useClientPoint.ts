@@ -1,10 +1,8 @@
-import { getWindow } from '@floating-ui/utils/dom';
 import * as React from 'react';
+import { getWindow } from '@floating-ui/utils/dom';
 import { useEventCallback } from '../../utils/useEventCallback';
 import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
 import { contains, getTarget, isMouseLikePointerType } from '../utils';
-
-let count = 0;
 
 import type { ContextData, ElementProps, FloatingRootContext } from '../types';
 
@@ -177,9 +175,7 @@ export function useClientPoint(
   // mouse even if the floating element is transitioning out. On touch
   // devices, this is undesirable because the floating element will move to
   // the dismissal touch point.
-  const openCheck = React.useMemo(() => {
-    return isMouseLikePointerType(pointerType) ? floating : open;
-  }, [pointerType, floating, open]);
+  const openCheck = isMouseLikePointerType(pointerType) ? floating : open;
 
   const addListener = React.useCallback(() => {
     // Explicitly specified `x`/`y` coordinates shouldn't add a listener.

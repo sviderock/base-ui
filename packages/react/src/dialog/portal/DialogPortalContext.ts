@@ -7,6 +7,5 @@ export function useDialogPortalContext() {
   if (value === undefined) {
     throw new Error('Base UI: <Dialog.Portal> is missing.');
   }
-
   return value;
 }

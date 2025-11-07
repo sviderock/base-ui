@@ -1,10 +1,9 @@
-import { randomStringValue } from '@mui/internal-test-utils';
-import { screen } from '@testing-library/react';
-import { expect } from 'chai';
 import * as React from 'react';
+import { expect } from 'chai';
+import { randomStringValue } from '@mui/internal-test-utils';
 import type {
-  BaseUiConformanceTestsOptions,
   ConformantComponentProps,
+  BaseUiConformanceTestsOptions,
 } from '../describeConformance';
 import { throwMissingPropError } from './utils';
 

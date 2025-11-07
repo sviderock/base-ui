@@ -1,8 +1,8 @@
-import { expect } from 'chai';
 import * as React from 'react';
+import { expect } from 'chai';
 import type {
-  BaseUiConformanceTestsOptions,
   ConformantComponentProps,
+  BaseUiConformanceTestsOptions,
 } from '../describeConformance';
 import { throwMissingPropError } from './utils';
 

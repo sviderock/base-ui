@@ -1,15 +1,15 @@
 'use client';
 import * as React from 'react';
-import { AccordionRootDataAttributes } from '../../accordion/root/AccordionRootDataAttributes';
 import { HTMLProps } from '../../utils/types';
-import { AnimationFrame } from '../../utils/useAnimationFrame';
+import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
 import { useEventCallback } from '../../utils/useEventCallback';
 import { useForkRef } from '../../utils/useForkRef';
-import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
 import { useOnMount } from '../../utils/useOnMount';
+import { AnimationFrame } from '../../utils/useAnimationFrame';
 import { warn } from '../../utils/warn';
 import type { AnimationType, Dimensions } from '../root/useCollapsibleRoot';
 import { CollapsiblePanelDataAttributes } from './CollapsiblePanelDataAttributes';
+import { AccordionRootDataAttributes } from '../../accordion/root/AccordionRootDataAttributes';
 
 export function useCollapsiblePanel(
   parameters: useCollapsiblePanel.Parameters,

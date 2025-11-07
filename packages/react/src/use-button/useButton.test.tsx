@@ -1,10 +1,10 @@
-import { createRenderer, isJSDOM } from '#test-utils';
-import { act, fireEvent } from '@mui/internal-test-utils';
-import { expect } from 'chai';
 import * as React from 'react';
+import { expect } from 'chai';
 import { spy } from 'sinon';
-import { useForkRef } from '../utils';
+import { act, fireEvent } from '@mui/internal-test-utils';
+import { createRenderer, isJSDOM } from '#test-utils';
 import { useButton } from './useButton';
+import { useForkRef } from '../utils';
 
 describe('useButton', () => {
   const { render, renderToString } = createRenderer();
