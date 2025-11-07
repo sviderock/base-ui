@@ -23,3 +23,4 @@
 
 - Menubar demo
 - Navigation menu demo
+- Scroll Area demo
