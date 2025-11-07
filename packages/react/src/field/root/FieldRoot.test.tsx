@@ -1,18 +1,18 @@
-import { createRenderer, describeConformance } from '#test-utils';
-import { Checkbox } from '@base-ui-components/react/checkbox';
-import { CheckboxGroup } from '@base-ui-components/react/checkbox-group';
-import { Field } from '@base-ui-components/react/field';
+import * as React from 'react';
 import { Form } from '@base-ui-components/react/form';
 import { NumberField } from '@base-ui-components/react/number-field';
 import { Radio } from '@base-ui-components/react/radio';
 import { RadioGroup } from '@base-ui-components/react/radio-group';
 import { Select } from '@base-ui-components/react/select';
-import { Slider } from '@base-ui-components/react/slider';
+import { Checkbox } from '@base-ui-components/react/checkbox';
+import { CheckboxGroup } from '@base-ui-components/react/checkbox-group';
 import { Switch } from '@base-ui-components/react/switch';
+import { Slider } from '@base-ui-components/react/slider';
+import { Field } from '@base-ui-components/react/field';
 import { act, fireEvent, flushMicrotasks, screen, waitFor } from '@mui/internal-test-utils';
 import { expect } from 'chai';
-import * as React from 'react';
 import { spy } from 'sinon';
+import { createRenderer, describeConformance } from '#test-utils';
 
 describe('<Field.Root />', () => {
   const { render } = createRenderer();

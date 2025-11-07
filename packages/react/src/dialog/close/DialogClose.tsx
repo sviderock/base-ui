@@ -1,9 +1,9 @@
 'use client';
 import * as React from 'react';
-import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
-import { useDialogRootContext } from '../root/DialogRootContext';
 import { useDialogClose } from './useDialogClose';
+import { useDialogRootContext } from '../root/DialogRootContext';
+import { useRenderElement } from '../../utils/useRenderElement';
+import type { BaseUIComponentProps } from '../../utils/types';
 
 /**
  * A button that closes the dialog.

@@ -1,13 +1,13 @@
+import * as React from 'react';
 import {
-  act,
   CreateRendererOptions,
-  flushMicrotasks,
-  MuiRenderResult,
-  Renderer,
   RenderOptions,
   createRenderer as sharedCreateRenderer,
+  flushMicrotasks,
+  Renderer,
+  MuiRenderResult,
+  act,
 } from '@mui/internal-test-utils';
-import * as React from 'react';
 
 export type BaseUIRenderResult = Omit<MuiRenderResult, 'rerender' | 'setProps'> & {
   rerender: (newElement: React.ReactElement<DataAttributes>) => Promise<void>;

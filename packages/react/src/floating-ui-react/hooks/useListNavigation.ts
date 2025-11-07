@@ -1,33 +1,33 @@
-import { isHTMLElement } from '@floating-ui/utils/dom';
 import * as React from 'react';
-import { useEventCallback } from '../../utils/useEventCallback';
+import { isHTMLElement } from '@floating-ui/utils/dom';
 import { useLatestRef } from '../../utils/useLatestRef';
+import { useEventCallback } from '../../utils/useEventCallback';
 import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
 import {
   activeElement,
   contains,
-  createGridCellMap,
-  findNonDisabledListIndex,
-  getDeepestNode,
   getDocument,
-  getFloatingFocusElement,
-  getGridCellIndexOfCorner,
-  getGridCellIndices,
-  getGridNavigatedIndex,
-  getMaxListIndex,
-  getMinListIndex,
-  isIndexOutOfListBounds,
-  isListIndexDisabled,
   isTypeableCombobox,
   isVirtualClick,
   isVirtualPointerEvent,
   stopEvent,
+  getDeepestNode,
+  getFloatingFocusElement,
+  isIndexOutOfListBounds,
+  getMinListIndex,
+  getMaxListIndex,
+  getGridNavigatedIndex,
+  isListIndexDisabled,
+  createGridCellMap,
+  getGridCellIndices,
+  getGridCellIndexOfCorner,
+  findNonDisabledListIndex,
 } from '../utils';
 
 import { useFloatingParentNodeId, useFloatingTree } from '../components/FloatingTree';
 import type { Dimensions, ElementProps, FloatingRootContext } from '../types';
-import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP } from '../utils/constants';
 import { enqueueFocus } from '../utils/enqueueFocus';
+import { ARROW_UP, ARROW_DOWN, ARROW_RIGHT, ARROW_LEFT } from '../utils/constants';
 
 export const ESCAPE = 'Escape';
 
@@ -449,7 +449,6 @@ export function useListNavigation(
                 ? getMinListIndex(listRef, disabledIndicesRef.current)
                 : getMaxListIndex(listRef, disabledIndicesRef.current);
             keyRef.current = null;
-
             onNavigate();
           }
         };
@@ -661,7 +660,6 @@ export function useListNavigation(
         }));
       // To calculate movements on the grid, we use hypothetical cell indices
       // as if every item was 1x1, then convert back to real indices.
-
       const cellMap = createGridCellMap(sizes, cols, dense);
       const minGridIndex = cellMap.findIndex(
         (index) => index != null && !isListIndexDisabled(listRef, index, disabledIndices),

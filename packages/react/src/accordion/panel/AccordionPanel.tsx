@@ -1,19 +1,19 @@
 'use client';
 import * as React from 'react';
-import { useCollapsiblePanel } from '../../collapsible/panel/useCollapsiblePanel';
-import { useCollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
-import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
 import { useRenderElement } from '../../utils/useRenderElement';
-import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { warn } from '../../utils/warn';
+import { useCollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
+import { useCollapsiblePanel } from '../../collapsible/panel/useCollapsiblePanel';
+import { useAccordionRootContext } from '../root/AccordionRootContext';
+import type { AccordionRoot } from '../root/AccordionRoot';
 import type { AccordionItem } from '../item/AccordionItem';
 import { useAccordionItemContext } from '../item/AccordionItemContext';
 import { accordionStyleHookMapping } from '../item/styleHooks';
-import type { AccordionRoot } from '../root/AccordionRoot';
-import { useAccordionRootContext } from '../root/AccordionRootContext';
 import { AccordionPanelCssVars } from './AccordionPanelCssVars';
+import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
+import type { TransitionStatus } from '../../utils/useTransitionStatus';
 
 /**
  * A collapsible panel with the accordion item contents.

@@ -1,15 +1,15 @@
-import { isNode } from '@floating-ui/utils/dom';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { FocusGuard } from '../../utils/FocusGuard';
+import { isNode } from '@floating-ui/utils/dom';
 import { useId } from '../../utils/useId';
 import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
+import { FocusGuard } from '../../utils/FocusGuard';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import {
-  disableFocusInside,
   enableFocusInside,
-  getNextTabbable,
+  disableFocusInside,
   getPreviousTabbable,
+  getNextTabbable,
   isOutsideEvent,
 } from '../utils';
 

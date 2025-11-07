@@ -1,11 +1,11 @@
 'use client';
 import * as React from 'react';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useEventCallback } from '../../utils/useEventCallback';
 import { useRenderElement } from '../../utils/useRenderElement';
+import { useEventCallback } from '../../utils/useEventCallback';
+import { useCollapsibleRoot } from './useCollapsibleRoot';
 import { CollapsibleRootContext } from './CollapsibleRootContext';
 import { collapsibleStyleHookMapping } from './styleHooks';
-import { useCollapsibleRoot } from './useCollapsibleRoot';
 
 /**
  * Groups all parts of the collapsible.

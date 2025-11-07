@@ -1,13 +1,10 @@
 'use client';
 import * as React from 'react';
-import type { TextDirection } from '../../direction-provider/DirectionContext';
 import { activeElement } from '../../floating-ui-react/utils';
+import type { TextDirection } from '../../direction-provider/DirectionContext';
 import { isElementDisabled } from '../../utils/isElementDisabled';
-import { ownerDocument } from '../../utils/owner';
-import { HTMLProps } from '../../utils/types';
 import { useEventCallback } from '../../utils/useEventCallback';
 import { useForkRef } from '../../utils/useForkRef';
-import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
 import {
   ALL_KEYS,
   ARROW_DOWN,
@@ -29,8 +26,8 @@ import {
   getGridNavigatedIndex,
   getMaxListIndex,
   getMinListIndex,
-  isIndexOutOfListBounds,
   isListIndexDisabled,
+  isIndexOutOfListBounds,
   isNativeInput,
   scrollIntoViewIfNeeded,
   type Dimensions,
@@ -38,6 +35,9 @@ import {
 } from '../composite';
 import { ACTIVE_COMPOSITE_ITEM } from '../constants';
 import { CompositeMetadata } from '../list/CompositeList';
+import { HTMLProps } from '../../utils/types';
+import { ownerDocument } from '../../utils/owner';
+import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
 
 export interface UseCompositeRootParameters {
   orientation?: 'horizontal' | 'vertical' | 'both';
@@ -153,7 +153,6 @@ export function useCompositeRoot(params: UseCompositeRootParameters) {
         if (!element || !isNativeInput(event.target)) {
           return;
         }
-
         event.target.setSelectionRange(0, event.target.value.length ?? 0);
       },
       onKeyDown(event) {

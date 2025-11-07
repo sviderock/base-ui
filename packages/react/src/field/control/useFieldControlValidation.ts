@@ -1,13 +1,13 @@
 'use client';
 import * as React from 'react';
-import { useFormContext } from '../../form/FormContext';
-import { mergeProps } from '../../merge-props';
-import type { HTMLProps } from '../../utils/types';
-import { useEventCallback } from '../../utils/useEventCallback';
 import { useTimeout } from '../../utils/useTimeout';
+import { useEventCallback } from '../../utils/useEventCallback';
 import { useFieldRootContext } from '../root/FieldRootContext';
+import { mergeProps } from '../../merge-props';
 import { DEFAULT_VALIDITY_STATE } from '../utils/constants';
+import { useFormContext } from '../../form/FormContext';
 import { getCombinedFieldValidityData } from '../utils/getCombinedFieldValidityData';
+import type { HTMLProps } from '../../utils/types';
 
 const validityKeys = Object.keys(DEFAULT_VALIDITY_STATE) as Array<keyof ValidityState>;
 
@@ -149,6 +149,7 @@ export function useFieldControlValidation() {
     let validationErrors: string[] = [];
 
     const nextState = getState(element);
+
     let defaultValidationMessage;
 
     if (element.validationMessage) {
@@ -212,15 +213,14 @@ export function useFieldControlValidation() {
   });
 
   const getValidationProps = React.useCallback(
-    (externalProps = {}) => {
-      return mergeProps<any>(
+    (externalProps = {}) =>
+      mergeProps<any>(
         {
           ...(messageIds.length && { 'aria-describedby': messageIds.join(' ') }),
           ...(state.valid === false && { 'aria-invalid': true }),
         },
         externalProps,
-      );
-    },
+      ),
     [messageIds, state.valid],
   );
 

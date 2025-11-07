@@ -1,13 +1,13 @@
 'use client';
 import * as React from 'react';
-import { useButton } from '../../use-button';
 import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
-import { BaseUIComponentProps } from '../../utils/types';
 import { useRenderElement } from '../../utils/useRenderElement';
-import { CollapsibleRoot } from '../root/CollapsibleRoot';
+import { BaseUIComponentProps } from '../../utils/types';
+import { useButton } from '../../use-button';
 import { useCollapsibleRootContext } from '../root/CollapsibleRootContext';
+import { CollapsibleRoot } from '../root/CollapsibleRoot';
 
 const styleHookMapping: CustomStyleHookMapping<CollapsibleRoot.State> = {
   ...triggerOpenStateMapping,

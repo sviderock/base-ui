@@ -137,8 +137,10 @@ function applyAttributeToOthers(
         if (!uncontrolledElementsSet.has(element) && controlAttribute) {
           element.removeAttribute(controlAttribute);
         }
+
         uncontrolledElementsSet.delete(element);
       }
+
       if (!markerValue) {
         element.removeAttribute(markerName);
       }

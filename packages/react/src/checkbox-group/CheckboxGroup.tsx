@@ -1,17 +1,17 @@
 'use client';
 import * as React from 'react';
-import { PARENT_CHECKBOX } from '../checkbox/root/CheckboxRoot';
-import { useFieldControlValidation } from '../field/control/useFieldControlValidation';
-import type { FieldRoot } from '../field/root/FieldRoot';
-import { useFieldRootContext } from '../field/root/FieldRootContext';
-import { useField } from '../field/useField';
-import { fieldValidityMapping } from '../field/utils/constants';
-import type { BaseUIComponentProps } from '../utils/types';
 import { useBaseUiId } from '../utils/useBaseUiId';
 import { useControlled } from '../utils/useControlled';
 import { useEventCallback } from '../utils/useEventCallback';
 import { useRenderElement } from '../utils/useRenderElement';
 import { CheckboxGroupContext } from './CheckboxGroupContext';
+import type { FieldRoot } from '../field/root/FieldRoot';
+import { useFieldRootContext } from '../field/root/FieldRootContext';
+import type { BaseUIComponentProps } from '../utils/types';
+import { fieldValidityMapping } from '../field/utils/constants';
+import { useField } from '../field/useField';
+import { useFieldControlValidation } from '../field/control/useFieldControlValidation';
+import { PARENT_CHECKBOX } from '../checkbox/root/CheckboxRoot';
 import { useCheckboxGroupParent } from './useCheckboxGroupParent';
 
 /**
@@ -61,9 +61,7 @@ export const CheckboxGroup = React.forwardRef(function CheckboxGroup(
   const parent = useCheckboxGroupParent({
     allValues,
     value: externalValue,
-    onValueChange: (...args) => {
-      onValueChange?.(...args);
-    },
+    onValueChange,
   });
 
   const id = useBaseUiId(idProp);

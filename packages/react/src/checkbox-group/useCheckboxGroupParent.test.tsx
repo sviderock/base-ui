@@ -1,8 +1,8 @@
-import { Checkbox } from '@base-ui-components/react/checkbox';
-import { CheckboxGroup } from '@base-ui-components/react/checkbox-group';
-import { createRenderer, fireEvent, screen } from '@mui/internal-test-utils';
-import { expect } from 'chai';
 import * as React from 'react';
+import { createRenderer, fireEvent, screen } from '@mui/internal-test-utils';
+import { CheckboxGroup } from '@base-ui-components/react/checkbox-group';
+import { Checkbox } from '@base-ui-components/react/checkbox';
+import { expect } from 'chai';
 import { spy } from 'sinon';
 
 describe('useCheckboxGroupParent', () => {

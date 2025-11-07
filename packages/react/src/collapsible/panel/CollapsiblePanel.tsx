@@ -2,15 +2,15 @@
 import * as React from 'react';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
-import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
 import { useRenderElement } from '../../utils/useRenderElement';
-import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { warn } from '../../utils/warn';
-import type { CollapsibleRoot } from '../root/CollapsibleRoot';
 import { useCollapsibleRootContext } from '../root/CollapsibleRootContext';
+import type { CollapsibleRoot } from '../root/CollapsibleRoot';
 import { collapsibleStyleHookMapping } from '../root/styleHooks';
-import { CollapsiblePanelCssVars } from './CollapsiblePanelCssVars';
 import { useCollapsiblePanel } from './useCollapsiblePanel';
+import { CollapsiblePanelCssVars } from './CollapsiblePanelCssVars';
+import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
+import type { TransitionStatus } from '../../utils/useTransitionStatus';
 
 /**
  * A panel with the collapsible contents.
@@ -32,6 +32,7 @@ export const CollapsiblePanel = React.forwardRef(function CollapsiblePanel(
   } = componentProps;
 
   if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     useModernLayoutEffect(() => {
       if (hiddenUntilFoundProp && keepMountedProp === false) {
         warn(

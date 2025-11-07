@@ -1,16 +1,16 @@
 'use client';
 import * as React from 'react';
-import { styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
-import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useEventCallback } from '../../utils/useEventCallback';
-import { useRenderElement } from '../../utils/useRenderElement';
-import { useTimeout } from '../../utils/useTimeout';
-import { SCROLL_TIMEOUT } from '../constants';
-import { ScrollAreaScrollbarDataAttributes } from '../scrollbar/ScrollAreaScrollbarDataAttributes';
-import { getOffset } from '../utils/getOffset';
 import { ScrollAreaRootContext } from './ScrollAreaRootContext';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { ScrollAreaRootCssVars } from './ScrollAreaRootCssVars';
+import { useEventCallback } from '../../utils/useEventCallback';
+import { SCROLL_TIMEOUT } from '../constants';
+import { getOffset } from '../utils/getOffset';
+import { ScrollAreaScrollbarDataAttributes } from '../scrollbar/ScrollAreaScrollbarDataAttributes';
+import { styleDisableScrollbar } from '../../utils/styles';
+import { useBaseUiId } from '../../utils/useBaseUiId';
+import { useTimeout } from '../../utils/useTimeout';
 
 interface Size {
   width: number;

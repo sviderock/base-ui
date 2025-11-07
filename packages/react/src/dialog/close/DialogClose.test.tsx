@@ -1,9 +1,9 @@
-import { createRenderer, describeConformance } from '#test-utils';
+import * as React from 'react';
+import { expect } from 'chai';
+import { spy } from 'sinon';
 import { Dialog } from '@base-ui-components/react/dialog';
 import { screen } from '@mui/internal-test-utils';
-import { expect } from 'chai';
-import * as React from 'react';
-import { spy } from 'sinon';
+import { createRenderer, describeConformance } from '#test-utils';
 
 describe('<Dialog.Close />', () => {
   const { render } = createRenderer();

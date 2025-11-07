@@ -1,8 +1,8 @@
 'use client';
-import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Collapsible } from '@base-ui-components/react/collapsible';
-import { expect } from 'chai';
 import * as React from 'react';
+import { expect } from 'chai';
+import { Collapsible } from '@base-ui-components/react/collapsible';
+import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 
 const PANEL_CONTENT = 'This is panel content';
 

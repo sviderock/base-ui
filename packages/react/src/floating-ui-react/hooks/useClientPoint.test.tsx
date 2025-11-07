@@ -1,6 +1,6 @@
+import * as React from 'react';
 import type { Coords } from '@floating-ui/react-dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import * as React from 'react';
 import { test } from 'vitest';
 
 /* eslint-disable testing-library/no-unnecessary-act */
@@ -175,7 +175,6 @@ test('cleans up window listener when closing or disabling', async () => {
       clientY: 500,
     }),
   );
-
   await act(async () => {});
 
   fireEvent.click(screen.getByRole('button'));
@@ -188,7 +187,6 @@ test('cleans up window listener when closing or disabling', async () => {
       clientY: 0,
     }),
   );
-
   await act(async () => {});
 
   expectLocation({ x: 500, y: 500 });

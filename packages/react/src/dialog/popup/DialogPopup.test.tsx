@@ -1,9 +1,9 @@
-import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { AlertDialog } from '@base-ui-components/react/alert-dialog';
-import { Dialog } from '@base-ui-components/react/dialog';
-import { act, screen, waitFor } from '@mui/internal-test-utils';
-import { expect } from 'chai';
 import * as React from 'react';
+import { expect } from 'chai';
+import { Dialog } from '@base-ui-components/react/dialog';
+import { AlertDialog } from '@base-ui-components/react/alert-dialog';
+import { act, waitFor, screen } from '@mui/internal-test-utils';
+import { describeConformance, createRenderer, isJSDOM } from '#test-utils';
 
 describe('<Dialog.Popup />', () => {
   const { render } = createRenderer();

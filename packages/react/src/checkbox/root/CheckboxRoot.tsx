@@ -1,22 +1,22 @@
 'use client';
 import * as React from 'react';
-import { useCheckboxGroupContext } from '../../checkbox-group/CheckboxGroupContext';
-import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
-import type { FieldRoot } from '../../field/root/FieldRoot';
-import { useFieldRootContext } from '../../field/root/FieldRootContext';
-import { useField } from '../../field/useField';
-import { useFormContext } from '../../form/FormContext';
-import { mergeProps } from '../../merge-props';
-import { useButton } from '../../use-button/useButton';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useControlled } from '../../utils/useControlled';
+import { useCustomStyleHookMapping } from '../utils/useCustomStyleHookMapping';
 import { useEventCallback } from '../../utils/useEventCallback';
 import { useForkRef } from '../../utils/useForkRef';
 import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
-import { useRenderElement } from '../../utils/useRenderElement';
 import { visuallyHidden } from '../../utils/visuallyHidden';
-import { useCustomStyleHookMapping } from '../utils/useCustomStyleHookMapping';
+import { mergeProps } from '../../merge-props';
+import { useButton } from '../../use-button/useButton';
+import type { FieldRoot } from '../../field/root/FieldRoot';
+import { useFieldRootContext } from '../../field/root/FieldRootContext';
+import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
+import { useField } from '../../field/useField';
+import { useFormContext } from '../../form/FormContext';
+import { useCheckboxGroupContext } from '../../checkbox-group/CheckboxGroupContext';
 import { CheckboxRootContext } from './CheckboxRootContext';
 
 const EMPTY = {};
@@ -95,8 +95,6 @@ export const CheckboxRoot = React.forwardRef(function CheckboxRoot(
   const groupValue = groupContext?.value;
   const setGroupValue = groupContext?.setValue;
   const defaultGroupValue = groupContext?.defaultValue;
-
-  React.useEffect(() => {}, [groupContext?.value]);
 
   const controlRef = React.useRef<HTMLButtonElement>(null);
 

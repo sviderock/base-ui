@@ -1,28 +1,27 @@
 import type {
-  UseFloatingReturn as UsePositionFloatingReturn,
   UseFloatingOptions as UsePositionOptions,
+  UseFloatingReturn as UsePositionFloatingReturn,
   VirtualElement,
 } from '@floating-ui/react-dom';
 import type * as React from 'react';
 
 import type { ExtendedUserProps } from './hooks/useInteractions';
 
-export {
-  arrow,
-  autoPlacement,
-  autoUpdate,
-  computePosition,
-  detectOverflow,
-  flip,
-  getOverflowAncestors,
-  hide,
-  inline,
-  limitShift,
-  offset,
-  platform,
-  shift,
-  size,
-} from '@floating-ui/react-dom';
+export * from '.';
+export type { FloatingDelayGroupProps } from './components/FloatingDelayGroup';
+export type { FloatingFocusManagerProps } from './components/FloatingFocusManager';
+export type { FloatingPortalProps, UseFloatingPortalNodeProps } from './components/FloatingPortal';
+export type { UseClientPointProps } from './hooks/useClientPoint';
+export type { UseDismissProps } from './hooks/useDismiss';
+export type { UseFocusProps } from './hooks/useFocus';
+export type { UseHoverProps, HandleCloseContext, HandleClose } from './hooks/useHover';
+export type { UseListNavigationProps } from './hooks/useListNavigation';
+export type { UseRoleProps } from './hooks/useRole';
+export type { UseTypeaheadProps } from './hooks/useTypeahead';
+export type { UseFloatingRootContextOptions } from './hooks/useFloatingRootContext';
+export type { UseInteractionsReturn } from './hooks/useInteractions';
+export type { SafePolygonOptions } from './safePolygon';
+export type { FloatingTreeProps, FloatingNodeProps } from './components/FloatingTree';
 export type {
   AlignedPlacement,
   Alignment,
@@ -65,21 +64,22 @@ export type {
   Strategy,
   VirtualElement,
 } from '@floating-ui/react-dom';
-export * from '.';
-export type { FloatingDelayGroupProps } from './components/FloatingDelayGroup';
-export type { FloatingFocusManagerProps } from './components/FloatingFocusManager';
-export type { FloatingPortalProps, UseFloatingPortalNodeProps } from './components/FloatingPortal';
-export type { FloatingNodeProps, FloatingTreeProps } from './components/FloatingTree';
-export type { UseClientPointProps } from './hooks/useClientPoint';
-export type { UseDismissProps } from './hooks/useDismiss';
-export type { UseFloatingRootContextOptions } from './hooks/useFloatingRootContext';
-export type { UseFocusProps } from './hooks/useFocus';
-export type { HandleClose, HandleCloseContext, UseHoverProps } from './hooks/useHover';
-export type { UseInteractionsReturn } from './hooks/useInteractions';
-export type { UseListNavigationProps } from './hooks/useListNavigation';
-export type { UseRoleProps } from './hooks/useRole';
-export type { UseTypeaheadProps } from './hooks/useTypeahead';
-export type { SafePolygonOptions } from './safePolygon';
+export {
+  arrow,
+  autoPlacement,
+  autoUpdate,
+  computePosition,
+  detectOverflow,
+  flip,
+  getOverflowAncestors,
+  hide,
+  inline,
+  limitShift,
+  offset,
+  platform,
+  shift,
+  size,
+} from '@floating-ui/react-dom';
 
 type Prettify<T> = {
   [K in keyof T]: T[K];

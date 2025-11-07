@@ -1,6 +1,6 @@
+import * as React from 'react';
 import { useFloating as usePosition, type VirtualElement } from '@floating-ui/react-dom';
 import { isElement } from '@floating-ui/utils/dom';
-import * as React from 'react';
 import { useModernLayoutEffect } from '../../utils/useModernLayoutEffect';
 
 import { useFloatingTree } from '../components/FloatingTree';
@@ -33,6 +33,7 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
 
   const rootContext = options.rootContext || internalRootContext;
   const computedElements = rootContext.elements;
+
   const [domReferenceState, setDomReference] = React.useState<NarrowedElement<RT> | null>(null);
   const [positionReference, setPositionReferenceRaw] = React.useState<ReferenceType | null>(null);
 

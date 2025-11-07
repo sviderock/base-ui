@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { getOverflowAncestors } from '@floating-ui/react-dom';
 import {
   getComputedStyle,
@@ -7,17 +8,16 @@ import {
   isLastTraversableNode,
   isWebKit,
 } from '@floating-ui/utils/dom';
-import * as React from 'react';
+import { useTimeout, Timeout } from '../../utils/useTimeout';
 import { useEventCallback } from '../../utils/useEventCallback';
-import { Timeout, useTimeout } from '../../utils/useTimeout';
 import {
   contains,
   getDocument,
-  getNodeChildren,
   getTarget,
   isEventTargetWithin,
   isReactEvent,
   isRootElement,
+  getNodeChildren,
 } from '../utils';
 
 /* eslint-disable no-underscore-dangle */

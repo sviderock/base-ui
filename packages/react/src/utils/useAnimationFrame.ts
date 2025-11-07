@@ -64,7 +64,7 @@ class Scheduler {
       ((LAST_RAF = requestAnimationFrame), true);
 
     if (!this.isScheduled || didRAFChange) {
-      requestAnimationFrame((t) => this.tick(t));
+      requestAnimationFrame(this.tick);
       this.isScheduled = true;
     }
     return id;

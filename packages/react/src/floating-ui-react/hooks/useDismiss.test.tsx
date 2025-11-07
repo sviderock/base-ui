@@ -12,22 +12,22 @@ import userEvent from '@testing-library/user-event';
 import * as React from 'react';
 import { vi } from 'vitest';
 
-import { isJSDOM } from '../../utils/detectBrowser';
 import {
   FloatingFocusManager,
   FloatingNode,
   FloatingPortal,
   FloatingTree,
-  useClick,
   useDismiss,
   useFloating,
   useFloatingNodeId,
   useFloatingParentNodeId,
   useFocus,
   useInteractions,
+  useClick,
 } from '../index';
 import type { UseDismissProps } from './useDismiss';
 import { normalizeProp } from './useDismiss';
+import { isJSDOM } from '../../utils/detectBrowser';
 
 beforeAll(() => {
   vi.spyOn(window, 'requestAnimationFrame').mockImplementation(
@@ -721,9 +721,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
       return (
         <div
           style={{ width: '100vw', height: '100vh' }}
-          onPointerDown={(event) => {
-            event.stopPropagation();
-          }}
+          onPointerDown={(event) => event.stopPropagation()}
           onKeyDown={(event) => {
             if (event.key === 'Escape') {
               event.stopPropagation();
@@ -809,7 +807,6 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
 
         expect(screen.getByText('outer')).toBeInTheDocument();
         expect(screen.getByText('inner')).toBeInTheDocument();
-
         cleanup();
       });
 
@@ -991,6 +988,7 @@ describe.skipIf(!isJSDOM)('useDismiss', () => {
     }
 
     render(<App />);
+
     await userEvent.click(screen.getByText('open 1'));
     expect(screen.getByText('open 2')).toBeInTheDocument();
 
