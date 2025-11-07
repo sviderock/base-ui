@@ -8,6 +8,5 @@
       "language": "markdown",
       "scheme": "file"
     }
-  ],
-  "codeQL.githubDatabase.download": "never"
+  ]
 }

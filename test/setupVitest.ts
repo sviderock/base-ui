@@ -1,8 +1,8 @@
 /* eslint-disable vars-on-top */
-import chaiPlugin from '@mui/internal-test-utils/chaiPlugin';
+import { beforeAll, afterAll } from 'vitest';
 import chai from 'chai';
 import chaiDom from 'chai-dom';
-import { afterAll, beforeAll } from 'vitest';
+import chaiPlugin from '@mui/internal-test-utils/chaiPlugin';
 
 import '@testing-library/jest-dom/vitest';
 
