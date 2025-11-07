@@ -25,3 +25,7 @@
 - Navigation menu demo, wrong positioner placement
 - Scroll Area demo, native scrollbar still showing up
 - Select demo, checkmark is dissappearing when other options are being focused/hovered over
+- Toast demo:
+  - animation broken when many toasts added
+  - undo toast dissappear when hovered
+  - toasts don't get dismissed properly
