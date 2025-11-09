@@ -1,7 +1,7 @@
 'use client';
-import { createEffect, createMemo, Show, type JSX } from 'solid-js';
+import { createMemo, Show, type JSX } from 'solid-js';
 import { FloatingNode, useFloatingNodeId } from '../../floating-ui-solid';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { access, splitComponentProps } from '../../solid-helpers';
 import { POPUP_COLLISION_AVOIDANCE } from '../../utils/constants';
 import { inertValue } from '../../utils/inertValue';
 import { InternalBackdrop } from '../../utils/InternalBackdrop';

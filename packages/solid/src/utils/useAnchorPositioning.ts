@@ -109,7 +109,17 @@ export type CollisionAvoidance = SideFlipMode | SideShiftMode;
  * `useFloating` hook.
  */
 export function useAnchorPositioning(
-  params: useAnchorPositioning.Parameters,
+  params: useAnchorPositioning.Parameters & { floatingRootContext?: FloatingRootContext | never },
+): useAnchorPositioning.ReturnValue;
+export function useAnchorPositioning(
+  params: useAnchorPositioning.Parameters & {
+    floatingRootContext: Accessor<FloatingRootContext | undefined>;
+  },
+): useAnchorPositioning.ReturnValue & { context: Accessor<FloatingContext> };
+export function useAnchorPositioning(
+  params: useAnchorPositioning.Parameters & {
+    floatingRootContext?: MaybeAccessor<FloatingRootContext | undefined>;
+  },
 ): useAnchorPositioning.ReturnValue {
   // Public parameters
   const anchor = createMemo(() => access(params.anchor));
@@ -126,6 +136,7 @@ export function useAnchorPositioning(
   // Private parameters
   const keepMounted = () => access(params.keepMounted) ?? false;
   const mounted = () => access(params.mounted);
+  const floatingRootContext = () => access(params.floatingRootContext);
   const collisionAvoidance = () => access(params.collisionAvoidance);
   const shiftCrossAxis = () => access(params.shiftCrossAxis) ?? false;
   const nodeId = () => access(params.nodeId);
@@ -134,8 +145,6 @@ export function useAnchorPositioning(
   const collisionAvoidanceSide = () => collisionAvoidance().side || 'flip';
   const collisionAvoidanceAlign = () => collisionAvoidance().align || 'flip';
   const collisionAvoidanceFallbackAxisSide = () => collisionAvoidance().fallbackAxisSide || 'end';
-
-  const anchorValueRef = anchor();
 
   const direction = useDirection();
   const isRtl = () => direction() === 'rtl';
@@ -204,6 +213,7 @@ export function useAnchorPositioning(
   });
 
   const shiftMiddleware = createMemo<Middleware | null>(() => {
+    const arrowRefValue = arrowRef();
     return shiftDisabled()
       ? null
       : shift(
@@ -223,10 +233,10 @@ export function useAnchorPositioning(
                 sticky() || shiftCrossAxis()
                   ? undefined
                   : limitShift(() => {
-                      if (!arrowRef()) {
+                      if (!arrowRefValue) {
                         return {};
                       }
-                      const { height } = arrowRef()!.getBoundingClientRect();
+                      const { height } = arrowRefValue.getBoundingClientRect();
                       const padding = collisionPadding();
                       return {
                         offset: height / 2 + (typeof padding === 'number' ? padding : 0),
@@ -254,10 +264,11 @@ export function useAnchorPositioning(
   });
 
   const arrowMiddleware = createMemo<Middleware>(() => {
+    const arrowRefValue = arrowRef();
     return arrow(() => ({
       // `transform-origin` calculations rely on an element existing. If the arrow hasn't been set,
       // we'll create a fake element.
-      element: arrowRef() || document.createElement('div'),
+      element: arrowRefValue || document.createElement('div'),
       padding: arrowPadding(),
     }));
   });
@@ -332,10 +343,6 @@ export function useAnchorPositioning(
     return middlewareArray;
   });
 
-  // Ensure positioning doesn't run initially for `keepMounted` elements that
-  // aren't initially open.
-  const rootContext = params.floatingRootContext;
-
   const autoUpdateOptions = createMemo<AutoUpdateOptions>(() => ({
     elementResize: trackAnchor() && typeof ResizeObserver !== 'undefined',
     layoutShift: trackAnchor() && typeof IntersectionObserver !== 'undefined',
@@ -353,13 +360,13 @@ export function useAnchorPositioning(
     isPositioned,
     floatingStyles: originalFloatingStyles,
   } = useFloating({
-    rootContext,
+    rootContext: floatingRootContext,
     placement,
     middleware,
     strategy: positionMethod,
-    whileElementsMounted: (...args) => {
-      const options = autoUpdateOptions();
-      return keepMounted() ? () => undefined : () => autoUpdate(...args, options);
+    whileElementsMounted: {
+      enabled: () => !keepMounted(),
+      fn: (...args) => autoUpdate(...args, autoUpdateOptions()),
     },
     nodeId,
   });
@@ -378,7 +385,8 @@ export function useAnchorPositioning(
       return;
     }
 
-    const resolvedAnchor = access(anchorValueRef);
+    const anchorValue = anchor();
+    const resolvedAnchor = typeof anchorValue === 'function' ? anchorValue() : anchorValue;
     const finalAnchor = resolvedAnchor || null;
 
     if (finalAnchor !== registeredPositionReferenceRef) {
@@ -394,13 +402,14 @@ export function useAnchorPositioning(
 
     // Refs from parent components are set after useLayoutEffect runs and are available in useEffect.
     // Therefore, if the anchor is a ref, we need to update the position reference in useEffect.
-    if (typeof anchorValueRef === 'function') {
+    const resolvedAnchor = access(anchor);
+    if (typeof resolvedAnchor === 'function') {
       return;
     }
 
-    if (anchorValueRef !== registeredPositionReferenceRef) {
-      refs.setPositionReference(anchorValueRef || null);
-      registeredPositionReferenceRef = anchorValueRef || null;
+    if (resolvedAnchor !== registeredPositionReferenceRef) {
+      refs.setPositionReference(resolvedAnchor || null);
+      registeredPositionReferenceRef = resolvedAnchor || null;
     }
   });
 
@@ -419,7 +428,7 @@ export function useAnchorPositioning(
   const anchorHidden = () => Boolean(middlewareData().hide?.referenceHidden);
 
   const arrowStyles = createMemo<JSX.CSSProperties>(() => ({
-    position: 'absolute' as const,
+    position: 'absolute',
     top:
       middlewareData().arrow?.y === undefined ? undefined : `${middlewareData().arrow?.y || 0}px`,
     left:
@@ -532,7 +541,7 @@ export namespace useAnchorPositioning {
   export interface Parameters extends SharedParameters {
     keepMounted?: MaybeAccessor<boolean | undefined>;
     trackCursorAxis?: MaybeAccessor<'none' | 'x' | 'y' | 'both' | undefined>;
-    floatingRootContext?: FloatingRootContext;
+    floatingRootContext?: MaybeAccessor<FloatingRootContext | undefined>;
     mounted: MaybeAccessor<boolean>;
     trackAnchor: MaybeAccessor<boolean>;
     nodeId?: MaybeAccessor<string | undefined>;
@@ -552,7 +561,7 @@ export namespace useAnchorPositioning {
       arrowRef: Accessor<Element | null | undefined>;
       setArrowRef: Setter<Element | null | undefined>;
     };
-    context: FloatingContext;
+    context: MaybeAccessor<FloatingContext>;
     isPositioned: Accessor<boolean>;
     update: () => void;
   }

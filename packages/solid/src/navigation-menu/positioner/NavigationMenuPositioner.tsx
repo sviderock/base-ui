@@ -177,7 +177,7 @@ export function NavigationMenuPositioner(componentProps: NavigationMenuPositione
     sticky,
     trackAnchor,
     keepMounted,
-    floatingRootContext: floatingRootContext(),
+    floatingRootContext,
     collisionAvoidance,
     nodeId,
     // Allows the menu to remain anchored without wobbling while its size
