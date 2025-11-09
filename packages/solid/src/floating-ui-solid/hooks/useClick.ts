@@ -43,7 +43,7 @@ export interface UseClickProps {
  * @see https://floating-ui.com/docs/useClick
  */
 export function useClick(
-  context: FloatingRootContext,
+  contextProp: MaybeAccessor<FloatingRootContext>,
   props: UseClickProps = {},
 ): Accessor<ElementProps> {
   const enabled = () => access(props.enabled) ?? true;
@@ -51,6 +51,7 @@ export function useClick(
   const toggle = () => access(props.toggle) ?? true;
   const ignoreMouse = () => access(props.ignoreMouse) ?? false;
   const stickIfOpen = () => access(props.stickIfOpen) ?? true;
+  const context = () => access(contextProp);
 
   let pointerTypeRef: 'mouse' | 'pen' | 'touch' | undefined | ({} & string);
   const frame = useAnimationFrame();
@@ -74,10 +75,10 @@ export function useClick(
           return;
         }
 
-        const openEvent = context.dataRef.openEvent;
+        const openEvent = context().dataRef.openEvent;
         const openEventType = openEvent?.type;
         const nextOpen = !(
-          context.open() &&
+          context().open() &&
           toggle() &&
           (openEvent && stickIfOpen()
             ? openEventType === 'click' || openEventType === 'mousedown'
@@ -87,7 +88,7 @@ export function useClick(
         // `event.preventDefault()` to avoid :focus-visible from appearing when using a pointer.
 
         frame.request(() => {
-          context.onOpenChange(nextOpen, event, 'click');
+          context().onOpenChange(nextOpen, event, 'click');
         });
       },
       onClick: (event) => {
@@ -102,10 +103,10 @@ export function useClick(
           return;
         }
 
-        const openEvent = context.dataRef.openEvent;
+        const openEvent = context().dataRef.openEvent;
         const openEventType = openEvent?.type;
         const nextOpen = !(
-          context.open() &&
+          context().open() &&
           toggle() &&
           (openEvent && stickIfOpen()
             ? openEventType === 'click' ||
@@ -114,7 +115,7 @@ export function useClick(
               openEventType === 'keyup'
             : true)
         );
-        context.onOpenChange(nextOpen, event, 'click');
+        context().onOpenChange(nextOpen, event, 'click');
       },
       onKeyDown: () => {
         pointerTypeRef = undefined;

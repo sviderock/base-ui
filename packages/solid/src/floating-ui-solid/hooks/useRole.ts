@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, onMount, type Accessor, type JSX } from 'solid-js';
+import { createEffect, createMemo, createSignal, type Accessor, type JSX } from 'solid-js';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useId } from '../../utils/useId';
 import { useFloatingParentNodeId } from '../components/FloatingTree';
@@ -35,10 +35,11 @@ const componentRoleToAriaRoleMap = new Map<AriaRole | ComponentRole, AriaRole | 
  * @see https://floating-ui.com/docs/useRole
  */
 export function useRole(
-  context: FloatingRootContext,
+  contextProp: MaybeAccessor<FloatingRootContext>,
   props: UseRoleProps = {},
 ): Accessor<ElementProps> {
   const enabled = () => access(props.enabled) ?? true;
+  const context = () => access(contextProp);
   const role = () => access(props.role) ?? 'dialog';
 
   const defaultReferenceId = useId();
@@ -46,15 +47,17 @@ export function useRole(
    * TODO: this needs to be memoized as it causes an infinite loop
    * with the MenuRoot triggerElement assignement
    */
-  const referenceId = createMemo(() => context.elements.domReference()?.id || defaultReferenceId());
+  const referenceId = createMemo(
+    () => context().elements.domReference()?.id || defaultReferenceId(),
+  );
 
   // Track the actual floating element id (including user-provided custom id) after mount.
   const [resolvedFloatingId, setResolvedFloatingId] = createSignal<string | undefined>(undefined);
   createEffect(() => {
-    const element = getFloatingFocusElement(context.elements.floating());
+    const element = getFloatingFocusElement(context().elements.floating());
     setResolvedFloatingId(element?.id);
   });
-  const floatingId = createMemo(() => resolvedFloatingId() || context.floatingId());
+  const floatingId = createMemo(() => resolvedFloatingId() || context().floatingId());
 
   const ariaRole = () =>
     (componentRoleToAriaRoleMap.get(role()) ?? role()) as AriaRole | false | undefined;
@@ -65,16 +68,16 @@ export function useRole(
   const reference = createMemo<ElementProps['reference']>(() => {
     if (ariaRole() === 'tooltip' || role() === 'label') {
       return {
-        [`aria-${role() === 'label' ? 'labelledby' : 'describedby'}`]: context.open()
+        [`aria-${role() === 'label' ? 'labelledby' : 'describedby'}`]: context().open()
           ? floatingId()
           : undefined,
       };
     }
 
     return {
-      'aria-expanded': context.open() ? 'true' : 'false',
+      'aria-expanded': context().open() ? 'true' : 'false',
       'aria-haspopup': ariaRole() === 'alertdialog' ? 'dialog' : ariaRole(),
-      'aria-controls': context.open() ? floatingId() : undefined,
+      'aria-controls': context().open() ? floatingId() : undefined,
       ...(ariaRole() === 'listbox' && { role: 'combobox' }),
       ...(ariaRole() === 'menu' && { id: referenceId() }),
       ...(ariaRole() === 'menu' && isNested && { role: 'menuitem' }),

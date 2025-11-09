@@ -164,7 +164,7 @@ export interface FloatingContext<RT extends ReferenceType = ReferenceType>
 export interface FloatingNodeType<RT extends ReferenceType = ReferenceType> {
   id: string | undefined;
   parentId: string | null;
-  context?: FloatingContext<RT>;
+  context?: MaybeAccessor<FloatingContext<RT> | undefined>;
 }
 
 export interface FloatingTreeType<RT extends ReferenceType = ReferenceType> {

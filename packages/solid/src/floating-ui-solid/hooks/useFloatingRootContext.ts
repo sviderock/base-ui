@@ -79,7 +79,7 @@ export function useFloatingRootContext(
 
     const parentFloating = (reference as Element)?.closest?.(`[${FOCUSABLE_ATTRIBUTE}]`);
     const parentIdx = dataRef.virtualFloatingTree?.findIndex(
-      (item) => item.context?.elements.floating() === parentFloating,
+      (item) => access(item.context)?.elements.floating() === parentFloating,
     );
 
     dataRef.virtualFloatingTree.push({

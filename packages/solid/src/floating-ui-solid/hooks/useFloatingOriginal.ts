@@ -28,7 +28,12 @@ export type UsePositionOptions<RT extends ReferenceType = ReferenceType> = Prett
      * mounted, and cleaned up when either is unmounted. This is useful for
      * setting up event listeners (e.g. pass `autoUpdate`).
      */
-    whileElementsMounted?: (reference: RT, floating: HTMLElement, update: () => void) => () => void;
+    whileElementsMounted?:
+      | ((reference: RT, floating: HTMLElement, update: () => void) => () => void)
+      | {
+          fn: (reference: RT, floating: HTMLElement, update: () => void) => () => void;
+          enabled: MaybeAccessor<boolean | undefined>;
+        };
     /**
      * Object containing the reference and floating elements.
      */
@@ -110,6 +115,19 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   const referenceProp = createMemo(() => access(options.elements?.reference));
   const floatingProp = createMemo(() => access(options.elements?.floating));
   const transform = () => access(options.transform) ?? true;
+  const whileElementsMountedFn = createMemo(() => {
+    const whileElementsMounted = access(options.whileElementsMounted);
+
+    if (whileElementsMounted == null) {
+      return null;
+    }
+
+    if (typeof whileElementsMounted === 'function') {
+      return whileElementsMounted;
+    }
+
+    return access(whileElementsMounted.enabled) ? whileElementsMounted.fn : null;
+  });
 
   const [data, setData] = createStore<UsePositionData>({
     x: 0,
@@ -167,6 +185,7 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
 
   onMount(() => {
     isMountedRef = true;
+    update();
   });
   onCleanup(() => {
     isMountedRef = false;
@@ -174,8 +193,9 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
 
   createEffect(() => {
     if (referenceEl() && floatingEl()) {
-      if (options.whileElementsMounted) {
-        options.whileElementsMounted(referenceEl()!, floatingEl()!, update)();
+      const whileElementsMounted = whileElementsMountedFn();
+      if (whileElementsMounted) {
+        whileElementsMounted(referenceEl()!, floatingEl()!, update)();
         return;
       }
 
@@ -199,18 +219,19 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
       top: 0,
     };
 
-    if (!elements.floating()) {
+    const el = elements.floating();
+    if (!el) {
       return initialStyles;
     }
 
-    const x = roundByDPR(elements.floating()!, data.x);
-    const y = roundByDPR(elements.floating()!, data.y);
+    const x = roundByDPR(el, data.x);
+    const y = roundByDPR(el, data.y);
 
     if (transform()) {
       return {
         ...initialStyles,
         transform: `translate(${x}px, ${y}px)`,
-        ...(getDPR(elements.floating()!) >= 1.5 && { willChange: 'transform' }),
+        ...(getDPR(el) >= 1.5 && { willChange: 'transform' }),
       };
     }
 

@@ -7,16 +7,12 @@ import {
   type JSX,
 } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
-import { access, type MaybeAccessor } from '../../solid-helpers';
+import { access } from '../../solid-helpers';
 import { useId } from '../../utils/useId';
-import type { FloatingNodeType, FloatingTreeType, ReferenceType } from '../types';
+import type { Accessorify, FloatingNodeType, FloatingTreeType, ReferenceType } from '../types';
 import { createEventEmitter } from '../utils/createEventEmitter';
 
-interface ContextFloatingNodeType {
-  id: MaybeAccessor<FloatingNodeType['id']>;
-  parentId: MaybeAccessor<FloatingNodeType['parentId']>;
-  context?: FloatingNodeType['context'];
-}
+type ContextFloatingNodeType = Accessorify<FloatingNodeType, 'maybeAccessor'>;
 
 const FloatingNodeContext = createContext<ContextFloatingNodeType | null>(null);
 const FloatingTreeContext = createContext<FloatingTreeType | null>(null);

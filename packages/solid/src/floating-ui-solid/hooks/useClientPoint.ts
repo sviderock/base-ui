@@ -114,15 +114,16 @@ export interface UseClientPointProps {
  * @see https://floating-ui.com/docs/useClientPoint
  */
 export function useClientPoint(
-  context: FloatingRootContext,
+  contextProp: MaybeAccessor<FloatingRootContext>,
   props: UseClientPointProps = {},
 ): Accessor<ElementProps> {
   const enabled = () => access(props.enabled) ?? true;
   const axis = () => access(props.axis) ?? 'both';
   const x = () => access(props.x) ?? null;
   const y = () => access(props.y) ?? null;
-  const floating = () => context.elements.floating?.();
-  const domReference = () => context.elements.domReference?.();
+  const context = () => access(contextProp);
+  const floating = () => context().elements.floating?.();
+  const domReference = () => context().elements.domReference?.();
 
   let initialRef = false;
 
@@ -136,16 +137,17 @@ export function useClientPoint(
     // Prevent setting if the open event was not a mouse-like one
     // (e.g. focus to open, then hover over the reference element).
     // Only apply if the event exists.
-    if (context.dataRef.openEvent && !isMouseBasedEvent(context.dataRef.openEvent)) {
+    const openEvent = context().dataRef.openEvent;
+    if (openEvent && !isMouseBasedEvent(openEvent as Event | null)) {
       return;
     }
 
-    context.refs.setPositionReference(
+    context().refs.setPositionReference(
       createVirtualElement(domReference(), {
         x: newX,
         y: newY,
         axis: axis(),
-        dataRef: context.dataRef,
+        dataRef: context().dataRef,
         pointerType: pointerType(),
       }),
     );
@@ -156,7 +158,7 @@ export function useClientPoint(
       return;
     }
 
-    if (!context.open()) {
+    if (!context().open()) {
       setReference(event.clientX, event.clientY);
     }
   };
@@ -166,7 +168,7 @@ export function useClientPoint(
   // devices, this is undesirable because the floating element will move to
   // the dismissal touch point.
   const openCheck = () => {
-    return isMouseLikePointerType(pointerType()) ? floating() : context.open();
+    return isMouseLikePointerType(pointerType()) ? floating() : context().open();
   };
 
   function handleMouseMove(event: MouseEvent) {
@@ -188,7 +190,8 @@ export function useClientPoint(
 
     const win = getWindow(floating());
 
-    if (!context.dataRef.openEvent || isMouseBasedEvent(context.dataRef.openEvent)) {
+    const openEvent = context().dataRef.openEvent;
+    if (!openEvent || isMouseBasedEvent(openEvent as Event | null)) {
       win.addEventListener('mousemove', handleMouseMove);
 
       onCleanup(() => {
@@ -197,7 +200,7 @@ export function useClientPoint(
       return;
     }
 
-    context.refs.setPositionReference(domReference());
+    context().refs.setPositionReference(domReference());
   });
 
   createEffect(() => {
@@ -207,7 +210,7 @@ export function useClientPoint(
   });
 
   createEffect(() => {
-    if (!enabled() && context.open()) {
+    if (!enabled() && context().open()) {
       initialRef = true;
     }
   });
@@ -241,7 +244,7 @@ export function useClientPoint(
       ref: () => {
         onCleanup(() => {
           // @ts-expect-error even though its not in the types this is valid
-          context.refs.setFloating(null);
+          context().refs.setFloating(null);
         });
       },
     };

@@ -99,7 +99,7 @@ export interface UseHoverProps {
  * @see https://floating-ui.com/docs/useHover
  */
 export function useHover(
-  context: FloatingRootContext,
+  contextProp: MaybeAccessor<FloatingRootContext>,
   props: UseHoverProps = {},
 ): Accessor<ElementProps> {
   const enabled = () => access(props.enabled) ?? true;
@@ -107,6 +107,7 @@ export function useHover(
   const mouseOnly = () => access(props.mouseOnly) ?? false;
   const restMs = () => access(props.restMs) ?? 0;
   const move = () => access(props.move) ?? true;
+  const context = () => access(contextProp);
 
   const tree = useFloatingTree();
   const parentId = useFloatingParentNodeId();
@@ -120,7 +121,7 @@ export function useHover(
   let unbindMouseMoveRef = () => {};
 
   const isHoverOpen = () => {
-    const type = context.dataRef.openEvent?.type;
+    const type = context().dataRef.openEvent?.type;
     return type?.includes('mouse') && type !== 'mousedown';
   };
 
@@ -135,7 +136,7 @@ export function useHover(
 
   function onLeave(event: MouseEvent) {
     if (isHoverOpen()) {
-      context.onOpenChange(false, event, 'hover');
+      context().onOpenChange(false, event, 'hover');
     }
   }
 
@@ -146,9 +147,9 @@ export function useHover(
       return;
     }
 
-    context.events.on('openchange', onOpenChangeLocal);
+    context().events.on('openchange', onOpenChangeLocal);
     onCleanup(() => {
-      context.events.off('openchange', onOpenChangeLocal);
+      context().events.off('openchange', onOpenChangeLocal);
     });
   });
 
@@ -159,11 +160,11 @@ export function useHover(
     if (!props.handleClose) {
       return;
     }
-    if (!context.open()) {
+    if (!context().open()) {
       return;
     }
 
-    const floating = context.elements.floating();
+    const floating = context().elements.floating();
     const html = getDocument(floating).documentElement;
     html.addEventListener('mouseleave', onLeave);
     onCleanup(() => {
@@ -178,10 +179,10 @@ export function useHover(
   ) => {
     const closeDelay = getDelay(delay(), 'close', pointerTypeRef);
     if (closeDelay) {
-      timeout.start(closeDelay, () => context.onOpenChange(false, event, reason));
+      timeout.start(closeDelay, () => context().onOpenChange(false, event, reason));
     } else if (runElseBranch) {
       timeout.clear();
-      context.onOpenChange(false, event, reason);
+      context().onOpenChange(false, event, reason);
     }
   };
 
@@ -191,7 +192,7 @@ export function useHover(
 
   const clearPointerEvents = () => {
     if (performedPointerEventsMutationRef) {
-      const floating = context.elements.floating();
+      const floating = context().elements.floating();
       const body = getDocument(floating).body;
       body.style.pointerEvents = '';
       body.removeAttribute(safePolygonIdentifier);
@@ -200,9 +201,8 @@ export function useHover(
   };
 
   const isClickLikeOpenEvent = () => {
-    return context.dataRef.openEvent
-      ? ['click', 'mousedown'].includes(context.dataRef.openEvent.type)
-      : false;
+    const openEvent = context().dataRef.openEvent;
+    return openEvent ? ['click', 'mousedown'].includes(openEvent.type) : false;
   };
 
   function onReferenceMouseEnter(event: MouseEvent) {
@@ -220,12 +220,12 @@ export function useHover(
 
     if (openDelay) {
       timeout.start(openDelay, () => {
-        if (!context.open()) {
-          context.onOpenChange(true, event, 'hover');
+        if (!context().open()) {
+          context().onOpenChange(true, event, 'hover');
         }
       });
-    } else if (!context.open()) {
-      context.onOpenChange(true, event, 'hover');
+    } else if (!context().open()) {
+      context().onOpenChange(true, event, 'hover');
     }
   }
 
@@ -237,20 +237,20 @@ export function useHover(
 
     unbindMouseMoveRef();
 
-    const floating = context.elements.floating();
+    const floating = context().elements.floating();
     const doc = getDocument(floating);
     restTimeout.clear();
     restTimeoutPendingRef = false;
 
-    if (props.handleClose && context.dataRef.floatingContext) {
+    if (props.handleClose && context().dataRef.floatingContext) {
       // Prevent clearing `onScrollMouseLeave` timeout.
-      if (!context.open()) {
+      if (!context().open()) {
         timeout.clear();
       }
 
       const handler = props.handleClose({
-        ...context.dataRef.floatingContext,
-        ...context.dataRef.floatingContext.storeData,
+        ...context().dataRef.floatingContext,
+        ...(context().dataRef.floatingContext?.storeData as any),
         tree,
         x: event.clientX,
         y: event.clientY,
@@ -276,7 +276,7 @@ export function useHover(
     // consistently.
     const shouldClose =
       pointerTypeRef === 'touch'
-        ? !contains(context.elements.floating(), event.relatedTarget as Element | null)
+        ? !contains(context().elements.floating(), event.relatedTarget as Element | null)
         : true;
     if (shouldClose) {
       closeWithDelay(event);
@@ -290,13 +290,13 @@ export function useHover(
     if (isClickLikeOpenEvent()) {
       return;
     }
-    if (!context.dataRef.floatingContext) {
+    if (!context().dataRef.floatingContext) {
       return;
     }
 
     props.handleClose?.({
-      ...context.dataRef.floatingContext,
-      ...context.dataRef.floatingContext.storeData,
+      ...context().dataRef.floatingContext,
+      ...(context().dataRef.floatingContext?.storeData as any),
       tree,
       x: event.clientX,
       y: event.clientY,
@@ -328,11 +328,12 @@ export function useHover(
       return;
     }
 
-    if (isElement(context.elements.domReference())) {
-      const reference = context.elements.domReference() as unknown as HTMLElement;
-      const floating = context.elements.floating();
+    const domReference = context().elements.domReference();
+    if (isElement(domReference)) {
+      const reference = domReference as HTMLElement;
+      const floating = context().elements.floating();
 
-      if (context.open()) {
+      if (context().open()) {
         reference.addEventListener('mouseleave', onScrollMouseLeave);
       }
 
@@ -352,7 +353,7 @@ export function useHover(
       }
 
       onCleanup(() => {
-        if (context.open()) {
+        if (context().open()) {
           reference.removeEventListener('mouseleave', onScrollMouseLeave);
         }
 
@@ -382,10 +383,10 @@ export function useHover(
     }
 
     // eslint-disable-next-line no-underscore-dangle
-    if (context.open() && props.handleClose?.__options?.blockPointerEvents && isHoverOpen()) {
+    if (context().open() && props.handleClose?.__options?.blockPointerEvents && isHoverOpen()) {
       performedPointerEventsMutationRef = true;
-      const floatingEl = context.elements.floating();
-      const domReference = context.elements.domReference();
+      const floatingEl = context().elements.floating();
+      const domReference = context().elements.domReference();
 
       if (isElement(domReference) && floatingEl) {
         const body = getDocument(floatingEl).body;
@@ -393,9 +394,10 @@ export function useHover(
 
         const ref = domReference as unknown as HTMLElement | SVGSVGElement;
 
-        const parentFloating = tree?.nodesRef
-          .find((node) => node.id === parentId)
-          ?.context?.elements.floating();
+        const parentNode = tree?.nodesRef.find((node) => node.id === parentId);
+        const parentFloating = parentNode
+          ? access(parentNode.context)?.elements.floating()
+          : undefined;
 
         if (parentFloating) {
           parentFloating.style.pointerEvents = '';
@@ -415,7 +417,7 @@ export function useHover(
   });
 
   createEffect(() => {
-    if (!context.open()) {
+    if (!context().open()) {
       pointerTypeRef = undefined;
       restTimeoutPendingRef = false;
       cleanupMouseMoveHandler();
@@ -424,7 +426,7 @@ export function useHover(
   });
 
   createEffect(
-    on([enabled, context.elements.domReference], () => {
+    on([enabled, () => context().elements.domReference()], () => {
       onCleanup(() => {
         cleanupMouseMoveHandler();
         timeout.clear();
@@ -442,15 +444,15 @@ export function useHover(
       ref: () => {
         onCleanup(() => {
           // @ts-expect-error even though its not in the types this is valid
-          context.refs.setReference(null);
+          context().refs.setReference(null);
         });
       },
       onPointerDown: setPointerRef,
       onPointerEnter: setPointerRef,
       onMouseMove: (event) => {
         function handleMouseMove() {
-          if (!blockMouseMoveRef && !context.open()) {
-            context.onOpenChange(true, event, 'hover');
+          if (!blockMouseMoveRef && !context().open()) {
+            context().onOpenChange(true, event, 'hover');
           }
         }
 
@@ -458,7 +460,7 @@ export function useHover(
           return;
         }
 
-        if (context.open() || restMs() === 0) {
+        if (context().open() || restMs() === 0) {
           return;
         }
 

@@ -59,10 +59,11 @@ export interface UseTypeaheadProps {
  * @see https://floating-ui.com/docs/useTypeahead
  */
 export function useTypeahead(
-  context: FloatingRootContext,
+  contextProp: MaybeAccessor<FloatingRootContext>,
   props: UseTypeaheadProps,
 ): Accessor<ElementProps> {
   const enabled = () => access(props.enabled) ?? true;
+  const context = () => access(contextProp);
   const resetMs = () => access(props.resetMs) ?? 750;
   const ignoreKeys = () => access(props.ignoreKeys) ?? [];
   const selectedIndex = () => access(props.selectedIndex) ?? null;
@@ -73,7 +74,7 @@ export function useTypeahead(
   let matchIndexRef: number | null = null;
 
   createEffect(() => {
-    if (context.open()) {
+    if (context().open()) {
       timeout.clear();
       matchIndexRef = null;
       stringRef = '';
@@ -82,19 +83,19 @@ export function useTypeahead(
 
   createEffect(() => {
     // Sync arrow key navigation but not typeahead navigation.
-    if (context.open() && stringRef === '') {
+    if (context().open() && stringRef === '') {
       prevIndexRef = selectedIndex() ?? access(props.activeIndex) ?? -1;
     }
   });
 
   const setTypingChange = (value: boolean) => {
     if (value) {
-      if (!context.dataRef.typing) {
-        context.dataRef.typing = value;
+      if (!context().dataRef.typing) {
+        context().dataRef.typing = value;
         props.onTypingChange?.(value);
       }
-    } else if (context.dataRef.typing) {
-      context.dataRef.typing = value;
+    } else if (context().dataRef.typing) {
+      context().dataRef.typing = value;
       props.onTypingChange?.(value);
     }
   };
@@ -137,7 +138,7 @@ export function useTypeahead(
       return;
     }
 
-    if (context.open() && event.key !== ' ') {
+    if (context().open() && event.key !== ' ') {
       stopEvent(event);
       setTypingChange(true);
     }

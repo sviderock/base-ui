@@ -38,11 +38,12 @@ export interface UseFocusProps {
  * @see https://floating-ui.com/docs/useFocus
  */
 export function useFocus(
-  context: FloatingRootContext,
+  contextProp: MaybeAccessor<FloatingRootContext>,
   props: UseFocusProps = {},
 ): Accessor<ElementProps> {
   const enabled = () => access(props.enabled) ?? true;
   const visibleOnly = () => access(props.visibleOnly) ?? true;
+  const context = () => access(contextProp);
 
   let blockFocusRef = false;
   let keyboardModalityRef = true;
@@ -53,15 +54,15 @@ export function useFocus(
       return;
     }
 
-    const win = getWindow(context.elements.domReference());
+    const win = getWindow(context().elements.domReference());
 
     // If the reference was focused and the user left the tab/window, and the
     // floating element was not open, the focus should be blocked when they
     // return to the tab/window.
     function onBlur() {
-      const domReference = context.elements.domReference();
+      const domReference = context().elements.domReference();
       if (
-        !context.open() &&
+        !context().open() &&
         isHTMLElement(domReference) &&
         domReference === activeElement(getDocument(domReference))
       ) {
@@ -105,9 +106,9 @@ export function useFocus(
       }
     }
 
-    context.events.on('openchange', onOpenChangeLocal);
+    context().events.on('openchange', onOpenChangeLocal);
     onCleanup(() => {
-      context.events.off('openchange', onOpenChangeLocal);
+      context().events.off('openchange', onOpenChangeLocal);
     });
   });
 
@@ -134,7 +135,7 @@ export function useFocus(
         }
       }
 
-      context.onOpenChange(true, event, 'focus');
+      context().onOpenChange(true, event, 'focus');
     },
     onBlur: (event) => {
       blockFocusRef = false;
@@ -149,7 +150,7 @@ export function useFocus(
 
       // Wait for the window blur listener to fire.
       timeout.start(0, () => {
-        const domReference = context.elements.domReference();
+        const domReference = context().elements.domReference();
         const activeEl = activeElement(domReference ? domReference.ownerDocument : document);
 
         // Focus left the page, keep it open.
@@ -165,14 +166,14 @@ export function useFocus(
         // and not the element that actually has received focus if it is located
         // inside a shadow root.
         if (
-          contains(context.dataRef.floatingContext?.refs.floating(), activeEl) ||
+          contains(context().dataRef.floatingContext?.refs.floating(), activeEl) ||
           contains(domReference, activeEl) ||
           movedToFocusGuard
         ) {
           return;
         }
 
-        context.onOpenChange(false, event, 'focus');
+        context().onOpenChange(false, event, 'focus');
       });
     },
   }));

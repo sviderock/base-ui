@@ -20,16 +20,18 @@ import { useFloatingRootContext } from './useFloatingRootContext';
  */
 
 export function useFloating<RT extends ReferenceType = ReferenceType>(
-  options: UseFloatingOptions<RT> & { rootContext: Accessor<FloatingRootContext<RT>> },
-): UseFloatingReturn<RT, Accessor<FloatingContext<RT>>>;
-export function useFloating<RT extends ReferenceType = ReferenceType>(
-  options: UseFloatingOptions<RT> & { rootContext: FloatingRootContext<RT> },
+  options: UseFloatingOptions<RT> & { rootContext?: FloatingRootContext<RT> },
 ): UseFloatingReturn<RT, FloatingContext<RT>>;
+export function useFloating<RT extends ReferenceType = ReferenceType>(
+  options: UseFloatingOptions<RT> & { rootContext: Accessor<FloatingRootContext<RT> | undefined> },
+): UseFloatingReturn<RT, Accessor<FloatingContext<RT>>>;
 export function useFloating<RT extends ReferenceType = ReferenceType>(
   options: UseFloatingOptions<RT> & { rootContext?: never },
 ): UseFloatingReturn<RT, FloatingContext<RT>>;
 export function useFloating<RT extends ReferenceType = ReferenceType>(
-  options: UseFloatingOptions<RT> & { rootContext?: MaybeAccessor<FloatingRootContext<RT>> },
+  options: UseFloatingOptions<RT> & {
+    rootContext?: MaybeAccessor<FloatingRootContext<RT> | undefined>;
+  },
 ) {
   const defaultRootContext = useFloatingRootContext({
     ...options,
