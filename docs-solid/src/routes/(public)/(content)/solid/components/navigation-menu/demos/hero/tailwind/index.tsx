@@ -66,8 +66,8 @@ export default function ExampleNavigationMenu() {
           collisionPadding={{ top: 5, bottom: 5, left: 20, right: 20 }}
           class="box-border h-[var(--positioner-height)] w-[var(--positioner-width)] max-w-[var(--available-width)] transition-[top,left,right,bottom] duration-[var(--duration)] ease-[var(--easing)] before:absolute before:content-[''] data-[instant]:transition-none data-[side=bottom]:before:top-[-10px] data-[side=bottom]:before:right-0 data-[side=bottom]:before:left-0 data-[side=bottom]:before:h-2.5 data-[side=left]:before:top-0 data-[side=left]:before:right-[-10px] data-[side=left]:before:bottom-0 data-[side=left]:before:w-2.5 data-[side=right]:before:top-0 data-[side=right]:before:bottom-0 data-[side=right]:before:left-[-10px] data-[side=right]:before:w-2.5 data-[side=top]:before:right-0 data-[side=top]:before:bottom-[-10px] data-[side=top]:before:left-0 data-[side=top]:before:h-2.5"
           style={{
-            ['--duration' as string]: '0.35s',
-            ['--easing' as string]: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            '--duration': '0.35s',
+            '--easing': 'cubic-bezier(0.22, 1, 0.36, 1)',
           }}
         >
           <NavigationMenu.Popup class="data-[ending-style]:easing-[ease] relative h-[var(--popup-height)] w-max origin-[var(--transform-origin)] rounded-lg bg-[canvas] text-gray-900 shadow-lg shadow-gray-200 outline outline-1 outline-gray-200 transition-[opacity,transform,width,height,scale,translate] duration-[var(--duration)] ease-[var(--easing)] data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[ending-style]:duration-150 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 min-[500px]:w-[var(--popup-width)] xs:w-[var(--popup-width)] dark:shadow-none dark:-outline-offset-1 dark:outline-gray-300">
@@ -89,7 +89,7 @@ function Link(props: NavigationMenu.Link.Props) {
         // Use the `render` prop to render your framework's Link component
         // for client-side routing.
         // e.g. `<NextLink href={props.href} />` instead of `<a />`.
-        <a />
+        (props) => <a {...props()} />
       }
       {...props}
     />
