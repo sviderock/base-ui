@@ -51,7 +51,7 @@ export type UsePositionOptions<RT extends ReferenceType = ReferenceType> = Prett
   }
 >;
 
-export type UsePositionFloatingReturn<RT extends ReferenceType = ReferenceType> = Prettify<{
+export interface UsePositionFloatingSharedReturn {
   /**
    * Update the position of the floating element, re-rendering the component
    * if required.
@@ -62,38 +62,40 @@ export type UsePositionFloatingReturn<RT extends ReferenceType = ReferenceType> 
    */
   floatingStyles: Accessor<JSX.CSSProperties>;
   /**
-   * Object containing the reference and floating refs and reactive setters.
-   */
-  refs: {
-    /**
-     * A Solid ref to the reference element.
-     */
-    reference: Accessor<RT | null | undefined>;
-    /**
-     * A Solid ref to the floating element.
-     */
-    floating: Accessor<HTMLElement | null | undefined>;
-    /**
-     * A callback to set the reference element (reactive).
-     */
-    setReference: (value: RT | null | undefined) => void;
-    /**
-     * A callback to set the floating element (reactive).
-     */
-    setFloating: (value: HTMLElement | null | undefined) => void;
-  };
-  /**
-   * Object containing the reference and floating elements.
-   */
-  elements: {
-    reference: Accessor<RT | null | undefined>;
-    floating: Accessor<HTMLElement | null | undefined>;
-  };
-  /**
    * Object containing the computed data.
    */
   storeData: UsePositionData;
-}>;
+}
+
+export type UsePositionFloatingReturn<RT extends ReferenceType = ReferenceType> = Prettify<
+  UsePositionFloatingSharedReturn & {
+    refs: {
+      /**
+       * A Solid ref to the reference element.
+       */
+      reference: Accessor<RT | null | undefined>;
+      /**
+       * A Solid ref to the floating element.
+       */
+      floating: Accessor<HTMLElement | null | undefined>;
+      /**
+       * A callback to set the reference element (reactive).
+       */
+      setReference: (value: RT | null | undefined) => void;
+      /**
+       * A callback to set the floating element (reactive).
+       */
+      setFloating: (value: HTMLElement | null | undefined) => void;
+    };
+    /**
+     * Object containing the reference and floating elements.
+     */
+    elements: {
+      reference: Accessor<RT | null | undefined>;
+      floating: Accessor<HTMLElement | null | undefined>;
+    };
+  }
+>;
 
 /**
  * This is a Solid port of the React useFloating hook

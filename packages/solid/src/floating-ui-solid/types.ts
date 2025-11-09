@@ -2,7 +2,11 @@ import type { VirtualElement } from '@floating-ui/dom';
 import type { Accessor, JSX } from 'solid-js';
 import type { SetStoreFunction, Store } from 'solid-js/store';
 import type { MaybeAccessor } from '../solid-helpers';
-import type { UsePositionFloatingReturn, UsePositionOptions } from './hooks/useFloatingOriginal';
+import type {
+  UsePositionFloatingReturn,
+  UsePositionFloatingSharedReturn,
+  UsePositionOptions,
+} from './hooks/useFloatingOriginal';
 import type { ExtendedUserProps } from './hooks/useInteractions';
 
 export {
@@ -129,35 +133,33 @@ export interface ContextData {
   [key: string]: any;
 }
 
-export interface FloatingRootContext<RT extends ReferenceType = ReferenceType> {
+interface FloatingRootSharedContext {
   dataRef: ContextData;
   open: Accessor<boolean>;
-  onOpenChange: (open: boolean, event?: Event, reason?: OpenChangeReason) => void;
+  onOpenChange(open: boolean, event?: Event, reason?: OpenChangeReason): void;
+  events: FloatingEvents;
+  floatingId: Accessor<string | undefined>;
+}
+
+export interface FloatingRootContext<RT extends ReferenceType = ReferenceType>
+  extends FloatingRootSharedContext {
   elements: {
     domReference: Accessor<Element | null | undefined>;
     reference: Accessor<RT | null | undefined>;
     floating: Accessor<HTMLElement | null | undefined>;
   };
-  events: FloatingEvents;
-  floatingId: Accessor<string | undefined>;
   refs: {
     setPositionReference(node: ReferenceType | null | undefined): void;
   };
 }
 
-export type FloatingContext<RT extends ReferenceType = ReferenceType> = Omit<
-  UsePositionFloatingReturn<RT>,
-  'refs' | 'elements'
-> & {
-  open: Accessor<boolean>;
-  onOpenChange(open: boolean, event?: Event, reason?: OpenChangeReason): void;
-  events: FloatingEvents;
-  dataRef: ContextData;
+export interface FloatingContext<RT extends ReferenceType = ReferenceType>
+  extends FloatingRootSharedContext,
+    UsePositionFloatingSharedReturn {
   nodeId: Accessor<string | undefined>;
-  floatingId: Accessor<string | undefined>;
   refs: ExtendedRefs<RT>;
   elements: ExtendedElements<RT>;
-};
+}
 
 export interface FloatingNodeType<RT extends ReferenceType = ReferenceType> {
   id: string | undefined;
@@ -183,14 +185,15 @@ export interface ElementProps {
 
 export type ReferenceType = Element | VirtualElement;
 
-export type UseFloatingData = Prettify<UseFloatingReturn>;
-
-export type UseFloatingReturn<RT extends ReferenceType = ReferenceType> = Prettify<
+export type UseFloatingReturn<
+  RT extends ReferenceType,
+  Context extends MaybeAccessor<FloatingContext<RT>>,
+> = Prettify<
   Accessorify<Omit<UsePositionFloatingReturn, 'refs' | 'elements' | 'storeData'>> & {
     /**
      * `FloatingContext`
      */
-    context: Prettify<FloatingContext<RT>>;
+    context: Context;
     /**
      * Object containing the reference and floating refs and reactive setters.
      */
@@ -202,7 +205,6 @@ export type UseFloatingReturn<RT extends ReferenceType = ReferenceType> = Pretti
 // TODO: explain the reasoning for this
 export interface UseFloatingOptions<RT extends ReferenceType = ReferenceType>
   extends Omit<UsePositionOptions<RT>, 'elements'> {
-  rootContext?: FloatingRootContext<RT>;
   /**
    * Object of external elements as an alternative to the `refs` object setters.
    */

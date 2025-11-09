@@ -1,10 +1,11 @@
 import { type VirtualElement } from '@floating-ui/dom';
 import { isElement } from '@floating-ui/utils/dom';
-import { type Accessor, createEffect, createMemo, createSignal } from 'solid-js';
-import { access } from '../../solid-helpers';
+import { createEffect, createMemo, createSignal, type Accessor } from 'solid-js';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useFloatingTree } from '../components/FloatingTree';
 import type {
   FloatingContext,
+  FloatingRootContext,
   NarrowedElement,
   ReferenceType,
   UseFloatingOptions,
@@ -17,19 +18,29 @@ import { useFloatingRootContext } from './useFloatingRootContext';
  * Provides data to position a floating element and context to add interactions.
  * @see https://floating-ui.com/docs/useFloating
  */
+
 export function useFloating<RT extends ReferenceType = ReferenceType>(
-  options: UseFloatingOptions,
-): UseFloatingReturn<RT> {
-  const rootContext =
-    options.rootContext ||
-    useFloatingRootContext({
-      ...options,
-      elements: {
-        reference: () => null,
-        floating: () => null,
-        ...options.elements,
-      },
-    });
+  options: UseFloatingOptions<RT> & { rootContext: Accessor<FloatingRootContext<RT>> },
+): UseFloatingReturn<RT, Accessor<FloatingContext<RT>>>;
+export function useFloating<RT extends ReferenceType = ReferenceType>(
+  options: UseFloatingOptions<RT> & { rootContext: FloatingRootContext<RT> },
+): UseFloatingReturn<RT, FloatingContext<RT>>;
+export function useFloating<RT extends ReferenceType = ReferenceType>(
+  options: UseFloatingOptions<RT> & { rootContext?: never },
+): UseFloatingReturn<RT, FloatingContext<RT>>;
+export function useFloating<RT extends ReferenceType = ReferenceType>(
+  options: UseFloatingOptions<RT> & { rootContext?: MaybeAccessor<FloatingRootContext<RT>> },
+) {
+  const defaultRootContext = useFloatingRootContext({
+    ...options,
+    elements: {
+      reference: () => null,
+      floating: () => null,
+      ...options.elements,
+    },
+  });
+
+  const rootContext = () => access(options.rootContext) || defaultRootContext;
 
   const [domReferenceState, setDomReference] = createSignal<NarrowedElement<RT> | null | undefined>(
     null,
@@ -38,7 +49,7 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     ReferenceType | null | undefined
   >(null);
 
-  const optionDomReference = rootContext.elements.domReference;
+  const optionDomReference = () => rootContext().elements.domReference();
   const domReference = createMemo(
     () => (optionDomReference() || domReferenceState()) as NarrowedElement<RT> | null | undefined,
   );
@@ -46,11 +57,11 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
   const tree = useFloatingTree();
 
   const position = usePosition({
-    ...options,
+    ...(options as UseFloatingOptions<ReferenceType>),
     elements: {
-      floating: rootContext.elements.floating,
+      floating: () => rootContext().elements.floating(),
       reference: () =>
-        (positionReference() ?? rootContext.elements.reference()) as
+        (positionReference() ?? rootContext().elements.reference()) as
           | NarrowedElement<RT>
           | null
           | undefined,
@@ -68,7 +79,7 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     // Store the positionReference in state if the DOM reference is specified externally via the
     // `elements.reference` option. This ensures that it won't be overridden on future renders.
     setPositionReferenceRaw(computedPositionReference);
-    position.refs.setReference(computedPositionReference);
+    position.refs.setReference(computedPositionReference as RT | null | undefined);
   };
 
   const setReference = (node: RT | null | undefined) => {
@@ -103,16 +114,27 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     domReference,
   };
 
-  const context: FloatingContext<RT> = {
-    ...position,
-    ...rootContext,
+  const context = createMemo<FloatingContext<RT>>(() => ({
+    // from UsePositionFloatingReturn
+    update: position.update,
+    floatingStyles: position.floatingStyles,
+    storeData: position.storeData,
+
+    // from FloatingRootContext
+    open: rootContext().open,
+    onOpenChange: rootContext().onOpenChange,
+    events: rootContext().events,
+    dataRef: rootContext().dataRef,
+    floatingId: rootContext().floatingId,
+
+    // additional
     refs,
     elements,
     nodeId: () => access(options.nodeId),
-  };
+  }));
 
   createEffect(() => {
-    rootContext.dataRef.floatingContext = context as unknown as FloatingContext;
+    rootContext().dataRef.floatingContext = context() as unknown as FloatingContext;
 
     if (!tree) {
       return;
@@ -121,11 +143,10 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     const nodeId = access(options.nodeId);
     const nodeIdx = tree.nodesRef.findIndex((n) => n.id === nodeId);
     if (nodeIdx !== -1) {
-      tree?.setNodesRef(nodeIdx, 'context', context as unknown as FloatingContext);
+      tree?.setNodesRef(nodeIdx, 'context', context() as unknown as FloatingContext);
     }
   });
 
-  // TODO: no memoizing causes an infinite loop in useAnchorPositioning
   return {
     update: position.update,
     floatingStyles: position.floatingStyles,
@@ -135,8 +156,9 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     middlewareData: () => position.storeData.middlewareData,
     x: () => position.storeData.x,
     y: () => position.storeData.y,
-    context,
+    // eslint-disable-next-line solid/reactivity
+    context: typeof options.rootContext === 'function' ? context : context(),
     refs,
     elements,
-  } satisfies UseFloatingReturn<RT>;
+  };
 }
