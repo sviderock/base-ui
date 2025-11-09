@@ -91,9 +91,10 @@ function InnerMenuCheckboxItem(componentProps: InnerMenuCheckboxItemProps) {
               role: 'menuitemcheckbox',
               'aria-checked': checked(),
               onClick: (event) => {
+                const nextChecked = !checked();
                 batch(() => {
-                  setChecked((currentlyChecked) => !currentlyChecked);
-                  local.onCheckedChange?.(!checked(), event);
+                  setChecked(nextChecked);
+                  local.onCheckedChange?.(nextChecked, event);
                 });
               },
             },
