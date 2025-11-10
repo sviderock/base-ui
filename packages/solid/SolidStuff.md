@@ -18,6 +18,7 @@
 - `render` prop needs manual ref set: `render={(props) => <div ref={el => props.ref(el) />}`
 - Navigation menu bubble/capture event order is a mess, needed to wrap all the focuses inside focus guards in queueMicrotask as they were running before the event even finished to capture/bubble
 - in Solid onInput must be used instaed of onChange to trigger change on every keystroke (as it is in DOM)
+- do not put components into createMemo, learned the hard way
 
 # TODO
 

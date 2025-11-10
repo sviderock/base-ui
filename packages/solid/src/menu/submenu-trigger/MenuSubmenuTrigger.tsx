@@ -1,5 +1,6 @@
 'use client';
-import { createMemo, type JSX } from 'solid-js';
+import type { MenuParent } from '@base-ui-components/solid/menu/root/MenuRoot';
+import { createEffect, createMemo, type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { useFloatingTree } from '../../floating-ui-solid';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
@@ -22,7 +23,6 @@ export function MenuSubmenuTrigger(componentProps: MenuSubmenuTrigger.Props) {
     'id',
     'nativeButton',
   ]);
-  const label = () => access(local.label);
   const idProp = () => access(local.id);
   const nativeButton = () => access(local.nativeButton) ?? false;
 
@@ -38,16 +38,17 @@ export function MenuSubmenuTrigger(componentProps: MenuSubmenuTrigger.Props) {
     allowMouseUpTriggerRef,
   } = useMenuRootContext();
 
-  if (parent.type !== 'menu') {
-    throw new Error('Base UI: <Menu.SubmenuTrigger> must be placed in <Menu.SubmenuRoot>.');
-  }
+  createEffect(() => {
+    if (parent().type !== 'menu') {
+      throw new Error('Base UI: <Menu.SubmenuTrigger> must be placed in <Menu.SubmenuRoot>.');
+    }
+  });
 
-  const parentMenuContext = parent.context;
+  const parentMenuContext = () => (parent() as Extract<MenuParent, { type: 'menu' }>).context;
 
-  const { activeIndex, itemProps, setActiveIndex } = parentMenuContext;
   const item = useCompositeListItem();
 
-  const highlighted = () => activeIndex() === item.index();
+  const highlighted = () => parentMenuContext().activeIndex() === item.index();
 
   const { events: menuEvents } = useFloatingTree()!;
 
@@ -62,8 +63,8 @@ export function MenuSubmenuTrigger(componentProps: MenuSubmenuTrigger.Props) {
     nativeButton,
     itemMetadata: () => ({
       type: 'submenu-trigger' as const,
-      setActive: () => setActiveIndex(item.index()),
-      allowMouseEnterEnabled: parentMenuContext.allowMouseEnter(),
+      setActive: () => parentMenuContext().setActiveIndex(item.index()),
+      allowMouseEnterEnabled: parentMenuContext().allowMouseEnter(),
     }),
   });
 
@@ -92,14 +93,14 @@ export function MenuSubmenuTrigger(componentProps: MenuSubmenuTrigger.Props) {
         customStyleHookMapping: triggerOpenStateMapping,
         props: [
           rootTriggerProps(),
-          itemProps(),
+          parentMenuContext().itemProps(),
           elementProps,
           getItemProps,
           {
             tabIndex: open() || highlighted() ? 0 : -1,
             onBlur() {
               if (highlighted()) {
-                setActiveIndex(null);
+                parentMenuContext().setActiveIndex(null);
               }
             },
           },

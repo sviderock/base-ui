@@ -1,5 +1,5 @@
 import { isElement } from '@floating-ui/utils/dom';
-import { createEffect, createSignal } from 'solid-js';
+import { createEffect, createSignal, onCleanup } from 'solid-js';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useId } from '../../utils/useId';
 import { useFloatingParentNodeId } from '../components/FloatingTree';
@@ -86,6 +86,12 @@ export function useFloatingRootContext(
       id,
       parentId: parentIdx !== -1 ? (dataRef.virtualFloatingTree[parentIdx].id ?? null) : null,
     });
+  });
+
+  onCleanup(() => {
+    dataRef.virtualFloatingTree = dataRef.virtualFloatingTree.filter(
+      (item) => item.id !== floatingId(),
+    );
   });
 
   return {

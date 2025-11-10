@@ -39,7 +39,7 @@ export interface MenuRootContext {
   onOpenChangeComplete: ((open: boolean) => void) | undefined;
   setHoverEnabled: (hoverEnabled: boolean) => void;
   setActiveIndex: (activeIndex: number | null) => void;
-  parent: MenuParent;
+  parent: Accessor<MenuParent>;
   rootId: Accessor<string | undefined>;
   allowMouseEnter: Accessor<boolean>;
   setAllowMouseEnter: (allowMouseEnter: boolean) => void;

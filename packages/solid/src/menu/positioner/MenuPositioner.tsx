@@ -72,12 +72,14 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
 
   const anchor = () => {
     const a = access(local.anchor);
-    return parent.type === 'context-menu' ? (parent.context?.anchor ?? a) : a;
+    const p = parent();
+    return p.type === 'context-menu' ? (p.context?.anchor ?? a) : a;
   };
 
   const computedAlign = () => {
     const a = access(local.align);
-    if (parent.type === 'context-menu' || parent.type === 'menu' || parent.type === 'menubar') {
+    const p = parent();
+    if (p.type === 'context-menu' || p.type === 'menu' || p.type === 'menubar') {
       return a ?? 'start';
     }
     return a;
@@ -85,10 +87,11 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
 
   const computedSide = () => {
     const s = access(local.side);
-    if (parent.type === 'menu') {
+    const p = parent();
+    if (p.type === 'menu') {
       return s ?? 'inline-end';
     }
-    if (parent.type === 'menubar') {
+    if (p.type === 'menubar') {
       return s ?? 'bottom';
     }
     return s;
@@ -96,15 +99,15 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
 
   const alignOffset = () => {
     const a = access(local.alignOffset);
-    return parent.type === 'context-menu' ? (a ?? 2) : (a ?? 0);
+    return parent().type === 'context-menu' ? (a ?? 2) : (a ?? 0);
   };
 
   const sideOffset = () => {
     const a = access(local.sideOffset);
-    return parent.type === 'context-menu' ? (a ?? -5) : (a ?? 0);
+    return parent().type === 'context-menu' ? (a ?? -5) : (a ?? 0);
   };
 
-  const contextMenu = () => parent.type === 'context-menu';
+  const contextMenu = () => parent().type === 'context-menu';
 
   const positioner = useAnchorPositioning({
     anchor,
@@ -174,7 +177,7 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
     side: positioner.side(),
     align: positioner.align(),
     anchorHidden: positioner.anchorHidden(),
-    nested: parent.type === 'menu',
+    nested: parent().type === 'menu',
   }));
 
   const contextValue: MenuPositionerContext = {
@@ -183,21 +186,26 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
     refs: positioner.refs,
     arrowUncentered: positioner.arrowUncentered,
     arrowStyles: positioner.arrowStyles,
-    floatingContext: positioner.context,
+    floatingContext: () => access(positioner.context),
   };
 
-  const shouldRenderBackdrop = () =>
-    mounted() &&
-    parent.type !== 'menu' &&
-    ((parent.type !== 'menubar' && modal() && lastOpenChangeReason() !== 'trigger-hover') ||
-      (parent.type === 'menubar' && parent.context.modal()));
+  const shouldRenderBackdrop = () => {
+    const p = parent();
+    return (
+      mounted() &&
+      p.type !== 'menu' &&
+      ((p.type !== 'menubar' && modal() && lastOpenChangeReason() !== 'trigger-hover') ||
+        (p.type === 'menubar' && p.context.modal()))
+    );
+  };
 
   // cuts a hole in the backdrop to allow pointer interaction with the menubar or dropdown menu trigger element
   const backdropCutout = createMemo<HTMLElement | null | undefined>(() => {
-    if (parent.type === 'menubar') {
-      return parent.context.contentElement();
+    const p = parent();
+    if (p.type === 'menubar') {
+      return p.context.contentElement();
     }
-    if (parent.type === undefined) {
+    if (p.type === undefined) {
       return triggerElement();
     }
     return null;
@@ -209,8 +217,9 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
         <InternalBackdrop
           managed
           ref={(el) => {
-            if (parent.type === 'context-menu' || parent.type === 'nested-context-menu') {
-              parent.context.refs.internalBackdropRef = el;
+            const p = parent();
+            if (p.type === 'context-menu' || p.type === 'nested-context-menu') {
+              p.context.refs.internalBackdropRef = el;
             }
           }}
           inert={inertValue(!open())}

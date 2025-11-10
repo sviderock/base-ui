@@ -53,7 +53,7 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
   const { events: menuEvents } = useFloatingTree()!;
 
   createEffect(() => {
-    if (!open() && parent.type === undefined) {
+    if (!open() && parent().type === undefined) {
       setAllowMouseUpTriggerRef(false);
     }
   });
@@ -131,7 +131,7 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
 
   return (
     <Show
-      when={parent.type === 'menubar'}
+      when={parent().type === 'menubar'}
       fallback={
         <RenderElement
           element="button"

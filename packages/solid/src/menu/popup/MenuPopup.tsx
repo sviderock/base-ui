@@ -77,24 +77,24 @@ export function MenuPopup(componentProps: MenuPopup.Props) {
     side: side(),
     align: align(),
     open: open(),
-    nested: parent.type === 'menu',
+    nested: parent().type === 'menu',
     instant: instantType(),
   }));
 
   const returnFocus = createMemo(() => {
-    if (parent.type === 'menubar' && lastOpenChangeReason() !== 'outside-press') {
+    if (parent().type === 'menubar' && lastOpenChangeReason() !== 'outside-press') {
       return true;
     }
-    return parent.type === undefined || parent.type === 'context-menu';
+    return parent().type === undefined || parent().type === 'context-menu';
   });
 
   return (
     <FloatingFocusManager
-      context={floatingContext}
+      context={floatingContext()}
       modal={false}
       disabled={!mounted()}
       returnFocus={finalFocus() || returnFocus()}
-      initialFocus={parent.type === 'menu' ? -1 : 0}
+      initialFocus={parent().type === 'menu' ? -1 : 0}
       restoreFocus
     >
       <RenderElement

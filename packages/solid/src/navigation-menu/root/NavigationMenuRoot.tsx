@@ -157,11 +157,11 @@ export function NavigationMenuRoot(componentProps: NavigationMenuRoot.Props) {
     orientation,
   };
 
-  const element = createMemo(() => (
+  const element = () => (
     <NavigationMenuRootContext.Provider value={contextValue}>
       <TreeContext {...componentProps} />
     </NavigationMenuRootContext.Provider>
-  ));
+  );
 
   return (
     <Show when={nested()} fallback={<FloatingTree>{element()}</FloatingTree>}>
@@ -184,6 +184,7 @@ function TreeContext(componentProps: NavigationMenuRoot.Props) {
   const orientation = () => access(local.orientation);
 
   const nodeId = useFloatingNodeId();
+
   const { refs, nested } = useNavigationMenuRootContext();
 
   const { open } = useNavigationMenuRootContext();

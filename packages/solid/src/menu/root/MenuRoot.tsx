@@ -121,13 +121,15 @@ export function MenuRoot(props: MenuRoot.Props) {
       : setAllowMouseEnterState(allowMouseEnter);
   };
 
-  if (process.env.NODE_ENV !== 'production') {
-    if (parent().type !== undefined && modalProp() !== undefined) {
-      console.warn(
-        'Base UI: The `modal` prop is not supported on nested menus. It will be ignored.',
-      );
+  createEffect(() => {
+    if (process.env.NODE_ENV !== 'production') {
+      if (parent().type !== undefined && modalProp() !== undefined) {
+        console.warn(
+          'Base UI: The `modal` prop is not supported on nested menus. It will be ignored.',
+        );
+      }
     }
-  }
+  });
 
   const openOnHover = () => {
     const p = parent();
@@ -510,8 +512,7 @@ export function MenuRoot(props: MenuRoot.Props) {
     typingRef: () => typingRef,
     modal,
     disabled,
-    // eslint-disable-next-line solid/reactivity
-    parent: parent(),
+    parent,
     rootId,
     allowMouseEnter,
     setAllowMouseEnter,
