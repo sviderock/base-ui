@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createSignal, type Signal } from 'solid-js';
+import { createEffect, createMemo, createSignal, type Signal } from 'solid-js';
 import { access, type MaybeAccessor } from '../solid-helpers';
 
 // TODO: uncomment once we enable eslint-plugin-react-compiler // eslint-disable-next-line react-compiler/react-compiler -- process.env never changes, dependency arrays are intentionally ignored
@@ -24,14 +24,15 @@ export interface UseControlledProps<T = unknown> {
 }
 
 export function useControlled<T = unknown>(props: UseControlledProps<T>): Signal<T> {
-  const controlledProp = () => access(props.controlled);
-  const defaultProp = () => access(props.default);
+  const controlledProp = createMemo(() => access(props.controlled));
+  const defaultProp = createMemo(() => access(props.default));
 
   // eslint-disable-next-line solid/reactivity
   const isControlled = controlledProp() !== undefined;
-  const [valueState, setValue] = createSignal(access(props.default));
-  const value = () => (isControlled ? controlledProp() : valueState());
-  const state = () => props.state ?? 'value';
+  // eslint-disable-next-line solid/reactivity
+  const [valueState, setValue] = createSignal(defaultProp());
+  const value = createMemo(() => (isControlled ? controlledProp() : valueState()));
+  const state = createMemo(() => props.state ?? 'value');
 
   if (process.env.NODE_ENV !== 'production') {
     createEffect(() => {
@@ -51,6 +52,7 @@ export function useControlled<T = unknown>(props: UseControlledProps<T>): Signal
       }
     });
 
+    // eslint-disable-next-line solid/reactivity
     const defaultValue = defaultProp();
 
     createEffect(() => {

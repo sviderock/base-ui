@@ -1,5 +1,5 @@
 'use client';
-import { batch, createEffect, createMemo, createSignal, onMount, Show, type JSX } from 'solid-js';
+import { batch, createEffect, createMemo, createSignal, Show, type JSX } from 'solid-js';
 import {
   ContextMenuRootContext,
   useContextMenuRootContext,
@@ -286,19 +286,17 @@ export function MenuRoot(props: MenuRoot.Props) {
     }
   };
 
-  const ctx = createMemo<ContextMenuRootContext | undefined>(() => {
-    const pt = parent();
-    return pt.type === 'context-menu' ? pt.context : undefined;
+  createEffect(() => {
+    const p = parent();
+    if (p.type === 'context-menu') {
+      p.context.refs.positionerRef = positionerRef();
+      p.context.refs.actionsRef = { setOpen };
+    }
   });
 
-  onMount(() => {
+  createEffect(() => {
     if (actionsRef()) {
       actionsRef()!.unmount = handleUnmount;
-    }
-
-    if (ctx()) {
-      ctx()!.refs.positionerRef = positionerRef();
-      ctx()!.refs.actionsRef = { setOpen };
     }
   });
 

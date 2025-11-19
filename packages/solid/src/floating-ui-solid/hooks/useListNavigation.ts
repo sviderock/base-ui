@@ -1,5 +1,13 @@
 import { isHTMLElement } from '@floating-ui/utils/dom';
-import { createEffect, createMemo, createSignal, onCleanup, type Accessor } from 'solid-js';
+import {
+  batch,
+  createEffect,
+  createMemo,
+  createSignal,
+  on,
+  onCleanup,
+  type Accessor,
+} from 'solid-js';
 import {
   activeElement,
   contains,
@@ -257,6 +265,9 @@ export function useListNavigation(
   const cols = () => access(props.cols) ?? 1;
   const scrollItemIntoView = () => access(props.scrollItemIntoView) ?? true;
   const dense = () => access(props.dense) ?? false;
+  const listRef = () => access(props.listRef);
+  const focusItemOnOpenProp = () => access(props.focusItemOnOpen) ?? 'auto';
+  const activeIndex = () => access(props.activeIndex);
   const disabledIndices = createMemo(() => {
     if (typeof props.disabledIndices === 'function') {
       return props.disabledIndices.length > 0
@@ -308,22 +319,30 @@ export function useListNavigation(
   let indexRef = selectedIndex() ?? -1;
   let keyRef: null | string = null;
   let isPointerModalityRef = true;
+  let forceSyncFocusRef = false;
+  let forceScrollIntoViewRef = false;
+  let previousMountedRef = false;
+  let previousOpenRef = false;
+
+  createEffect(
+    on(
+      () => context().elements.floating(),
+      () => {
+        onCleanup(() => {
+          previousMountedRef = false;
+          previousOpenRef = false;
+        });
+      },
+    ),
+  );
+
+  const [focusItemOnOpen, setFocusItemOnOpen] = createSignal(focusItemOnOpenProp());
+  const [activeId, setActiveId] = createSignal<string | undefined>();
+  const [virtualId, setVirtualId] = createSignal<string | undefined>();
 
   const onNavigate = () => {
     props.onNavigate?.(indexRef === -1 ? null : indexRef);
   };
-
-  const previousMountedRef = () => !!context().elements.floating();
-
-  const previousOpenRef = context().open();
-  let forceSyncFocusRef = false;
-  let forceScrollIntoViewRef = false;
-
-  const [focusItemOnOpen, setFocusItemOnOpen] = createSignal(
-    access(props.focusItemOnOpen) ?? 'auto',
-  );
-  const [activeId, setActiveId] = createSignal<string | undefined>();
-  const [virtualId, setVirtualId] = createSignal<string | undefined>();
 
   const focusItem = () => {
     function runFocus(item: HTMLElement) {
@@ -344,9 +363,7 @@ export function useListNavigation(
       }
     }
 
-    const initialItem = access(props.listRef)[indexRef];
-    const forceScrollIntoView = forceScrollIntoViewRef;
-
+    const initialItem = listRef()[indexRef];
     if (initialItem) {
       runFocus(initialItem);
     }
@@ -354,7 +371,7 @@ export function useListNavigation(
     const scheduler = forceSyncFocusRef ? (v: () => void) => v() : requestAnimationFrame;
 
     scheduler(() => {
-      const waitedItem = access(props.listRef)[indexRef] || initialItem;
+      const waitedItem = listRef()[indexRef] || initialItem;
 
       if (!waitedItem) {
         return;
@@ -367,7 +384,7 @@ export function useListNavigation(
       const scrollIntoViewOptions = scrollItemIntoView();
       const shouldScrollIntoView =
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        scrollIntoViewOptions && item() && (forceScrollIntoView || !isPointerModalityRef);
+        scrollIntoViewOptions && item() && (forceScrollIntoViewRef || !isPointerModalityRef);
 
       if (shouldScrollIntoView) {
         // JSDOM doesn't support `.scrollIntoView()` but it's widely supported
@@ -397,10 +414,7 @@ export function useListNavigation(
         indexRef = selected;
         onNavigate();
       }
-    } else if (previousMountedRef()) {
-      // Since the user can specify `onNavigate` conditionally
-      // (onNavigate: open ? setActiveIndex : setSelectedIndex),
-      // we store and call the previous function.
+    } else if (previousMountedRef) {
       indexRef = -1;
       onNavigate();
     }
@@ -412,15 +426,21 @@ export function useListNavigation(
     if (!enabled()) {
       return;
     }
-    if (!context().open()) {
-      return;
-    }
-    if (!context().elements.floating()) {
+
+    const open = context().open();
+    if (!open) {
       return;
     }
 
-    const activeIndex = access(props.activeIndex);
-    if (activeIndex == null) {
+    const floating = context().elements.floating();
+    if (!floating) {
+      return;
+    }
+
+    const idx = activeIndex();
+    const list = listRef();
+
+    if (idx == null) {
       forceSyncFocusRef = false;
 
       if (selectedIndex() != null) {
@@ -428,20 +448,20 @@ export function useListNavigation(
       }
 
       // Reset while the floating element was open (e.g. the list changed).
-      if (previousMountedRef()) {
+      if (previousMountedRef) {
         indexRef = -1;
         focusItem();
       }
 
       // Initial sync.
       if (
-        (!previousOpenRef || !previousMountedRef()) &&
+        (!previousOpenRef || !previousMountedRef) &&
         focusItemOnOpen() &&
         (keyRef != null || (focusItemOnOpen() === true && keyRef == null))
       ) {
         let runs = 0;
         const waitForListPopulated = () => {
-          if (access(props.listRef)[0] == null) {
+          if (list[0] == null) {
             // Avoid letting the browser paint if possible on the first try,
             // otherwise use rAF. Don't try more than twice, since something
             // is wrong otherwise.
@@ -453,33 +473,31 @@ export function useListNavigation(
           } else {
             indexRef =
               keyRef == null || isMainOrientationToEndKey(keyRef, orientation(), rtl()) || nested()
-                ? getMinListIndex(access(props.listRef), disabledIndices())
-                : getMaxListIndex(access(props.listRef), disabledIndices());
+                ? getMinListIndex(list, disabledIndices())
+                : getMaxListIndex(list, disabledIndices());
             keyRef = null;
 
+            previousMountedRef = true;
+            previousOpenRef = true;
             onNavigate();
           }
         };
 
         waitForListPopulated();
       }
-    } else if (!isIndexOutOfListBounds(access(props.listRef), activeIndex)) {
-      indexRef = activeIndex;
+    } else if (!isIndexOutOfListBounds(list, idx)) {
+      indexRef = idx;
       focusItem();
       forceScrollIntoViewRef = false;
+      previousMountedRef = true;
+      previousOpenRef = true;
     }
   });
 
   // Ensure the parent floating element has focus when a nested child closes
   // to allow arrow key navigation to work after the pointer leaves the child.
   createEffect(() => {
-    if (
-      !enabled() ||
-      context().elements.floating() ||
-      !tree ||
-      virtual() ||
-      !previousMountedRef()
-    ) {
+    if (!enabled() || context().elements.floating() || !tree || virtual() || !previousMountedRef) {
       return;
     }
 
@@ -529,18 +547,18 @@ export function useListNavigation(
   createEffect(() => {
     if (!context().open()) {
       keyRef = null;
-      setFocusItemOnOpen(access(props.focusItemOnOpen) ?? 'auto');
+      setFocusItemOnOpen(focusItemOnOpenProp());
     }
   });
 
-  const hasActiveIndex = () => access(props.activeIndex) != null;
+  const hasActiveIndex = () => activeIndex() != null;
 
   const item = createMemo<ElementProps['item']>(() => {
     function syncCurrentTarget(currentTarget: HTMLElement | null) {
       if (!context().open()) {
         return;
       }
-      const index = access(props.listRef).indexOf(currentTarget);
+      const index = listRef().indexOf(currentTarget);
       if (index !== -1 && indexRef !== index) {
         indexRef = index;
 
@@ -629,7 +647,10 @@ export function useListNavigation(
         }
       }
 
-      context().onOpenChange(false, event, 'list-navigation');
+      // TODO: explain this
+      queueMicrotask(() => {
+        context().onOpenChange(false, event, 'list-navigation');
+      });
 
       const domReference = context().elements.domReference();
       if (isHTMLElement(domReference)) {
@@ -644,8 +665,8 @@ export function useListNavigation(
     }
 
     const currentIndex = indexRef;
-    const minIndex = getMinListIndex(access(props.listRef), disabledIndices());
-    const maxIndex = getMaxListIndex(access(props.listRef), disabledIndices());
+    const minIndex = getMinListIndex(listRef(), disabledIndices());
+    const maxIndex = getMaxListIndex(listRef(), disabledIndices());
 
     if (!typeableComboboxReference()) {
       if (event.key === 'Home') {
@@ -665,7 +686,7 @@ export function useListNavigation(
     if (cols() > 1) {
       const sizes =
         access(props.itemSizes) ||
-        Array.from({ length: access(props.listRef).length }, () => ({
+        Array.from({ length: listRef().length }, () => ({
           width: 1,
           height: 1,
         }));
@@ -674,14 +695,13 @@ export function useListNavigation(
 
       const cellMap = createGridCellMap(sizes, cols(), dense());
       const minGridIndex = cellMap.findIndex(
-        (index) =>
-          index != null && !isListIndexDisabled(access(props.listRef), index, disabledIndices()),
+        (index) => index != null && !isListIndexDisabled(listRef(), index, disabledIndices()),
       );
       // last enabled index
       const maxGridIndex = cellMap.reduce(
         // eslint-disable-next-line solid/reactivity
         (foundIndex: number, index, cellIndex) =>
-          index != null && !isListIndexDisabled(access(props.listRef), index, disabledIndices())
+          index != null && !isListIndexDisabled(listRef(), index, disabledIndices())
             ? cellIndex
             : foundIndex,
         -1,
@@ -690,9 +710,7 @@ export function useListNavigation(
       const index =
         cellMap[
           getGridNavigatedIndex(
-            cellMap.map((itemIndex) =>
-              itemIndex != null ? access(props.listRef)[itemIndex] : null,
-            ),
+            cellMap.map((itemIndex) => (itemIndex != null ? listRef()[itemIndex] : null)),
             {
               event,
               orientation: orientation(),
@@ -705,8 +723,8 @@ export function useListNavigation(
               disabledIndices: () =>
                 getGridCellIndices(
                   [
-                    ...access(props.listRef).map((_, listIndex) =>
-                      isListIndexDisabled(access(props.listRef), listIndex, disabledIndices())
+                    ...listRef().map((_, listIndex) =>
+                      isListIndexDisabled(listRef(), listIndex, disabledIndices())
                         ? listIndex
                         : undefined,
                     ),
@@ -755,7 +773,10 @@ export function useListNavigation(
         !virtual() &&
         activeElement((event.currentTarget as any)?.ownerDocument) === event.currentTarget
       ) {
-        indexRef = isMainOrientationToEndKey(event.key, orientation(), rtl()) ? minIndex : maxIndex;
+        const newIndex = isMainOrientationToEndKey(event.key, orientation(), rtl())
+          ? minIndex
+          : maxIndex;
+        indexRef = newIndex;
 
         onNavigate();
         return;
@@ -766,46 +787,52 @@ export function useListNavigation(
           indexRef =
             // eslint-disable-next-line no-nested-ternary
             currentIndex >= maxIndex
-              ? allowEscape() && currentIndex !== access(props.listRef).length
+              ? allowEscape() && currentIndex !== listRef().length
                 ? -1
                 : minIndex
-              : findNonDisabledListIndex(access(props.listRef), {
+              : findNonDisabledListIndex(listRef(), {
                   startingIndex: currentIndex,
                   disabledIndices: disabledIndices(),
                 });
         } else {
-          indexRef = Math.min(
+          const newIndex = Math.min(
             maxIndex,
-            findNonDisabledListIndex(access(props.listRef), {
+            findNonDisabledListIndex(listRef(), {
               startingIndex: currentIndex,
               disabledIndices: disabledIndices(),
             }),
           );
+          indexRef = newIndex;
         }
-      } else if (loop()) {
-        indexRef =
-          // eslint-disable-next-line no-nested-ternary
-          currentIndex <= minIndex
-            ? allowEscape() && currentIndex !== -1
-              ? access(props.listRef).length
-              : maxIndex
-            : findNonDisabledListIndex(access(props.listRef), {
-                startingIndex: currentIndex,
-                decrement: true,
-                disabledIndices: disabledIndices(),
-              });
-      } else {
-        indexRef = Math.max(
-          minIndex,
-          findNonDisabledListIndex(access(props.listRef), {
-            startingIndex: currentIndex,
-            decrement: true,
-            disabledIndices: disabledIndices(),
-          }),
-        );
       }
 
-      if (isIndexOutOfListBounds(access(props.listRef), indexRef)) {
+      if (!isMainOrientationToEndKey(event.key, orientation(), rtl())) {
+        if (loop()) {
+          indexRef =
+            // eslint-disable-next-line no-nested-ternary
+            currentIndex <= minIndex
+              ? allowEscape() && currentIndex !== -1
+                ? listRef().length
+                : maxIndex
+              : findNonDisabledListIndex(listRef(), {
+                  startingIndex: currentIndex,
+                  decrement: true,
+                  disabledIndices: disabledIndices(),
+                });
+        } else {
+          const newIndex = Math.max(
+            minIndex,
+            findNonDisabledListIndex(listRef(), {
+              startingIndex: currentIndex,
+              decrement: true,
+              disabledIndices: disabledIndices(),
+            }),
+          );
+          indexRef = newIndex;
+        }
+      }
+
+      if (isIndexOutOfListBounds(listRef(), indexRef)) {
         indexRef = -1;
       }
 
@@ -833,7 +860,7 @@ export function useListNavigation(
         // Manually bubble across portals only if propagation wasn't stopped
         // by commonOnKeyDown (mirrors React's natural bubbling behavior).
         if (parentId != null && !(event as any).cancelBubble) {
-          const eventObject = new KeyboardEvent('keydown', { key: event.key, bubbles: true });
+          const eventObject = new KeyboardEvent('keydown', { key: event.key });
           const parentNode =
             tree && parentId != null ? tree?.nodesRef.find((node) => node.id === parentId) : null;
           if (parentNode) {
@@ -857,10 +884,12 @@ export function useListNavigation(
 
     function checkVirtualPointer(event: PointerEvent) {
       // `pointerdown` fires first, reset the state then perform the checks.
-      setFocusItemOnOpen(focusItemOnOpen());
-      if (focusItemOnOpen() === 'auto' && isVirtualPointerEvent(event)) {
-        setFocusItemOnOpen(true);
-      }
+      batch(() => {
+        setFocusItemOnOpen(focusItemOnOpen());
+        if (focusItemOnOpen() === 'auto' && isVirtualPointerEvent(event)) {
+          setFocusItemOnOpen(true);
+        }
+      });
     }
 
     /**
@@ -874,7 +903,6 @@ export function useListNavigation(
       ...ariaActiveDescendantProp(),
       onKeyDown: (event) => {
         isPointerModalityRef = false;
-
         const isArrowKey = event.key.startsWith('Arrow');
         const isHomeOrEndKey = ['Home', 'End'].includes(event.key);
         const isMoveKey = isArrowKey || isHomeOrEndKey;
@@ -909,7 +937,7 @@ export function useListNavigation(
                 isCrossCloseKey && !isCurrentTarget
                   ? access(deepestNode.context)?.elements.domReference()
                   : isCrossOpenKey
-                    ? access(props.listRef).find((currentItem) => currentItem?.id === activeId())
+                    ? listRef().find((currentItem) => currentItem?.id === activeId())
                     : null;
 
               if (dispatchItem) {
@@ -928,18 +956,19 @@ export function useListNavigation(
               ) {
                 stopEvent(event);
                 access(deepestNodeContext)?.elements.domReference()?.dispatchEvent(eventObject);
-                return undefined;
+                return;
               }
             }
           }
 
-          return commonOnKeyDown(event);
+          commonOnKeyDown(event);
+          return;
         }
 
         // If a floating element should not open on arrow key down, avoid
         // setting `activeIndex` while it's closed.
         if (!openAtStart && !openOnArrowKeyDown() && isArrowKey) {
-          return undefined;
+          return;
         }
 
         if (isNavigationKey) {
@@ -952,14 +981,15 @@ export function useListNavigation(
             stopEvent(event);
 
             if (openAtStart) {
-              indexRef = getMinListIndex(access(props.listRef), disabledIndices());
+              const newIndex = getMinListIndex(listRef(), disabledIndices());
+              indexRef = newIndex;
               onNavigate();
             } else {
               context().onOpenChange(true, event, 'list-navigation');
             }
           }
 
-          return undefined;
+          return;
         }
 
         if (isMainKey) {
@@ -985,9 +1015,9 @@ export function useListNavigation(
           }
         }
 
-        return undefined;
+        return;
       },
-      onFocus: () => {
+      onFocus: (_event) => {
         if (openAtStart && !virtual()) {
           indexRef = -1;
           onNavigate();

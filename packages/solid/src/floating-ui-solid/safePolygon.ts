@@ -1,4 +1,5 @@
 import { isElement } from '@floating-ui/utils/dom';
+import { access } from '../solid-helpers';
 import { useTimeout } from '../utils/useTimeout';
 import type { HandleClose } from './hooks/useHover';
 import type { Rect, Side } from './types';
@@ -79,6 +80,7 @@ export function safePolygon(options: SafePolygonOptions = {}) {
     return speed;
   }
 
+  // TODO: fix typing
   const fn: HandleClose = ({ x, y, placement, elements, onClose, nodeId, tree }) => {
     return function onMouseMove(event: MouseEvent) {
       function close() {
@@ -141,7 +143,10 @@ export function safePolygon(options: SafePolygonOptions = {}) {
       }
 
       // If any nested child is open, abort.
-      if (tree && getNodeChildren(tree.nodesRef, nodeId()).some(({ context }) => context?.open())) {
+      if (
+        tree &&
+        getNodeChildren(tree.nodesRef, nodeId()).some((node) => access(node.context)?.open())
+      ) {
         return undefined;
       }
 

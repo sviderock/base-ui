@@ -103,7 +103,7 @@ export function FloatingTree(props: FloatingTreeProps): JSX.Element {
   }
 
   function removeNode(node: FloatingNodeType) {
-    setNodesRef(produce((nodes) => nodes.splice(nodes.indexOf(node), 1)));
+    setNodesRef((nodes) => nodes.filter((n) => n !== node));
   }
 
   const events = createEventEmitter();

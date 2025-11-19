@@ -22,7 +22,6 @@
 
 # TODO
 
-- Menubar demo, navigation going out from submenu doesn't work as intended
 - Scroll Area demo, native scrollbar still showing up
 - Select demo, checkmark is dissappearing when other options are being focused/hovered over
 - Toast demo:
@@ -31,3 +30,4 @@
   - toasts don't get dismissed properly
 - Tooltip demo:
   - Keyboard navigation should trigger instant tooltip show without animation
+- Navigation menu is not changing its position on scroll

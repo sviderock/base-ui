@@ -166,7 +166,7 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
                 triggerRef = el;
                 buttonRef(el);
                 setTriggerElement(el);
-                if (p() && typeof p().ref === 'function') {
+                if (typeof p().ref === 'function') {
                   (p().ref as Function)(el);
                 } else {
                   p().ref = el as unknown as HTMLDivElement;

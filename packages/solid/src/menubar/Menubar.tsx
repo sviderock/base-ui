@@ -71,14 +71,13 @@ export function Menubar(props: Menubar.Props) {
                 componentProps={props}
                 ref={(el) => {
                   batch(() => {
+                    setContentElement(el);
+                    contentRef = el;
                     if (typeof props.ref === 'function') {
                       props.ref(el);
                     } else {
                       props.ref = el;
                     }
-                    setContentElement(el);
-                    contentRef = el;
-
                     if (typeof p()?.ref === 'function') {
                       (p().ref as Function)(el);
                     } else {

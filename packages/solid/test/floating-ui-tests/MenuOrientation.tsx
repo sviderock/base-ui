@@ -1,5 +1,6 @@
 import c from 'clsx';
 import {
+  batch,
   createContext,
   createEffect,
   createSignal,
@@ -35,7 +36,7 @@ import {
   useRole,
   useTypeahead,
 } from '../../src/floating-ui-solid';
-import { callEventHandler } from '../../src/solid-helpers';
+import { access, callEventHandler } from '../../src/solid-helpers';
 
 type MenuContextType = {
   getItemProps: ReturnType<typeof useInteractions>['getItemProps'];
@@ -242,15 +243,19 @@ export function MenuComponent(
           parent.getItemProps<HTMLButtonElement>({
             ...elementProps,
             onFocus(event) {
-              callEventHandler(props.onFocus, event);
-              setHasFocusInside(false);
-              parent.setHasFocusInside(true);
+              batch(() => {
+                callEventHandler(props.onFocus, event);
+                setHasFocusInside(false);
+                parent.setHasFocusInside(true);
+              });
             },
             onMouseEnter(event) {
-              callEventHandler(props.onMouseEnter, event);
-              if (parent.allowHover() && parent.isOpen()) {
-                parent.setActiveIndex(item.index());
-              }
+              batch(() => {
+                callEventHandler(props.onMouseEnter, event);
+                if (parent.allowHover() && parent.isOpen()) {
+                  parent.setActiveIndex(item.index());
+                }
+              });
             },
           }),
         )}
@@ -356,8 +361,10 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLButtonEle
           tree?.events.emit('click');
         },
         onFocus(event) {
-          callEventHandler(props.onFocus, event);
-          menu.setHasFocusInside(true);
+          batch(() => {
+            callEventHandler(props.onFocus, event);
+            menu.setHasFocusInside(true);
+          });
         },
         onMouseEnter(event) {
           callEventHandler(props.onMouseEnter, event);
@@ -376,7 +383,7 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLButtonEle
           if (
             event.key === 'ArrowRight' &&
             // If the root reference is in a menubar, close parents
-            tree?.nodesRef[0].context?.elements.domReference()?.closest('[role="menubar"]')
+            access(tree?.nodesRef[0].context)?.elements.domReference()?.closest('[role="menubar"]')
           ) {
             closeParents(menu.parent);
           }

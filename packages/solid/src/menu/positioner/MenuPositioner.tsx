@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createMemo, onCleanup, onMount, type JSX } from 'solid-js';
+import { batch, createEffect, createMemo, on, onCleanup, onMount, type JSX } from 'solid-js';
 import { CompositeList } from '../../composite/list/CompositeList';
 import { useContextMenuRootContext } from '../../context-menu/root/ContextMenuRootContext';
 import {
@@ -149,16 +149,18 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
   });
 
   function onMenuOpenChange(event: { open: boolean; nodeId: string; parentNodeId: string }) {
-    if (event.open) {
-      if (event.parentNodeId === nodeId()) {
-        setHoverEnabled(false);
+    batch(() => {
+      if (event.open) {
+        if (event.parentNodeId === nodeId()) {
+          setHoverEnabled(false);
+        }
+        if (event.nodeId !== nodeId() && event.parentNodeId === parentNodeId) {
+          setOpen(false, undefined, 'sibling-open');
+        }
+      } else if (event.parentNodeId === nodeId()) {
+        setHoverEnabled(true);
       }
-      if (event.nodeId !== nodeId() && event.parentNodeId === parentNodeId) {
-        setOpen(false, undefined, 'sibling-open');
-      }
-    } else if (event.parentNodeId === nodeId()) {
-      setHoverEnabled(true);
-    }
+    });
   }
 
   onMount(() => {
@@ -169,7 +171,9 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
   });
 
   createEffect(() => {
-    menuEvents.emit('openchange', { open: open(), nodeId: nodeId(), parentNodeId });
+    queueMicrotask(() => {
+      menuEvents.emit('openchange', { open: open(), nodeId: nodeId(), parentNodeId });
+    });
   });
 
   const state = createMemo<MenuPositioner.State>(() => ({

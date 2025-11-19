@@ -1,6 +1,6 @@
 'use client';
 import type { MenuParent } from '@base-ui-components/solid/menu/root/MenuRoot';
-import { createEffect, createMemo, type JSX } from 'solid-js';
+import { batch, createEffect, createMemo, type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { useFloatingTree } from '../../floating-ui-solid';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
@@ -36,6 +36,7 @@ export function MenuSubmenuTrigger(componentProps: MenuSubmenuTrigger.Props) {
     typingRef,
     disabled,
     allowMouseUpTriggerRef,
+    floatingRootContext,
   } = useMenuRootContext();
 
   createEffect(() => {
@@ -62,7 +63,7 @@ export function MenuSubmenuTrigger(componentProps: MenuSubmenuTrigger.Props) {
     typingRef,
     nativeButton,
     itemMetadata: () => ({
-      type: 'submenu-trigger' as const,
+      type: 'submenu-trigger',
       setActive: () => parentMenuContext().setActiveIndex(item.index()),
       allowMouseEnterEnabled: parentMenuContext().allowMouseEnter(),
     }),
@@ -79,14 +80,16 @@ export function MenuSubmenuTrigger(componentProps: MenuSubmenuTrigger.Props) {
       element="div"
       componentProps={componentProps}
       ref={(el) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-        item.setRef(el);
-        setItemRef(el);
-        setTriggerElement(el);
+        batch(() => {
+          if (typeof componentProps.ref === 'function') {
+            componentProps.ref(el);
+          } else {
+            componentProps.ref = el;
+          }
+          item.setRef(el);
+          setItemRef(el);
+          setTriggerElement(el);
+        });
       }}
       params={{
         state: state(),
