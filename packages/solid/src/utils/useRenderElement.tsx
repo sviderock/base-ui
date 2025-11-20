@@ -51,7 +51,7 @@ export function RenderElement<
     }
 
     // TODO: exclude ref from this list
-    const [, rest] = splitProps(mergedParams, ['children', 'class', 'ref']);
+    const [, rest] = splitProps(mergedParams, ['children', 'ref']);
     const mergedProps = mergeProps(styleHooks(), rest, {
       class: resolveClassName(props.componentProps.class, state()),
       ref: props.ref,

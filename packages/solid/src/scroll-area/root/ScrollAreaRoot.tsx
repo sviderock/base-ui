@@ -1,5 +1,5 @@
 'use client';
-import { createSignal, onMount } from 'solid-js';
+import { createSignal, onCleanup, onMount } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { splitComponentProps } from '../../solid-helpers';
 import { STYLE_TAG_ID, styleDisableScrollbar } from '../../utils/styles';
@@ -204,8 +204,14 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
 
   onMount(() => {
     if (!document.head.getElementsByTagName('style').namedItem(STYLE_TAG_ID)) {
-      document.head.appendChild(styleDisableScrollbar.element as Node);
+      document.head.appendChild(styleDisableScrollbar.element);
     }
+
+    onCleanup(() => {
+      if (document.head.getElementsByTagName('style').namedItem(STYLE_TAG_ID)) {
+        document.head.removeChild(styleDisableScrollbar.element);
+      }
+    });
   });
 
   return (

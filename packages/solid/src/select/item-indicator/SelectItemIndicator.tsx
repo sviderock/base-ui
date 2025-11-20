@@ -61,7 +61,6 @@ export function SelectItemIndicator(componentProps: SelectItemIndicator.Props) {
             {
               hidden: !mounted(),
               'aria-hidden': true,
-              children: '✔️',
             },
             elementProps,
           ],

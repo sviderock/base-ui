@@ -132,7 +132,7 @@ export function useSelectRoot<T>(params: useSelectRoot.Parameters<T>): useSelect
 
   const isActive = createSelector(() => store.activeIndex);
   const isSelected = createSelector(
-    () => [store.activeIndex, store.value] as [index: number, value: number],
+    () => [store.selectedIndex, store.value] as [index: number, value: number],
     // `selectedIndex` is only updated after the items mount for the first time,
     // the value check avoids a re-render for the initially selected item.
     (a, b) => a[0] === b[0] && a[1] === b[1],

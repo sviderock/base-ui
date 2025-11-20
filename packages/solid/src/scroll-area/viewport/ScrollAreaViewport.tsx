@@ -1,5 +1,5 @@
 'use client';
-import { batch, createEffect, on, onCleanup, onMount, splitProps } from 'solid-js';
+import { batch, createEffect, on, onCleanup, onMount } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { splitComponentProps } from '../../solid-helpers';

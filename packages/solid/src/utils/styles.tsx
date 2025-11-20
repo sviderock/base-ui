@@ -6,5 +6,5 @@ export const styleDisableScrollbar = {
     <style id={STYLE_TAG_ID}>
       {`.base-ui-disable-scrollbar{scrollbar-width:none}.base-ui-disable-scrollbar::-webkit-scrollbar{display:none}`}
     </style>
-  ),
+  ) as Node,
 };
