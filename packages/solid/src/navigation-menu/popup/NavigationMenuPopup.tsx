@@ -63,24 +63,22 @@ export function NavigationMenuPopup(componentProps: NavigationMenuPopup.Props) {
   });
 
   // Ensure popup size transitions correctly when anchored to `bottom` (side=top) or `right` (side=left).
-  const isOriginSide = createMemo(() => {
-    let side = positioning.side() === 'top';
-    if (direction() === 'rtl') {
-      side = side || positioning.side() === 'inline-end';
-    } else {
-      side = side || positioning.side() === 'inline-start';
-    }
-    return side;
-  });
+  // TODO: this breaks the repositioning due to synchronious change of positioning.side(). Do not use for now.
+  const calculatedStyles = createMemo(() => {
+    const side = positioning.side();
+    const dir = direction();
 
-  const isPhysicalLeft = createMemo(() => {
-    let side = positioning.side() === 'left';
-    if (direction() === 'rtl') {
-      side = side || positioning.side() === 'inline-end';
+    let isOriginSide = side === 'top';
+    let isPhysicalLeft = side === 'left';
+    if (dir === 'rtl') {
+      isOriginSide = isOriginSide || side === 'inline-end';
+      isPhysicalLeft = isPhysicalLeft || side === 'inline-end';
     } else {
-      side = side || positioning.side() === 'inline-start';
+      isOriginSide = isOriginSide || side === 'inline-start';
+      isPhysicalLeft = isPhysicalLeft || side === 'inline-start';
     }
-    return side;
+
+    return { isOriginSide, isPhysicalLeft };
   });
 
   return (
@@ -116,20 +114,7 @@ export function NavigationMenuPopup(componentProps: NavigationMenuPopup.Props) {
         params={{
           state: state(),
           customStyleHookMapping,
-          props: [
-            {
-              id: id(),
-              tabIndex: -1,
-              style: isOriginSide()
-                ? {
-                    position: 'absolute',
-                    [positioning.side() === 'top' ? 'bottom' : 'top']: '0',
-                    [isPhysicalLeft() ? 'right' : 'left']: '0',
-                  }
-                : {},
-            },
-            elementProps,
-          ],
+          props: [{ id: id(), tabIndex: -1 }, elementProps],
         }}
       />
       <FocusGuard

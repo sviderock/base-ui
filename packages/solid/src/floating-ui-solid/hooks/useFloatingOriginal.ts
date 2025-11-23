@@ -3,12 +3,13 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  on,
   onCleanup,
   onMount,
   type Accessor,
   type JSX,
 } from 'solid-js';
-import { createStore } from 'solid-js/store';
+import { createStore, reconcile } from 'solid-js/store';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import type {
   Accessorify,
@@ -109,12 +110,13 @@ export type UsePositionFloatingReturn<RT extends ReferenceType = ReferenceType> 
 export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   options: UseFloatingOptions = {},
 ): UsePositionFloatingReturn<RT> {
-  const placement = () => access(options.placement) ?? 'bottom';
-  const strategy = () => access(options.strategy) ?? 'absolute';
-  const middleware = () => access(options.middleware) ?? [];
+  const open = createMemo(() => access(options.open));
+  const placement = createMemo(() => access(options.placement) ?? 'bottom');
+  const strategy = createMemo(() => access(options.strategy) ?? 'absolute');
+  const middleware = createMemo(() => access(options.middleware) ?? []);
   const referenceProp = createMemo(() => access(options.elements?.reference));
   const floatingProp = createMemo(() => access(options.elements?.floating));
-  const transform = () => access(options.transform) ?? true;
+  const transform = createMemo(() => access(options.transform) ?? true);
   const whileElementsMountedFn = createMemo(() => {
     const whileElementsMounted = access(options.whileElementsMounted);
 
@@ -145,9 +147,12 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   const floatingEl = createMemo(() => floatingProp() ?? floating());
 
   let isMountedRef = false;
+  let isFloatingMountedRef = false;
 
   function update() {
-    if (!referenceEl() || !floatingEl()) {
+    const r = referenceEl();
+    const f = floatingEl();
+    if (!r || !f) {
       return;
     }
 
@@ -162,17 +167,18 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
       config.platform = platform;
     }
 
-    computePosition(referenceEl()!, floatingEl()!, config).then((computedData) => {
-      const fullData = {
-        ...computedData,
-        // The floating element's position may be recomputed while it's closed
-        // but still mounted (such as when transitioning out). To ensure
-        // `isPositioned` will be `false` initially on the next open, avoid
-        // setting it to `true` when `open === false` (must be specified).
-        isPositioned: access(options.open) !== false,
-      };
-      if (isMountedRef && !deepEqual(data, fullData)) {
-        setData(fullData);
+    computePosition(r, f, config).then((computedData) => {
+      if (isMountedRef) {
+        setData(
+          reconcile({
+            ...computedData,
+            // The floating element's position may be recomputed while it's closed
+            // but still mounted (such as when transitioning out). To ensure
+            // `isPositioned` will be `false` initially on the next open, avoid
+            // setting it to `true` when `open === false` (must be specified).
+            isPositioned: access(options.open) !== false,
+          }),
+        );
       }
     });
   }
@@ -185,23 +191,28 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
 
   onMount(() => {
     isMountedRef = true;
-    update();
-  });
-  onCleanup(() => {
-    isMountedRef = false;
+
+    onCleanup(() => {
+      isMountedRef = false;
+    });
   });
 
-  createEffect(() => {
-    if (referenceEl() && floatingEl()) {
-      const whileElementsMounted = whileElementsMountedFn();
-      if (whileElementsMounted) {
-        whileElementsMounted(referenceEl()!, floatingEl()!, update)();
-        return;
+  createEffect(
+    on([referenceEl, floatingEl, whileElementsMountedFn, open], () => {
+      const r = referenceEl();
+      const f = floatingEl();
+      if (r && f) {
+        const whileElementsMounted = whileElementsMountedFn();
+        if (whileElementsMounted) {
+          const cleanup = whileElementsMounted(r, f, update);
+          onCleanup(cleanup);
+          return;
+        }
+
+        update();
       }
-
-      update();
-    }
-  });
+    }),
+  );
 
   const refs = {
     reference,
@@ -270,73 +281,4 @@ function getDPR(element: Element): number {
   }
   const win = element.ownerDocument.defaultView || window;
   return win.devicePixelRatio || 1;
-}
-
-/**
- * This is a Solid port of the React deepEqual function
- * https://github.com/floating-ui/floating-ui/blob/3286d01bc1425150ad5aaa22aee062fe70fa8f5c/packages/react-dom/src/utils/deepEqual.ts
- */
-function deepEqual(a: any, b: any) {
-  if (a === b) {
-    return true;
-  }
-
-  if (typeof a !== typeof b) {
-    return false;
-  }
-
-  if (typeof a === 'function' && a.toString() === b.toString()) {
-    return true;
-  }
-
-  let length: number;
-  let i: number;
-  let keys: Array<string>;
-
-  if (a && b && typeof a === 'object') {
-    if (Array.isArray(a)) {
-      length = a.length;
-      if (length !== b.length) {
-        return false;
-      }
-      // eslint-disable-next-line no-plusplus
-      for (i = length; i-- !== 0; ) {
-        if (!deepEqual(a[i], b[i])) {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    keys = Object.keys(a);
-    length = keys.length;
-    if (length !== Object.keys(b).length) {
-      return false;
-    }
-
-    // eslint-disable-next-line no-plusplus
-    for (i = length; i-- !== 0; ) {
-      if (!{}.hasOwnProperty.call(b, keys[i])) {
-        return false;
-      }
-    }
-
-    // eslint-disable-next-line no-plusplus
-    for (i = length; i-- !== 0; ) {
-      const key = keys[i];
-      if (key === '_owner' && a.$$typeof) {
-        continue;
-      }
-
-      if (!deepEqual(a[key], b[key])) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  // eslint-disable-next-line no-self-compare
-  return a !== a && b !== b;
 }
