@@ -12,7 +12,7 @@ export function useOpenChangeComplete<T extends HTMLElement>(
 ) {
   const open = () => access(parameters.open);
   const enabled = () => access(parameters.enabled) ?? true;
-  const runOnceAnimationsFinish = useAnimationsFinished(parameters.ref, parameters.open);
+  const runOnceAnimationsFinish = useAnimationsFinished(() => access(parameters.ref), open);
 
   createEffect(
     on([open, enabled], () => {

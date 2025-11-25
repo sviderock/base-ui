@@ -1,6 +1,5 @@
 'use client';
 import {
-  batch,
   createEffect,
   createMemo,
   createSignal,
@@ -163,30 +162,27 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
     },
   });
 
-  createEffect(() => {
-    if (!refs.rootRef) {
-      return;
-    }
-
-    function setHeights() {
-      const height = refs.rootRef?.offsetHeight;
-      setToasts('list', (item) => item.id === toast().id, {
-        ref: refs.rootRef,
-        height,
-        transitionStatus: undefined,
-      });
-    }
-
-    setHeights();
-
-    if (typeof ResizeObserver === 'function') {
+  onMount(() => {
+    if (typeof ResizeObserver === 'function' && refs.rootRef) {
       const resizeObserver = new ResizeObserver(setHeights);
       resizeObserver.observe(refs.rootRef);
       onCleanup(() => {
         resizeObserver.disconnect();
       });
+      return;
     }
+
+    setHeights();
   });
+
+  function setHeights() {
+    const height = refs.rootRef?.offsetHeight;
+    setToasts('list', (item) => item.id === toast().id, {
+      ref: refs.rootRef,
+      height,
+      transitionStatus: undefined,
+    });
+  }
 
   function applyDirectionalDamping(deltaX: number, deltaY: number) {
     let newDeltaX = deltaX;
@@ -267,7 +263,7 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
   }
 
   function handlePointerMove(event: PointerEvent) {
-    if (!isSwiping) {
+    if (!isSwiping()) {
       return;
     }
 
@@ -382,75 +378,73 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
   }
 
   function handlePointerUp(event: PointerEvent) {
-    batch(() => {
-      if (!isSwiping()) {
-        return;
-      }
+    if (!isSwiping()) {
+      return;
+    }
 
-      if (event.pointerType === 'touch' && !focused()) {
-        resumeTimers();
-      }
+    if (event.pointerType === 'touch' && !focused()) {
+      resumeTimers();
+    }
 
-      setIsSwiping(false);
-      setIsRealSwipe(false);
-      setLockedDirection(null);
+    setIsSwiping(false);
+    setIsRealSwipe(false);
+    setLockedDirection(null);
 
-      refs.rootRef?.releasePointerCapture(event.pointerId);
+    refs.rootRef?.releasePointerCapture(event.pointerId);
 
-      if (cancelledSwipeRef) {
-        setDragOffset({ x: initialTransform().x, y: initialTransform().y });
-        setCurrentSwipeDirection(undefined);
-        return;
-      }
+    if (cancelledSwipeRef) {
+      setDragOffset({ x: initialTransform().x, y: initialTransform().y });
+      setCurrentSwipeDirection(undefined);
+      return;
+    }
 
-      let shouldClose = false;
-      const deltaX = dragOffset().x - initialTransform().x;
-      const deltaY = dragOffset().y - initialTransform().y;
-      let dismissDirection: 'up' | 'down' | 'left' | 'right' | undefined;
+    let shouldClose = false;
+    const deltaX = dragOffset().x - initialTransform().x;
+    const deltaY = dragOffset().y - initialTransform().y;
+    let dismissDirection: 'up' | 'down' | 'left' | 'right' | undefined;
 
-      for (const direction of swipeDirections()) {
-        switch (direction) {
-          case 'right':
-            if (deltaX > SWIPE_THRESHOLD) {
-              shouldClose = true;
-              dismissDirection = 'right';
-            }
-            break;
-          case 'left':
-            if (deltaX < -SWIPE_THRESHOLD) {
-              shouldClose = true;
-              dismissDirection = 'left';
-            }
-            break;
-          case 'down':
-            if (deltaY > SWIPE_THRESHOLD) {
-              shouldClose = true;
-              dismissDirection = 'down';
-            }
-            break;
-          case 'up':
-            if (deltaY < -SWIPE_THRESHOLD) {
-              shouldClose = true;
-              dismissDirection = 'up';
-            }
-            break;
-          default:
-            break;
-        }
-        if (shouldClose) {
+    for (const direction of swipeDirections()) {
+      switch (direction) {
+        case 'right':
+          if (deltaX > SWIPE_THRESHOLD) {
+            shouldClose = true;
+            dismissDirection = 'right';
+          }
           break;
-        }
+        case 'left':
+          if (deltaX < -SWIPE_THRESHOLD) {
+            shouldClose = true;
+            dismissDirection = 'left';
+          }
+          break;
+        case 'down':
+          if (deltaY > SWIPE_THRESHOLD) {
+            shouldClose = true;
+            dismissDirection = 'down';
+          }
+          break;
+        case 'up':
+          if (deltaY < -SWIPE_THRESHOLD) {
+            shouldClose = true;
+            dismissDirection = 'up';
+          }
+          break;
+        default:
+          break;
       }
-
       if (shouldClose) {
-        setCurrentSwipeDirection(dismissDirection);
-        setDragDismissed(true);
-        close(toast().id);
-      } else {
-        setDragOffset({ x: initialTransform().x, y: initialTransform().y });
-        setCurrentSwipeDirection(undefined);
+        break;
       }
-    });
+    }
+
+    if (shouldClose) {
+      setCurrentSwipeDirection(dismissDirection);
+      setDragDismissed(true);
+      close(toast().id);
+    } else {
+      setDragOffset({ x: initialTransform().x, y: initialTransform().y });
+      setCurrentSwipeDirection(undefined);
+    }
   }
 
   function handleKeyDown(event: KeyboardEvent) {

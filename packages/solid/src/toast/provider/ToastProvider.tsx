@@ -1,6 +1,6 @@
 'use client';
 import { batch, createEffect, createMemo, createSignal, onCleanup, type JSX } from 'solid-js';
-import { createStore } from 'solid-js/store';
+import { createStore, produce } from 'solid-js/store';
 import { activeElement, contains } from '../../floating-ui-solid/utils';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import { generateId } from '../../utils/generateId';
@@ -38,13 +38,15 @@ export function ToastProvider(props: ToastProvider.Props) {
 
   createEffect(() => {
     if (toasts.list.length === 0) {
-      if (hovering()) {
-        setHovering(false);
-      }
+      batch(() => {
+        if (hovering()) {
+          setHovering(false);
+        }
 
-      if (focused()) {
-        setFocused(false);
-      }
+        if (focused()) {
+          setFocused(false);
+        }
+      });
     }
   });
 
@@ -135,23 +137,27 @@ export function ToastProvider(props: ToastProvider.Props) {
 
   const close = (toastId: string) => {
     batch(() => {
-      setToasts('list', (prevToasts) => {
-        const toastsWithEnding = prevToasts.map((toast) =>
-          toast.id === toastId
-            ? { ...toast, transitionStatus: 'ending' as const, height: 0 }
-            : toast,
-        );
-
-        const activeToasts = toastsWithEnding.filter((t) => t.transitionStatus !== 'ending');
-
-        return toastsWithEnding.map((toast) => {
-          if (toast.transitionStatus === 'ending') {
-            return toast;
+      setToasts(
+        'list',
+        produce((prevToasts) => {
+          for (const toast of prevToasts) {
+            if (toast.id === toastId) {
+              toast.transitionStatus = 'ending';
+              toast.height = 0;
+            }
           }
-          const isActiveToastLimited = activeToasts.indexOf(toast) >= limit();
-          return { ...toast, limited: isActiveToastLimited };
-        });
-      });
+
+          const activeToasts = prevToasts.filter((t) => t.transitionStatus !== 'ending');
+
+          for (const toast of prevToasts) {
+            if (toast.transitionStatus === 'ending') {
+              continue;
+            }
+            const isActiveToastLimited = activeToasts.indexOf(toast) >= limit();
+            toast.limited = isActiveToastLimited;
+          }
+        }),
+      );
 
       const timer = timersRef.get(toastId);
       if (timer && timer.timeout) {
@@ -165,10 +171,8 @@ export function ToastProvider(props: ToastProvider.Props) {
       handleFocusManagement(toastId);
 
       if (toasts.list.length === 1) {
-        batch(() => {
-          setHovering(false);
-          setFocused(false);
-        });
+        setHovering(false);
+        setFocused(false);
       }
     });
   };
@@ -214,45 +218,57 @@ export function ToastProvider(props: ToastProvider.Props) {
       id,
       transitionStatus: 'starting',
     };
-    batch(() => {
-      setToasts('list', (prev) => {
-        const updatedToasts = [toastToAdd, ...prev];
-        const activeToasts = updatedToasts.filter((t) => t.transitionStatus !== 'ending');
+    setToasts(
+      'list',
+      produce((prev) => {
+        prev.unshift(toastToAdd);
+        const activeToasts = prev.filter((t) => t.transitionStatus !== 'ending');
 
         // Mark oldest toasts for removal when over limit
         if (activeToasts.length > limit()) {
           const excessCount = activeToasts.length - limit();
           const oldestActiveToasts = activeToasts.slice(-excessCount);
 
-          const res = updatedToasts.map((t) =>
-            oldestActiveToasts.some((old) => old.id === t.id)
-              ? { ...t, limited: true }
-              : { ...t, limited: false },
-          );
+          for (const t of prev) {
+            t.limited = oldestActiveToasts.some((old) => old.id === t.id);
+          }
 
-          return res;
+          return;
         }
 
-        return updatedToasts.map((t) => ({ ...t, limited: false }));
+        for (const t of prev) {
+          t.limited = false;
+        }
+      }),
+    );
+
+    const duration = toastToAdd.timeout ?? timeout();
+    if (toastToAdd.type !== 'loading' && duration > 0) {
+      scheduleTimer(id, duration, () => {
+        close(id);
       });
+    }
 
-      const duration = toastToAdd.timeout ?? timeout();
-      if (toastToAdd.type !== 'loading' && duration > 0) {
-        scheduleTimer(id, duration, () => close(id));
-      }
-
-      if (hovering() || focused() || !refs.windowFocusedRef) {
-        pauseTimers();
-      }
-    });
+    if (hovering() || focused() || !refs.windowFocusedRef) {
+      pauseTimers();
+    }
     return id;
   };
 
-  const update = <Data extends object>(
+  const update = <Data extends object, K extends keyof ToastObject<Data>>(
     id: string,
     updates: useToastManager.UpdateOptions<Data>,
   ) => {
-    setToasts('list', (item) => item.id === id, updates);
+    setToasts(
+      'list',
+      (item) => item.id === id,
+      produce((toast) => {
+        // eslint-disable-next-line guard-for-in
+        for (const key in updates) {
+          toast[key as K] = (updates as any)[key];
+        }
+      }),
+    );
   };
 
   const promise = <Value, Data extends object>(

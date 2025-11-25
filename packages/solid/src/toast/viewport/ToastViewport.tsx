@@ -1,6 +1,5 @@
 'use client';
 import { createEffect, createMemo, onCleanup, type ComponentProps } from 'solid-js';
-import { DelegatedEvents } from 'solid-js/web';
 import { activeElement, contains, getTarget } from '../../floating-ui-solid/utils';
 import { splitComponentProps } from '../../solid-helpers';
 import { FocusGuard } from '../../utils/FocusGuard';

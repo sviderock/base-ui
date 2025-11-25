@@ -10,6 +10,7 @@ import { useTimeout } from './useTimeout';
  */
 export function useAnimationsFinished<T extends HTMLElement>(
   ref: MaybeAccessor<T | null | undefined>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   waitForNextTick?: MaybeAccessor<boolean | undefined>,
 ) {
   const frame = useAnimationFrame();
@@ -54,12 +55,8 @@ export function useAnimationsFinished<T extends HTMLElement>(
           });
         }
 
-        // `open: true` animations need to wait for the next tick to be detected
-        if (access(waitForNextTick)) {
-          timeout.start(0, exec);
-        } else {
-          exec();
-        }
+        // Wait for the next tick to ensure the DOM has been painted and animations have started
+        timeout.start(0, exec);
       });
     }
   };
