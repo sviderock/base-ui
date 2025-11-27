@@ -1,5 +1,5 @@
 /* eslint-disable solid/reactivity, id-denylist */
-import type { Component, ComponentProps, JSX, ValidComponent } from 'solid-js';
+import type { Accessor, Component, ComponentProps, JSX, ValidComponent } from 'solid-js';
 import { mergeObjects } from '../utils/mergeObjects';
 import type { BaseUIEvent, WithBaseUIEvent } from '../utils/types';
 
@@ -105,7 +105,7 @@ export function mergePropsN<T extends ElementType>(props: InputProps<T>[]): Prop
 
 function mergeOne<T extends ElementType>(merged: Record<string, any>, inputProps: InputProps<T>) {
   if (isPropsGetter(inputProps)) {
-    return inputProps(merged);
+    return isAccessor(inputProps) ? mutablyMergeInto(merged, inputProps()) : inputProps(merged);
   }
   return mutablyMergeInto(merged, inputProps);
 }
@@ -174,6 +174,22 @@ function isPropsGetter<T extends Component>(
   inputProps: InputProps<T>,
 ): inputProps is (props: PropsOf<T>) => PropsOf<T> {
   return typeof inputProps === 'function';
+}
+
+/**
+ * TODO: this is a temporary solution to check if a function is an accessor.
+ * `func.length` check provides no precision if the function has default arguments.
+ */
+function isAccessor<T>(func: Function): func is Accessor<T> {
+  const funcStr = func.toString();
+  const openParenIndex = funcStr.indexOf('(');
+  const closeParenIndex = funcStr.indexOf(')');
+
+  if (openParenIndex === -1 || closeParenIndex === -1) {
+    return false;
+  }
+
+  return closeParenIndex === openParenIndex + 1;
 }
 
 function resolvePropsGetter<T extends ElementType>(
