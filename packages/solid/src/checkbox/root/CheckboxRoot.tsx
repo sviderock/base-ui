@@ -12,7 +12,7 @@ import { useButton } from '../../use-button/useButton';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import { useCustomStyleHookMapping } from '../utils/useCustomStyleHookMapping';
 import { CheckboxRootContext } from './CheckboxRootContext';
@@ -293,43 +293,38 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
 
   const customStyleHookMapping = useCustomStyleHookMapping(() => state());
 
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: (el) => {
+      buttonRef(el);
+      controlRef = el;
+      groupContext?.registerControlRef(el);
+    },
+    customStyleHookMapping,
+    props: [
+      () => ({
+        id: id(),
+        role: 'checkbox',
+        disabled: disabled(),
+        'aria-checked': localGroupProps().indeterminate() ? 'mixed' : checked(),
+        'aria-readonly': readOnly() || undefined,
+        'aria-required': required() || undefined,
+        'aria-labelledby': labelId(),
+        [PARENT_CHECKBOX as string]: parent() ? '' : undefined,
+        onFocus,
+        onBlur,
+        onClick,
+      }),
+      (props) => fieldControlValidation().getValidationProps(props),
+      elementProps,
+      otherGroupProps,
+      getButtonProps,
+    ],
+  });
+
   return (
     <CheckboxRootContext.Provider value={state}>
-      <RenderElement
-        element="button"
-        componentProps={componentProps}
-        ref={(el) => {
-          typeof componentProps.ref === 'function'
-            ? componentProps.ref(el)
-            : (componentProps.ref = el);
-          buttonRef(el);
-          controlRef = el;
-          groupContext?.registerControlRef(el);
-        }}
-        params={{
-          state: state(),
-          customStyleHookMapping: customStyleHookMapping(),
-          props: [
-            {
-              id: id(),
-              role: 'checkbox',
-              disabled: disabled(),
-              'aria-checked': localGroupProps().indeterminate() ? 'mixed' : checked(),
-              'aria-readonly': readOnly() || undefined,
-              'aria-required': required() || undefined,
-              'aria-labelledby': labelId(),
-              [PARENT_CHECKBOX as string]: parent() ? '' : undefined,
-              onFocus,
-              onBlur,
-              onClick,
-            },
-            fieldControlValidation().getValidationProps,
-            elementProps,
-            otherGroupProps(),
-            getButtonProps,
-          ],
-        }}
-      />
+      {element()}
       {!checked() && !groupContext && nameProp() && !parent() && (
         <input type="hidden" name={nameProp()} value="off" />
       )}

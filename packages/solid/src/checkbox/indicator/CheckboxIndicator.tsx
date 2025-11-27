@@ -6,7 +6,7 @@ import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { type TransitionStatus, useTransitionStatus } from '../../utils/useTransitionStatus';
 import type { CheckboxRoot } from '../root/CheckboxRoot';
 import { useCheckboxRootContext } from '../root/CheckboxRootContext';
@@ -52,29 +52,22 @@ export function CheckboxIndicator(componentProps: CheckboxIndicator.Props) {
 
   const shouldRender = () => keepMounted() || rendered();
 
+  const indicatorState = createMemo<CheckboxIndicator.State>(() => ({
+    ...rootState(),
+    transitionStatus: transitionStatus(),
+  }));
+
+  const element = useRenderElement('span', componentProps, {
+    state: indicatorState,
+    ref: indicatorRef,
+    customStyleHookMapping,
+    props: elementProps,
+    enabled: shouldRender,
+  });
+
   return (
     <Show when={shouldRender()} fallback={null}>
-      <RenderElement
-        element="span"
-        componentProps={componentProps}
-        ref={(el) => {
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-          indicatorRef = el;
-        }}
-        params={{
-          enabled: shouldRender(),
-          state: {
-            ...rootState(),
-            transitionStatus: transitionStatus(),
-          },
-          customStyleHookMapping: customStyleHookMapping(),
-          props: elementProps,
-        }}
-      />
+      {element()}
     </Show>
   );
 }

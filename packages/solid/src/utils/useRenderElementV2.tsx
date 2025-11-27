@@ -30,7 +30,9 @@ export function useRenderElement<
 
   const styleHooks = createMemo<Record<string, string> | undefined>(() => {
     if (params.disableStyleHooks !== true) {
-      return enabled() ? getStyleHookProps(state(), params.customStyleHookMapping) : EMPTY_OBJECT;
+      return enabled()
+        ? getStyleHookProps(state(), access(params.customStyleHookMapping))
+        : EMPTY_OBJECT;
     }
     return undefined;
   });
@@ -150,7 +152,7 @@ export namespace RenderElement {
     /**
      * A mapping of state to style hooks.
      */
-    customStyleHookMapping?: CustomStyleHookMapping<State>;
+    customStyleHookMapping?: MaybeAccessor<CustomStyleHookMapping<State>>;
   } /* This typing ensures `disableStyleHookMapping` is constantly defined or undefined */ & (
     | {
         /**
