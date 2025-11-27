@@ -2,7 +2,7 @@
 import { createMemo, createSignal } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { AvatarRootContext } from './AvatarRootContext';
 import { avatarStyleHookMapping } from './styleHooks';
 
@@ -26,18 +26,15 @@ export function AvatarRoot(componentProps: AvatarRoot.Props) {
     setImageLoadingStatus,
   };
 
+  const element = useRenderElement('span', componentProps, {
+    state,
+    props: elementProps,
+    customStyleHookMapping: avatarStyleHookMapping,
+  });
+
   return (
     <AvatarRootContext.Provider value={contextValue}>
-      <RenderElement
-        element="span"
-        componentProps={componentProps}
-        ref={componentProps.ref}
-        params={{
-          state: state(),
-          props: elementProps,
-          customStyleHookMapping: avatarStyleHookMapping,
-        }}
-      />
+      {element()}
     </AvatarRootContext.Provider>
   );
 }

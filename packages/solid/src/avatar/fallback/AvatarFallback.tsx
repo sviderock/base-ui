@@ -2,7 +2,7 @@
 import { createEffect, createMemo, createSignal, onCleanup } from 'solid-js';
 import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import type { AvatarRoot } from '../root/AvatarRoot';
 import { useAvatarRootContext } from '../root/AvatarRootContext';
@@ -35,19 +35,14 @@ export function AvatarFallback(componentProps: AvatarFallback.Props) {
     imageLoadingStatus: imageLoadingStatus(),
   }));
 
-  return (
-    <RenderElement
-      element="span"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        state: state(),
-        props: elementProps,
-        customStyleHookMapping: avatarStyleHookMapping,
-        enabled: imageLoadingStatus() !== 'loaded' && delayPassed(),
-      }}
-    />
-  );
+  const element = useRenderElement('span', componentProps, {
+    state,
+    props: elementProps,
+    customStyleHookMapping: avatarStyleHookMapping,
+    enabled: () => imageLoadingStatus() !== 'loaded' && delayPassed(),
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace AvatarFallback {

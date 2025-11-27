@@ -2,7 +2,7 @@
 import { batch, createEffect, createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { AvatarRoot } from '../root/AvatarRoot';
 import { useAvatarRootContext } from '../root/AvatarRootContext';
 import { avatarStyleHookMapping } from '../root/styleHooks';
@@ -45,19 +45,14 @@ export function AvatarImage(componentProps: AvatarImage.Props) {
     imageLoadingStatus: imageLoadingStatus(),
   }));
 
-  return (
-    <RenderElement
-      element="img"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        state: state(),
-        props: elementProps,
-        customStyleHookMapping: avatarStyleHookMapping,
-        enabled: imageLoadingStatus() === 'loaded',
-      }}
-    />
-  );
+  const element = useRenderElement('img', componentProps, {
+    state,
+    props: elementProps,
+    customStyleHookMapping: avatarStyleHookMapping,
+    enabled: () => imageLoadingStatus() === 'loaded',
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace AvatarImage {
