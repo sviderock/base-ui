@@ -29,6 +29,7 @@ describe('<AlertDialog.Close />', () => {
 
   describe('prop: disabled', () => {
     it('disables the button', async () => {
+      console.log('––– 1 –––');
       const handleOpenChange = spy();
 
       const { user } = render(() => (
@@ -59,6 +60,7 @@ describe('<AlertDialog.Close />', () => {
     });
 
     it('custom element', async () => {
+      console.log('––– 2 –––');
       const handleOpenChange = spy();
 
       const { user } = render(() => (

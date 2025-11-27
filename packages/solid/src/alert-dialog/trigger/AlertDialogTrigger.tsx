@@ -4,7 +4,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../../solid-hel
 import { useButton } from '../../use-button/useButton';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
 
 /**
@@ -30,26 +30,17 @@ export function AlertDialogTrigger(componentProps: AlertDialogTrigger.Props) {
     native,
   });
 
-  return (
-    <RenderElement
-      element="button"
-      componentProps={componentProps}
-      ref={(el) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-        buttonRef(el);
-        setTriggerElement(el);
-      }}
-      params={{
-        state: state(),
-        props: [triggerProps(), elementProps, getButtonProps],
-        customStyleHookMapping: triggerOpenStateMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: (el) => {
+      buttonRef(el);
+      setTriggerElement(el);
+    },
+    props: [() => triggerProps(), elementProps, getButtonProps],
+    customStyleHookMapping: triggerOpenStateMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace AlertDialogTrigger {

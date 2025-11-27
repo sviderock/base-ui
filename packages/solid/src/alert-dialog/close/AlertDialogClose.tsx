@@ -3,7 +3,7 @@ import { createMemo } from 'solid-js';
 import { useDialogClose } from '../../dialog/close/useDialogClose';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
 
 /**
@@ -25,26 +25,17 @@ export function AlertDialogClose(componentProps: AlertDialogClose.Props) {
     nativeButton,
   });
 
-  const state = createMemo<AlertDialogClose.State>(() => ({ disabled: disabled() }));
+  const state = createMemo<AlertDialogClose.State>(() => ({
+    disabled: disabled(),
+  }));
 
-  return (
-    <RenderElement
-      element="button"
-      componentProps={componentProps}
-      ref={(el) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-        dialogCloseRef(el);
-      }}
-      params={{
-        state: state(),
-        props: [elementProps, getRootProps],
-      }}
-    />
-  );
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: dialogCloseRef,
+    props: [elementProps, getRootProps],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace AlertDialogClose {

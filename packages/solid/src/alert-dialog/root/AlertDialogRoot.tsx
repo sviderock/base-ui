@@ -23,7 +23,7 @@ export function AlertDialogRoot(props: AlertDialogRoot.Props) {
     defaultOpen,
     // eslint-disable-next-line solid/reactivity
     onOpenChange: props.onOpenChange,
-    actionsRef: actionsRef(),
+    actionsRef,
     // eslint-disable-next-line solid/reactivity
     onOpenChangeComplete: props.onOpenChangeComplete,
     modal: true,
