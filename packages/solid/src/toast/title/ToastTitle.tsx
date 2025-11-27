@@ -19,12 +19,12 @@ export function ToastTitle(componentProps: ToastTitle.Props) {
 
   const id = useId(() => local.id);
 
-  const { setTitleIdAccessor } = useToastRootContext();
+  const { setTitleId } = useToastRootContext();
 
   onMount(() => {
-    setTitleIdAccessor(id);
+    setTitleId(id);
     onCleanup(() => {
-      setTitleIdAccessor(() => undefined);
+      setTitleId(() => undefined);
     });
   });
 

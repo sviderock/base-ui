@@ -19,9 +19,9 @@ export function DialogTitle(componentProps: DialogTitle.Props) {
   const id = useBaseUiId(() => local.id);
 
   createEffect(() => {
-    setTitleElementId(id());
+    setTitleElementId(id);
     onCleanup(() => {
-      setTitleElementId(undefined);
+      setTitleElementId(() => undefined);
     });
   });
 

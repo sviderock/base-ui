@@ -7,10 +7,14 @@ import {
   onMount,
   type ComponentProps,
 } from 'solid-js';
-import { createStore } from 'solid-js/store';
 import type { Accessorify } from '../../floating-ui-solid';
 import { activeElement, contains, getTarget } from '../../floating-ui-solid/utils';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import {
+  access,
+  createAccessors,
+  splitComponentProps,
+  type MaybeAccessor,
+} from '../../solid-helpers';
 import { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { inertValue } from '../../utils/inertValue';
 import { ownerDocument } from '../../utils/owner';
@@ -120,12 +124,11 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
   const [dragDismissed, setDragDismissed] = createSignal(false);
   const [dragOffset, setDragOffset] = createSignal({ x: 0, y: 0 });
   const [initialTransform, setInitialTransform] = createSignal({ x: 0, y: 0, scale: 1 });
-  const initialTitleId = () => undefined;
-  const initialDescriptionId = () => undefined;
-  const [accessors, setAccessors] = createStore({
-    titleId: initialTitleId,
-    descriptionId: initialDescriptionId,
-  });
+  const { titleId, descriptionId, setTitleId, setDescriptionId } = createAccessors([
+    'titleId',
+    'descriptionId',
+  ]);
+
   const [lockedDirection, setLockedDirection] = createSignal<'horizontal' | 'vertical' | null>(
     null,
   );
@@ -509,8 +512,8 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
       role: toast().priority === 'high' ? 'alertdialog' : 'dialog',
       tabIndex: 0,
       'aria-modal': false,
-      'aria-labelledby': accessors.titleId(),
-      'aria-describedby': accessors.descriptionId(),
+      'aria-labelledby': titleId(),
+      'aria-describedby': descriptionId(),
       onPointerDown: handlePointerDown,
       onPointerMove: handlePointerMove,
       onPointerUp: handlePointerUp,
@@ -535,11 +538,10 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
     refs,
     renderScreenReaderContent,
     toast,
-    titleId: () => accessors.titleId(),
-    setTitleIdAccessor: (newTitleIdAccessor) => setAccessors('titleId', () => newTitleIdAccessor),
-    descriptionId: () => accessors.descriptionId(),
-    setDescriptionIdAccessor: (newDescriptionAccessor) =>
-      setAccessors('descriptionId', () => newDescriptionAccessor),
+    titleId,
+    setTitleId,
+    descriptionId,
+    setDescriptionId,
     swiping: isSwiping,
     swipeDirection: currentSwipeDirection,
   };

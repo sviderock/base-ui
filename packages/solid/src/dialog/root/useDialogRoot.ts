@@ -17,7 +17,7 @@ import {
   type OpenChangeReason as FloatingUIOpenChangeReason,
 } from '../../floating-ui-solid';
 import { getTarget } from '../../floating-ui-solid/utils';
-import { access, type MaybeAccessor } from '../../solid-helpers';
+import { access, createAccessors, type MaybeAccessor } from '../../solid-helpers';
 import {
   translateOpenChangeReason,
   type BaseOpenChangeReason,
@@ -52,8 +52,8 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
     internalBackdropRef: null,
   };
 
-  const [titleElementId, setTitleElementId] = createSignal<string>();
-  const [descriptionElementId, setDescriptionElementId] = createSignal<string>();
+  const { titleElementId, descriptionElementId, setTitleElementId, setDescriptionElementId } =
+    createAccessors(['titleElementId', 'descriptionElementId']);
   const [triggerElement, setTriggerElement] = createSignal<Element | null>(null);
   const [popupElement, setPopupElement] = createSignal<HTMLElement | null>(null);
 
@@ -301,11 +301,11 @@ export namespace useDialogRoot {
     /**
      * Callback to set the id of the description element associated with the dialog.
      */
-    setDescriptionElementId: (elementId: string | undefined) => void;
+    setDescriptionElementId: (newAccessor: Accessor<string | undefined>) => void;
     /**
      * Callback to set the id of the title element.
      */
-    setTitleElementId: (elementId: string | undefined) => void;
+    setTitleElementId: (newAccessor: Accessor<string | undefined>) => void;
     /**
      * The id of the title element associated with the dialog.
      */

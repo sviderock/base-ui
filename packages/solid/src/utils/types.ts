@@ -43,13 +43,13 @@ export type ComponentRenderFn<Props, State> = (
 export type BaseUIComponentProps<
   ElementType extends keyof JSX.IntrinsicElements,
   State,
-  RenderFunctionProps = ComponentProps<ElementType>,
-> = WithBaseUIEvent<RenderFunctionProps> & {
+  RenderFunctionProps = HTMLProps,
+> = WithBaseUIEvent<ComponentProps<ElementType>> & {
   /**
    * CSS class applied to the element, or a function that
    * returns a class based on the component’s state.
    */
-  class?: string | ((state: State) => string);
+  class?: string | ((state: Accessor<State>) => string);
   /**
    * Allows you to replace the component’s HTML element
    * with a different tag, or compose it with another component.

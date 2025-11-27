@@ -20,12 +20,12 @@ export function ToastDescription(componentProps: ToastDescription.Props) {
 
   const id = useId(() => local.id);
 
-  const { setDescriptionIdAccessor } = useToastRootContext();
+  const { setDescriptionId } = useToastRootContext();
 
   onMount(() => {
-    setDescriptionIdAccessor(id);
+    setDescriptionId(id);
     onCleanup(() => {
-      setDescriptionIdAccessor(() => undefined);
+      setDescriptionId(() => undefined);
     });
   });
 

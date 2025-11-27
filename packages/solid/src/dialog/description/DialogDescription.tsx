@@ -19,9 +19,9 @@ export function DialogDescription(componentProps: DialogDescription.Props) {
   const id = useBaseUiId(() => local.id);
 
   createEffect(() => {
-    setDescriptionElementId(id());
+    setDescriptionElementId(id);
     onCleanup(() => {
-      setDescriptionElementId(undefined);
+      setDescriptionElementId(() => undefined);
     });
   });
 

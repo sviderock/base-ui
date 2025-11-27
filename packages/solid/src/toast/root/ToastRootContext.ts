@@ -7,9 +7,9 @@ export interface ToastRootContext {
     rootRef: HTMLElement | null | undefined;
   };
   titleId: Accessor<string | undefined>;
-  setTitleIdAccessor: (newTitleIdAccessor: Accessor<string | undefined>) => void;
+  setTitleId: (newAccessor: Accessor<string | undefined>) => void;
   descriptionId: Accessor<string | undefined>;
-  setDescriptionIdAccessor: (newDescriptionAccessor: Accessor<string | undefined>) => void;
+  setDescriptionId: (newAccessor: Accessor<string | undefined>) => void;
   swipeDirection: Accessor<'up' | 'down' | 'left' | 'right' | undefined>;
   renderScreenReaderContent: Accessor<boolean>;
   swiping: Accessor<boolean>;
