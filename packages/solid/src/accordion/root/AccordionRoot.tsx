@@ -15,7 +15,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../../solid-hel
 import { isElementDisabled } from '../../utils/isElementDisabled';
 import { BaseUIComponentProps, Orientation } from '../../utils/types';
 import { useControlled } from '../../utils/useControlled';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { warn } from '../../utils/warn';
 import { AccordionRootContext } from './AccordionRootContext';
 
@@ -139,101 +139,96 @@ export function AccordionRoot(componentProps: AccordionRoot.Props) {
     value,
   };
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: [
+      () => ({
+        dir: direction(),
+        role: 'region',
+        onKeyDown(event) {
+          if (!SUPPORTED_KEYS.has(event.key)) {
+            return;
+          }
+
+          stopEvent(event);
+
+          const triggers = getActiveTriggers(accordionItemElements);
+
+          const numOfEnabledTriggers = triggers.length;
+          const lastIndex = numOfEnabledTriggers - 1;
+
+          let nextIndex = -1;
+
+          const thisIndex = triggers.indexOf(event.target as HTMLButtonElement);
+
+          function toNext() {
+            if (loop()) {
+              nextIndex = thisIndex + 1 > lastIndex ? 0 : thisIndex + 1;
+            } else {
+              nextIndex = Math.min(thisIndex + 1, lastIndex);
+            }
+          }
+
+          function toPrev() {
+            if (loop()) {
+              nextIndex = thisIndex === 0 ? lastIndex : thisIndex - 1;
+            } else {
+              nextIndex = thisIndex - 1;
+            }
+          }
+
+          switch (event.key) {
+            case ARROW_DOWN:
+              if (!isHorizontal()) {
+                toNext();
+              }
+              break;
+            case ARROW_UP:
+              if (!isHorizontal()) {
+                toPrev();
+              }
+              break;
+            case ARROW_RIGHT:
+              if (isHorizontal()) {
+                if (isRtl()) {
+                  toPrev();
+                } else {
+                  toNext();
+                }
+              }
+              break;
+            case ARROW_LEFT:
+              if (isHorizontal()) {
+                if (isRtl()) {
+                  toNext();
+                } else {
+                  toPrev();
+                }
+              }
+              break;
+            case 'Home':
+              nextIndex = 0;
+              break;
+            case 'End':
+              nextIndex = lastIndex;
+              break;
+            default:
+              break;
+          }
+
+          if (nextIndex > -1) {
+            triggers[nextIndex].focus();
+          }
+        },
+      }),
+      elementProps,
+    ],
+    customStyleHookMapping: rootStyleHookMapping,
+  });
+
   return (
     <AccordionRootContext.Provider value={contextValue}>
-      <CompositeList refs={{ elements: accordionItemElements }}>
-        <RenderElement
-          element="div"
-          componentProps={componentProps}
-          ref={componentProps.ref}
-          params={{
-            state: state(),
-            customStyleHookMapping: rootStyleHookMapping,
-            props: [
-              {
-                dir: direction(),
-                role: 'region',
-                onKeyDown(event) {
-                  if (!SUPPORTED_KEYS.has(event.key)) {
-                    return;
-                  }
-
-                  stopEvent(event);
-
-                  const triggers = getActiveTriggers(accordionItemElements);
-
-                  const numOfEnabledTriggers = triggers.length;
-                  const lastIndex = numOfEnabledTriggers - 1;
-
-                  let nextIndex = -1;
-
-                  const thisIndex = triggers.indexOf(event.target as HTMLButtonElement);
-
-                  function toNext() {
-                    if (loop()) {
-                      nextIndex = thisIndex + 1 > lastIndex ? 0 : thisIndex + 1;
-                    } else {
-                      nextIndex = Math.min(thisIndex + 1, lastIndex);
-                    }
-                  }
-
-                  function toPrev() {
-                    if (loop()) {
-                      nextIndex = thisIndex === 0 ? lastIndex : thisIndex - 1;
-                    } else {
-                      nextIndex = thisIndex - 1;
-                    }
-                  }
-
-                  switch (event.key) {
-                    case ARROW_DOWN:
-                      if (!isHorizontal()) {
-                        toNext();
-                      }
-                      break;
-                    case ARROW_UP:
-                      if (!isHorizontal()) {
-                        toPrev();
-                      }
-                      break;
-                    case ARROW_RIGHT:
-                      if (isHorizontal()) {
-                        if (isRtl()) {
-                          toPrev();
-                        } else {
-                          toNext();
-                        }
-                      }
-                      break;
-                    case ARROW_LEFT:
-                      if (isHorizontal()) {
-                        if (isRtl()) {
-                          toNext();
-                        } else {
-                          toPrev();
-                        }
-                      }
-                      break;
-                    case 'Home':
-                      nextIndex = 0;
-                      break;
-                    case 'End':
-                      nextIndex = lastIndex;
-                      break;
-                    default:
-                      break;
-                  }
-
-                  if (nextIndex > -1) {
-                    triggers[nextIndex].focus();
-                  }
-                },
-              },
-              elementProps,
-            ],
-          }}
-        />
-      </CompositeList>
+      <CompositeList refs={{ elements: accordionItemElements }}>{element()}</CompositeList>
     </AccordionRootContext.Provider>
   );
 }

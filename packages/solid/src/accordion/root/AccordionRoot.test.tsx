@@ -42,7 +42,7 @@ describe('<Accordion.Root />', () => {
     });
 
     it('references manual panel id in trigger aria-controls', async () => {
-      const { getByRole, queryByText } = render(() => (
+      render(() => (
         <Accordion.Root defaultValue={[0]}>
           <Accordion.Item>
             <Accordion.Header>
@@ -53,8 +53,8 @@ describe('<Accordion.Root />', () => {
         </Accordion.Root>
       ));
 
-      const trigger = getByRole('button');
-      const panel = queryByText(PANEL_CONTENT_1) as HTMLElement;
+      const trigger = screen.getByRole('button');
+      const panel = screen.queryByText(PANEL_CONTENT_1) as HTMLElement;
 
       expect(trigger).to.have.attribute('aria-controls', 'custom-panel-id');
       expect(panel).to.have.attribute('id', 'custom-panel-id');

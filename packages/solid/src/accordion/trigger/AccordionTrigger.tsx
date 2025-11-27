@@ -5,7 +5,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../../solid-hel
 import { useButton } from '../../use-button';
 import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { AccordionItem } from '../item/AccordionItem';
 import { useAccordionItemContext } from '../item/AccordionItemContext';
 
@@ -40,11 +40,11 @@ export function AccordionTrigger(componentProps: AccordionTrigger.Props) {
   createEffect(() => {
     if (local.id) {
       setTriggerId(local.id);
-    }
 
-    onCleanup(() => {
-      setTriggerId(undefined);
-    });
+      onCleanup(() => {
+        setTriggerId(undefined);
+      });
+    }
   });
 
   const props = createMemo<JSX.HTMLAttributes<HTMLButtonElement>>(() => ({
@@ -55,25 +55,14 @@ export function AccordionTrigger(componentProps: AccordionTrigger.Props) {
     onClick: handleTrigger,
   }));
 
-  return (
-    <RenderElement
-      element="button"
-      componentProps={componentProps}
-      ref={(el) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-        buttonRef(el);
-      }}
-      params={{
-        state: state(),
-        props: [props(), elementProps, getButtonProps],
-        customStyleHookMapping: triggerOpenStateMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: buttonRef,
+    props: [props, elementProps, getButtonProps],
+    customStyleHookMapping: triggerOpenStateMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace AccordionTrigger {

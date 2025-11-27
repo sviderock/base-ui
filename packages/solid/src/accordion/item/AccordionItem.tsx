@@ -7,7 +7,7 @@ import { useCompositeListItem } from '../../composite/list/useCompositeListItem'
 import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { AccordionRoot } from '../root/AccordionRoot';
 import { useAccordionRootContext } from '../root/AccordionRootContext';
 import { AccordionItemContext } from './AccordionItemContext';
@@ -99,26 +99,17 @@ export function AccordionItem(componentProps: AccordionItem.Props) {
     triggerId,
   };
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: setListItemRef,
+    props: elementProps,
+    customStyleHookMapping: accordionStyleHookMapping,
+  });
+
   return (
     <CollapsibleRootContext.Provider value={collapsibleContext}>
       <AccordionItemContext.Provider value={accordionItemContext}>
-        <RenderElement
-          element="div"
-          componentProps={componentProps}
-          ref={(el) => {
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-            setListItemRef(el);
-          }}
-          params={{
-            state: state(),
-            props: elementProps,
-            customStyleHookMapping: accordionStyleHookMapping,
-          }}
-        />
+        {element()}
       </AccordionItemContext.Provider>
     </CollapsibleRootContext.Provider>
   );

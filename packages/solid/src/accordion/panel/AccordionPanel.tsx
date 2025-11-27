@@ -5,7 +5,7 @@ import { useCollapsibleRootContext } from '../../collapsible/root/CollapsibleRoo
 import { access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { warn } from '../../utils/warn';
 import type { AccordionItem } from '../item/AccordionItem';
@@ -126,42 +126,32 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
     transitionStatus: transitionStatus(),
   }));
 
+  const element = useRenderElement('div', componentProps, {
+    state: panelState,
+    ref: (el) => {
+      refs.panelRef = el;
+      panel.ref(el);
+    },
+    props: [
+      panel.props,
+      () => ({
+        'aria-labelledby': triggerId?.(),
+        role: 'region' as const,
+        style: {
+          [AccordionPanelCssVars.accordionPanelHeight as string]:
+            height() === undefined ? 'auto' : `${height()}px`,
+          [AccordionPanelCssVars.accordionPanelWidth as string]:
+            width() === undefined ? 'auto' : `${width()}px`,
+        },
+      }),
+      elementProps,
+    ],
+    customStyleHookMapping: accordionStyleHookMapping,
+  });
+
   const shouldRender = () => keepMounted() || hiddenUntilFound() || (!keepMounted() && mounted());
-  return (
-    <Show when={shouldRender()}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={(el) => {
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-          refs.panelRef = el;
-          panel.ref(el);
-        }}
-        params={{
-          state: panelState(),
-          customStyleHookMapping: accordionStyleHookMapping,
-          props: [
-            panel.props(),
-            {
-              'aria-labelledby': triggerId?.(),
-              role: 'region',
-              style: {
-                [AccordionPanelCssVars.accordionPanelHeight as string]:
-                  height() === undefined ? 'auto' : `${height()}px`,
-                [AccordionPanelCssVars.accordionPanelWidth as string]:
-                  width() === undefined ? 'auto' : `${width()}px`,
-              },
-            },
-            elementProps,
-          ],
-        }}
-      />
-    </Show>
-  );
+
+  return <Show when={shouldRender()}>{element()}</Show>;
 }
 
 export namespace AccordionPanel {
