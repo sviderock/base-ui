@@ -2,7 +2,7 @@
 import { createMemo, Show } from 'solid-js';
 import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { CollapsibleRootContext } from './CollapsibleRootContext';
 import { collapsibleStyleHookMapping } from './styleHooks';
@@ -48,19 +48,16 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
     state,
   };
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: elementProps,
+    customStyleHookMapping: collapsibleStyleHookMapping,
+  });
+
   return (
     <CollapsibleRootContext.Provider value={contextValue}>
       <Show when={componentProps.render !== null} fallback={componentProps.children}>
-        <RenderElement
-          element="div"
-          componentProps={componentProps}
-          ref={componentProps.ref}
-          params={{
-            state: state(),
-            props: elementProps,
-            customStyleHookMapping: collapsibleStyleHookMapping,
-          }}
-        />
+        {element()}
       </Show>
     </CollapsibleRootContext.Provider>
   );

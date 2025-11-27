@@ -3,7 +3,7 @@ import { createEffect, createMemo, onCleanup, Show } from 'solid-js';
 import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { warn } from '../../utils/warn';
 import type { CollapsibleRoot } from '../root/CollapsibleRoot';
 import { useCollapsibleRootContext } from '../root/CollapsibleRootContext';
@@ -94,37 +94,30 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
     () => keepMounted() || hiddenUntilFound() || (!keepMounted() && context.mounted()),
   );
 
+  const element = useRenderElement('div', componentProps, {
+    state: context.state,
+    ref: (el) => {
+      context.refs.panelRef = el;
+      panel.ref(el);
+    },
+    props: [
+      panel.props,
+      () => ({
+        style: {
+          [CollapsiblePanelCssVars.collapsiblePanelHeight as string]:
+            context.height() === undefined ? 'auto' : `${context.height()}px`,
+          [CollapsiblePanelCssVars.collapsiblePanelWidth as string]:
+            context.width() === undefined ? 'auto' : `${context.width()}px`,
+        },
+      }),
+      elementProps,
+    ],
+    customStyleHookMapping: collapsibleStyleHookMapping,
+  });
+
   return (
     <Show when={shouldRender()}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={(el) => {
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-          context.refs.panelRef = el;
-          panel.ref(el);
-        }}
-        params={{
-          state: context.state(),
-          props: [
-            panel.props(),
-            {
-              style: {
-                [CollapsiblePanelCssVars.collapsiblePanelHeight as string]:
-                  context.height() === undefined ? 'auto' : `${context.height()}px`,
-                [CollapsiblePanelCssVars.collapsiblePanelWidth as string]:
-                  context.width() === undefined ? 'auto' : `${context.width()}px`,
-              },
-            },
-            elementProps,
-          ],
-          customStyleHookMapping: collapsibleStyleHookMapping,
-        }}
-      />
+      {element()}
     </Show>
   );
 }

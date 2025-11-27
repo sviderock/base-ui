@@ -6,7 +6,7 @@ import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { CollapsibleRoot } from '../root/CollapsibleRoot';
 import { useCollapsibleRootContext } from '../root/CollapsibleRootContext';
 
@@ -44,25 +44,14 @@ export function CollapsibleTrigger(componentProps: CollapsibleTrigger.Props): JS
     onClick: context.handleTrigger,
   }));
 
-  return (
-    <RenderElement
-      element="button"
-      componentProps={componentProps}
-      ref={(el) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-        button.buttonRef(el);
-      }}
-      params={{
-        state: context.state(),
-        props: [props(), elementProps, button.getButtonProps()],
-        customStyleHookMapping: styleHookMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('button', componentProps, {
+    state: context.state,
+    ref: button.buttonRef,
+    props: [props, elementProps, () => button.getButtonProps()],
+    customStyleHookMapping: styleHookMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace CollapsibleTrigger {
