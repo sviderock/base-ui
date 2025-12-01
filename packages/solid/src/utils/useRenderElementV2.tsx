@@ -1,4 +1,13 @@
-import { createMemo, Match, splitProps, Switch, type Accessor, type JSX } from 'solid-js';
+import {
+  children,
+  createMemo,
+  createSignal,
+  Match,
+  splitProps,
+  Switch,
+  type Accessor,
+  type JSX,
+} from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { mergeProps, mergePropsN } from '../merge-props';
 import { access, type MaybeAccessor } from '../solid-helpers';
@@ -24,9 +33,14 @@ export function useRenderElement<
   element: TagName,
   componentProps: RenderElement.ComponentProps<State, TagName, RenderedElementType>,
   params: RenderElement.Parameters<State, TagName, RenderedElementType, RefType, Enabled>,
-): Accessor<JSX.Element> {
+) {
   const state = createMemo(() => params.state?.() ?? (EMPTY_OBJECT as State));
   const enabled = createMemo(() => access(params.enabled) ?? true);
+
+  const [shouldResolveChildren, setShouldResolveChildren] = createSignal(false);
+  const resolvedChildren = children(
+    () => shouldResolveChildren() && (componentProps.children ?? params.children),
+  );
 
   const styleHooks = createMemo<Record<string, string> | undefined>(() => {
     if (params.disableStyleHooks !== true) {
@@ -37,14 +51,20 @@ export function useRenderElement<
     return undefined;
   });
 
-  const mergedProps = createMemo<Record<string, unknown>>(() => {
+  const mergedProps = (
+    renderFnProps?: Accessor<JSX.HTMLAttributes<any>>,
+  ): Record<string, unknown> => {
     if (enabled() === false) {
       return EMPTY_OBJECT;
     }
 
-    const mergedParams = Array.isArray(params.props)
+    let mergedParams = Array.isArray(params.props)
       ? mergePropsN(params.props)
       : access(params.props);
+    if (renderFnProps) {
+      mergedParams = mergeProps(renderFnProps(), mergedParams);
+    }
+
     if (mergedParams === undefined) {
       return EMPTY_OBJECT;
     }
@@ -53,14 +73,14 @@ export function useRenderElement<
     return mergeProps(styleHooks(), rest, {
       class: resolveClassName(componentProps.class, state),
     });
-  });
+  };
 
-  const outProps = createMemo<JSX.HTMLAttributes<any>>(() => {
+  const outProps = (renderFnProps?: Accessor<JSX.HTMLAttributes<any>>): JSX.HTMLAttributes<any> => {
     if (enabled() === false) {
       return EMPTY_OBJECT;
     }
 
-    const props = mergedProps();
+    const props = mergedProps(renderFnProps);
     // TODO: fix typing
     props.ref = (el: any) => {
       if (typeof componentProps.ref === 'function') {
@@ -74,10 +94,19 @@ export function useRenderElement<
       } else {
         params.ref = el;
       }
+
+      if (renderFnProps) {
+        if (typeof renderFnProps().ref === 'function') {
+          renderFnProps().ref(el);
+        } else {
+          renderFnProps().ref = el;
+        }
+      }
     };
 
     if (componentProps.render != null) {
-      props.children = componentProps.children;
+      setShouldResolveChildren(true);
+      props.children = resolvedChildren;
     } else if (element === 'button') {
       (props as JSX.IntrinsicElements['button']).type = 'button';
     } else if (element === 'img') {
@@ -85,30 +114,26 @@ export function useRenderElement<
     }
 
     return props;
-  });
+  };
 
-  const memoizedRender = createMemo<JSX.Element>(() => {
-    if (enabled() === false) {
-      return null;
-    }
-
-    if (componentProps.render) {
-      return componentProps.render(outProps as Accessor<Record<string, unknown>>, state);
-    }
-
-    return null;
-  });
-
-  return () => (
-    <Switch>
-      <Match when={enabled() && componentProps.render}>{memoizedRender()}</Match>
-      <Match when={enabled() && componentProps.render == null && element != null}>
-        <Dynamic component={element as keyof JSX.IntrinsicElements} {...outProps()}>
-          {componentProps.children}
-        </Dynamic>
-      </Match>
-    </Switch>
-  );
+  return <P extends Accessor<any>, S extends Accessor<any>>(
+    renderFnProps?: P,
+    renderFnState?: S,
+  ) => {
+    const props = () => outProps(renderFnProps) as Record<string, unknown>;
+    return (
+      <Switch>
+        <Match when={enabled() && componentProps.render}>
+          {componentProps.render!(props, state)}
+        </Match>
+        <Match when={enabled() && componentProps.render == null && element != null}>
+          <Dynamic component={element as keyof JSX.IntrinsicElements} {...props()}>
+            {componentProps.children ?? params.children}
+          </Dynamic>
+        </Match>
+      </Switch>
+    );
+  };
 }
 
 export namespace RenderElement {
@@ -137,10 +162,10 @@ export namespace RenderElement {
      * The state of the component.
      */
     state?: Accessor<State>;
-
     /**
      * Intrinsic props to be spread on the rendered element.
      */
+    children?: JSX.Element;
     props?:
       | BaseUIComponentProps<TagName, State>
       | Array<
