@@ -3,9 +3,15 @@ import { createMemo, createSignal } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { useFieldsetRootContext } from '../../fieldset/root/FieldsetRootContext';
 import { useFormContext } from '../../form/FormContext';
-import { access, splitComponentProps, type Args, type MaybeAccessor } from '../../solid-helpers';
+import {
+  access,
+  createAccessors,
+  splitComponentProps,
+  type Args,
+  type MaybeAccessor,
+} from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { DEFAULT_VALIDITY_STATE, fieldValidityMapping } from '../utils/constants';
 import { FieldRootContext } from './FieldRootContext';
 
@@ -38,8 +44,10 @@ export function FieldRoot(componentProps: FieldRoot.Props) {
 
   const disabled = () => disabledFieldset() || disabledProp();
 
-  const [controlId, setControlId] = createSignal<string | null>();
-  const [labelId, setLabelId] = createSignal<string>();
+  const { controlId, setControlId, labelId, setLabelId } = createAccessors([
+    { key: 'controlId', initialValue: (): string | null | undefined => undefined },
+    'labelId',
+  ]);
   const [messageIds, setMessageIds] = createSignal<string[]>([]);
 
   const [touched, setTouched] = createSignal(false);
@@ -110,20 +118,13 @@ export function FieldRoot(componentProps: FieldRoot.Props) {
     refs,
   };
 
-  return (
-    <FieldRootContext.Provider value={contextValue}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={componentProps.ref}
-        params={{
-          state: state(),
-          props: elementProps,
-          customStyleHookMapping: fieldValidityMapping,
-        }}
-      />
-    </FieldRootContext.Provider>
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: elementProps,
+    customStyleHookMapping: fieldValidityMapping,
+  });
+
+  return <FieldRootContext.Provider value={contextValue}>{element()}</FieldRootContext.Provider>;
 }
 
 export interface FieldValidityData {

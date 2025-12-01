@@ -1,10 +1,10 @@
 'use client';
-import { createEffect, onCleanup, type ComponentProps } from 'solid-js';
+import { createEffect, createMemo, onCleanup, onMount, type ComponentProps } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useControlled } from '../../utils';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { FieldRoot } from '../root/FieldRoot';
 import { useFieldRootContext } from '../root/FieldRootContext';
 import { useField } from '../useField';
@@ -56,10 +56,10 @@ export function FieldControl(componentProps: FieldControl.Props) {
 
   const id = useBaseUiId(() => local.id);
 
-  createEffect(() => {
-    setControlId(id());
+  onMount(() => {
+    setControlId(id);
     onCleanup(() => {
-      setControlId(undefined);
+      setControlId(() => undefined);
     });
   });
 
@@ -93,61 +93,54 @@ export function FieldControl(componentProps: FieldControl.Props) {
     controlRef: () => refs.inputRef,
   });
 
-  return (
-    <RenderElement
-      element="input"
-      componentProps={componentProps}
-      ref={(el) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-        refs.inputRef = el;
-      }}
-      params={{
-        state: { ...fieldState(), disabled: disabled() },
-        customStyleHookMapping: fieldValidityMapping,
-        props: [
-          {
-            id: id(),
-            disabled: disabled(),
-            name: name(),
-            'aria-labelledby': labelId(),
-            value: value(),
-            onChange(event) {
-              if (value() != null) {
-                setValue(event.currentTarget.value, event);
-              }
+  const controlState = createMemo(() => ({ ...fieldState(), disabled: disabled() }));
 
-              setDirty(event.currentTarget.value !== validityData.initialValue);
-              setFilled(event.currentTarget.value !== '');
-            },
-            onFocus() {
-              setFocused(true);
-            },
-            onBlur(event) {
-              setTouched(true);
-              setFocused(false);
+  const element = useRenderElement('input', componentProps, {
+    state: controlState,
+    ref: (el) => {
+      refs.inputRef = el;
+    },
+    customStyleHookMapping: fieldValidityMapping,
+    props: [
+      () => ({
+        id: id(),
+        disabled: disabled(),
+        name: name(),
+        'aria-labelledby': labelId(),
+        value: value(),
+        onChange(event) {
+          if (value() != null) {
+            setValue(event.currentTarget.value, event);
+          }
 
-              if (validationMode() === 'onBlur') {
-                commitValidation(event.currentTarget.value);
-              }
-            },
-            onKeyDown(event) {
-              if (event.currentTarget.tagName === 'INPUT' && event.key === 'Enter') {
-                setTouched(true);
-                commitValidation(event.currentTarget.value);
-              }
-            },
-          },
-          getValidationProps(),
-          getInputValidationProps(),
-          elementProps,
-        ],
-      }}
-    />
-  );
+          setDirty(event.currentTarget.value !== validityData.initialValue);
+          setFilled(event.currentTarget.value !== '');
+        },
+        onFocus() {
+          setFocused(true);
+        },
+        onBlur(event) {
+          setTouched(true);
+          setFocused(false);
+
+          if (validationMode() === 'onBlur') {
+            commitValidation(event.currentTarget.value);
+          }
+        },
+        onKeyDown(event) {
+          if (event.currentTarget.tagName === 'INPUT' && event.key === 'Enter') {
+            setTouched(true);
+            commitValidation(event.currentTarget.value);
+          }
+        },
+      }),
+      () => getValidationProps(),
+      () => getInputValidationProps(),
+      elementProps,
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace FieldControl {

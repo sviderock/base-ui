@@ -12,9 +12,9 @@ export interface FieldRootContext {
    * When `null` the association is implicit.
    */
   controlId: Accessor<string | null | undefined>;
-  setControlId: Setter<string | null | undefined>;
+  setControlId: (newAccessor: Accessor<string | null | undefined>) => void;
   labelId: Accessor<string | undefined>;
-  setLabelId: Setter<string | undefined>;
+  setLabelId: (newAccessor: Accessor<string | undefined>) => void;
   messageIds: Accessor<string[]>;
   setMessageIds: Setter<string[]>;
   name: Accessor<string | undefined>;
@@ -44,9 +44,9 @@ export interface FieldRootContext {
 export const FieldRootContext = createContext<FieldRootContext>({
   invalid: () => undefined,
   controlId: () => undefined,
-  setControlId: NOOP as Setter<any>,
+  setControlId: NOOP as any,
   labelId: () => undefined,
-  setLabelId: NOOP as Setter<any>,
+  setLabelId: NOOP as any,
   messageIds: () => [],
   setMessageIds: NOOP as Setter<any>,
   name: () => undefined,

@@ -135,10 +135,10 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
   let thumbRef = null as HTMLElement | null | undefined;
 
   createEffect(() => {
-    setControlId(inputId());
+    setControlId(inputId);
 
     onCleanup(() => {
-      setControlId(undefined);
+      setControlId(() => undefined);
     });
   });
 
@@ -189,7 +189,7 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
     return mergeProps(
       {
         [SliderThumbDataAttributes.index]: index(),
-        class: resolveClassName(renderProps.class, state()),
+        class: resolveClassName(renderProps.class, state),
         id: id(),
         onFocus() {
           batch(() => {

@@ -67,34 +67,31 @@ export function splitComponentProps<
   >;
 }
 
+type ExtractKey<T> = T extends string ? T : T extends { key: string } ? T['key'] : string;
+type ExtractValue<T> = T extends { initialValue: () => infer I } ? I : string | undefined;
+
 export function createAccessors<
-  const T extends Array<string | { key: string; initialValue: Accessor<string | undefined> }>,
-  K extends T[number] extends infer U
-    ? U extends string
-      ? U
-      : U extends { key: string }
-        ? U['key']
-        : never
-    : never,
+  const T extends (string | { key: string; initialValue: () => unknown })[],
 >(keys: T) {
   const accessors = {} as {
-    [KK in K]: Accessor<string | undefined>;
+    [K in T[number] as ExtractKey<K>]: Accessor<ExtractValue<K>>;
   } & {
-    [KK in K as `set${Capitalize<KK>}`]: (newAccessor: Accessor<string | undefined>) => void;
+    [K in T[number] as `set${Capitalize<ExtractKey<K>>}`]: (
+      newAccessor: Accessor<ExtractValue<K>>,
+    ) => void;
   };
 
   for (const keyItem of keys) {
-    const [storedAccessor, setStoredAccessor] = createSignal<Accessor<string | undefined>>(
+    const [storedAccessor, setStoredAccessor] = createSignal<any>(
       typeof keyItem === 'object' && 'initialValue' in keyItem
         ? keyItem.initialValue
         : () => undefined,
     );
     const key = typeof keyItem === 'string' ? keyItem : keyItem.key;
-    const capitalizedKey = `set${key.charAt(0).toUpperCase()}${key.slice(1)}` as Capitalize<K>;
+    const capitalizedKey = `set${key.charAt(0).toUpperCase()}${key.slice(1)}`;
 
     (accessors as any)[key] = createMemo(() => storedAccessor()());
-    (accessors as any)[capitalizedKey] = (newAccessor: Accessor<string | undefined>) =>
-      setStoredAccessor(() => newAccessor);
+    (accessors as any)[capitalizedKey] = (newAccessor: any) => setStoredAccessor(() => newAccessor);
   }
 
   return accessors;

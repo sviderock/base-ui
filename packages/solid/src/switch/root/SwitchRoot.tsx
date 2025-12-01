@@ -5,6 +5,7 @@ import {
   createMemo,
   createSignal,
   onCleanup,
+  onMount,
   type ComponentProps,
 } from 'solid-js';
 import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
@@ -76,23 +77,18 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
   } = useFieldControlValidation();
 
   const [inputRef, setInputRef] = createSignal<HTMLInputElement | null | undefined>(null);
-  const [switchRef, setSwitchRef] = createSignal<HTMLButtonElement | null | undefined>(null);
+  let switchRef = null as HTMLButtonElement | null | undefined;
 
   const id = useBaseUiId(idProp);
 
-  createEffect(() => {
-    if (!switchRef()) {
+  onMount(() => {
+    if (!switchRef) {
       return;
     }
 
-    if (switchRef()?.closest('label') != null) {
-      setControlId(idProp() ?? null);
-    } else {
-      setControlId(id());
-    }
-
+    setControlId(() => (switchRef!.closest('label') != null ? (idProp() ?? null) : id()));
     onCleanup(() => {
-      setControlId(undefined);
+      setControlId(() => undefined);
     });
   });
 
@@ -107,7 +103,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
     id,
     commitValidation,
     value: checked,
-    controlRef: switchRef,
+    controlRef: () => switchRef,
     name,
     getValue: checked,
   });
@@ -228,7 +224,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
             } else {
               componentProps.ref = el;
             }
-            setSwitchRef(el);
+            switchRef = el;
             buttonRef(el);
           });
         }}

@@ -88,9 +88,9 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
   const id = useBaseUiId(idProp);
 
   createEffect(() => {
-    setControlId(id());
+    setControlId(id);
     onCleanup(() => {
-      setControlId(undefined);
+      setControlId(() => undefined);
     });
   });
 

@@ -4,7 +4,7 @@ import { getTarget } from '../../floating-ui-solid/utils';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { FieldRoot } from '../root/FieldRoot';
 import { useFieldRootContext } from '../root/FieldRootContext';
 import { fieldValidityMapping } from '../utils/constants';
@@ -25,42 +25,37 @@ export function FieldLabel(componentProps: FieldLabel.Props) {
 
   createEffect(() => {
     if (controlId() != null || local.id) {
-      setLabelId(id());
+      setLabelId(id);
+      onCleanup(() => {
+        setLabelId(() => undefined);
+      });
     }
-    onCleanup(() => {
-      setLabelId(undefined);
-    });
   });
 
-  return (
-    <RenderElement
-      element="label"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        state: state(),
-        customStyleHookMapping: fieldValidityMapping,
-        props: [
-          {
-            id: labelId(),
-            for: htmlFor(),
-            onMouseDown(event) {
-              const target = getTarget(event) as HTMLElement | null;
-              if (target?.closest('button,input,select,textarea')) {
-                return;
-              }
+  const element = useRenderElement('label', componentProps, {
+    state,
+    customStyleHookMapping: fieldValidityMapping,
+    props: [
+      () => ({
+        id: labelId(),
+        for: htmlFor(),
+        onMouseDown(event) {
+          const target = getTarget(event) as HTMLElement | null;
+          if (target?.closest('button,input,select,textarea')) {
+            return;
+          }
 
-              // Prevent text selection when double clicking label.
-              if (!event.defaultPrevented && event.detail > 1) {
-                event.preventDefault();
-              }
-            },
-          },
-          elementProps,
-        ],
-      }}
-    />
-  );
+          // Prevent text selection when double clicking label.
+          if (!event.defaultPrevented && event.detail > 1) {
+            event.preventDefault();
+          }
+        },
+      }),
+      elementProps,
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace FieldLabel {

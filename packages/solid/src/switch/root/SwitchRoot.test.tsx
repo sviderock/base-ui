@@ -564,7 +564,7 @@ describe('<Switch.Root />', () => {
         it('when rendering a non-native label', async () => {
           render(() => (
             <Field.Root>
-              <Field.Label data-testid="label" render={(p) => <span {...(p() as any)} />}>
+              <Field.Label data-testid="label" render={(p) => <span {...p()} />}>
                 <Switch.Root data-testid="button" />
               </Field.Label>
             </Field.Root>

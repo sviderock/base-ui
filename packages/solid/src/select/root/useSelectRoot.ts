@@ -69,9 +69,9 @@ export function useSelectRoot<T>(params: useSelectRoot.Parameters<T>): useSelect
   const name = () => fieldName() ?? nameProp();
 
   createEffect(() => {
-    setControlId(id());
+    setControlId(id);
     onCleanup(() => {
-      setControlId(undefined);
+      setControlId(() => undefined);
     });
   });
 

@@ -1,10 +1,10 @@
 'use client';
-import { children, createEffect, createMemo, For, Match, onCleanup, Show, Switch } from 'solid-js';
+import { createEffect, createMemo, For, onCleanup } from 'solid-js';
 import { useFormContext } from '../../form/FormContext';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { FieldRoot } from '../root/FieldRoot';
 import { useFieldRootContext } from '../root/FieldRootContext';
 import { fieldValidityMapping } from '../utils/constants';
@@ -17,7 +17,7 @@ import { fieldValidityMapping } from '../utils/constants';
  */
 export function FieldError(componentProps: FieldError.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['id', 'match']);
-  const match = () => access(local.match);
+  const match = createMemo(() => access(local.match));
 
   const id = useBaseUiId(() => local.id);
 
@@ -53,29 +53,29 @@ export function FieldError(componentProps: FieldError.Props) {
     });
   });
 
-  return (
-    <Show when={rendered()} fallback={null}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={componentProps.ref}
-        params={{
-          state: state(),
-          customStyleHookMapping: fieldValidityMapping,
-          props: [{ id: id() }, elementProps],
-        }}
-      >
-        <Switch fallback={validityData.error}>
-          <Match when={formError()}>{formError()}</Match>
-          <Match when={validityData.errors.length > 1}>
-            <ul>
-              <For each={validityData.errors}>{(message) => <li>{message}</li>}</For>
-            </ul>
-          </Match>
-        </Switch>
-      </RenderElement>
-    </Show>
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    enabled: rendered,
+    customStyleHookMapping: fieldValidityMapping,
+    props: [() => ({ id: id() }), elementProps],
+    get children() {
+      return (
+        <>
+          {formError() ||
+            (validityData.errors.length > 1 ? (
+              <ul>
+                {' '}
+                <For each={validityData.errors}>{(message) => <li>{message}</li>}</For>{' '}
+              </ul>
+            ) : (
+              validityData.error
+            ))}
+        </>
+      );
+    },
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace FieldError {

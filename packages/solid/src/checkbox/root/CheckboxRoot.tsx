@@ -147,13 +147,13 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
     }
 
     if (groupContext) {
-      setControlId(idProp() ?? null);
+      setControlId(() => idProp() ?? null);
     } else if (controlRef.closest('label') == null) {
-      setControlId(id());
+      setControlId(id);
     }
 
     onCleanup(() => {
-      setControlId(undefined);
+      setControlId(() => undefined);
     });
   });
 
