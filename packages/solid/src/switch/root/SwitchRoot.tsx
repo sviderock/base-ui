@@ -1,13 +1,5 @@
 'use client';
-import {
-  batch,
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-  onMount,
-  type ComponentProps,
-} from 'solid-js';
+import { batch, createMemo, onCleanup, onMount, type ComponentProps } from 'solid-js';
 import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
@@ -76,20 +68,22 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
     commitValidation,
   } = useFieldControlValidation();
 
-  const [inputRef, setInputRef] = createSignal<HTMLInputElement | null | undefined>(null);
+  let inputRef = null as HTMLInputElement | null | undefined;
   let switchRef = null as HTMLButtonElement | null | undefined;
 
   const id = useBaseUiId(idProp);
 
   onMount(() => {
-    if (!switchRef) {
-      return;
+    if (switchRef != null) {
+      setControlId(() => (switchRef!.closest('label') != null ? (idProp() ?? null) : id()));
+      onCleanup(() => {
+        setControlId(() => undefined);
+      });
     }
 
-    setControlId(() => (switchRef!.closest('label') != null ? (idProp() ?? null) : id()));
-    onCleanup(() => {
-      setControlId(() => undefined);
-    });
+    if (inputRef != null) {
+      setFilled(inputRef!.checked);
+    }
   });
 
   const [checked, setCheckedState] = useControlled({
@@ -108,12 +102,6 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
     getValue: checked,
   });
 
-  createEffect(() => {
-    if (inputRef()) {
-      setFilled(inputRef()!.checked);
-    }
-  });
-
   const { getButtonProps, buttonRef } = useButton({
     disabled,
     native: nativeButton,
@@ -130,8 +118,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
       setFocused(true);
     },
     onBlur() {
-      const element = inputRef();
-      if (!element) {
+      if (!inputRef) {
         return;
       }
 
@@ -140,7 +127,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
         setFocused(false);
 
         if (validationMode() === 'onBlur') {
-          commitValidation(element.checked);
+          commitValidation(inputRef!.checked);
         }
       });
     },
@@ -149,7 +136,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
         return;
       }
 
-      inputRef()?.click();
+      inputRef?.click();
     },
   }));
 
@@ -218,15 +205,13 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
         element="button"
         componentProps={componentProps}
         ref={(el) => {
-          batch(() => {
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-            switchRef = el;
-            buttonRef(el);
-          });
+          if (typeof componentProps.ref === 'function') {
+            componentProps.ref(el);
+          } else {
+            componentProps.ref = el;
+          }
+          switchRef = el;
+          buttonRef(el);
         }}
         params={{
           state: state(),
@@ -240,7 +225,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
           if (local.refs) {
             local.refs.inputRef = el;
           }
-          setInputRef(el);
+          inputRef = el;
           validationRefs.inputRef = el;
         }}
         {...inputProps()}
