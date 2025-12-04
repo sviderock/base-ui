@@ -1,11 +1,11 @@
 import {
   children,
   createMemo,
-  createSignal,
   Match,
   splitProps,
   Switch,
   type Accessor,
+  type ComponentProps,
   type JSX,
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
@@ -36,11 +36,7 @@ export function useRenderElement<
 ) {
   const state = createMemo(() => params.state?.() ?? (EMPTY_OBJECT as State));
   const enabled = createMemo(() => access(params.enabled) ?? true);
-
-  const [shouldResolveChildren, setShouldResolveChildren] = createSignal(false);
-  const resolvedChildren = children(
-    () => shouldResolveChildren() && (componentProps.children ?? params.children),
-  );
+  const safeChildren = childrenLazy(componentProps, params);
 
   const styleHooks = createMemo<Record<string, string> | undefined>(() => {
     if (params.disableStyleHooks !== true) {
@@ -75,7 +71,7 @@ export function useRenderElement<
     });
   };
 
-  const outProps = (renderFnProps?: Accessor<JSX.HTMLAttributes<any>>): JSX.HTMLAttributes<any> => {
+  const outProps = (renderFnProps?: Accessor<ComponentProps<any>>): Record<string, unknown> => {
     if (enabled() === false) {
       return EMPTY_OBJECT;
     }
@@ -105,8 +101,7 @@ export function useRenderElement<
     };
 
     if (componentProps.render != null) {
-      setShouldResolveChildren(true);
-      props.children = resolvedChildren;
+      props.children = safeChildren;
     } else if (element === 'button') {
       (props as JSX.IntrinsicElements['button']).type = 'button';
     } else if (element === 'img') {
@@ -116,23 +111,32 @@ export function useRenderElement<
     return props;
   };
 
-  return <P extends Accessor<any>, S extends Accessor<any>>(
-    renderFnProps?: P,
-    renderFnState?: S,
+  return <P extends Record<string, unknown>, S>(
+    renderFnProps?: Accessor<P>,
+    renderFnState?: Accessor<S>,
   ) => {
-    const props = () => outProps(renderFnProps) as Record<string, unknown>;
     return (
       <Switch>
         <Match when={enabled() && componentProps.render}>
-          {componentProps.render!(props, state)}
+          {componentProps.render!(() => outProps(renderFnProps), state)}
         </Match>
         <Match when={enabled() && componentProps.render == null && element != null}>
-          <Dynamic component={element as keyof JSX.IntrinsicElements} {...props()}>
-            {componentProps.children ?? params.children}
+          <Dynamic component={element as keyof JSX.IntrinsicElements} {...outProps(renderFnProps)}>
+            {safeChildren()}
           </Dynamic>
         </Match>
       </Switch>
     );
+  };
+}
+
+// https://github.com/solidjs/solid/issues/2478#issuecomment-2888503241
+function childrenLazy(props: any, params: any) {
+  const _s = Symbol();
+  let x: any = props.render != null ? children(() => props.children ?? params.children) : _s;
+  return () => {
+    x = x === _s ? children(() => props.children ?? params.children) : x;
+    return x;
   };
 }
 
