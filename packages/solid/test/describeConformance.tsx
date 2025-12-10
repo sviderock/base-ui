@@ -141,7 +141,7 @@ export interface BaseUiConformanceTestsOptions<
   Props extends Record<string, any> = ConformantComponentProps,
 > extends Omit<Partial<ConformanceOptions>, 'render' | 'mount' | 'skip' | 'classes'> {
   render: (
-    element: Component<Props>,
+    element: (props?: Props) => JSX.Element,
     elementProps?: Props,
     options?: RenderOptions | undefined,
   ) => MuiRenderResult;
@@ -157,7 +157,7 @@ const fullSuite = {
 };
 
 function describeConformanceFn(
-  minimalElement: Component,
+  minimalElement: Component<any>,
   getOptions: () => BaseUiConformanceTestsOptions,
 ) {
   const { after: runAfterHook = () => {}, only = Object.keys(fullSuite), skip = [] } = getOptions();

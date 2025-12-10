@@ -1,6 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { Accordion } from '@base-ui-components/solid/accordion';
-import { Dynamic } from 'solid-js/web';
 import { NOOP } from '../../utils/noop';
 import { AccordionRootContext } from '../root/AccordionRootContext';
 
@@ -24,15 +23,12 @@ describe('<Accordion.Item />', () => {
   const { render } = createRenderer();
 
   describeConformance(Accordion.Item, () => ({
-    render: (node, elementProps = {}) =>
-      render(
-        () => (
-          <AccordionRootContext.Provider value={accordionRootContextValue}>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </AccordionRootContext.Provider>
-        ),
-        elementProps,
-      ),
+    render: (node, props) =>
+      render(() => (
+        <AccordionRootContext.Provider value={accordionRootContextValue}>
+          {node(props)}
+        </AccordionRootContext.Provider>
+      )),
     refInstanceof: window.HTMLDivElement,
   }));
 });

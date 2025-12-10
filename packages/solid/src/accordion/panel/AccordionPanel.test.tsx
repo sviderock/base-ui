@@ -1,24 +1,18 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { Accordion } from '@base-ui-components/solid/accordion';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Accordion.Panel />', () => {
   const { render } = createRenderer();
 
   describeConformance(
-    (props) => <Accordion.Panel keepMounted {...props} />,
+    (props) => <Accordion.Panel keepMounted {...props} ref={props.ref} />,
     () => ({
-      render: (node, elementProps = {}) =>
-        render(
-          () => (
-            <Accordion.Root>
-              <Accordion.Item>
-                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-              </Accordion.Item>
-            </Accordion.Root>
-          ),
-          elementProps,
-        ),
+      render: (node, props) =>
+        render(() => (
+          <Accordion.Root>
+            <Accordion.Item>{node(props)}</Accordion.Item>
+          </Accordion.Root>
+        )),
       refInstanceof: window.HTMLDivElement,
     }),
   );
