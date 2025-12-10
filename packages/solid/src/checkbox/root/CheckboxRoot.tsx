@@ -5,7 +5,6 @@ import {
   createMemo,
   createRenderEffect,
   createSignal,
-  onCleanup,
   onMount,
   splitProps,
   type JSX,
@@ -78,7 +77,7 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
     state: fieldState,
     validationMode,
     validityData,
-    setChildRefs,
+    setCodependentRefs: setChildRefs,
   } = useFieldRootContext();
 
   const groupContext = useCheckboxGroupContext();

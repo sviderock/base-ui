@@ -3,7 +3,6 @@ import { Checkbox } from '@base-ui-components/solid/checkbox';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 import { CheckboxRootContext } from '../root/CheckboxRootContext';
 
 const testContext = () => ({
@@ -28,16 +27,12 @@ describe('<Checkbox.Indicator />', () => {
 
   describeConformance(Checkbox.Indicator, () => ({
     refInstanceof: window.HTMLSpanElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <CheckboxRootContext.Provider value={testContext}>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </CheckboxRootContext.Provider>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) =>
+      render(() => (
+        <CheckboxRootContext.Provider value={testContext}>
+          {node(props)}
+        </CheckboxRootContext.Provider>
+      )),
   }));
 
   it('should not render indicator by default', async () => {
@@ -176,7 +171,7 @@ describe('<Checkbox.Indicator />', () => {
       );
     }
 
-    const { user } = await render(<Test />);
+    const { user } = render(() => <Test />);
     expect(screen.getByTestId('indicator')).not.to.equal(null);
 
     const closeButton = screen.getByText('Close');
