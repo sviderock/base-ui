@@ -1,5 +1,5 @@
 'use client';
-import { batch, createMemo, onMount } from 'solid-js';
+import { batch, createMemo } from 'solid-js';
 import { PARENT_CHECKBOX } from '../checkbox/root/CheckboxRoot';
 import { useFieldControlValidation } from '../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../field/root/FieldRoot';

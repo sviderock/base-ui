@@ -4,7 +4,7 @@ import { CheckboxGroup } from '@base-ui-components/solid/checkbox-group';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { createEffect, createSignal } from 'solid-js';
+import { createSignal } from 'solid-js';
 
 describe('useCheckboxGroupParent', () => {
   const { render } = createRenderer();
