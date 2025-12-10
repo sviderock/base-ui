@@ -4,7 +4,6 @@ import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { createSignal } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 
 const PANEL_CONTENT = 'This is panel content';
 
@@ -13,16 +12,8 @@ describe('<Collapsible.Panel />', () => {
 
   describeConformance(Collapsible.Panel, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Collapsible.Root defaultOpen>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Collapsible.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) =>
+      render(() => <Collapsible.Root defaultOpen>{node(props)}</Collapsible.Root>),
   }));
 
   describe('prop: keepMounted', () => {
