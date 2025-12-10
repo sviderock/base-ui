@@ -4,25 +4,18 @@ import { expect } from 'chai';
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Dialog.Popup />', () => {
   const { render } = createRenderer();
 
   describeConformance(Dialog.Popup, () => ({
     refInstanceof: window.HTMLDivElement,
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Dialog.Root open modal={false}>
-            <Dialog.Portal>
-              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-            </Dialog.Portal>
-          </Dialog.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) =>
+      render(() => (
+        <Dialog.Root open modal={false}>
+          <Dialog.Portal>{node(props)}</Dialog.Portal>
+        </Dialog.Root>
+      )),
   }));
 
   describe('prop: keepMounted', () => {

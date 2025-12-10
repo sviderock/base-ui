@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, onCleanup } from 'solid-js';
+import { onMount } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
@@ -14,18 +14,20 @@ import { useDialogRootContext } from '../root/DialogRootContext';
  */
 export function DialogDescription(componentProps: DialogDescription.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['id']);
-  const { setDescriptionElementId } = useDialogRootContext();
+  const { setCodependentRefs } = useDialogRootContext();
 
   const id = useBaseUiId(() => local.id);
 
-  createEffect(() => {
-    setDescriptionElementId(id);
-    onCleanup(() => {
-      setDescriptionElementId(() => undefined);
-    });
+  let ref: HTMLElement;
+
+  onMount(() => {
+    setCodependentRefs('description', { explicitId: id, ref: () => ref, id: () => local.id });
   });
 
   const element = useRenderElement('p', componentProps, {
+    ref: (el) => {
+      ref = el;
+    },
     props: [() => ({ id: id() }), elementProps],
   });
 

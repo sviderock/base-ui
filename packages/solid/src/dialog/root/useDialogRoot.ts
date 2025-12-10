@@ -1,12 +1,15 @@
 'use client';
 import {
+  batch,
   createEffect,
   createMemo,
   createSignal,
+  on,
   onCleanup,
   onMount,
   type Accessor,
 } from 'solid-js';
+import { createStore, type SetStoreFunction, type Store } from 'solid-js/store';
 import {
   FloatingRootContext,
   useClick,
@@ -17,7 +20,12 @@ import {
   type OpenChangeReason as FloatingUIOpenChangeReason,
 } from '../../floating-ui-solid';
 import { getTarget } from '../../floating-ui-solid/utils';
-import { access, createAccessors, type MaybeAccessor } from '../../solid-helpers';
+import {
+  access,
+  createAccessors,
+  type CodepenedentRefs,
+  type MaybeAccessor,
+} from '../../solid-helpers';
 import {
   translateOpenChangeReason,
   type BaseOpenChangeReason,
@@ -52,8 +60,8 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
     internalBackdropRef: null,
   };
 
-  const { titleElementId, descriptionElementId, setTitleElementId, setDescriptionElementId } =
-    createAccessors(['titleElementId', 'descriptionElementId']);
+  const [titleElementId, setTitleElementId] = createSignal<string | undefined>();
+  const [descriptionElementId, setDescriptionElementId] = createSignal<string | undefined>();
   const [triggerElement, setTriggerElement] = createSignal<Element | null>(null);
   const [popupElement, setPopupElement] = createSignal<HTMLElement | null>(null);
 
@@ -171,6 +179,27 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
 
   const dialogTriggerProps = createMemo(() => getReferenceProps(triggerProps));
 
+  const [codependentRefs, setCodependentRefs] = createStore<
+    useDialogRoot.ReturnValue['codependentRefs']
+  >({});
+
+  createEffect(
+    on([() => codependentRefs.title, () => codependentRefs.description], ([title, description]) => {
+      batch(() => {
+        if (title) {
+          setTitleElementId(title.explicitId());
+        }
+        if (description) {
+          setDescriptionElementId(description.explicitId());
+        }
+      });
+      onCleanup(() => {
+        setTitleElementId(undefined);
+        setDescriptionElementId(undefined);
+      });
+    }),
+  );
+
   return {
     modal,
     setOpen,
@@ -191,6 +220,8 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
     setPopupElement,
     refs,
     floatingRootContext: context,
+    codependentRefs,
+    setCodependentRefs,
   } satisfies useDialogRoot.ReturnValue;
 }
 
@@ -355,6 +386,14 @@ export namespace useDialogRoot {
      * The Floating UI root context.
      */
     floatingRootContext: FloatingRootContext;
+    /**
+     * Codependent refs.
+     */
+    codependentRefs: Store<CodepenedentRefs<['title', 'description']>>;
+    /**
+     * Callback to set the codependent refs.
+     */
+    setCodependentRefs: SetStoreFunction<CodepenedentRefs<['title', 'description']>>;
   }
 
   export interface Actions {

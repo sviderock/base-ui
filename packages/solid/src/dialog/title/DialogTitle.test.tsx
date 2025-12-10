@@ -1,25 +1,18 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { Dialog } from '@base-ui-components/solid/dialog';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Dialog.Title />', () => {
   const { render } = createRenderer();
 
   describeConformance(Dialog.Title, () => ({
     refInstanceof: window.HTMLHeadingElement,
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Dialog.Root open modal={false}>
-            <Dialog.Portal>
-              <Dialog.Popup>
-                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-              </Dialog.Popup>
-            </Dialog.Portal>
-          </Dialog.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) =>
+      render(() => (
+        <Dialog.Root open modal={false}>
+          <Dialog.Portal>
+            <Dialog.Popup>{node(props)}</Dialog.Popup>
+          </Dialog.Portal>
+        </Dialog.Root>
+      )),
   }));
 });

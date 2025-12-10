@@ -3,27 +3,20 @@ import { Dialog } from '@base-ui-components/solid/dialog';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Dialog.Close />', () => {
   const { render } = createRenderer();
 
   describeConformance(Dialog.Close, () => ({
     refInstanceof: window.HTMLButtonElement,
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Dialog.Root open modal={false}>
-            <Dialog.Portal>
-              <Dialog.Popup>
-                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-              </Dialog.Popup>
-            </Dialog.Portal>
-          </Dialog.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) =>
+      render(() => (
+        <Dialog.Root open modal={false}>
+          <Dialog.Portal>
+            <Dialog.Popup>{node(props)}</Dialog.Popup>
+          </Dialog.Portal>
+        </Dialog.Root>
+      )),
   }));
 
   describe('prop: disabled', () => {
