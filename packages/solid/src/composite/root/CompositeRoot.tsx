@@ -47,7 +47,7 @@ export function CompositeRoot<Metadata extends {}>(componentProps: CompositeRoot
   const element = useRenderElement('div', componentProps, {
     state: () => COMPOSITE_ROOT_STATE,
     ref: compositeRoot.setRootRef,
-    props: [compositeRoot.props, elementProps],
+    props: [compositeRoot.props, elementProps, { class: 'COMOPOSITE_ROOT_CLASS' }],
   });
 
   return (

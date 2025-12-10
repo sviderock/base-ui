@@ -40,11 +40,10 @@ export function testPropForwarding(
       };
 
       render(element, {
-        render: (props) => ({
-          component: Element,
-          ...props,
-          'data-testid': 'custom-root',
-        }),
+        render: (props) => (
+          console.log({ props, otherProps }),
+          (<Dynamic component={Element} {...props} data-testid="custom-root" />)
+        ),
         ...otherProps,
       });
 
@@ -88,13 +87,12 @@ export function testPropForwarding(
     it('forwards the custom `style` attribute defined on the render function', () => {
       render(element, {
         render: (props) => (
-          console.log(props),
-          {
-            component: Element,
-            ...props,
-            style: { color: 'green' },
-            'data-testid': 'custom-root',
-          }
+          <Dynamic
+            component={Element}
+            {...props}
+            style={{ color: 'green' }}
+            data-testid="custom-root"
+          />
         ),
       });
 

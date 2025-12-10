@@ -1,5 +1,5 @@
 'use client';
-import { batch, createMemo, createSignal, onCleanup, onMount, type ParentProps } from 'solid-js';
+import { createMemo, createSignal, onCleanup, onMount, type ParentProps } from 'solid-js';
 import { CompositeRoot } from '../composite/root/CompositeRoot';
 import {
   FloatingNode,
@@ -74,6 +74,7 @@ export function Menubar(props: Menubar.Props) {
       <FloatingTree>
         <MenubarContent>
           <CompositeRoot
+            class="MENUBAR_CLASS"
             render={element}
             orientation={orientation()}
             loop={loop()}

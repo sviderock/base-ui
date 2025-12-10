@@ -1,5 +1,4 @@
 'use client';
-import { batch } from 'solid-js';
 import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useRenderElement } from '../../utils/useRenderElementV2';

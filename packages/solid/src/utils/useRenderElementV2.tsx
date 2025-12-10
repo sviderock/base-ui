@@ -1,11 +1,8 @@
 import {
   children,
   createMemo,
-  createSignal,
-  Match,
   Show,
   splitProps,
-  Switch,
   type Accessor,
   type JSX,
   type ValidComponent,
@@ -16,7 +13,7 @@ import { access, type MaybeAccessor } from '../solid-helpers';
 import { EMPTY_OBJECT } from './constants';
 import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
 import { resolveClassName } from './resolveClassName';
-import type { BaseUIComponentProps, ComponentRenderFn, HTMLProps } from './types';
+import type { BaseUIComponentProps, HTMLProps } from './types';
 
 export type ComponentPropsToOmit<State extends Record<string, any>> =
   keyof RenderElement.ComponentProps<
@@ -38,7 +35,7 @@ export function useRenderElement<
 ) {
   const state = createMemo(() => params.state?.() ?? (EMPTY_OBJECT as State));
   const enabled = createMemo(() => access(params.enabled) ?? true);
-  const safeChildren = childrenLazy(componentProps, params);
+  const safeChildren = childrenLazy(() => componentProps.children ?? params.children);
 
   const styleHooks = createMemo<Record<string, string> | undefined>(() => {
     if (params.disableStyleHooks !== true) {
@@ -49,10 +46,12 @@ export function useRenderElement<
     return undefined;
   });
 
-  const outProps = createMemo<Record<string, unknown>>(() => {
-    const mergedParams = Array.isArray(params.props)
-      ? mergePropsN(params.props)
-      : access(params.props);
+  const outProps = (renderFnProps?: HTMLProps) => {
+    const mergedParams = mergeProps(
+      renderFnProps,
+      typeof componentProps.render === 'object' ? (componentProps.render as object) : {},
+      Array.isArray(params.props) ? mergePropsN(params.props) : access(params.props),
+    );
 
     if (mergedParams === undefined) {
       return EMPTY_OBJECT;
@@ -61,40 +60,47 @@ export function useRenderElement<
     const [, rest] = splitProps(mergedParams, ['children']);
     return mergeProps(styleHooks(), rest, {
       class: resolveClassName(componentProps.class, state),
+      ref: (el: any) => {
+        if (typeof componentProps.ref === 'function') {
+          componentProps.ref(el);
+        } else {
+          componentProps.ref = el;
+        }
+
+        if (
+          componentProps.render &&
+          typeof componentProps.render === 'object' &&
+          'ref' in componentProps.render
+        ) {
+          if (typeof componentProps.render.ref === 'function') {
+            componentProps.render.ref(el);
+          } else {
+            componentProps.render.ref = el;
+          }
+        }
+
+        if (typeof params.ref === 'function') {
+          params.ref(el);
+        } else {
+          params.ref = el;
+        }
+
+        if (renderFnProps) {
+          if (typeof renderFnProps.ref === 'function') {
+            renderFnProps.ref(el);
+          } else {
+            renderFnProps.ref = el;
+          }
+        }
+      },
     });
-  });
-
-  function handleRef(el: any) {
-    if (typeof componentProps.ref === 'function') {
-      componentProps.ref(el);
-    } else {
-      componentProps.ref = el;
-    }
-
-    if (
-      componentProps.render &&
-      typeof componentProps.render === 'object' &&
-      'ref' in componentProps.render
-    ) {
-      if (typeof componentProps.render.ref === 'function') {
-        componentProps.render.ref(el);
-      } else {
-        componentProps.render.ref = el;
-      }
-    }
-
-    if (typeof params.ref === 'function') {
-      params.ref(el);
-    } else {
-      params.ref = el;
-    }
-  }
+  };
 
   return (renderFnProps?: HTMLProps) => {
     return (
       <Show when={enabled()}>
         <Show
-          when={typeof componentProps.render === 'function'}
+          when={typeof componentProps.render === 'function' && componentProps.render}
           fallback={
             <Dynamic
               component={
@@ -102,43 +108,13 @@ export function useRenderElement<
               }
               {...(element === 'button' ? { type: 'button' } : {})}
               {...(element === 'img' ? { alt: '' } : {})}
-              {...mergeProps(
-                renderFnProps,
-                typeof componentProps.render === 'object' ? (componentProps.render as object) : {},
-                outProps(),
-              )}
-              ref={handleRef}
+              {...outProps(renderFnProps)}
             >
               {safeChildren()}
             </Dynamic>
           }
         >
-          {(_) => {
-            const renderedResult = (componentProps.render as Function)(
-              renderFnProps ? mergeProps(renderFnProps, outProps()) : outProps(),
-              state(),
-            );
-            if (typeof renderedResult === 'function') {
-              return renderedResult;
-            }
-
-            return (
-              <Dynamic
-                {...renderedResult}
-                ref={(el: any) => {
-                  handleRef(el);
-
-                  if ('ref' in renderedResult) {
-                    if (typeof renderedResult.ref === 'function') {
-                      renderedResult.ref(el);
-                    } else {
-                      renderedResult.ref = el;
-                    }
-                  }
-                }}
-              />
-            );
-          }}
+          {(renderer) => renderer()(outProps(renderFnProps), state())}
         </Show>
       </Show>
     );
@@ -146,12 +122,12 @@ export function useRenderElement<
 }
 
 // https://github.com/solidjs/solid/issues/2478#issuecomment-2888503241
-function childrenLazy(props: any, params?: any) {
+function childrenLazy(resolver: () => JSX.Element) {
   const _s = Symbol();
   let x: any = _s;
   return () => {
     if (x === _s) {
-      x = children(() => props.children ?? params.children);
+      x = children(resolver);
     }
     return x;
   };
@@ -231,7 +207,7 @@ export namespace RenderElement {
     render?:
       | keyof JSX.IntrinsicElements
       | DynamicProps<RenderFnElement>
-      | ComponentRenderFn<Record<string, unknown>, State, RenderFnElement>
+      // | ComponentRenderFn<Record<string, unknown>, State, RenderFnElement>
       | ((props: Record<string, unknown>, state: State) => JSX.Element)
       | null;
     /**

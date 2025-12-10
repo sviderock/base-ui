@@ -70,7 +70,7 @@ export function FieldControl(componentProps: FieldControl.Props) {
 
   createEffect(() => {
     const hasExternalValue = valueProp() != null;
-    if (refs.inputRef.value || (hasExternalValue && valueProp() !== '')) {
+    if (refs.inputRef?.value || (hasExternalValue && valueProp() !== '')) {
       setFilled(true);
     } else if (hasExternalValue && valueProp() === '') {
       setFilled(false);
@@ -94,7 +94,7 @@ export function FieldControl(componentProps: FieldControl.Props) {
     name,
     commitValidation,
     value,
-    getValue: () => refs.inputRef.value,
+    getValue: () => refs.inputRef?.value,
     controlRef: () => refs.inputRef,
   });
 

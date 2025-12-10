@@ -1,6 +1,6 @@
 'use client';
 import { getParentNode, isHTMLElement, isLastTraversableNode } from '@floating-ui/utils/dom';
-import { batch, createEffect, createMemo, Show, type ComponentProps, type JSX } from 'solid-js';
+import { batch, createEffect, createMemo, Show, type JSX } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import { useFloatingTree } from '../../floating-ui-solid/index';
 import { contains } from '../../floating-ui-solid/utils';
@@ -139,7 +139,7 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
       });
     },
     customStyleHookMapping: pressableTriggerOpenStateMapping,
-    props: [() => rootTriggerProps(), elementProps, getTriggerProps],
+    props: [rootTriggerProps, elementProps, getTriggerProps],
   });
 
   return (
