@@ -13,30 +13,30 @@ import { useMeterRootContext } from '../root/MeterRootContext';
  * Documentation: [Base UI Meter](https://base-ui.com/react/components/meter)
  */
 export function MeterValue(componentProps: MeterValue.Props) {
-  const [renderProps, , elementProps] = splitComponentProps(componentProps, []);
+  const [, , elementProps] = splitComponentProps(componentProps, []);
 
   const { value, formattedValue } = useMeterRootContext();
-
-  const valueContent = (
-    <Show
-      when={typeof renderProps.children === 'function'}
-      fallback={(formattedValue() || value()) ?? ''}
-    >
-      {renderProps.children?.(formattedValue(), value())}
-    </Show>
-  );
 
   const element = useRenderElement(
     'span',
     {
-      class: renderProps.class,
-      render: renderProps.render,
-      children: valueContent,
-      ref: componentProps.ref,
+      ...componentProps,
+      ref: (el) => {
+        // eslint-disable-next-line solid/reactivity
+        componentProps.ref = el;
+      },
+      get children() {
+        return (
+          <Show
+            when={typeof componentProps.children === 'function'}
+            fallback={(formattedValue() || value()) ?? ''}
+          >
+            {componentProps.children?.(formattedValue(), value())}
+          </Show>
+        );
+      },
     },
-    {
-      props: [{ 'aria-hidden': true }, elementProps],
-    },
+    { props: [{ 'aria-hidden': true }, elementProps] },
   );
 
   return <>{element()}</>;

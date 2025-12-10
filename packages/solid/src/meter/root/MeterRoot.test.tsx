@@ -8,11 +8,8 @@ describe('<Meter.Root />', () => {
   const { render } = createRenderer();
 
   describeConformance(
-    (p: any) => <Meter.Root value={50} {...p} ref={p.ref} />,
-    () => ({
-      render,
-      refInstanceof: window.HTMLDivElement,
-    }),
+    (props) => <Meter.Root value={50} {...props} ref={props.ref} />,
+    () => ({ render, refInstanceof: window.HTMLDivElement }),
   );
 
   describe('ARIA attributes', () => {

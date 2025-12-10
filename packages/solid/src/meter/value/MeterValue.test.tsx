@@ -3,22 +3,12 @@ import { Meter } from '@base-ui-components/solid/meter';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Meter.Value />', () => {
   const { render } = createRenderer();
 
   describeConformance(Meter.Value, () => ({
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Meter.Root value={30}>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Meter.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) => render(() => <Meter.Root value={30}>{node(props)}</Meter.Root>),
     refInstanceof: window.HTMLSpanElement,
   }));
 
@@ -65,6 +55,7 @@ describe('<Meter.Value />', () => {
         </Meter.Root>
       ));
 
+      console.log(renderSpy.lastCall.args);
       expect(renderSpy.lastCall.args[0]).to.deep.equal(formatValue(30));
       expect(renderSpy.lastCall.args[1]).to.deep.equal(30);
     });
