@@ -2,23 +2,13 @@ import { createRenderer, describeConformance } from '#test-utils';
 import { Fieldset } from '@base-ui-components/solid/fieldset';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Fieldset.Legend />', () => {
   const { render } = createRenderer();
 
   describeConformance(Fieldset.Legend, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Fieldset.Root>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Fieldset.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) => render(() => <Fieldset.Root>{node(props)}</Fieldset.Root>),
   }));
 
   it('should set aria-labelledby on the fieldset automatically', () => {
