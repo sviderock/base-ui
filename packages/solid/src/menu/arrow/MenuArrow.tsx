@@ -4,7 +4,7 @@ import { splitComponentProps } from '../../solid-helpers';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useMenuPositionerContext } from '../positioner/MenuPositionerContext';
 import { useMenuRootContext } from '../root/MenuRootContext';
 
@@ -27,25 +27,14 @@ export function MenuArrow(componentProps: MenuArrow.Props) {
     uncentered: arrowUncentered(),
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        refs.setArrowRef(el);
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-      }}
-      params={{
-        state: state(),
-        customStyleHookMapping: popupStateMapping,
-        props: [{ style: arrowStyles(), 'aria-hidden': true }, elementProps],
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: refs.setArrowRef,
+    customStyleHookMapping: popupStateMapping,
+    props: [() => ({ style: arrowStyles(), 'aria-hidden': true }), elementProps],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace MenuArrow {

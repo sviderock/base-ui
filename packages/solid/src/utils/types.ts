@@ -1,4 +1,5 @@
-import type { Accessor, ComponentProps, JSX } from 'solid-js';
+import type { Accessor, ComponentProps, JSX, ValidComponent } from 'solid-js';
+import type { DynamicProps } from 'solid-js/web';
 
 export type HTMLProps<T = any> = JSX.HTMLAttributes<T>;
 
@@ -29,10 +30,10 @@ export type WithBaseUIEvent<T> = {
  * @template Props Props to be spread on the rendered element.
  * @template State Component's internal state.
  */
-export type ComponentRenderFn<Props, State> = (
-  props: Accessor<Props>,
-  state: Accessor<State>,
-) => JSX.Element;
+export type ComponentRenderFn<Props, State, T extends ValidComponent> = (
+  props: Props,
+  state: State,
+) => DynamicProps<T>;
 
 /**
  * Props shared by all Base UI components.
@@ -43,7 +44,7 @@ export type ComponentRenderFn<Props, State> = (
 export type BaseUIComponentProps<
   ElementType extends keyof JSX.IntrinsicElements,
   State,
-  RenderFunctionProps = HTMLProps,
+  RenderFnElement extends ValidComponent = ValidComponent,
 > = WithBaseUIEvent<ComponentProps<ElementType>> & {
   /**
    * CSS class applied to the element, or a function that
@@ -56,7 +57,11 @@ export type BaseUIComponentProps<
    *
    * Accepts a `ReactElement` or a function that returns the element to render.
    */
-  render?: ComponentRenderFn<RenderFunctionProps, State> | null;
+  render?:
+    | keyof JSX.IntrinsicElements
+    | DynamicProps<RenderFnElement>
+    | ComponentRenderFn<Record<string, unknown>, State, RenderFnElement>
+    | null;
 };
 
 /**

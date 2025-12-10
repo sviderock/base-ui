@@ -1,9 +1,9 @@
 'use client';
-import { createEffect, onCleanup } from 'solid-js';
+import { createRenderEffect, onCleanup } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { MeterRoot } from '../root/MeterRoot';
 import { useMeterRootContext } from '../root/MeterRootContext';
 
@@ -19,19 +19,18 @@ export function MeterLabel(componentProps: MeterLabel.Props) {
 
   const { setLabelId } = useMeterRootContext();
 
-  createEffect(() => {
+  createRenderEffect(() => {
     setLabelId(id());
-    onCleanup(() => setLabelId(undefined));
+  });
+  onCleanup(() => {
+    setLabelId(undefined);
   });
 
-  return (
-    <RenderElement
-      element="span"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{ props: [{ id: id() }, elementProps] }}
-    />
-  );
+  const element = useRenderElement('span', componentProps, {
+    props: [() => ({ id: id() }), elementProps],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace MeterLabel {

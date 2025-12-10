@@ -1,9 +1,9 @@
 'use client';
-import { batch, createEffect, createMemo, type Accessor, type JSX } from 'solid-js';
+import { batch, createMemo, type JSX } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useControlled } from '../../utils/useControlled';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { MenuRadioGroupContext } from './MenuRadioGroupContext';
 
 /**
@@ -46,24 +46,19 @@ export function MenuRadioGroup(componentProps: MenuRadioGroup.Props) {
     disabled,
   };
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: [
+      () => ({
+        role: 'group',
+        'aria-disabled': disabled() || undefined,
+      }),
+      elementProps,
+    ],
+  });
+
   return (
-    <MenuRadioGroupContext.Provider value={context}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={componentProps.ref}
-        params={{
-          state: state(),
-          props: [
-            {
-              role: 'group',
-              'aria-disabled': disabled() || undefined,
-            },
-            elementProps,
-          ],
-        }}
-      />
-    </MenuRadioGroupContext.Provider>
+    <MenuRadioGroupContext.Provider value={context}>{element()}</MenuRadioGroupContext.Provider>
   );
 }
 

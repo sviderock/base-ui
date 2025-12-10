@@ -1,19 +1,13 @@
 'use client';
-import { createMemo, createSignal } from 'solid-js';
+import { batch, createEffect, createMemo, createSignal, on, onCleanup } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { useFieldsetRootContext } from '../../fieldset/root/FieldsetRootContext';
 import { useFormContext } from '../../form/FormContext';
-import {
-  access,
-  createAccessors,
-  splitComponentProps,
-  type Args,
-  type MaybeAccessor,
-} from '../../solid-helpers';
+import { access, splitComponentProps, type Args, type MaybeAccessor } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useRenderElement } from '../../utils/useRenderElementV2';
 import { DEFAULT_VALIDITY_STATE, fieldValidityMapping } from '../utils/constants';
-import { FieldRootContext } from './FieldRootContext';
+import { FieldRootContext, type FieldRootChildRefs } from './FieldRootContext';
 
 /**
  * Groups all parts of the field.
@@ -44,11 +38,11 @@ export function FieldRoot(componentProps: FieldRoot.Props) {
 
   const disabled = () => disabledFieldset() || disabledProp();
 
-  const { controlId, setControlId, labelId, setLabelId } = createAccessors([
-    { key: 'controlId', initialValue: (): string | null | undefined => undefined },
-    'labelId',
-  ]);
+  const [controlId, setControlId] = createSignal<string | null | undefined>();
+  const [labelId, setLabelId] = createSignal<string | undefined>();
   const [messageIds, setMessageIds] = createSignal<string[]>([]);
+
+  const [childRefs, setChildRefs] = createStore<FieldRootChildRefs>({});
 
   const [touched, setTouched] = createSignal(false);
   const [dirty, setDirtyUnwrapped] = createSignal(false);
@@ -97,6 +91,8 @@ export function FieldRoot(componentProps: FieldRoot.Props) {
     setControlId,
     labelId,
     setLabelId,
+    childRefs,
+    setChildRefs,
     messageIds,
     setMessageIds,
     name,
@@ -117,6 +113,39 @@ export function FieldRoot(componentProps: FieldRoot.Props) {
     state,
     refs,
   };
+
+  createEffect(
+    on([() => childRefs.control, () => childRefs.label], ([control, label]) => {
+      batch(() => {
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        let controlId: string | null | undefined = undefined;
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        let labelId: string | undefined = undefined;
+
+        if (control) {
+          if (control.ref()?.closest('label') != null) {
+            controlId = control.id() ?? null;
+          } else {
+            controlId = control.explicitId();
+          }
+        }
+
+        if (label) {
+          if (controlId != null || label?.id() != null) {
+            labelId = label!.explicitId();
+          }
+        }
+
+        setControlId(controlId);
+        setLabelId(labelId);
+      });
+
+      onCleanup(() => {
+        setControlId(undefined);
+        setLabelId(undefined);
+      });
+    }),
+  );
 
   const element = useRenderElement('div', componentProps, {
     state,

@@ -1,7 +1,7 @@
 'use client';
-import { createEffect, onCleanup } from 'solid-js';
+import { batch, createEffect, createRenderEffect, onCleanup, onMount } from 'solid-js';
 import { getTarget } from '../../floating-ui-solid/utils';
-import { splitComponentProps } from '../../solid-helpers';
+import { access, splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useRenderElement } from '../../utils/useRenderElementV2';
@@ -17,23 +17,23 @@ import { fieldValidityMapping } from '../utils/constants';
  */
 export function FieldLabel(componentProps: FieldLabel.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['id']);
+  const idProp = () => access(local.id);
 
-  const { labelId, setLabelId, state, controlId } = useFieldRootContext(false);
+  const { labelId, state, controlId, setChildRefs } = useFieldRootContext(false);
 
-  const id = useBaseUiId(() => local.id);
+  const id = useBaseUiId(idProp);
   const htmlFor = () => controlId() ?? undefined;
+  let ref: HTMLElement;
 
-  createEffect(() => {
-    if (controlId() != null || local.id) {
-      setLabelId(id);
-      onCleanup(() => {
-        setLabelId(() => undefined);
-      });
-    }
+  onMount(() => {
+    setChildRefs('label', { explicitId: id, ref: () => ref, id: idProp });
   });
 
   const element = useRenderElement('label', componentProps, {
     state,
+    ref: (el) => {
+      ref = el;
+    },
     customStyleHookMapping: fieldValidityMapping,
     props: [
       () => ({

@@ -10,7 +10,7 @@ import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import { type BaseUIComponentProps } from '../../utils/types';
 import { InteractionType } from '../../utils/useEnhancedClickHandler';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { type TransitionStatus } from '../../utils/useTransitionStatus';
 import { useDialogRootContext } from '../root/DialogRootContext';
 import { DialogPopupCssVars } from './DialogPopupCssVars';
@@ -88,6 +88,25 @@ export function DialogPopup(componentProps: DialogPopup.Props) {
     nestedDialogOpen: nestedDialogOpen(),
   }));
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      refs.popupRef = el;
+      dialogPopupRef(el);
+    },
+    props: [
+      () => getPopupProps(),
+      popupProps,
+      () => ({
+        style: {
+          [DialogPopupCssVars.nestedDialogs]: nestedOpenDialogCount(),
+        },
+      }),
+      elementProps,
+    ],
+    customStyleHookMapping,
+  });
+
   return (
     <>
       {mounted() && modal() === true && (
@@ -107,33 +126,7 @@ export function DialogPopup(componentProps: DialogPopup.Props) {
         returnFocus={finalFocus()}
         modal={modal() !== false}
       >
-        <RenderElement
-          element="div"
-          componentProps={componentProps}
-          ref={(el) => {
-            refs.popupRef = el;
-            dialogPopupRef(el);
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-          }}
-          params={{
-            state: state(),
-            props: [
-              getPopupProps(),
-              popupProps(),
-              {
-                style: {
-                  [DialogPopupCssVars.nestedDialogs]: nestedOpenDialogCount(),
-                },
-              },
-              elementProps,
-            ],
-            customStyleHookMapping,
-          }}
-        />
+        {element()}
       </FloatingFocusManager>
     </>
   );

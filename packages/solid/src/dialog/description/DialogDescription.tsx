@@ -3,7 +3,7 @@ import { createEffect, onCleanup } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useDialogRootContext } from '../root/DialogRootContext';
 
 /**
@@ -25,14 +25,11 @@ export function DialogDescription(componentProps: DialogDescription.Props) {
     });
   });
 
-  return (
-    <RenderElement
-      element="p"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{ props: [{ id: id() }, elementProps] }}
-    />
-  );
+  const element = useRenderElement('p', componentProps, {
+    props: [() => ({ id: id() }), elementProps],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace DialogDescription {

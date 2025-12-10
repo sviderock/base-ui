@@ -6,7 +6,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../../solid-hel
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { REGULAR_ITEM, useMenuItem } from '../item/useMenuItem';
 import { useMenuRootContext } from '../root/MenuRootContext';
 import { itemMapping } from '../utils/styleHookMapping';
@@ -69,41 +69,30 @@ function InnerMenuCheckboxItem(componentProps: InnerMenuCheckboxItemProps) {
     disabled: () => disabled(),
   };
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: setItemRef,
+    customStyleHookMapping: itemMapping,
+    props: [
+      itemProps,
+      () => ({
+        role: 'menuitemcheckbox',
+        'aria-checked': checked(),
+        onClick: (event) => {
+          const nextChecked = !checked();
+          batch(() => {
+            setChecked(nextChecked);
+            local.onCheckedChange?.(nextChecked, event);
+          });
+        },
+      }),
+      elementProps,
+      getItemProps,
+    ],
+  });
+
   return (
-    <MenuCheckboxItemContext.Provider value={context}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={(el) => {
-          setItemRef(el);
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-        }}
-        params={{
-          state: state(),
-          customStyleHookMapping: itemMapping,
-          props: [
-            itemProps(),
-            {
-              role: 'menuitemcheckbox',
-              'aria-checked': checked(),
-              onClick: (event) => {
-                const nextChecked = !checked();
-                batch(() => {
-                  setChecked(nextChecked);
-                  local.onCheckedChange?.(nextChecked, event);
-                });
-              },
-            },
-            elementProps,
-            getItemProps,
-          ],
-        }}
-      />
-    </MenuCheckboxItemContext.Provider>
+    <MenuCheckboxItemContext.Provider value={context}>{element()}</MenuCheckboxItemContext.Provider>
   );
 }
 

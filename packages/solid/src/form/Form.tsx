@@ -8,7 +8,7 @@ import {
   type MaybeAccessor,
 } from '../solid-helpers';
 import type { BaseUIComponentProps } from '../utils/types';
-import { RenderElement } from '../utils/useRenderElement';
+import { useRenderElement } from '../utils/useRenderElementV2';
 import { FormContext } from './FormContext';
 
 const EMPTY = {};
@@ -71,37 +71,30 @@ export function Form(componentProps: Form.Props) {
     clearErrors,
   };
 
-  return (
-    <FormContext.Provider value={contextValue}>
-      <RenderElement
-        element="form"
-        componentProps={componentProps}
-        ref={componentProps.ref}
-        params={{
-          state: EMPTY,
-          props: [
-            {
-              noValidate: true,
-              onSubmit(event) {
-                // Async validation isn't supported to stop the submit event.
-                Object.values(formRef.fields).forEach((field) => field.validate());
+  const element = useRenderElement('form', componentProps, {
+    state: () => EMPTY,
+    props: [
+      {
+        noValidate: true,
+        onSubmit(event) {
+          // Async validation isn't supported to stop the submit event.
+          Object.values(formRef.fields).forEach((field) => field.validate());
 
-                if (invalidFields().length) {
-                  event.preventDefault();
-                  const controlRef = access(invalidFields()[0].controlRef);
-                  focusControl(controlRef);
-                } else {
-                  submitted = true;
-                  callEventHandler(local.onSubmit, event);
-                }
-              },
-            },
-            elementProps,
-          ],
-        }}
-      />
-    </FormContext.Provider>
-  );
+          if (invalidFields().length) {
+            event.preventDefault();
+            const controlRef = access(invalidFields()[0].controlRef);
+            focusControl(controlRef);
+          } else {
+            submitted = true;
+            callEventHandler(local.onSubmit, event);
+          }
+        },
+      },
+      elementProps,
+    ],
+  });
+
+  return <FormContext.Provider value={contextValue}>{element()}</FormContext.Provider>;
 }
 
 export namespace Form {

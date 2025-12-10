@@ -1,5 +1,15 @@
 'use client';
-import { batch, createEffect, createMemo, createSignal, on, onCleanup, Show } from 'solid-js';
+import {
+  batch,
+  createEffect,
+  createMemo,
+  createRenderEffect,
+  createSignal,
+  on,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
 import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
@@ -73,6 +83,7 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
     invalid,
     name: fieldName,
     state: fieldState,
+    setChildRefs,
   } = useFieldRootContext();
 
   const disabled = () => fieldDisabled() || disabledProp();
@@ -87,11 +98,8 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
 
   const id = useBaseUiId(idProp);
 
-  createEffect(() => {
-    setControlId(id);
-    onCleanup(() => {
-      setControlId(() => undefined);
-    });
+  onMount(() => {
+    setChildRefs('control', { explicitId: id, ref: () => refs.inputRef, id: () => id });
   });
 
   const [valueUnwrapped, setValueUnwrapped] = useControlled<number | null>({

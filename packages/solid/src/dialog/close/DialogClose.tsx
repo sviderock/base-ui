@@ -2,7 +2,7 @@
 import { createMemo } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useDialogRootContext } from '../root/DialogRootContext';
 import { useDialogClose } from './useDialogClose';
 
@@ -29,24 +29,13 @@ export function DialogClose(componentProps: DialogClose.Props) {
     disabled: disabled(),
   }));
 
-  return (
-    <RenderElement
-      element="button"
-      componentProps={componentProps}
-      ref={(el) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-        dialogCloseRef(el);
-      }}
-      params={{
-        state: state(),
-        props: [elementProps, getRootProps],
-      }}
-    />
-  );
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: dialogCloseRef,
+    props: [elementProps, getRootProps],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace DialogClose {

@@ -40,7 +40,11 @@ export function testPropForwarding(
       };
 
       render(element, {
-        render: (props) => <Dynamic component={Element} {...props} data-testid="custom-root" />,
+        render: (props) => ({
+          component: Element,
+          ...props,
+          'data-testid': 'custom-root',
+        }),
         ...otherProps,
       });
 
@@ -84,15 +88,17 @@ export function testPropForwarding(
     it('forwards the custom `style` attribute defined on the render function', () => {
       render(element, {
         render: (props) => (
-          <Dynamic
-            component={Element}
-            {...props}
-            style={{ color: 'green' }}
-            data-testid="custom-root"
-          />
+          console.log(props),
+          {
+            component: Element,
+            ...props,
+            style: { color: 'green' },
+            'data-testid': 'custom-root',
+          }
         ),
       });
 
+      screen.debug();
       const customRoot = screen.getByTestId('custom-root');
       expect(customRoot).to.have.attribute('style');
       expect(customRoot.getAttribute('style')).to.contain('color: green');

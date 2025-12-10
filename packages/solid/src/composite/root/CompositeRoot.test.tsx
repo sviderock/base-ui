@@ -492,24 +492,30 @@ describe('Composite', () => {
                 data-testid="1"
                 // TS doesn't like the disabled attribute on non-interactive elements
                 // but testing library refuses to focus disabled interactive elements
-                render={(props) => (
-                  // @ts-ignore
-                  <span data-disabled aria-disabled="true" disabled {...props()} />
-                )}
+                render={{
+                  component: 'span',
+                  'data-disabled': true,
+                  'aria-disabled': true,
+                  disabled: true,
+                }}
               />
               <CompositeItem
                 data-testid="2"
-                render={(props) => (
-                  // @ts-ignore
-                  <span data-disabled aria-disabled="true" disabled {...props()} />
-                )}
+                render={{
+                  component: 'span',
+                  'data-disabled': true,
+                  'aria-disabled': true,
+                  disabled: true,
+                }}
               />
               <CompositeItem
                 data-testid="3"
-                render={(props) => (
-                  // @ts-ignore
-                  <span data-disabled aria-disabled="true" disabled {...props()} />
-                )}
+                render={{
+                  component: 'span',
+                  'data-disabled': true,
+                  'aria-disabled': true,
+                  disabled: true,
+                }}
               />
             </CompositeRoot>
           );
@@ -601,20 +607,30 @@ describe('Composite', () => {
           >
             <CompositeItem
               data-testid="1"
-              // TS doesn't like the disabled attribute on non-interactive elements
-              // but testing library refuses to focus disabled interactive elements
-              // @ts-ignore
-              render={(props) => <span data-disabled aria-disabled="true" disabled {...props()} />}
+              render={{
+                component: 'span',
+                'data-disabled': true,
+                'aria-disabled': true,
+                disabled: true,
+              }}
             />
             <CompositeItem
               data-testid="2"
-              // @ts-ignore
-              render={(props) => <span data-disabled aria-disabled="true" disabled {...props()} />}
+              render={{
+                component: 'span',
+                'data-disabled': true,
+                'aria-disabled': true,
+                disabled: true,
+              }}
             />
             <CompositeItem
               data-testid="3"
-              // @ts-ignore
-              render={(props) => <span data-disabled aria-disabled="true" disabled {...props()} />}
+              render={{
+                component: 'span',
+                'data-disabled': true,
+                'aria-disabled': true,
+                disabled: true,
+              }}
             />
           </CompositeRoot>
         );

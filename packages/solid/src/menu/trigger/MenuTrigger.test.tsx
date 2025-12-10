@@ -79,7 +79,7 @@ describe('<Menu.Trigger />', () => {
     [
       () => <Menu.Trigger>Open</Menu.Trigger>,
       () => (
-        <Menu.Trigger render={(props) => <span {...props()} />} nativeButton={false}>
+        <Menu.Trigger render="span" nativeButton={false}>
           Open
         </Menu.Trigger>
       ),

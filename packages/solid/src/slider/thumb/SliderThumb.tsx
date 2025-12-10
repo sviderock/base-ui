@@ -3,6 +3,7 @@ import {
   batch,
   createEffect,
   createMemo,
+  createRenderEffect,
   onCleanup,
   Show,
   type Accessor,
@@ -134,12 +135,12 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
 
   let thumbRef = null as HTMLElement | null | undefined;
 
-  createEffect(() => {
-    setControlId(inputId);
+  createRenderEffect(() => {
+    setControlId(inputId());
+  });
 
-    onCleanup(() => {
-      setControlId(() => undefined);
-    });
+  onCleanup(() => {
+    setControlId(undefined);
   });
 
   const thumbMetadata = { inputId };

@@ -3,7 +3,7 @@ import { createEffect, createMemo, onCleanup } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useFieldsetRootContext } from '../root/FieldsetRootContext';
 
 /**
@@ -30,17 +30,12 @@ export function FieldsetLegend(componentProps: FieldsetLegend.Props) {
     disabled: disabled() ?? false,
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        state: state(),
-        props: [{ id: id() }, elementProps],
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: [() => ({ id: id() }), elementProps],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace FieldsetLegend {

@@ -65,28 +65,28 @@ describe('<Menu.RadioItem />', () => {
               <Menu.RadioGroup>
                 <Menu.RadioItem
                   value={1}
-                  render={(props) => <LoggingRoot {...props()} renderSpy={renderItem1Spy} />}
+                  render={{ component: LoggingRoot, renderSpy: renderItem1Spy }}
                   id="item-1"
                 >
                   1
                 </Menu.RadioItem>
                 <Menu.RadioItem
                   value={2}
-                  render={(props) => <LoggingRoot {...props()} renderSpy={renderItem2Spy} />}
+                  render={{ component: LoggingRoot, renderSpy: renderItem2Spy }}
                   id="item-2"
                 >
                   2
                 </Menu.RadioItem>
                 <Menu.RadioItem
                   value={3}
-                  render={(props) => <LoggingRoot {...props()} renderSpy={renderItem3Spy} />}
+                  render={{ component: LoggingRoot, renderSpy: renderItem3Spy }}
                   id="item-3"
                 >
                   3
                 </Menu.RadioItem>
                 <Menu.RadioItem
                   value={4}
-                  render={(props) => <LoggingRoot {...props()} renderSpy={renderItem4Spy} />}
+                  render={{ component: LoggingRoot, renderSpy: renderItem4Spy }}
                   id="item-4"
                 >
                   4

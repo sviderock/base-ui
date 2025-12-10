@@ -83,10 +83,10 @@ export function TabsList(componentProps: TabsList.Props) {
             element="div"
             componentProps={componentProps}
             ref={(el) => {
-              if (p() && typeof p().ref === 'function') {
-                (p().ref as Function)(el);
+              if (p && typeof p.ref === 'function') {
+                (p.ref as Function)(el);
               } else {
-                p().ref = el;
+                p.ref = el;
               }
               refs.tabsListRef = el;
               if (typeof componentProps.ref === 'function') {
@@ -99,7 +99,7 @@ export function TabsList(componentProps: TabsList.Props) {
               state: state(),
               customStyleHookMapping: tabsStyleHookMapping,
               props: [
-                p(),
+                p,
                 {
                   'aria-orientation': orientation() === 'vertical' ? 'vertical' : undefined,
                   role: 'tablist',

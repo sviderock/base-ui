@@ -13,7 +13,7 @@ import { useScrollLock } from '../utils';
 import { BaseUIComponentProps } from '../utils/types';
 import { AnimationFrame } from '../utils/useAnimationFrame';
 import { useBaseUiId } from '../utils/useBaseUiId';
-import { RenderElement } from '../utils/useRenderElement';
+import { useRenderElement } from '../utils/useRenderElementV2';
 import { MenubarContext, useMenubarContext } from './MenubarContext';
 
 /**
@@ -60,37 +60,21 @@ export function Menubar(props: Menubar.Props) {
     rootId: id,
   };
 
+  const element = useRenderElement('div', props, {
+    state,
+    ref: (el) => {
+      setContentElement(el);
+      contentRef = el;
+    },
+    props: [() => ({ role: 'menubar', id: id() }), otherProps],
+  });
+
   return (
     <MenubarContext.Provider value={context}>
       <FloatingTree>
         <MenubarContent>
           <CompositeRoot
-            render={(p) => (
-              <RenderElement
-                element="div"
-                componentProps={props}
-                ref={(el) => {
-                  batch(() => {
-                    setContentElement(el);
-                    contentRef = el;
-                    if (typeof props.ref === 'function') {
-                      props.ref(el);
-                    } else {
-                      props.ref = el;
-                    }
-                    if (typeof p()?.ref === 'function') {
-                      (p().ref as Function)(el);
-                    } else {
-                      p().ref = el;
-                    }
-                  });
-                }}
-                params={{
-                  state: state(),
-                  props: [p(), { role: 'menubar', id: id() }, otherProps],
-                }}
-              />
-            )}
+            render={element}
             orientation={orientation()}
             loop={loop()}
             highlightItemOnHover={hasSubmenuOpen()}

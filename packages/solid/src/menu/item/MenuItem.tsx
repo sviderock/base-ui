@@ -5,7 +5,7 @@ import { FloatingEvents, useFloatingTree } from '../../floating-ui-solid';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useMenuRootContext } from '../root/MenuRootContext';
 import { REGULAR_ITEM, useMenuItem } from './useMenuItem';
 
@@ -47,24 +47,13 @@ function InnerMenuItem(componentProps: InnerMenuItemProps) {
     highlighted: highlighted(),
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        setItemRef(el);
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-      }}
-      params={{
-        state: state(),
-        props: [itemProps(), elementProps, getItemProps],
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: setItemRef,
+    props: [itemProps, elementProps, getItemProps],
+  });
+
+  return <>{element()}</>;
 }
 
 /**

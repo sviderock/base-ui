@@ -34,6 +34,7 @@ describe('<Accordion.Root />', () => {
       const trigger = screen.getByRole('button');
       const panel = screen.queryByText(PANEL_CONTENT_1) as HTMLElement;
 
+      screen.debug();
       expect(root).to.have.attribute('role', 'region');
       expect(trigger).to.have.attribute('aria-controls');
       expect(panel.getAttribute('id')).to.equal(trigger.getAttribute('aria-controls'));

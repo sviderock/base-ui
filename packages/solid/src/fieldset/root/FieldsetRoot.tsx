@@ -2,7 +2,7 @@
 import { createMemo, createSignal } from 'solid-js';
 import { access, splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { FieldsetRootContext } from './FieldsetRootContext';
 
 /**
@@ -27,23 +27,18 @@ export function FieldsetRoot(componentProps: FieldsetRoot.Props) {
     disabled,
   };
 
+  const element = useRenderElement('fieldset', componentProps, {
+    state,
+    props: [
+      () => ({
+        'aria-labelledby': legendId(),
+      }),
+      elementProps,
+    ],
+  });
+
   return (
-    <FieldsetRootContext.Provider value={contextValue}>
-      <RenderElement
-        element="fieldset"
-        componentProps={componentProps}
-        ref={componentProps.ref}
-        params={{
-          state: state(),
-          props: [
-            {
-              'aria-labelledby': legendId(),
-            },
-            elementProps,
-          ],
-        }}
-      />
-    </FieldsetRootContext.Provider>
+    <FieldsetRootContext.Provider value={contextValue}>{element()}</FieldsetRootContext.Provider>
   );
 }
 

@@ -336,6 +336,7 @@ describe('<CheckboxGroup />', () => {
         </Field.Root>
       ));
 
+      screen.debug();
       const labels = container.querySelectorAll('label');
       expect(labels.length).to.equal(3);
       labels.forEach((label) => {

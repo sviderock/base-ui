@@ -20,7 +20,7 @@ export function DialogPortal(props: DialogPortal.Props) {
   const shouldRender = () => mounted() || keepMounted();
 
   return (
-    <Show when={shouldRender()} fallback={null}>
+    <Show when={shouldRender()}>
       <DialogPortalContext.Provider value={keepMounted}>
         <FloatingPortal root={container()}>{props.children}</FloatingPortal>
       </DialogPortalContext.Provider>

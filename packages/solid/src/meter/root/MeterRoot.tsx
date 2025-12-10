@@ -3,7 +3,7 @@ import { createMemo, createSignal } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { formatNumber } from '../../utils/formatNumber';
 import { BaseUIComponentProps, HTMLProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { valueToPercent } from '../../utils/valueToPercent';
 import { MeterRootContext } from './MeterRootContext';
 
@@ -75,18 +75,11 @@ export function MeterRoot(componentProps: MeterRoot.Props) {
     value,
   };
 
-  return (
-    <MeterRootContext.Provider value={contextValue}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={componentProps.ref}
-        params={{
-          props: [defaultProps(), elementProps],
-        }}
-      />
-    </MeterRootContext.Provider>
-  );
+  const element = useRenderElement('div', componentProps, {
+    props: [defaultProps, elementProps],
+  });
+
+  return <MeterRootContext.Provider value={contextValue}>{element()}</MeterRootContext.Provider>;
 }
 
 export namespace MeterRoot {

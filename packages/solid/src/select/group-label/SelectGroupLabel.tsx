@@ -1,5 +1,5 @@
 'use client';
-import { createEffect } from 'solid-js';
+import { createRenderEffect } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
@@ -19,7 +19,7 @@ export function SelectGroupLabel(componentProps: SelectGroupLabel.Props) {
 
   const id = useBaseUiId(() => local.id);
 
-  createEffect(() => {
+  createRenderEffect(() => {
     setLabelId(id());
   });
 

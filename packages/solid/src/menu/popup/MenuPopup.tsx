@@ -9,7 +9,7 @@ import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Side } from '../../utils/useAnchorPositioning';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useMenuPositionerContext } from '../positioner/MenuPositionerContext';
 import type { MenuRoot } from '../root/MenuRoot';
@@ -88,6 +88,18 @@ export function MenuPopup(componentProps: MenuPopup.Props) {
     return parent().type === undefined || parent().type === 'context-menu';
   });
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: setPopupRef,
+    customStyleHookMapping,
+    props: [
+      popupProps,
+      () => (transitionStatus() === 'starting' ? DISABLED_TRANSITIONS_STYLE : EMPTY_OBJECT),
+      elementProps,
+      () => ({ 'data-rootownerid': rootId() }) as Record<string, string>,
+    ],
+  });
+
   return (
     <FloatingFocusManager
       context={floatingContext()}
@@ -97,39 +109,14 @@ export function MenuPopup(componentProps: MenuPopup.Props) {
       initialFocus={parent().type === 'menu' ? -1 : 0}
       restoreFocus
     >
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={(el) => {
-          setPopupRef(el);
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-        }}
-        params={{
-          state: state(),
-          customStyleHookMapping,
-          props: [
-            popupProps(),
-            transitionStatus() === 'starting' ? DISABLED_TRANSITIONS_STYLE : EMPTY_OBJECT,
-            elementProps,
-            { 'data-rootownerid': rootId() } as Record<string, string>,
-          ],
-        }}
-      />
+      {element()}
     </FloatingFocusManager>
   );
 }
 
 export namespace MenuPopup {
-  export interface Props extends Omit<BaseUIComponentProps<'div', State>, 'id'> {
+  export interface Props extends BaseUIComponentProps<'div', State> {
     children?: JSX.Element;
-    /**
-     * @ignore
-     */
-    id?: MaybeAccessor<string | undefined>;
     /**
      * Determines the element to focus when the menu is closed.
      * By default, focus returns to the trigger.

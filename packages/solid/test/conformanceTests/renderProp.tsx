@@ -31,7 +31,7 @@ export function testRenderProp(
     it('renders a customized root element with a function', () => {
       const testValue = randomStringValue();
       render(element, {
-        render: (props) => <Wrapper {...props} data-test-value={testValue} />,
+        render: { component: Wrapper, 'data-test-value': testValue },
       });
 
       expect(screen.queryByTestId('base-ui-wrapper')).not.to.equal(null);
@@ -76,20 +76,11 @@ export function testRenderProp(
           <Dynamic
             component={element}
             ref={instanceFromRef}
-            render={(props) => {
-              return (
-                <Wrapper
-                  {...props()}
-                  ref={(el) => {
-                    instanceFromRef = el;
-                    if (typeof props().ref === 'function') {
-                      props().ref(el);
-                    } else {
-                      props().ref = el;
-                    }
-                  }}
-                />
-              );
+            render={{
+              component: Wrapper,
+              ref: (el) => {
+                instanceFromRef = el;
+              },
             }}
             data-testid="wrapped"
           />

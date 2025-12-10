@@ -4,7 +4,7 @@ import { contains, getTarget, stopEvent } from '../../floating-ui-solid/utils';
 import { splitComponentProps } from '../../solid-helpers';
 import { ownerDocument } from '../../utils/owner';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { useContextMenuRootContext } from '../root/ContextMenuRootContext';
 
@@ -128,35 +128,26 @@ export function ContextMenuTrigger(componentProps: ContextMenuTrigger.Props) {
     });
   });
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        triggerRef = el;
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-      }}
-      params={{
-        props: [
-          {
-            onContextMenu: handleContextMenu,
-            onTouchStart: handleTouchStart,
-            onTouchMove: handleTouchMove,
-            onTouchEnd: handleTouchEnd,
-            onTouchCancel: handleTouchEnd,
-            style: {
-              '-webkit-touch-callout': 'none',
-            },
-          },
-          elementProps,
-        ],
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    ref: (el) => {
+      triggerRef = el;
+    },
+    props: [
+      {
+        onContextMenu: handleContextMenu,
+        onTouchStart: handleTouchStart,
+        onTouchMove: handleTouchMove,
+        onTouchEnd: handleTouchEnd,
+        onTouchCancel: handleTouchEnd,
+        style: {
+          '-webkit-touch-callout': 'none',
+        },
+      },
+      elementProps,
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace ContextMenuTrigger {

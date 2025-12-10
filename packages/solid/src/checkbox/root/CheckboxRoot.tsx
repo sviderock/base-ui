@@ -1,5 +1,15 @@
 'use client';
-import { batch, createEffect, createMemo, onCleanup, splitProps, type JSX } from 'solid-js';
+import {
+  batch,
+  createEffect,
+  createMemo,
+  createRenderEffect,
+  createSignal,
+  onCleanup,
+  onMount,
+  splitProps,
+  type JSX,
+} from 'solid-js';
 import { useCheckboxGroupContext } from '../../checkbox-group/CheckboxGroupContext';
 import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../../field/root/FieldRoot';
@@ -68,6 +78,7 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
     state: fieldState,
     validationMode,
     validityData,
+    setChildRefs,
   } = useFieldRootContext();
 
   const groupContext = useCheckboxGroupContext();
@@ -115,7 +126,7 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
   const setGroupValue = groupContext?.setValue;
   const defaultGroupValue = () => groupContext?.defaultValue();
 
-  let controlRef = null as HTMLButtonElement | null | undefined;
+  const [controlRef, setControlRef] = createSignal<HTMLButtonElement | null | undefined>(null);
 
   const { getButtonProps, buttonRef } = useButton({
     disabled,
@@ -139,22 +150,22 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
     state: 'checked',
   });
 
-  const id = useBaseUiId(() => idProp());
+  const id = useBaseUiId(idProp);
 
-  createEffect(() => {
-    if (!controlRef) {
+  onMount(() => {
+    setChildRefs('control', { explicitId: id, ref: controlRef, id: idProp });
+  });
+
+  createRenderEffect(() => {
+    if (!controlRef()) {
       return;
     }
 
     if (groupContext) {
-      setControlId(() => idProp() ?? null);
-    } else if (controlRef.closest('label') == null) {
-      setControlId(id);
+      setControlId(idProp() ?? null);
+    } else if (controlRef()?.closest('label') == null) {
+      setControlId(id());
     }
-
-    onCleanup(() => {
-      setControlId(() => undefined);
-    });
   });
 
   useField({
@@ -162,7 +173,7 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
     id,
     commitValidation: (...args) => fieldControlValidation().commitValidation(...args),
     value: checked,
-    controlRef: () => controlRef,
+    controlRef,
     name,
     getValue: () => checked(),
   });
@@ -259,7 +270,7 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
           });
         },
         onFocus() {
-          controlRef?.focus();
+          controlRef()?.focus();
         },
       },
       // React <19 sets an empty value if `undefined` is passed explicitly
@@ -297,7 +308,7 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
     state,
     ref: (el) => {
       buttonRef(el);
-      controlRef = el;
+      setControlRef(el);
       groupContext?.registerControlRef(el);
     },
     customStyleHookMapping,

@@ -7,7 +7,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../../solid-hel
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useMenuItem } from '../item/useMenuItem';
 import { useMenuRootContext } from '../root/MenuRootContext';
 
@@ -36,7 +36,6 @@ export function MenuSubmenuTrigger(componentProps: MenuSubmenuTrigger.Props) {
     typingRef,
     disabled,
     allowMouseUpTriggerRef,
-    floatingRootContext,
   } = useMenuRootContext();
 
   createEffect(() => {
@@ -75,42 +74,33 @@ export function MenuSubmenuTrigger(componentProps: MenuSubmenuTrigger.Props) {
     open: open(),
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        batch(() => {
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      batch(() => {
+        item.setRef(el);
+        setItemRef(el);
+        setTriggerElement(el);
+      });
+    },
+    customStyleHookMapping: triggerOpenStateMapping,
+    props: [
+      rootTriggerProps,
+      () => parentMenuContext().itemProps(),
+      elementProps,
+      getItemProps,
+      () => ({
+        tabIndex: open() || highlighted() ? 0 : -1,
+        onBlur() {
+          if (highlighted()) {
+            parentMenuContext().setActiveIndex(null);
           }
-          item.setRef(el);
-          setItemRef(el);
-          setTriggerElement(el);
-        });
-      }}
-      params={{
-        state: state(),
-        customStyleHookMapping: triggerOpenStateMapping,
-        props: [
-          rootTriggerProps(),
-          parentMenuContext().itemProps(),
-          elementProps,
-          getItemProps,
-          {
-            tabIndex: open() || highlighted() ? 0 : -1,
-            onBlur() {
-              if (highlighted()) {
-                parentMenuContext().setActiveIndex(null);
-              }
-            },
-          },
-        ],
-      }}
-    />
-  );
+        },
+      }),
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace MenuSubmenuTrigger {

@@ -1,14 +1,16 @@
 import {
   children,
   createMemo,
+  createSignal,
   Match,
+  Show,
   splitProps,
   Switch,
   type Accessor,
-  type ComponentProps,
   type JSX,
+  type ValidComponent,
 } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
+import { Dynamic, type DynamicProps } from 'solid-js/web';
 import { mergeProps, mergePropsN } from '../merge-props';
 import { access, type MaybeAccessor } from '../solid-helpers';
 import { EMPTY_OBJECT } from './constants';
@@ -47,19 +49,10 @@ export function useRenderElement<
     return undefined;
   });
 
-  const mergedProps = (
-    renderFnProps?: Accessor<JSX.HTMLAttributes<any>>,
-  ): Record<string, unknown> => {
-    if (enabled() === false) {
-      return EMPTY_OBJECT;
-    }
-
-    let mergedParams = Array.isArray(params.props)
+  const outProps = createMemo<Record<string, unknown>>(() => {
+    const mergedParams = Array.isArray(params.props)
       ? mergePropsN(params.props)
       : access(params.props);
-    if (renderFnProps) {
-      mergedParams = mergeProps(renderFnProps(), mergedParams);
-    }
 
     if (mergedParams === undefined) {
       return EMPTY_OBJECT;
@@ -69,73 +62,97 @@ export function useRenderElement<
     return mergeProps(styleHooks(), rest, {
       class: resolveClassName(componentProps.class, state),
     });
-  };
+  });
 
-  const outProps = (renderFnProps?: Accessor<ComponentProps<any>>): Record<string, unknown> => {
-    if (enabled() === false) {
-      return EMPTY_OBJECT;
+  function handleRef(el: any) {
+    if (typeof componentProps.ref === 'function') {
+      componentProps.ref(el);
+    } else {
+      componentProps.ref = el;
     }
 
-    const props = mergedProps(renderFnProps);
-    // TODO: fix typing
-    props.ref = (el: any) => {
-      if (typeof componentProps.ref === 'function') {
-        componentProps.ref(el);
+    if (
+      componentProps.render &&
+      typeof componentProps.render === 'object' &&
+      'ref' in componentProps.render
+    ) {
+      if (typeof componentProps.render.ref === 'function') {
+        componentProps.render.ref(el);
       } else {
-        componentProps.ref = el;
+        componentProps.render.ref = el;
       }
-
-      if (typeof params.ref === 'function') {
-        params.ref(el);
-      } else {
-        params.ref = el;
-      }
-
-      if (renderFnProps) {
-        if (typeof renderFnProps().ref === 'function') {
-          renderFnProps().ref(el);
-        } else {
-          renderFnProps().ref = el;
-        }
-      }
-    };
-
-    if (componentProps.render != null) {
-      props.children = safeChildren;
-    } else if (element === 'button') {
-      (props as JSX.IntrinsicElements['button']).type = 'button';
-    } else if (element === 'img') {
-      (props as JSX.IntrinsicElements['img']).alt = '';
     }
 
-    return props;
-  };
+    if (typeof params.ref === 'function') {
+      params.ref(el);
+    } else {
+      params.ref = el;
+    }
+  }
 
-  return <P extends Record<string, unknown>, S>(
-    renderFnProps?: Accessor<P>,
-    renderFnState?: Accessor<S>,
-  ) => {
+  return (renderFnProps?: HTMLProps) => {
     return (
-      <Switch>
-        <Match when={enabled() && componentProps.render}>
-          {componentProps.render!(() => outProps(renderFnProps), state)}
-        </Match>
-        <Match when={enabled() && componentProps.render == null && element != null}>
-          <Dynamic component={element as keyof JSX.IntrinsicElements} {...outProps(renderFnProps)}>
-            {safeChildren()}
-          </Dynamic>
-        </Match>
-      </Switch>
+      <Show when={enabled()}>
+        <Show
+          when={typeof componentProps.render === 'function'}
+          fallback={
+            <Dynamic
+              component={
+                typeof componentProps.render === 'string' ? componentProps.render : element
+              }
+              {...(element === 'button' ? { type: 'button' } : {})}
+              {...(element === 'img' ? { alt: '' } : {})}
+              {...mergeProps(
+                renderFnProps,
+                typeof componentProps.render === 'object' ? (componentProps.render as object) : {},
+                outProps(),
+              )}
+              ref={handleRef}
+            >
+              {safeChildren()}
+            </Dynamic>
+          }
+        >
+          {(_) => {
+            const renderedResult = (componentProps.render as Function)(
+              renderFnProps ? mergeProps(renderFnProps, outProps()) : outProps(),
+              state(),
+            );
+            if (typeof renderedResult === 'function') {
+              return renderedResult;
+            }
+
+            return (
+              <Dynamic
+                {...renderedResult}
+                ref={(el: any) => {
+                  handleRef(el);
+
+                  if ('ref' in renderedResult) {
+                    if (typeof renderedResult.ref === 'function') {
+                      renderedResult.ref(el);
+                    } else {
+                      renderedResult.ref = el;
+                    }
+                  }
+                }}
+              />
+            );
+          }}
+        </Show>
+      </Show>
     );
   };
 }
 
 // https://github.com/solidjs/solid/issues/2478#issuecomment-2888503241
-function childrenLazy(props: any, params: any) {
+function childrenLazy(props: any, params?: any) {
   const _s = Symbol();
-  let x: any = props.render != null ? children(() => props.children ?? params.children) : _s;
+  let x: any = _s;
   return () => {
-    x = x === _s ? children(() => props.children ?? params.children) : x;
+    if (x === _s) {
+      x = children(() => props.children ?? params.children);
+    }
     return x;
   };
 }
@@ -201,6 +218,7 @@ export namespace RenderElement {
     State extends Record<string, MaybeAccessor<any>>,
     TagName extends keyof JSX.IntrinsicElements,
     RenderedElementType extends JSX.IntrinsicElements[TagName],
+    RenderFnElement extends ValidComponent = ValidComponent,
   > {
     /**
      * The class name to apply to the rendered element.
@@ -210,7 +228,12 @@ export namespace RenderElement {
     /**
      * The render prop or Solid element to override the default element.
      */
-    render?: ComponentRenderFn<Record<string, unknown>, State> | null;
+    render?:
+      | keyof JSX.IntrinsicElements
+      | DynamicProps<RenderFnElement>
+      | ComponentRenderFn<Record<string, unknown>, State, RenderFnElement>
+      | ((props: Record<string, unknown>, state: State) => JSX.Element)
+      | null;
     /**
      * The children to render.
      */

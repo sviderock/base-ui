@@ -51,25 +51,37 @@ describe('<Menu.CheckboxItem />', () => {
           <Menu.Positioner>
             <Menu.Popup>
               <Menu.CheckboxItem
-                render={(props) => <LoggingRoot {...props()} renderSpy={renderItem1Spy} />}
+                render={{
+                  component: LoggingRoot,
+                  renderSpy: renderItem1Spy,
+                }}
                 id="item-1"
               >
                 1
               </Menu.CheckboxItem>
               <Menu.CheckboxItem
-                render={(props) => <LoggingRoot {...props()} renderSpy={renderItem2Spy} />}
+                render={{
+                  component: LoggingRoot,
+                  renderSpy: renderItem2Spy,
+                }}
                 id="item-2"
               >
                 2
               </Menu.CheckboxItem>
               <Menu.CheckboxItem
-                render={(props) => <LoggingRoot {...props()} renderSpy={renderItem3Spy} />}
+                render={{
+                  component: LoggingRoot,
+                  renderSpy: renderItem3Spy,
+                }}
                 id="item-3"
               >
                 3
               </Menu.CheckboxItem>
               <Menu.CheckboxItem
-                render={(props) => <LoggingRoot {...props()} renderSpy={renderItem4Spy} />}
+                render={{
+                  component: LoggingRoot,
+                  renderSpy: renderItem4Spy,
+                }}
                 id="item-4"
               >
                 4

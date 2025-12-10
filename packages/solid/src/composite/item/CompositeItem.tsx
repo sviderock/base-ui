@@ -2,7 +2,7 @@
 import { batch } from 'solid-js';
 import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useCompositeItem } from './useCompositeItem';
 
 /**
@@ -14,26 +14,17 @@ export function CompositeItem<Metadata>(componentProps: CompositeItem.Props<Meta
 
   const compositeItem = useCompositeItem({ metadata });
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        batch(() => {
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-          if (componentProps.refs) {
-            componentProps.refs.itemRef = el;
-          }
-          compositeItem.setRef(el);
-        });
-      }}
-      params={{ props: [compositeItem.props(), elementProps] }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    ref: (el) => {
+      if (componentProps.refs) {
+        componentProps.refs.itemRef = el;
+      }
+      compositeItem.setRef(el);
+    },
+    props: [compositeItem.props, elementProps],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace CompositeItem {

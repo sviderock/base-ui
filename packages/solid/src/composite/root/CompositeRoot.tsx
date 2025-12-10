@@ -2,7 +2,7 @@
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { Dimensions, ModifierKey } from '../composite';
 import { CompositeList, type CompositeMetadata } from '../list/CompositeList';
 import { CompositeRootContext } from './CompositeRootContext';
@@ -44,20 +44,16 @@ export function CompositeRoot<Metadata extends {}>(componentProps: CompositeRoot
     highlightItemOnHover: () => access(local.highlightItemOnHover) ?? false,
   };
 
+  const element = useRenderElement('div', componentProps, {
+    state: () => COMPOSITE_ROOT_STATE,
+    ref: compositeRoot.setRootRef,
+    props: [compositeRoot.props, elementProps],
+  });
+
   return (
     <CompositeRootContext.Provider value={contextValue}>
       <CompositeList<Metadata> refs={compositeRoot.refs} onMapChange={onMapChange}>
-        <RenderElement
-          element="div"
-          ref={(el) => {
-            compositeRoot.setRootRef(el);
-          }}
-          componentProps={componentProps}
-          params={{
-            state: COMPOSITE_ROOT_STATE,
-            props: [compositeRoot.props(), elementProps],
-          }}
-        />
+        {element()}
       </CompositeList>
     </CompositeRootContext.Provider>
   );

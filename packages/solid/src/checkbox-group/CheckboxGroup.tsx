@@ -1,5 +1,5 @@
 'use client';
-import { batch } from 'solid-js';
+import { batch, createMemo, onMount } from 'solid-js';
 import { PARENT_CHECKBOX } from '../checkbox/root/CheckboxRoot';
 import { useFieldControlValidation } from '../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../field/root/FieldRoot';
@@ -10,7 +10,7 @@ import { type MaybeAccessor, access, splitComponentProps } from '../solid-helper
 import type { BaseUIComponentProps } from '../utils/types';
 import { useBaseUiId } from '../utils/useBaseUiId';
 import { useControlled } from '../utils/useControlled';
-import { RenderElement } from '../utils/useRenderElement';
+import { useRenderElement } from '../utils/useRenderElementV2';
 import { CheckboxGroupContext } from './CheckboxGroupContext';
 import { useCheckboxGroupParent } from './useCheckboxGroupParent';
 
@@ -68,7 +68,7 @@ export function CheckboxGroup(componentProps: CheckboxGroup.Props) {
     },
   });
 
-  const id = useBaseUiId(() => idProp());
+  const id = useBaseUiId(idProp);
 
   let controlRef: HTMLButtonElement | null | undefined = null;
   const registerControlRef = (element: HTMLButtonElement | null | undefined) => {
@@ -84,7 +84,7 @@ export function CheckboxGroup(componentProps: CheckboxGroup.Props) {
     value,
     controlRef: () => controlRef,
     name: fieldName,
-    getValue: () => value,
+    getValue: value,
   });
 
   const contextValue: CheckboxGroupContext = {
@@ -98,28 +98,25 @@ export function CheckboxGroup(componentProps: CheckboxGroup.Props) {
     registerControlRef,
   };
 
+  const state = createMemo<CheckboxGroup.State>(() => ({
+    ...fieldState(),
+    disabled: disabled(),
+  }));
+
+  const element = useRenderElement('div', componentProps, {
+    state,
+    customStyleHookMapping: fieldValidityMapping,
+    props: [
+      () => ({
+        role: 'group',
+        'aria-labelledby': labelId(),
+      }),
+      elementProps,
+    ],
+  });
+
   return (
-    <CheckboxGroupContext.Provider value={contextValue}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={componentProps.ref}
-        params={{
-          state: {
-            ...fieldState(),
-            disabled: disabled(),
-          },
-          customStyleHookMapping: fieldValidityMapping,
-          props: [
-            {
-              role: 'group',
-              'aria-labelledby': labelId(),
-            },
-            elementProps,
-          ],
-        }}
-      />
-    </CheckboxGroupContext.Provider>
+    <CheckboxGroupContext.Provider value={contextValue}>{element()}</CheckboxGroupContext.Provider>
   );
 }
 

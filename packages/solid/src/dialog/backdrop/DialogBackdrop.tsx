@@ -5,7 +5,7 @@ import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import { type BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { type TransitionStatus } from '../../utils/useTransitionStatus';
 import { useDialogRootContext } from '../root/DialogRootContext';
 
@@ -29,36 +29,27 @@ export function DialogBackdrop(componentProps: DialogBackdrop.Props) {
     transitionStatus: transitionStatus(),
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-        refs.backdropRef = el;
-      }}
-      params={{
-        state: state(),
-        customStyleHookMapping,
-        props: [
-          {
-            role: 'presentation',
-            hidden: !mounted(),
-            style: {
-              'user-select': 'none',
-              '-webkit-user-select': 'none',
-            },
-          },
-          elementProps,
-        ],
-        enabled: !nested(),
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      refs.backdropRef = el;
+    },
+    customStyleHookMapping,
+    props: [
+      () => ({
+        role: 'presentation',
+        hidden: !mounted(),
+        style: {
+          'user-select': 'none',
+          '-webkit-user-select': 'none',
+        },
+      }),
+      elementProps,
+    ],
+    enabled: () => !nested(),
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace DialogBackdrop {

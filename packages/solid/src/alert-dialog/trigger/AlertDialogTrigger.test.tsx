@@ -54,11 +54,7 @@ describe('<AlertDialog.Trigger />', () => {
     it('custom element', async () => {
       const { user } = render(() => (
         <AlertDialog.Root>
-          <AlertDialog.Trigger
-            disabled
-            render={(props) => <span {...props()} />}
-            nativeButton={false}
-          />
+          <AlertDialog.Trigger disabled render="span" nativeButton={false} />
           <AlertDialog.Portal>
             <AlertDialog.Backdrop />
             <AlertDialog.Popup>

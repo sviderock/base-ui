@@ -1,6 +1,7 @@
 import {
   batch,
   createEffect,
+  createRenderEffect,
   createSelector,
   on,
   onCleanup,
@@ -68,11 +69,12 @@ export function useSelectRoot<T>(params: useSelectRoot.Parameters<T>): useSelect
   const disabled = () => fieldDisabled() || disabledProp();
   const name = () => fieldName() ?? nameProp();
 
-  createEffect(() => {
-    setControlId(id);
-    onCleanup(() => {
-      setControlId(() => undefined);
-    });
+  createRenderEffect(() => {
+    setControlId(id());
+  });
+
+  onCleanup(() => {
+    setControlId(undefined);
   });
 
   const [value, setValueUnwrapped] = useControlled({

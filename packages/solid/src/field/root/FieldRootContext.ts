@@ -5,6 +5,19 @@ import { NOOP } from '../../utils/noop';
 import { DEFAULT_VALIDITY_STATE } from '../utils/constants';
 import type { FieldRoot, FieldValidityData } from './FieldRoot';
 
+export interface FieldRootChildRefs {
+  label?: {
+    ref: Accessor<HTMLElement | null | undefined>;
+    explicitId: Accessor<string | undefined>;
+    id: Accessor<string | undefined>;
+  };
+  control?: {
+    ref: Accessor<HTMLElement | null | undefined>;
+    explicitId: Accessor<string | undefined>;
+    id: Accessor<string | undefined>;
+  };
+}
+
 export interface FieldRootContext {
   invalid: Accessor<boolean | undefined>;
   /**
@@ -12,9 +25,9 @@ export interface FieldRootContext {
    * When `null` the association is implicit.
    */
   controlId: Accessor<string | null | undefined>;
-  setControlId: (newAccessor: Accessor<string | null | undefined>) => void;
+  setControlId: Setter<string | null | undefined>;
   labelId: Accessor<string | undefined>;
-  setLabelId: (newAccessor: Accessor<string | undefined>) => void;
+  setLabelId: Setter<string | undefined>;
   messageIds: Accessor<string[]>;
   setMessageIds: Setter<string[]>;
   name: Accessor<string | undefined>;
@@ -39,6 +52,8 @@ export interface FieldRootContext {
   refs: {
     markedDirtyRef: boolean;
   };
+  childRefs: Store<FieldRootChildRefs>;
+  setChildRefs: SetStoreFunction<FieldRootChildRefs>;
 }
 
 export const FieldRootContext = createContext<FieldRootContext>({
@@ -81,6 +96,8 @@ export const FieldRootContext = createContext<FieldRootContext>({
   refs: {
     markedDirtyRef: false,
   },
+  childRefs: {},
+  setChildRefs: NOOP as SetStoreFunction<FieldRootChildRefs>,
 });
 
 export function useFieldRootContext(optional = true) {

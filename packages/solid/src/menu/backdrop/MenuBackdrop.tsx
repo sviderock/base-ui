@@ -6,7 +6,7 @@ import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useMenuRootContext } from '../root/MenuRootContext';
 
@@ -32,39 +32,29 @@ export function MenuBackdrop(componentProps: MenuBackdrop.Props) {
     transitionStatus: transitionStatus(),
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      if (contextMenuContext) {
+        contextMenuContext.refs.backdropRef = el;
+      }
+    },
+    customStyleHookMapping,
+    props: [
+      () => ({
+        role: 'presentation',
+        hidden: !mounted(),
+        style: {
+          'pointer-events': lastOpenChangeReason() === 'trigger-hover' ? 'none' : undefined,
+          'user-select': 'none',
+          '-webkit-user-select': 'none',
+        },
+      }),
+      elementProps,
+    ],
+  });
 
-        if (contextMenuContext) {
-          contextMenuContext.refs.backdropRef = el;
-        }
-      }}
-      params={{
-        state: state(),
-        customStyleHookMapping,
-        props: [
-          {
-            role: 'presentation',
-            hidden: !mounted(),
-            style: {
-              'pointer-events': lastOpenChangeReason() === 'trigger-hover' ? 'none' : undefined,
-              'user-select': 'none',
-              '-webkit-user-select': 'none',
-            },
-          },
-          elementProps,
-        ],
-      }}
-    />
-  );
+  return <>{element()}</>;
 }
 
 export namespace MenuBackdrop {

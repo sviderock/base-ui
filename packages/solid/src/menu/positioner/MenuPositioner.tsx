@@ -15,7 +15,7 @@ import { InternalBackdrop } from '../../utils/InternalBackdrop';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useAnchorPositioning, type Align, type Side } from '../../utils/useAnchorPositioning';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useMenuPortalContext } from '../portal/MenuPortalContext';
 import { useMenuRootContext } from '../root/MenuRootContext';
 import { MenuPositionerContext } from './MenuPositionerContext';
@@ -193,6 +193,13 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
     floatingContext: () => access(positioner.context),
   };
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: setPositionerElement,
+    customStyleHookMapping: popupStateMapping,
+    props: [positionerProps, elementProps],
+  });
+
   const shouldRenderBackdrop = () => {
     const p = parent();
     return (
@@ -232,23 +239,7 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
       )}
       <FloatingNode id={nodeId()}>
         <CompositeList refs={{ elements: itemDomElements, labels: itemLabels }}>
-          <RenderElement
-            element="div"
-            componentProps={componentProps}
-            ref={(el) => {
-              setPositionerElement(el);
-              if (typeof componentProps.ref === 'function') {
-                componentProps.ref(el);
-              } else {
-                componentProps.ref = el;
-              }
-            }}
-            params={{
-              state: state(),
-              customStyleHookMapping: popupStateMapping,
-              props: [positionerProps(), elementProps],
-            }}
-          />
+          {element()}
         </CompositeList>
       </FloatingNode>
     </MenuPositionerContext.Provider>

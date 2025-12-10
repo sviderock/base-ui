@@ -1,7 +1,7 @@
 'use client';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { MeterRoot } from '../root/MeterRoot';
 
 /**
@@ -13,16 +13,11 @@ import type { MeterRoot } from '../root/MeterRoot';
 export function MeterTrack(componentProps: MeterTrack.Props) {
   const [, , elementProps] = splitComponentProps(componentProps, []);
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        props: elementProps,
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    props: elementProps,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace MeterTrack {

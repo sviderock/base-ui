@@ -1,7 +1,7 @@
 'use client';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { MeterRoot } from '../root/MeterRoot';
 import { useMeterRootContext } from '../root/MeterRootContext';
 
@@ -16,25 +16,20 @@ export function MeterIndicator(componentProps: MeterIndicator.Props) {
 
   const { percentageValue } = useMeterRootContext();
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        props: [
-          {
-            style: {
-              'inset-inline-start': 0,
-              height: 'inherit',
-              width: `${percentageValue()}%`,
-            },
-          },
-          elementProps,
-        ],
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    props: [
+      () => ({
+        style: {
+          'inset-inline-start': 0,
+          height: 'inherit',
+          width: `${percentageValue()}%`,
+        },
+      }),
+      elementProps,
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace MeterIndicator {

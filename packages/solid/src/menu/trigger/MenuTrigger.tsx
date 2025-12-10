@@ -11,7 +11,7 @@ import { getPseudoElementBounds } from '../../utils/getPseudoElementBounds';
 import { ownerDocument } from '../../utils/owner';
 import { pressableTriggerOpenStateMapping } from '../../utils/popupStateMapping';
 import { BaseUIComponentProps, HTMLProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { useMenuRootContext } from '../root/MenuRootContext';
 
@@ -129,68 +129,22 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
     open: open(),
   }));
 
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: (el) => {
+      batch(() => {
+        triggerRef = el;
+        buttonRef(el);
+        setTriggerElement(el);
+      });
+    },
+    customStyleHookMapping: pressableTriggerOpenStateMapping,
+    props: [() => rootTriggerProps(), elementProps, getTriggerProps],
+  });
+
   return (
-    <Show
-      when={parent().type === 'menubar'}
-      fallback={
-        <RenderElement
-          element="button"
-          componentProps={componentProps}
-          ref={(el) => {
-            batch(() => {
-              triggerRef = el;
-              buttonRef(el);
-              setTriggerElement(el);
-              if (typeof componentProps.ref === 'function') {
-                componentProps.ref(el);
-              } else {
-                componentProps.ref = el;
-              }
-            });
-          }}
-          params={{
-            state: state(),
-            customStyleHookMapping: pressableTriggerOpenStateMapping,
-            props: [rootTriggerProps(), elementProps, getTriggerProps],
-          }}
-        />
-      }
-    >
-      <CompositeItem
-        render={(p) => (
-          <RenderElement
-            element="button"
-            componentProps={componentProps}
-            ref={(el) => {
-              batch(() => {
-                triggerRef = el;
-                buttonRef(el);
-                setTriggerElement(el);
-                if (typeof p().ref === 'function') {
-                  (p().ref as Function)(el);
-                } else {
-                  p().ref = el as unknown as HTMLDivElement;
-                }
-                if (typeof componentProps.ref === 'function') {
-                  componentProps.ref(el);
-                } else {
-                  componentProps.ref = el;
-                }
-              });
-            }}
-            params={{
-              state: state(),
-              customStyleHookMapping: pressableTriggerOpenStateMapping,
-              props: [
-                p() as ComponentProps<'button'>,
-                rootTriggerProps(),
-                elementProps,
-                getTriggerProps,
-              ],
-            }}
-          />
-        )}
-      />
+    <Show when={parent().type === 'menubar'} fallback={element()}>
+      <CompositeItem render={element} />
     </Show>
   );
 }

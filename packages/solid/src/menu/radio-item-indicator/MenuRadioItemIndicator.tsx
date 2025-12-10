@@ -3,7 +3,7 @@ import { createMemo } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { TransitionStatus, useTransitionStatus } from '../../utils/useTransitionStatus';
 import { useMenuRadioItemContext } from '../radio-item/MenuRadioItemContext';
 import { itemMapping } from '../utils/styleHookMapping';
@@ -41,26 +41,17 @@ export function MenuRadioItemIndicator(componentProps: MenuRadioItemIndicator.Pr
     transitionStatus: transitionStatus(),
   }));
 
-  return (
-    <RenderElement
-      element="span"
-      componentProps={componentProps}
-      ref={(el) => {
-        indicatorRef = el;
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-      }}
-      params={{
-        state: state(),
-        customStyleHookMapping: itemMapping,
-        enabled: keepMounted() || item.checked(),
-        props: [{ 'aria-hidden': true }, elementProps],
-      }}
-    />
-  );
+  const element = useRenderElement('span', componentProps, {
+    state,
+    ref: (el) => {
+      indicatorRef = el;
+    },
+    customStyleHookMapping: itemMapping,
+    enabled: () => keepMounted() || item.checked(),
+    props: [{ 'aria-hidden': true }, elementProps],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace MenuRadioItemIndicator {

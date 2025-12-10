@@ -1,5 +1,14 @@
 'use client';
-import { batch, createMemo, onCleanup, onMount, type ComponentProps } from 'solid-js';
+import {
+  batch,
+  createEffect,
+  createMemo,
+  createRenderEffect,
+  createSignal,
+  onCleanup,
+  onMount,
+  type ComponentProps,
+} from 'solid-js';
 import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
@@ -15,7 +24,6 @@ import { RenderElement } from '../../utils/useRenderElement';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import { styleHookMapping } from '../styleHooks';
 import { SwitchRootContext } from './SwitchRootContext';
-
 /**
  * Represents the switch itself.
  * Renders a `<button>` element and a hidden `<input>` beside.
@@ -47,7 +55,6 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
   const {
     state: fieldState,
     labelId,
-    setControlId,
     setTouched,
     setDirty,
     validityData,
@@ -56,6 +63,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
     validationMode,
     disabled: fieldDisabled,
     name: fieldName,
+    setChildRefs,
   } = useFieldRootContext();
 
   const disabled = () => fieldDisabled() || disabledProp();
@@ -69,21 +77,21 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
   } = useFieldControlValidation();
 
   let inputRef = null as HTMLInputElement | null | undefined;
-  let switchRef = null as HTMLButtonElement | null | undefined;
+  const [switchRef, setSwitchRef] = createSignal<HTMLButtonElement | undefined>();
 
   const id = useBaseUiId(idProp);
 
   onMount(() => {
-    if (switchRef != null) {
-      setControlId(() => (switchRef!.closest('label') != null ? (idProp() ?? null) : id()));
-      onCleanup(() => {
-        setControlId(() => undefined);
-      });
-    }
+    console.log('switch onMount');
+    setChildRefs('control', { explicitId: id, ref: switchRef, id: idProp });
 
-    if (inputRef != null) {
+    if (inputRef) {
       setFilled(inputRef!.checked);
     }
+  });
+
+  onCleanup(() => {
+    console.log('switch onCleanup');
   });
 
   const [checked, setCheckedState] = useControlled({
@@ -199,6 +207,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
     required,
   };
 
+  console.log('switch return');
   return (
     <SwitchRootContext.Provider value={context}>
       <RenderElement
@@ -210,7 +219,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
           } else {
             componentProps.ref = el;
           }
-          switchRef = el;
+          setSwitchRef(el);
           buttonRef(el);
         }}
         params={{

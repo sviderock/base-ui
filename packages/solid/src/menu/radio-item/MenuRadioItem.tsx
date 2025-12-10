@@ -5,7 +5,7 @@ import { FloatingEvents, useFloatingTree } from '../../floating-ui-solid';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { REGULAR_ITEM, useMenuItem } from '../item/useMenuItem';
 import { useMenuRadioGroupContext } from '../radio-group/MenuRadioGroupContext';
 import { useMenuRootContext } from '../root/MenuRootContext';
@@ -55,36 +55,25 @@ function InnerMenuRadioItem(componentProps: InnerMenuRadioItemProps) {
     checked: checked(),
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        setItemRef(el);
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-      }}
-      params={{
-        state: state(),
-        customStyleHookMapping: itemMapping,
-        props: [
-          itemProps(),
-          {
-            role: 'menuitemradio',
-            'aria-checked': checked(),
-            onClick: (event) => {
-              local.setChecked(event);
-            },
-          },
-          elementProps,
-          getItemProps,
-        ],
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: setItemRef,
+    customStyleHookMapping: itemMapping,
+    props: [
+      itemProps,
+      () => ({
+        role: 'menuitemradio',
+        'aria-checked': checked(),
+        onClick: (event) => {
+          local.setChecked(event);
+        },
+      }),
+      elementProps,
+      getItemProps,
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 /**

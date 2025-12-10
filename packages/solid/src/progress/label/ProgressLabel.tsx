@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, onCleanup } from 'solid-js';
+import { createRenderEffect, onCleanup } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
@@ -21,9 +21,12 @@ export function ProgressLabel(componentProps: ProgressLabel.Props) {
 
   const { setLabelId, state } = useProgressRootContext();
 
-  createEffect(() => {
+  createRenderEffect(() => {
     setLabelId(id());
-    onCleanup(() => setLabelId(undefined));
+  });
+
+  onCleanup(() => {
+    setLabelId(undefined);
   });
 
   return (

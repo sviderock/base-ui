@@ -6,7 +6,7 @@ import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { userEvent } from '@testing-library/user-event';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { createSignal } from 'solid-js';
+import { createSignal, onCleanup, onMount, splitProps } from 'solid-js';
 
 describe('<Switch.Root />', () => {
   const { render } = createRenderer();
@@ -507,13 +507,18 @@ describe('<Switch.Root />', () => {
             </Field.Root>
           ));
 
+          console.log(1);
+          screen.debug();
           const label = screen.getByTestId('label');
           expect(label).to.not.have.attribute('for');
+          console.log(2);
 
           const button = screen.getByRole('switch');
           expect(button).to.have.attribute('aria-checked', 'false');
+          console.log(3);
 
           fireEvent.click(label);
+          console.log(4);
           expect(button).to.have.attribute('aria-checked', 'true');
         });
 
@@ -532,6 +537,7 @@ describe('<Switch.Root />', () => {
 
           const label = screen.getByTestId('label');
           const button = screen.getByRole('switch');
+
           expect(button.getAttribute('aria-labelledby')).to.equal(label.getAttribute('id'));
         });
       });
@@ -564,25 +570,31 @@ describe('<Switch.Root />', () => {
         it('when rendering a non-native label', async () => {
           render(() => (
             <Field.Root>
-              <Field.Label data-testid="label" render={(p) => <span {...p()} />}>
+              <Field.Label data-testid="label" render="span">
                 <Switch.Root data-testid="button" />
               </Field.Label>
             </Field.Root>
           ));
 
+          screen.debug();
+          console.log(1);
           const label = screen.getByTestId('label');
           const button = screen.getByRole('switch');
+          console.log(2);
 
-          await waitFor(() => {
-            expect(label.getAttribute('for')).to.not.equal(null);
-          });
+          expect(label.getAttribute('for')).to.not.equal(null);
+          expect(button.getAttribute('aria-labelledby')).to.not.equal(null);
 
+          console.log(3);
           expect(label.getAttribute('for')).to.equal(button.getAttribute('id'));
           expect(button.getAttribute('aria-labelledby')).to.equal(label.getAttribute('id'));
 
+          console.log(4);
           expect(button).to.have.attribute('aria-checked', 'false');
 
+          console.log(5);
           fireEvent.click(label);
+          console.log(6);
           expect(button).to.have.attribute('aria-checked', 'false');
         });
       });
