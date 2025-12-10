@@ -1,9 +1,8 @@
 import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#test-utils';
 import { ContextMenu } from '@base-ui-components/solid/context-menu';
-import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
+import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { Dynamic } from 'solid-js/web';
 
 describe('<ContextMenu.Trigger />', () => {
   const { render, clock } = createRenderer();
@@ -12,16 +11,7 @@ describe('<ContextMenu.Trigger />', () => {
 
   describeConformance(ContextMenu.Trigger, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <ContextMenu.Root>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </ContextMenu.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) => render(() => <ContextMenu.Root>{node(props)}</ContextMenu.Root>),
   }));
 
   it('should open menu on right click (context menu event)', async () => {
