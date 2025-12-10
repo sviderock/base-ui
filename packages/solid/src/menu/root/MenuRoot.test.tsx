@@ -5,7 +5,7 @@ import { cleanup, fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { createEffect, createSignal } from 'solid-js';
+import { createSignal } from 'solid-js';
 
 async function wait(time: number) {
   return new Promise((resolve) => {

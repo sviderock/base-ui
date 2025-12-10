@@ -1,5 +1,6 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { Menu } from '@base-ui-components/solid/menu';
+import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 
 describe('<Menu.RadioGroup />', () => {
@@ -11,7 +12,7 @@ describe('<Menu.RadioGroup />', () => {
   }));
 
   it('renders a div with the `group` role', async () => {
-    const { getByRole } = render(() => <Menu.RadioGroup />);
-    expect(getByRole('group')).toBeVisible();
+    render(() => <Menu.RadioGroup />);
+    expect(screen.getByRole('group')).toBeVisible();
   });
 });

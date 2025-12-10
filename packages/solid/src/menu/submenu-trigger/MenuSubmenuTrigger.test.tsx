@@ -3,7 +3,6 @@ import { DirectionProvider } from '@base-ui-components/solid/direction-provider'
 import { Menu } from '@base-ui-components/solid/menu';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 type TextDirection = 'ltr' | 'rtl';
 
@@ -12,23 +11,17 @@ describe('<Menu.SubmenuTrigger />', () => {
 
   describeConformance(Menu.Trigger, () => ({
     refInstanceof: window.HTMLButtonElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Menu.Root open>
-            <Menu.SubmenuRoot>
-              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-            </Menu.SubmenuRoot>
-          </Menu.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) =>
+      render(() => (
+        <Menu.Root open>
+          <Menu.SubmenuRoot>{node(props)}</Menu.SubmenuRoot>
+        </Menu.Root>
+      )),
   }));
 
-  function TestComponent({ direction = 'ltr' }: { direction: TextDirection }) {
+  function TestComponent(props: { direction: TextDirection }) {
     return (
-      <DirectionProvider direction={direction}>
+      <DirectionProvider direction={props.direction}>
         <Menu.Root open>
           <Menu.Portal>
             <Menu.Positioner>

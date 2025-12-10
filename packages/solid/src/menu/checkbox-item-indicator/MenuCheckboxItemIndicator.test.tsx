@@ -3,7 +3,6 @@ import { Menu } from '@base-ui-components/solid/menu';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Menu.CheckboxItemIndicator />', () => {
   beforeEach(() => {
@@ -13,27 +12,21 @@ describe('<Menu.CheckboxItemIndicator />', () => {
   const { render } = createRenderer();
 
   describeConformance(
-    (props) => <Menu.CheckboxItemIndicator keepMounted {...props} />,
+    (props) => <Menu.CheckboxItemIndicator keepMounted {...props} ref={props.ref} />,
     () => ({
       refInstanceof: window.HTMLSpanElement,
-      render(node, elementProps = {}) {
-        return render(
-          () => (
-            <Menu.Root open>
-              <Menu.Portal>
-                <Menu.Positioner>
-                  <Menu.Popup>
-                    <Menu.CheckboxItem>
-                      <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-                    </Menu.CheckboxItem>
-                  </Menu.Popup>
-                </Menu.Positioner>
-              </Menu.Portal>
-            </Menu.Root>
-          ),
-          elementProps,
-        );
-      },
+      render: (node, props) =>
+        render(() => (
+          <Menu.Root open>
+            <Menu.Portal>
+              <Menu.Positioner>
+                <Menu.Popup>
+                  <Menu.CheckboxItem>{node(props)}</Menu.CheckboxItem>
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.Root>
+        )),
     }),
   );
 

@@ -1,5 +1,6 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { Menu } from '@base-ui-components/solid/menu';
+import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 
 describe('<Menu.Group />', () => {
@@ -11,7 +12,7 @@ describe('<Menu.Group />', () => {
   }));
 
   it('renders a div with the `group` role', async () => {
-    const { getByRole } = render(() => <Menu.Group />);
-    expect(getByRole('group')).toBeVisible();
+    render(() => <Menu.Group />);
+    expect(screen.getByRole('group')).toBeVisible();
   });
 });

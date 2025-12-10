@@ -2,32 +2,25 @@ import { createRenderer, describeConformance } from '#test-utils';
 import { Menu } from '@base-ui-components/solid/menu';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Menu.Popup />', () => {
   const { render } = createRenderer();
 
   describeConformance(Menu.Popup, () => ({
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Menu.Root open>
-            <Menu.Portal>
-              <Menu.Positioner>
-                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-              </Menu.Positioner>
-            </Menu.Portal>
-          </Menu.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) =>
+      render(() => (
+        <Menu.Root open>
+          <Menu.Portal>
+            <Menu.Positioner>{node(props)}</Menu.Positioner>
+          </Menu.Portal>
+        </Menu.Root>
+      )),
     refInstanceof: window.HTMLDivElement,
   }));
 
   describe('prop: finalFocus', () => {
     it('should focus the trigger by default when closed', async () => {
-      const { getByText } = render(() => (
+      render(() => (
         <div>
           <input />
           <Menu.Root>
@@ -44,7 +37,7 @@ describe('<Menu.Popup />', () => {
         </div>
       ));
 
-      const trigger = getByText('Open');
+      const trigger = screen.getByText('Open');
       trigger.click();
 
       const closeButton = screen.getByText('Close');
@@ -78,15 +71,15 @@ describe('<Menu.Popup />', () => {
         );
       }
 
-      const { getByText, getByTestId } = render(() => <TestComponent />);
+      render(() => <TestComponent />);
 
-      const trigger = getByText('Open');
+      const trigger = screen.getByText('Open');
       trigger.click();
 
       const closeButton = screen.getByText('Close');
       closeButton.click();
 
-      const inputToFocus = getByTestId('input-to-focus');
+      const inputToFocus = screen.getByTestId('input-to-focus');
 
       await waitFor(() => {
         expect(inputToFocus).toHaveFocus();

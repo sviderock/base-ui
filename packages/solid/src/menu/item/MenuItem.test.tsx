@@ -1,11 +1,10 @@
-import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#test-utils';
+import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { Menu } from '@base-ui-components/solid/menu';
-import { A, createMemoryHistory, MemoryRouter, Route, Router, useLocation } from '@solidjs/router';
+import { A, Route, Router, useLocation } from '@solidjs/router';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { type JSX, splitProps } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
+import { splitProps } from 'solid-js';
 
 describe('<Menu.Item />', () => {
   const { render, clock } = createRenderer({
@@ -17,16 +16,7 @@ describe('<Menu.Item />', () => {
   clock.withFakeTimers();
 
   describeConformance(Menu.Item, () => ({
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Menu.Root open>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Menu.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) => render(() => <Menu.Root open>{node(props)}</Menu.Root>),
     refInstanceof: window.HTMLDivElement,
   }));
 
@@ -64,11 +54,12 @@ describe('<Menu.Item />', () => {
 
     function LoggingRoot(props: any & { renderSpy: () => void }) {
       const [local, other] = splitProps(props, ['renderSpy', 'state']);
+      // eslint-disable-next-line solid/reactivity
       local.renderSpy();
       return <li {...other} ref={props.ref} />;
     }
 
-    const { getAllByRole, user } = render(() => (
+    const { user } = render(() => (
       <Menu.Root open>
         <Menu.Portal>
           <Menu.Positioner>
@@ -115,7 +106,7 @@ describe('<Menu.Item />', () => {
       </Menu.Root>
     ));
 
-    const menuItems = getAllByRole('menuitem');
+    const menuItems = screen.getAllByRole('menuitem');
     menuItems[0].focus();
 
     renderItem1Spy.resetHistory();
@@ -173,7 +164,7 @@ describe('<Menu.Item />', () => {
     });
 
     it('when `closeOnClick=false` does not close the menu when the item is clicked', async () => {
-      const { getByRole, user } = render(() => (
+      const { user } = render(() => (
         <Menu.Root>
           <Menu.Trigger>Open</Menu.Trigger>
           <Menu.Portal>
@@ -186,7 +177,7 @@ describe('<Menu.Item />', () => {
         </Menu.Root>
       ));
 
-      const trigger = getByRole('button', { name: 'Open' });
+      const trigger = screen.getByRole('button', { name: 'Open' });
       await user.click(trigger);
 
       const item = screen.getByRole('menuitem');
@@ -209,7 +200,7 @@ describe('<Menu.Item />', () => {
     }
 
     it('@solidjs/router <A>', async () => {
-      const { getAllByRole, getByTestId, user } = render(() => (
+      const { user } = render(() => (
         <Router>
           <Route
             component={(props) => (
@@ -239,7 +230,7 @@ describe('<Menu.Item />', () => {
       const link1 = () => screen.getAllByRole('menuitem')[0];
       const link2 = () => screen.getAllByRole('menuitem')[1];
 
-      const locationDisplay = getByTestId('location');
+      const locationDisplay = screen.getByTestId('location');
 
       expect(screen.getByText(/page one/i)).not.to.equal(null);
 
@@ -257,8 +248,6 @@ describe('<Menu.Item />', () => {
 
       expect(screen.getByText(/page two/i)).not.to.equal(null);
 
-      // TODO: why is this needed?
-      link1().focus();
       link1().focus();
 
       await user.keyboard('[Enter]');

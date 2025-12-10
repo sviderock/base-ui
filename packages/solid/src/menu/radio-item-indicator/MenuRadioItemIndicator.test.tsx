@@ -3,35 +3,28 @@ import { Menu } from '@base-ui-components/solid/menu';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Menu.RadioItemIndicator />', () => {
   const { render } = createRenderer();
 
   describeConformance(
-    (props) => <Menu.RadioItemIndicator keepMounted {...props} />,
+    (props) => <Menu.RadioItemIndicator keepMounted {...props} ref={props.ref} />,
     () => ({
       refInstanceof: window.HTMLSpanElement,
-      render(node, elementProps = {}) {
-        return render(
-          () => (
-            <Menu.Root open>
-              <Menu.Portal>
-                <Menu.Positioner>
-                  <Menu.Popup>
-                    <Menu.RadioGroup>
-                      <Menu.RadioItem value="">
-                        <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-                      </Menu.RadioItem>
-                    </Menu.RadioGroup>
-                  </Menu.Popup>
-                </Menu.Positioner>
-              </Menu.Portal>
-            </Menu.Root>
-          ),
-          elementProps,
-        );
-      },
+      render: (node, props) =>
+        render(() => (
+          <Menu.Root open>
+            <Menu.Portal>
+              <Menu.Positioner>
+                <Menu.Popup>
+                  <Menu.RadioGroup>
+                    <Menu.RadioItem value="">{node(props)}</Menu.RadioItem>
+                  </Menu.RadioGroup>
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.Root>
+        )),
     }),
   );
 

@@ -2,7 +2,6 @@ import { createRenderer, describeConformance } from '#test-utils';
 import { Menu } from '@base-ui-components/solid/menu';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 import { MenuGroupContext } from '../group/MenuGroupContext';
 
 const testContext: MenuGroupContext = {
@@ -13,16 +12,10 @@ describe('<Menu.GroupLabel />', () => {
   const { render } = createRenderer();
 
   describeConformance(Menu.GroupLabel, () => ({
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <MenuGroupContext.Provider value={testContext}>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </MenuGroupContext.Provider>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) =>
+      render(() => (
+        <MenuGroupContext.Provider value={testContext}>{node(props)}</MenuGroupContext.Provider>
+      )),
     refInstanceof: window.HTMLDivElement,
   }));
 

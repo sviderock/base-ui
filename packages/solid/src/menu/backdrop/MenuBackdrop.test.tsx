@@ -1,23 +1,13 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { Menu } from '@base-ui-components/solid/menu';
 import { screen, waitFor } from '@solidjs/testing-library';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Menu.Backdrop />', () => {
   const { render } = createRenderer();
 
   describeConformance(Menu.Backdrop, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Menu.Root open>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Menu.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) => render(() => <Menu.Root open>{node(props)}</Menu.Root>),
   }));
 
   it('sets `pointer-events: none` style on backdrop if opened by hover', async () => {

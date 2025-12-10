@@ -1,10 +1,9 @@
 import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#test-utils';
 import { Menu } from '@base-ui-components/solid/menu';
-import { screen, waitFor } from '@solidjs/testing-library';
+import { cleanup, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 import { afterEach } from 'vitest';
 
 function Trigger(props: Menu.Trigger.Props) {
@@ -15,18 +14,12 @@ describe('<Menu.Positioner />', () => {
   const { render } = createRenderer();
 
   describeConformance(Menu.Positioner, () => ({
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Menu.Root open>
-            <Menu.Portal>
-              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-            </Menu.Portal>
-          </Menu.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) =>
+      render(() => (
+        <Menu.Root open>
+          <Menu.Portal>{node(props)}</Menu.Portal>
+        </Menu.Root>
+      )),
     refInstanceof: window.HTMLDivElement,
   }));
 
@@ -58,10 +51,10 @@ describe('<Menu.Positioner />', () => {
         );
       }
 
-      const { getByTestId } = render(() => <TestComponent />);
+      render(() => <TestComponent />);
 
-      const positioner = getByTestId('positioner');
-      const anchor = getByTestId('anchor');
+      const positioner = screen.getByTestId('positioner');
+      const anchor = screen.getByTestId('anchor');
 
       const anchorPosition = anchor.getBoundingClientRect();
 
@@ -102,10 +95,10 @@ describe('<Menu.Positioner />', () => {
         );
       }
 
-      const { getByTestId } = render(() => <TestComponent />);
+      render(() => <TestComponent />);
 
-      const positioner = getByTestId('positioner');
-      const anchor = getByTestId('anchor');
+      const positioner = screen.getByTestId('positioner');
+      const anchor = screen.getByTestId('anchor');
 
       const anchorPosition = anchor.getBoundingClientRect();
 
@@ -148,10 +141,10 @@ describe('<Menu.Positioner />', () => {
         );
       }
 
-      const { getByTestId } = render(() => <TestComponent />);
+      render(() => <TestComponent />);
 
-      const positioner = getByTestId('positioner');
-      const anchor = getByTestId('anchor');
+      const positioner = screen.getByTestId('positioner');
+      const anchor = screen.getByTestId('anchor');
 
       const anchorPosition = anchor.getBoundingClientRect();
 
@@ -177,7 +170,7 @@ describe('<Menu.Positioner />', () => {
 
       const virtualElement = { getBoundingClientRect: () => boundingRect };
 
-      const { getByTestId } = render(() => (
+      render(() => (
         <Menu.Root open>
           <Menu.Portal>
             <Menu.Positioner
@@ -196,7 +189,7 @@ describe('<Menu.Positioner />', () => {
         </Menu.Root>
       ));
 
-      const positioner = getByTestId('positioner');
+      const positioner = screen.getByTestId('positioner');
       expect(positioner.style.getPropertyValue('transform')).to.equal(`translate(200px, 100px)`);
     });
 
@@ -268,14 +261,14 @@ describe('<Menu.Positioner />', () => {
         );
       }
 
-      const { getByTestId, getByRole } = render(() => <TestComponent />);
+      render(() => <TestComponent />);
 
-      const positioner = getByTestId('positioner');
-      const anchorElement = getByTestId('anchor');
+      const positioner = screen.getByTestId('positioner');
+      const anchorElement = screen.getByTestId('anchor');
 
-      const setUndefinedButton = getByRole('button', { name: 'undefined' });
-      const setRefButton = getByRole('button', { name: 'ref' });
-      const trigger = getByRole('button', { name: 'trigger' });
+      const setUndefinedButton = screen.getByRole('button', { name: 'undefined' });
+      const setRefButton = screen.getByRole('button', { name: 'ref' });
+      const trigger = screen.getByRole('button', { name: 'trigger' });
 
       let anchorRect = anchorElement.getBoundingClientRect();
       await flushMicrotasks();
@@ -303,7 +296,6 @@ describe('<Menu.Positioner />', () => {
 
   describe.skipIf(isJSDOM)('prop: keepMounted', () => {
     afterEach(async () => {
-      const { cleanup } = await import('vitest-browser-react');
       cleanup();
     });
 

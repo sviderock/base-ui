@@ -109,7 +109,6 @@ export function MenuCheckboxItem(props: MenuCheckboxItem.Props) {
   const closeOnClick = () => access(local.closeOnClick) ?? false;
   const nativeButton = () => access(local.nativeButton) ?? false;
 
-  let itemRef = null as HTMLElement | null | undefined;
   const listItem = useCompositeListItem({ label });
 
   const { itemProps, activeIndex, allowMouseUpTriggerRef, typingRef } = useMenuRootContext();
@@ -127,7 +126,6 @@ export function MenuCheckboxItem(props: MenuCheckboxItem.Props) {
       {...other}
       id={id()}
       ref={(el) => {
-        itemRef = el;
         listItem.setRef(el);
         if (typeof props.ref === 'function') {
           props.ref(el);

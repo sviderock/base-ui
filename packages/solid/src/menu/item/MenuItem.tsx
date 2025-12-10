@@ -68,7 +68,6 @@ export function MenuItem(props: MenuItem.Props) {
   const label = () => access(local.label);
   const nativeButton = () => access(local.nativeButton) ?? false;
 
-  let itemRef = null as HTMLElement | null | undefined;
   const listItem = useCompositeListItem({ label });
 
   const { itemProps, activeIndex, allowMouseUpTriggerRef, typingRef } = useMenuRootContext();
@@ -91,7 +90,6 @@ export function MenuItem(props: MenuItem.Props) {
           props.ref = el;
         }
         listItem.setRef(el);
-        itemRef = el;
       }}
       highlighted={highlighted()}
       menuEvents={menuEvents}

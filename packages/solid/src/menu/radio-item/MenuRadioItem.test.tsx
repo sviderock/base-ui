@@ -4,7 +4,6 @@ import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { splitProps } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 import { MenuRadioGroupContext } from '../radio-group/MenuRadioGroupContext';
 
 const testRadioGroupContext = {
@@ -23,20 +22,16 @@ describe('<Menu.RadioItem />', () => {
   clock.withFakeTimers();
 
   describeConformance(
-    (props) => <Menu.RadioItem value="0" {...props} />,
+    (props) => <Menu.RadioItem value="0" {...props} ref={props.ref} />,
     () => ({
-      render: (node, elementProps = {}) => {
-        return render(
-          () => (
-            <Menu.Root open>
-              <MenuRadioGroupContext.Provider value={testRadioGroupContext}>
-                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-              </MenuRadioGroupContext.Provider>
-            </Menu.Root>
-          ),
-          elementProps,
-        );
-      },
+      render: (node, props) =>
+        render(() => (
+          <Menu.Root open>
+            <MenuRadioGroupContext.Provider value={testRadioGroupContext}>
+              {node(props)}
+            </MenuRadioGroupContext.Provider>
+          </Menu.Root>
+        )),
       refInstanceof: window.HTMLDivElement,
     }),
   );
@@ -53,11 +48,12 @@ describe('<Menu.RadioItem />', () => {
 
     function LoggingRoot(props: any & { renderSpy: () => void }) {
       const [local, other] = splitProps(props, ['renderSpy', 'state']);
+      // eslint-disable-next-line solid/reactivity
       local.renderSpy();
       return <li {...other} ref={props.ref} />;
     }
 
-    const { getAllByRole } = render(() => (
+    render(() => (
       <Menu.Root open>
         <Menu.Portal>
           <Menu.Positioner>
@@ -134,7 +130,7 @@ describe('<Menu.RadioItem />', () => {
 
   describe('state management', () => {
     it('adds the state and ARIA attributes when selected', async () => {
-      const { getByRole, user } = render(() => (
+      const { user } = render(() => (
         <Menu.Root>
           <Menu.Trigger>Open</Menu.Trigger>
           <Menu.Portal>
@@ -149,7 +145,7 @@ describe('<Menu.RadioItem />', () => {
         </Menu.Root>
       ));
 
-      const trigger = getByRole('button', { name: 'Open' });
+      const trigger = screen.getByRole('button', { name: 'Open' });
       await user.click(trigger);
 
       const item = screen.getByRole('menuitemradio');
@@ -161,7 +157,7 @@ describe('<Menu.RadioItem />', () => {
 
     ['Space', 'Enter'].forEach((key) => {
       it(`selects the item when ${key} is pressed`, async () => {
-        const { getByRole, user } = render(() => (
+        const { user } = render(() => (
           <Menu.Root>
             <Menu.Trigger>Open</Menu.Trigger>
             <Menu.Portal>
@@ -174,7 +170,7 @@ describe('<Menu.RadioItem />', () => {
           </Menu.Root>
         ));
 
-        const trigger = getByRole('button', { name: 'Open' });
+        const trigger = screen.getByRole('button', { name: 'Open' });
         trigger.focus();
         await user.keyboard('[ArrowDown]');
         const item = () => screen.getByRole('menuitemradio');
@@ -190,7 +186,7 @@ describe('<Menu.RadioItem />', () => {
 
     it('calls `onValueChange` when the item is clicked', async () => {
       const onValueChange = spy();
-      const { getByRole, user } = render(() => (
+      const { user } = render(() => (
         <Menu.Root>
           <Menu.Trigger>Open</Menu.Trigger>
           <Menu.Portal>
@@ -205,7 +201,7 @@ describe('<Menu.RadioItem />', () => {
         </Menu.Root>
       ));
 
-      const trigger = getByRole('button', { name: 'Open' });
+      const trigger = screen.getByRole('button', { name: 'Open' });
       await user.click(trigger);
 
       const item = screen.getByRole('menuitemradio');
@@ -252,7 +248,7 @@ describe('<Menu.RadioItem />', () => {
 
   describe('prop: closeOnClick', () => {
     it('when `closeOnClick=true`, closes the menu when the item is clicked', async () => {
-      const { getByRole, user } = render(() => (
+      const { user } = render(() => (
         <Menu.Root>
           <Menu.Trigger>Open</Menu.Trigger>
           <Menu.Portal>
@@ -269,7 +265,7 @@ describe('<Menu.RadioItem />', () => {
         </Menu.Root>
       ));
 
-      const trigger = getByRole('button', { name: 'Open' });
+      const trigger = screen.getByRole('button', { name: 'Open' });
       await user.click(trigger);
 
       const item = screen.getByRole('menuitemradio');
@@ -279,7 +275,7 @@ describe('<Menu.RadioItem />', () => {
     });
 
     it('does not close the menu when the item is clicked by default', async () => {
-      const { getByRole, user } = render(() => (
+      const { user } = render(() => (
         <Menu.Root>
           <Menu.Trigger>Open</Menu.Trigger>
           <Menu.Portal>
@@ -294,7 +290,7 @@ describe('<Menu.RadioItem />', () => {
         </Menu.Root>
       ));
 
-      const trigger = getByRole('button', { name: 'Open' });
+      const trigger = screen.getByRole('button', { name: 'Open' });
       await user.click(trigger);
 
       const item = screen.getByRole('menuitemradio');

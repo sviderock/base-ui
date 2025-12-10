@@ -4,7 +4,6 @@ import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { splitProps } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Menu.CheckboxItem />', () => {
   const { render, clock } = createRenderer({
@@ -16,16 +15,7 @@ describe('<Menu.CheckboxItem />', () => {
   clock.withFakeTimers();
 
   describeConformance(Menu.CheckboxItem, () => ({
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Menu.Root open>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Menu.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) => render(() => <Menu.Root open>{node(props)}</Menu.Root>),
     refInstanceof: window.HTMLDivElement,
   }));
 
@@ -41,11 +31,12 @@ describe('<Menu.CheckboxItem />', () => {
 
     function LoggingRoot(props: any & { renderSpy: () => void }) {
       const [local, other] = splitProps(props, ['renderSpy', 'state']);
+      // eslint-disable-next-line solid/reactivity
       local.renderSpy();
       return <li {...other} ref={props.ref} />;
     }
 
-    const { getAllByRole } = render(() => (
+    render(() => (
       <Menu.Root open>
         <Menu.Portal>
           <Menu.Positioner>
@@ -92,7 +83,7 @@ describe('<Menu.CheckboxItem />', () => {
       </Menu.Root>
     ));
 
-    const menuItems = getAllByRole('menuitemcheckbox');
+    const menuItems = screen.getAllByRole('menuitemcheckbox');
     menuItems[0].focus();
 
     renderItem1Spy.resetHistory();
@@ -134,7 +125,7 @@ describe('<Menu.CheckboxItem />', () => {
       ] as const
     ).forEach(([checked, ariaChecked, dataState]) =>
       it('adds the state and ARIA attributes when checked', async () => {
-        const { getByRole, user } = render(() => (
+        const { user } = render(() => (
           <Menu.Root>
             <Menu.Trigger>Open</Menu.Trigger>
             <Menu.Portal>
@@ -147,7 +138,7 @@ describe('<Menu.CheckboxItem />', () => {
           </Menu.Root>
         ));
 
-        const trigger = getByRole('button', { name: 'Open' });
+        const trigger = screen.getByRole('button', { name: 'Open' });
         await user.click(trigger);
 
         const item = screen.getByRole('menuitemcheckbox');
@@ -157,7 +148,7 @@ describe('<Menu.CheckboxItem />', () => {
     );
 
     it('toggles the checked state when clicked', async () => {
-      const { getByRole, user } = render(() => (
+      const { user } = render(() => (
         <Menu.Root>
           <Menu.Trigger>Open</Menu.Trigger>
           <Menu.Portal>
@@ -170,7 +161,7 @@ describe('<Menu.CheckboxItem />', () => {
         </Menu.Root>
       ));
 
-      const trigger = getByRole('button', { name: 'Open' });
+      const trigger = screen.getByRole('button', { name: 'Open' });
       await user.click(trigger);
 
       const item = screen.getByRole('menuitemcheckbox');
@@ -186,7 +177,7 @@ describe('<Menu.CheckboxItem />', () => {
     });
 
     it(`toggles the checked state when Space is pressed`, async () => {
-      const { getByRole, user } = render(() => (
+      const { user } = render(() => (
         <Menu.Root>
           <Menu.Trigger>Open</Menu.Trigger>
           <Menu.Portal>
@@ -199,7 +190,7 @@ describe('<Menu.CheckboxItem />', () => {
         </Menu.Root>
       ));
 
-      const trigger = getByRole('button', { name: 'Open' });
+      const trigger = screen.getByRole('button', { name: 'Open' });
       trigger.focus();
       await user.keyboard('[ArrowDown]');
       const item = screen.getByRole('menuitemcheckbox');
@@ -220,7 +211,7 @@ describe('<Menu.CheckboxItem />', () => {
         skip();
       }
 
-      const { getByRole, user } = render(() => (
+      const { user } = render(() => (
         <Menu.Root>
           <Menu.Trigger>Open</Menu.Trigger>
           <Menu.Portal>
@@ -233,11 +224,11 @@ describe('<Menu.CheckboxItem />', () => {
         </Menu.Root>
       ));
 
-      const trigger = getByRole('button', { name: 'Open' });
+      const trigger = screen.getByRole('button', { name: 'Open' });
       trigger.focus();
 
       await user.keyboard('[ArrowDown]');
-      const item = getByRole('menuitemcheckbox');
+      const item = screen.getByRole('menuitemcheckbox');
 
       await waitFor(() => {
         expect(item).toHaveFocus();
@@ -249,7 +240,7 @@ describe('<Menu.CheckboxItem />', () => {
 
     it('calls `onCheckedChange` when the item is clicked', async () => {
       const onCheckedChange = spy();
-      const { getByRole, user } = render(() => (
+      const { user } = render(() => (
         <Menu.Root>
           <Menu.Trigger>Open</Menu.Trigger>
           <Menu.Portal>
@@ -262,7 +253,7 @@ describe('<Menu.CheckboxItem />', () => {
         </Menu.Root>
       ));
 
-      const trigger = getByRole('button', { name: 'Open' });
+      const trigger = screen.getByRole('button', { name: 'Open' });
       await user.click(trigger);
 
       const item = screen.getByRole('menuitemcheckbox');
@@ -278,7 +269,7 @@ describe('<Menu.CheckboxItem />', () => {
     });
 
     it('keeps the state when closed and reopened', async () => {
-      const { getByRole, user } = render(() => (
+      const { user } = render(() => (
         <Menu.Root modal={false}>
           <Menu.Trigger>Open</Menu.Trigger>
           <Menu.Portal keepMounted>
@@ -291,7 +282,7 @@ describe('<Menu.CheckboxItem />', () => {
         </Menu.Root>
       ));
 
-      const trigger = getByRole('button', { name: 'Open' });
+      const trigger = screen.getByRole('button', { name: 'Open' });
       trigger.focus();
 
       await user.keyboard('{Enter}');
@@ -310,7 +301,7 @@ describe('<Menu.CheckboxItem />', () => {
 
   describe('prop: closeOnClick', () => {
     it('when `closeOnClick=true`, closes the menu when the item is clicked', async () => {
-      const { getByRole, user } = render(() => (
+      const { user } = render(() => (
         <Menu.Root>
           <Menu.Trigger>Open</Menu.Trigger>
           <Menu.Portal>
@@ -323,7 +314,7 @@ describe('<Menu.CheckboxItem />', () => {
         </Menu.Root>
       ));
 
-      const trigger = getByRole('button', { name: 'Open' });
+      const trigger = screen.getByRole('button', { name: 'Open' });
       await user.click(trigger);
 
       const item = screen.getByRole('menuitemcheckbox');
@@ -333,7 +324,7 @@ describe('<Menu.CheckboxItem />', () => {
     });
 
     it('does not close the menu when the item is clicked by default', async () => {
-      const { getByRole, user } = render(() => (
+      const { user } = render(() => (
         <Menu.Root>
           <Menu.Trigger>Open</Menu.Trigger>
           <Menu.Portal>
@@ -346,7 +337,7 @@ describe('<Menu.CheckboxItem />', () => {
         </Menu.Root>
       ));
 
-      const trigger = getByRole('button', { name: 'Open' });
+      const trigger = screen.getByRole('button', { name: 'Open' });
       await user.click(trigger);
 
       const item = screen.getByRole('menuitemcheckbox');
