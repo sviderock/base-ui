@@ -1,12 +1,5 @@
 'use client';
-import {
-  createEffect,
-  createMemo,
-  createRenderEffect,
-  onCleanup,
-  onMount,
-  type ComponentProps,
-} from 'solid-js';
+import { createEffect, createMemo, onMount, type ComponentProps } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useControlled } from '../../utils';
 import { BaseUIComponentProps } from '../../utils/types';
@@ -48,7 +41,6 @@ export function FieldControl(componentProps: FieldControl.Props) {
   const name = () => fieldName() ?? nameProp();
 
   const {
-    setControlId,
     labelId,
     setTouched,
     setDirty,
@@ -56,7 +48,7 @@ export function FieldControl(componentProps: FieldControl.Props) {
     setFocused,
     setFilled,
     validationMode,
-    setChildRefs,
+    setCodependentRefs: setChildRefs,
   } = useFieldRootContext();
 
   const { getValidationProps, getInputValidationProps, commitValidation, refs } =

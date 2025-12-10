@@ -1,22 +1,12 @@
 'use client';
 import { createContext, useContext, type Accessor, type Setter } from 'solid-js';
 import { type SetStoreFunction, type Store } from 'solid-js/store';
+import type { CodepenedentRefs } from '../../solid-helpers';
 import { NOOP } from '../../utils/noop';
 import { DEFAULT_VALIDITY_STATE } from '../utils/constants';
 import type { FieldRoot, FieldValidityData } from './FieldRoot';
 
-export interface FieldRootChildRefs {
-  label?: {
-    ref: Accessor<HTMLElement | null | undefined>;
-    explicitId: Accessor<string | undefined>;
-    id: Accessor<string | undefined>;
-  };
-  control?: {
-    ref: Accessor<HTMLElement | null | undefined>;
-    explicitId: Accessor<string | undefined>;
-    id: Accessor<string | undefined>;
-  };
-}
+export type FieldRootChildRefs = CodepenedentRefs<['label', 'control']>;
 
 export interface FieldRootContext {
   invalid: Accessor<boolean | undefined>;
@@ -52,8 +42,8 @@ export interface FieldRootContext {
   refs: {
     markedDirtyRef: boolean;
   };
-  childRefs: Store<FieldRootChildRefs>;
-  setChildRefs: SetStoreFunction<FieldRootChildRefs>;
+  codependentRefs: Store<FieldRootChildRefs>;
+  setCodependentRefs: SetStoreFunction<FieldRootChildRefs>;
 }
 
 export const FieldRootContext = createContext<FieldRootContext>({
@@ -96,8 +86,8 @@ export const FieldRootContext = createContext<FieldRootContext>({
   refs: {
     markedDirtyRef: false,
   },
-  childRefs: {},
-  setChildRefs: NOOP as SetStoreFunction<FieldRootChildRefs>,
+  codependentRefs: {},
+  setCodependentRefs: NOOP as SetStoreFunction<FieldRootChildRefs>,
 });
 
 export function useFieldRootContext(optional = true) {

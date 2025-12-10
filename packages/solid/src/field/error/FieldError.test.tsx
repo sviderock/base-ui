@@ -2,25 +2,15 @@ import { createRenderer, describeConformance } from '#test-utils';
 import { Field } from '@base-ui-components/solid/field';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Field.Error />', () => {
   const { render } = createRenderer();
 
   describeConformance(
-    (props) => <Field.Error match {...props} />,
+    (props) => <Field.Error match {...props} ref={props.ref} />,
     () => ({
       refInstanceof: window.HTMLDivElement,
-      render(node, elementProps = {}) {
-        return render(
-          () => (
-            <Field.Root invalid>
-              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-            </Field.Root>
-          ),
-          elementProps,
-        );
-      },
+      render: (node, props) => render(() => <Field.Root invalid>{node(props)}</Field.Root>),
     }),
   );
 

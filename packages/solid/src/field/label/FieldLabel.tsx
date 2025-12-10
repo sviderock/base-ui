@@ -1,5 +1,5 @@
 'use client';
-import { batch, createEffect, createRenderEffect, onCleanup, onMount } from 'solid-js';
+import { onMount } from 'solid-js';
 import { getTarget } from '../../floating-ui-solid/utils';
 import { access, splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -19,14 +19,14 @@ export function FieldLabel(componentProps: FieldLabel.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['id']);
   const idProp = () => access(local.id);
 
-  const { labelId, state, controlId, setChildRefs } = useFieldRootContext(false);
+  const { labelId, state, controlId, setCodependentRefs } = useFieldRootContext(false);
 
   const id = useBaseUiId(idProp);
   const htmlFor = () => controlId() ?? undefined;
   let ref: HTMLElement;
 
   onMount(() => {
-    setChildRefs('label', { explicitId: id, ref: () => ref, id: idProp });
+    setCodependentRefs('label', { explicitId: id, ref: () => ref, id: idProp });
   });
 
   const element = useRenderElement('label', componentProps, {

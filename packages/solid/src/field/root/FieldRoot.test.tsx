@@ -1,15 +1,15 @@
 import { createRenderer, describeConformance, flushMicrotasks } from '#test-utils';
-// import { Checkbox } from '@base-ui-components/solid/checkbox';
-// import { CheckboxGroup } from '@base-ui-components/solid/checkbox-group';
+import { Checkbox } from '@base-ui-components/solid/checkbox';
+import { CheckboxGroup } from '@base-ui-components/solid/checkbox-group';
 import { Field } from '@base-ui-components/solid/field';
-// import { Form } from '@base-ui-components/solid/form';
+import { Form } from '@base-ui-components/solid/form';
+import { NumberField } from '@base-ui-components/solid/number-field';
+import { Radio } from '@base-ui-components/solid/radio';
+import { RadioGroup } from '@base-ui-components/solid/radio-group';
+import { Select } from '@base-ui-components/solid/select';
+import { Slider } from '@base-ui-components/solid/slider';
+import { Switch } from '@base-ui-components/solid/switch';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
-// import { NumberField } from '@base-ui-components/solid/number-field';
-// import { Radio } from '@base-ui-components/solid/radio';
-// import { RadioGroup } from '@base-ui-components/solid/radio-group';
-// import { Select } from '@base-ui-components/solid/select';
-// import { Slider } from '@base-ui-components/solid/slider';
-// import { Switch } from '@base-ui-components/solid/switch';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { createSignal } from 'solid-js';
@@ -223,131 +223,129 @@ describe('<Field.Root />', () => {
       expect(control).to.have.attribute('aria-invalid', 'true');
     });
 
-    // TODO: Fix this test when we have the Checkbox, CheckboxGroup, NumberField, Radio, RadioGroup, Select, Slider, Switch components
-    // it('receives all form values as the 2nd argument', async () => {
-    //   const validateSpy = spy();
+    it('receives all form values as the 2nd argument', async () => {
+      const validateSpy = spy();
 
-    //   render(() => (
-    //     <Form>
-    //       <Field.Root name="checkbox">
-    //         <Checkbox.Root defaultChecked />
-    //       </Field.Root>
+      render(() => (
+        <Form>
+          <Field.Root name="checkbox">
+            <Checkbox.Root defaultChecked />
+          </Field.Root>
 
-    //       <Field.Root name="checkbox-group">
-    //         <CheckboxGroup defaultValue={['apple', 'banana']}>
-    //           <Checkbox.Root value="apple" />
-    //           <Checkbox.Root value="banana" />
-    //         </CheckboxGroup>
-    //       </Field.Root>
+          <Field.Root name="checkbox-group">
+            <CheckboxGroup defaultValue={['apple', 'banana']}>
+              <Checkbox.Root value="apple" />
+              <Checkbox.Root value="banana" />
+            </CheckboxGroup>
+          </Field.Root>
 
-    //       <Field.Root name="input" validate={validateSpy}>
-    //         <Field.Control data-testid="input" type="url" defaultValue="https://base-ui.com" />
-    //       </Field.Root>
+          <Field.Root name="input" validate={validateSpy}>
+            <Field.Control data-testid="input" type="url" defaultValue="https://base-ui.com" />
+          </Field.Root>
 
-    //       <Field.Root name="number-field">
-    //         <NumberField.Root defaultValue={13}>
-    //           <NumberField.Input />
-    //         </NumberField.Root>
-    //       </Field.Root>
+          <Field.Root name="number-field">
+            <NumberField.Root defaultValue={13}>
+              <NumberField.Input />
+            </NumberField.Root>
+          </Field.Root>
 
-    //       <Field.Root name="radio-group">
-    //         <RadioGroup defaultValue="cats">
-    //           <Radio.Root value="cats" />
-    //         </RadioGroup>
-    //       </Field.Root>
+          <Field.Root name="radio-group">
+            <RadioGroup defaultValue="cats">
+              <Radio.Root value="cats" />
+            </RadioGroup>
+          </Field.Root>
 
-    //       <Field.Root name="select">
-    //         <Select.Root defaultValue="sans">
-    //           <Select.Trigger />
-    //           <Select.Portal>
-    //             <Select.Positioner>
-    //               <Select.Popup>
-    //                 <Select.Item value="sans" />
-    //               </Select.Popup>
-    //             </Select.Positioner>
-    //           </Select.Portal>
-    //         </Select.Root>
-    //       </Field.Root>
+          <Field.Root name="select">
+            <Select.Root defaultValue="sans">
+              <Select.Trigger />
+              <Select.Portal>
+                <Select.Positioner>
+                  <Select.Popup>
+                    <Select.Item value="sans" />
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
+          </Field.Root>
 
-    //       <Field.Root name="slider">
-    //         <Slider.Root defaultValue={12}>
-    //           <Slider.Control />
-    //         </Slider.Root>
-    //       </Field.Root>
+          <Field.Root name="slider">
+            <Slider.Root defaultValue={12}>
+              <Slider.Control />
+            </Slider.Root>
+          </Field.Root>
 
-    //       <Field.Root name="range-slider">
-    //         <Slider.Root defaultValue={[25, 70]}>
-    //           <Slider.Control />
-    //         </Slider.Root>
-    //       </Field.Root>
+          <Field.Root name="range-slider">
+            <Slider.Root defaultValue={[25, 70]}>
+              <Slider.Control />
+            </Slider.Root>
+          </Field.Root>
 
-    //       <Field.Root name="switch">
-    //         <Switch.Root defaultChecked={false} />
-    //       </Field.Root>
-    //     </Form>
-    //   ));
+          <Field.Root name="switch">
+            <Switch.Root defaultChecked={false} />
+          </Field.Root>
+        </Form>
+      ));
 
-    //   const input = screen.getByTestId('input');
-    //   fireEvent.focus(input);
-    //   fireEvent.blur(input);
+      const input = screen.getByTestId('input');
+      fireEvent.focus(input);
+      fireEvent.blur(input);
 
-    //   expect(validateSpy.callCount).to.equal(1);
-    //   expect(validateSpy.firstCall.args[1]).to.deep.equal({
-    //     checkbox: true,
-    //     'checkbox-group': ['apple', 'banana'],
-    //     input: 'https://base-ui.com',
-    //     'number-field': 13,
-    //     'radio-group': 'cats',
-    //     select: 'sans',
-    //     slider: 12,
-    //     'range-slider': [25, 70],
-    //     switch: false,
-    //   });
-    // });
+      expect(validateSpy.callCount).to.equal(1);
+      expect(validateSpy.firstCall.args[1]).to.deep.equal({
+        checkbox: true,
+        'checkbox-group': ['apple', 'banana'],
+        input: 'https://base-ui.com',
+        'number-field': 13,
+        'radio-group': 'cats',
+        select: 'sans',
+        slider: 12,
+        'range-slider': [25, 70],
+        switch: false,
+      });
+    });
 
-    // TODO: Fix this test when we have the Form component
-    // it('unmounted fields are excluded from the validate fn', async () => {
-    //   const validateSpy = spy();
-    //   function App() {
-    //     const [checked, setChecked] = createSignal(true);
+    it('unmounted fields are excluded from the validate fn', async () => {
+      const validateSpy = spy();
+      function App() {
+        const [checked, setChecked] = createSignal(true);
 
-    //     return (
-    //       <Form>
-    //         <input type="checkbox" checked={checked()} onChange={() => setChecked(!checked())} />
-    //         {checked() && (
-    //           <Field.Root name="input1">
-    //             <Field.Control data-testid="input1" defaultValue="one" />
-    //           </Field.Root>
-    //         )}
-    //         <Field.Root name="input2" validate={validateSpy}>
-    //           <Field.Control data-testid="input2" defaultValue="two" />
-    //         </Field.Root>
-    //         <button>Submit</button>
-    //       </Form>
-    //     );
-    //   }
-    //   render(() => <App />);
+        return (
+          <Form>
+            <input type="checkbox" checked={checked()} onChange={() => setChecked(!checked())} />
+            {checked() && (
+              <Field.Root name="input1">
+                <Field.Control data-testid="input1" defaultValue="one" />
+              </Field.Root>
+            )}
+            <Field.Root name="input2" validate={validateSpy}>
+              <Field.Control data-testid="input2" defaultValue="two" />
+            </Field.Root>
+            <button>Submit</button>
+          </Form>
+        );
+      }
+      render(() => <App />);
 
-    //   const input = screen.getByTestId('input2');
-    //   fireEvent.focus(input);
-    //   fireEvent.blur(input);
+      const input = screen.getByTestId('input2');
+      fireEvent.focus(input);
+      fireEvent.blur(input);
 
-    //   expect(validateSpy.callCount).to.equal(1);
-    //   expect(validateSpy.firstCall.args[1]).to.deep.equal({
-    //     input1: 'one',
-    //     input2: 'two',
-    //   });
+      expect(validateSpy.callCount).to.equal(1);
+      expect(validateSpy.firstCall.args[1]).to.deep.equal({
+        input1: 'one',
+        input2: 'two',
+      });
 
-    //   fireEvent.click(screen.getByRole('checkbox'));
+      fireEvent.click(screen.getByRole('checkbox'));
 
-    //   fireEvent.focus(input);
-    //   fireEvent.blur(input);
+      fireEvent.focus(input);
+      fireEvent.blur(input);
 
-    //   expect(validateSpy.callCount).to.equal(2);
-    //   expect(validateSpy.lastCall.args[1]).to.deep.equal({
-    //     input2: 'two',
-    //   });
-    // });
+      expect(validateSpy.callCount).to.equal(2);
+      expect(validateSpy.lastCall.args[1]).to.deep.equal({
+        input2: 'two',
+      });
+    });
   });
 
   describe('prop: validationMode', () => {
