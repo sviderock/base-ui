@@ -46,8 +46,6 @@ export function Menubar(props: Menubar.Props) {
     modal: modal(),
   }));
 
-  let contentRef = null as HTMLDivElement | null | undefined;
-
   const context: MenubarContext = {
     contentElement,
     setContentElement,
@@ -62,10 +60,7 @@ export function Menubar(props: Menubar.Props) {
 
   const element = useRenderElement('div', props, {
     state,
-    ref: (el) => {
-      setContentElement(el);
-      contentRef = el;
-    },
+    ref: setContentElement,
     props: [() => ({ role: 'menubar', id: id() }), otherProps],
   });
 
@@ -74,7 +69,6 @@ export function Menubar(props: Menubar.Props) {
       <FloatingTree>
         <MenubarContent>
           <CompositeRoot
-            class="MENUBAR_CLASS"
             render={element}
             orientation={orientation()}
             loop={loop()}

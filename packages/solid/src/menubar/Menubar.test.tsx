@@ -3,7 +3,6 @@ import { Menu } from '@base-ui-components/solid/menu';
 import { Menubar } from '@base-ui-components/solid/menubar';
 import { cleanup, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 import { afterEach } from 'vitest';
 
 function TestMenubar(props: Menubar.Props) {
@@ -82,16 +81,7 @@ describe('<Menubar />', () => {
   const { render } = createRenderer();
 
   describeConformance(Menubar, () => ({
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Menubar>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Menubar>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) => render(() => <Menubar>{node(props)}</Menubar>),
     refInstanceof: window.HTMLDivElement,
   }));
 
@@ -119,7 +109,7 @@ describe('<Menubar />', () => {
   });
 
   describe.skipIf(isJSDOM)('hover behavior', async () => {
-    afterEach(async () => {
+    afterEach(() => {
       cleanup();
     });
 
