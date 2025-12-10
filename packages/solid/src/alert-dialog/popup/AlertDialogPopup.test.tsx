@@ -4,26 +4,21 @@ import { Dialog } from '@base-ui-components/solid/dialog';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 
 describe('<AlertDialog.Popup />', () => {
   const { render } = createRenderer();
 
   describeConformance(AlertDialog.Popup, () => ({
     refInstanceof: window.HTMLDivElement,
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <AlertDialog.Root open>
-            <AlertDialog.Portal>
-              <AlertDialog.Backdrop />
-              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-            </AlertDialog.Portal>
-          </AlertDialog.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) =>
+      render(() => (
+        <AlertDialog.Root open>
+          <AlertDialog.Portal>
+            <AlertDialog.Backdrop />
+            {node(props)}
+          </AlertDialog.Portal>
+        </AlertDialog.Root>
+      )),
   }));
 
   it('should have role="alertdialog"', async () => {

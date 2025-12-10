@@ -1,32 +1,23 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { AlertDialog } from '@base-ui-components/solid/alert-dialog';
+import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 describe('<AlertDialog.Backdrop />', () => {
   const { render } = createRenderer();
 
   describeConformance(AlertDialog.Backdrop, () => ({
     refInstanceof: window.HTMLDivElement,
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <AlertDialog.Root open>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </AlertDialog.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) => render(() => <AlertDialog.Root open>{node(props)}</AlertDialog.Root>),
   }));
 
   it('has role="presentation"', () => {
-    const { getByTestId } = render(() => (
+    render(() => (
       <AlertDialog.Root open>
         <AlertDialog.Backdrop data-testid="backdrop" />
       </AlertDialog.Root>
     ));
 
-    expect(getByTestId('backdrop')).to.have.attribute('role', 'presentation');
+    expect(screen.getByTestId('backdrop')).to.have.attribute('role', 'presentation');
   });
 });

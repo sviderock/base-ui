@@ -3,28 +3,21 @@ import { AlertDialog } from '@base-ui-components/solid/alert-dialog';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { Dynamic } from 'solid-js/web';
 
 describe('<AlertDialog.Close />', () => {
   const { render } = createRenderer();
 
   describeConformance(AlertDialog.Close, () => ({
     refInstanceof: window.HTMLButtonElement,
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <AlertDialog.Root open>
-            <AlertDialog.Backdrop />
-            <AlertDialog.Portal>
-              <AlertDialog.Popup>
-                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-              </AlertDialog.Popup>
-            </AlertDialog.Portal>
-          </AlertDialog.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) =>
+      render(() => (
+        <AlertDialog.Root open>
+          <AlertDialog.Backdrop />
+          <AlertDialog.Portal>
+            <AlertDialog.Popup>{node(props)}</AlertDialog.Popup>
+          </AlertDialog.Portal>
+        </AlertDialog.Root>
+      )),
   }));
 
   describe('prop: disabled', () => {

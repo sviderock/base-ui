@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, onCleanup } from 'solid-js';
+import { onMount } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
@@ -14,18 +14,19 @@ import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
  */
 export function AlertDialogTitle(componentProps: AlertDialogTitle.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['id']);
-  const { setTitleElementId } = useAlertDialogRootContext();
+  const { setCodependentRefs } = useAlertDialogRootContext();
 
   const id = useBaseUiId(local.id);
+  let ref: HTMLElement;
 
-  createEffect(() => {
-    setTitleElementId(id);
-    onCleanup(() => {
-      setTitleElementId(() => undefined);
-    });
+  onMount(() => {
+    setCodependentRefs('title', { explicitId: id, ref: () => ref, id: () => local.id });
   });
 
   const element = useRenderElement('h2', componentProps, {
+    ref: (el) => {
+      ref = el;
+    },
     props: [() => ({ id: id() }), elementProps],
   });
 

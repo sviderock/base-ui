@@ -2,28 +2,21 @@ import { createRenderer, describeConformance } from '#test-utils';
 import { AlertDialog } from '@base-ui-components/solid/alert-dialog';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 describe('<AlertDialog.Trigger />', () => {
   const { render } = createRenderer();
 
   describeConformance(AlertDialog.Trigger, () => ({
     refInstanceof: window.HTMLButtonElement,
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <AlertDialog.Root open>
-            <AlertDialog.Backdrop />
-            <AlertDialog.Portal>
-              <AlertDialog.Popup>
-                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-              </AlertDialog.Popup>
-            </AlertDialog.Portal>
-          </AlertDialog.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) =>
+      render(() => (
+        <AlertDialog.Root open>
+          <AlertDialog.Backdrop />
+          <AlertDialog.Portal>
+            <AlertDialog.Popup>{node(props)}</AlertDialog.Popup>
+          </AlertDialog.Portal>
+        </AlertDialog.Root>
+      )),
   }));
 
   describe('prop: disabled', () => {
