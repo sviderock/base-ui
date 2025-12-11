@@ -1,14 +1,5 @@
 'use client';
-import {
-  batch,
-  createEffect,
-  createMemo,
-  createRenderEffect,
-  createSignal,
-  onCleanup,
-  onMount,
-  type ComponentProps,
-} from 'solid-js';
+import { batch, createMemo, createSignal, onMount, type ComponentProps } from 'solid-js';
 import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
@@ -20,7 +11,7 @@ import { useButton } from '../../use-button';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import { styleHookMapping } from '../styleHooks';
 import { SwitchRootContext } from './SwitchRootContext';
@@ -63,7 +54,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
     validationMode,
     disabled: fieldDisabled,
     name: fieldName,
-    setChildRefs,
+    setCodependentRefs: setChildRefs,
   } = useFieldRootContext();
 
   const disabled = () => fieldDisabled() || disabledProp();
@@ -82,16 +73,11 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
   const id = useBaseUiId(idProp);
 
   onMount(() => {
-    console.log('switch onMount');
     setChildRefs('control', { explicitId: id, ref: switchRef, id: idProp });
 
     if (inputRef) {
       setFilled(inputRef!.checked);
     }
-  });
-
-  onCleanup(() => {
-    console.log('switch onCleanup');
   });
 
   const [checked, setCheckedState] = useControlled({
@@ -207,27 +193,19 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
     required,
   };
 
-  console.log('switch return');
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: (el) => {
+      setSwitchRef(el);
+      buttonRef(el);
+    },
+    props: [rootProps, getValidationProps, elementProps, getButtonProps],
+    customStyleHookMapping: styleHookMapping,
+  });
+
   return (
     <SwitchRootContext.Provider value={context}>
-      <RenderElement
-        element="button"
-        componentProps={componentProps}
-        ref={(el) => {
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-          setSwitchRef(el);
-          buttonRef(el);
-        }}
-        params={{
-          state: state(),
-          props: [rootProps(), getValidationProps, elementProps, getButtonProps],
-          customStyleHookMapping: styleHookMapping,
-        }}
-      />
+      {element()}
       {!checked() && nameProp() && <input type="hidden" name={nameProp()} value="off" />}
       <input
         ref={(el) => {

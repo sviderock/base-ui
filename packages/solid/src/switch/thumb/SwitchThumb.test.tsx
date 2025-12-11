@@ -1,6 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { Switch } from '@base-ui-components/solid/switch';
-import { Dynamic } from 'solid-js/web';
 import { SwitchRootContext } from '../root/SwitchRootContext';
 
 const testContext: SwitchRootContext = {
@@ -20,15 +19,10 @@ describe('<Switch.Thumb />', () => {
 
   describeConformance(Switch.Thumb, () => ({
     refInstanceof: window.HTMLSpanElement,
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <SwitchRootContext.Provider value={testContext}>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </SwitchRootContext.Provider>
-        ),
-        elementProps,
-      );
+    render: (node, props) => {
+      return render(() => (
+        <SwitchRootContext.Provider value={testContext}>{node(props)}</SwitchRootContext.Provider>
+      ));
     },
   }));
 });

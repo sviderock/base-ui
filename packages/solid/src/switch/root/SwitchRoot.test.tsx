@@ -6,7 +6,7 @@ import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { userEvent } from '@testing-library/user-event';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { createSignal, onCleanup, onMount, splitProps } from 'solid-js';
+import { createSignal } from 'solid-js';
 
 describe('<Switch.Root />', () => {
   const { render } = createRenderer();
@@ -144,7 +144,7 @@ describe('<Switch.Root />', () => {
 
   describe('prop: inputRef', () => {
     it('should be able to access the native input', async () => {
-      let refs = { inputRef: null };
+      const refs = { inputRef: null };
       render(() => <Switch.Root refs={refs} />);
       const internalInput = screen.getByRole('checkbox', { hidden: true });
 
@@ -507,18 +507,13 @@ describe('<Switch.Root />', () => {
             </Field.Root>
           ));
 
-          console.log(1);
-          screen.debug();
           const label = screen.getByTestId('label');
           expect(label).to.not.have.attribute('for');
-          console.log(2);
 
           const button = screen.getByRole('switch');
           expect(button).to.have.attribute('aria-checked', 'false');
-          console.log(3);
 
           fireEvent.click(label);
-          console.log(4);
           expect(button).to.have.attribute('aria-checked', 'true');
         });
 
@@ -526,11 +521,7 @@ describe('<Switch.Root />', () => {
           render(() => (
             <Field.Root>
               <Field.Label data-testid="label">
-                <Switch.Root
-                  data-testid="button"
-                  render={(p) => <span {...(p() as any)} />}
-                  nativeButton={false}
-                />
+                <Switch.Root data-testid="button" render="span" nativeButton={false} />
               </Field.Label>
             </Field.Root>
           ));
@@ -576,25 +567,18 @@ describe('<Switch.Root />', () => {
             </Field.Root>
           ));
 
-          screen.debug();
-          console.log(1);
           const label = screen.getByTestId('label');
           const button = screen.getByRole('switch');
-          console.log(2);
 
           expect(label.getAttribute('for')).to.not.equal(null);
           expect(button.getAttribute('aria-labelledby')).to.not.equal(null);
 
-          console.log(3);
           expect(label.getAttribute('for')).to.equal(button.getAttribute('id'));
           expect(button.getAttribute('aria-labelledby')).to.equal(label.getAttribute('id'));
 
-          console.log(4);
           expect(button).to.have.attribute('aria-checked', 'false');
 
-          console.log(5);
           fireEvent.click(label);
-          console.log(6);
           expect(button).to.have.attribute('aria-checked', 'false');
         });
       });

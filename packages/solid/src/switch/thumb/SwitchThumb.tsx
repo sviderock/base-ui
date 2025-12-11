@@ -3,7 +3,7 @@ import { createMemo } from 'solid-js';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { SwitchRoot } from '../root/SwitchRoot';
 import { useSwitchRootContext } from '../root/SwitchRootContext';
 import { styleHookMapping } from '../styleHooks';
@@ -32,18 +32,13 @@ export function SwitchThumb(componentProps: SwitchThumb.Props) {
     disabled: state.disabled() ?? fieldState().disabled,
   }));
 
-  return (
-    <RenderElement
-      element="span"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        state: extendedState(),
-        props: elementProps,
-        customStyleHookMapping: styleHookMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('span', componentProps, {
+    state: extendedState,
+    props: elementProps,
+    customStyleHookMapping: styleHookMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace SwitchThumb {
