@@ -2,7 +2,7 @@
 import { createMemo } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../solid-helpers';
 import type { BaseUIComponentProps, Orientation } from '../utils/types';
-import { RenderElement } from '../utils/useRenderElement';
+import { useRenderElement } from '../utils/useRenderElementV2';
 
 /**
  * A separator element accessible to screen readers.
@@ -18,17 +18,12 @@ export function Separator(componentProps: Separator.Props) {
     orientation: orientation(),
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        state: state(),
-        props: [{ role: 'separator', 'aria-orientation': orientation() }, elementProps],
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: [() => ({ role: 'separator', 'aria-orientation': orientation() }), elementProps],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace Separator {

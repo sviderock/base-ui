@@ -1,5 +1,6 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { Separator } from '@base-ui-components/solid/separator';
+import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 
 describe('<Separator />', () => {
@@ -11,17 +12,15 @@ describe('<Separator />', () => {
   }));
 
   it('renders a div with the `separator` role', async () => {
-    const { getByRole } = render(() => <Separator />);
-    expect(getByRole('separator')).toBeVisible();
+    render(() => <Separator />);
+    expect(screen.getByRole('separator')).toBeVisible();
   });
 
   describe('prop: orientation', () => {
     ['horizontal', 'vertical'].forEach((orientation) => {
       it(orientation, async () => {
-        const { getByRole } = render(() => (
-          <Separator orientation={orientation as Separator.Props['orientation']} />
-        ));
-        expect(getByRole('separator')).to.have.attribute('aria-orientation', orientation);
+        render(() => <Separator orientation={orientation as Separator.Props['orientation']} />);
+        expect(screen.getByRole('separator')).to.have.attribute('aria-orientation', orientation);
       });
     });
   });
