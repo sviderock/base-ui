@@ -5,7 +5,7 @@ import { POPUP_COLLISION_AVOIDANCE } from '../../utils/constants';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
 import { type Align, type Side, useAnchorPositioning } from '../../utils/useAnchorPositioning';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { usePreviewCardPortalContext } from '../portal/PreviewCardPortalContext';
 import { usePreviewCardRootContext } from '../root/PreviewCardContext';
 import { PreviewCardPositionerContext } from './PreviewCardPositionerContext';
@@ -89,25 +89,16 @@ export function PreviewCardPositioner(componentProps: PreviewCardPositioner.Prop
     anchorHidden: positioning.anchorHidden(),
   }));
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: setPositionerElement,
+    props: [defaultProps, elementProps],
+    customStyleHookMapping: popupStateMapping,
+  });
+
   return (
     <PreviewCardPositionerContext.Provider value={positioning}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={(el) => {
-          setPositionerElement(el);
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-        }}
-        params={{
-          state: state(),
-          props: [defaultProps(), elementProps],
-          customStyleHookMapping: popupStateMapping,
-        }}
-      />
+      {element()}
     </PreviewCardPositionerContext.Provider>
   );
 }

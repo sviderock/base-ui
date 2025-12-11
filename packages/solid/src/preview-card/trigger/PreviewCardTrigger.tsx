@@ -3,7 +3,7 @@ import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { usePreviewCardRootContext } from '../root/PreviewCardContext';
 
 /**
@@ -19,25 +19,14 @@ export function PreviewCardTrigger(componentProps: PreviewCardTrigger.Props) {
 
   const state = createMemo<PreviewCardTrigger.State>(() => ({ open: open() }));
 
-  return (
-    <RenderElement
-      element="a"
-      componentProps={componentProps}
-      ref={(el) => {
-        setTriggerElement(el);
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-      }}
-      params={{
-        state: state(),
-        props: [triggerProps(), elementProps],
-        customStyleHookMapping: triggerOpenStateMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('a', componentProps, {
+    state,
+    ref: setTriggerElement,
+    props: [triggerProps, elementProps],
+    customStyleHookMapping: triggerOpenStateMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace PreviewCardTrigger {

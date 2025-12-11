@@ -8,7 +8,7 @@ import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { usePreviewCardPositionerContext } from '../positioner/PreviewCardPositionerContext';
 import { usePreviewCardRootContext } from '../root/PreviewCardContext';
@@ -48,29 +48,20 @@ export function PreviewCardPopup(componentProps: PreviewCardPopup.Props) {
     transitionStatus: transitionStatus(),
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        refs.popupRef = el;
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-      }}
-      params={{
-        state: state(),
-        customStyleHookMapping,
-        props: [
-          popupProps(),
-          transitionStatus() === 'starting' ? DISABLED_TRANSITIONS_STYLE : EMPTY_OBJECT,
-          elementProps,
-        ],
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      refs.popupRef = el;
+    },
+    customStyleHookMapping,
+    props: [
+      popupProps,
+      () => (transitionStatus() === 'starting' ? DISABLED_TRANSITIONS_STYLE : EMPTY_OBJECT),
+      elementProps,
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace PreviewCardPopup {

@@ -1,23 +1,13 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { PreviewCard } from '@base-ui-components/solid/preview-card';
 import { screen } from '@solidjs/testing-library';
-import { Dynamic } from 'solid-js/web';
 
 describe('<PreviewCard.Backdrop />', () => {
   const { render } = createRenderer();
 
   describeConformance(PreviewCard.Backdrop, () => ({
+    render: (node, props) => render(() => <PreviewCard.Root open>{node(props)}</PreviewCard.Root>),
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <PreviewCard.Root open>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </PreviewCard.Root>
-        ),
-        elementProps,
-      );
-    },
   }));
 
   it('sets `pointer-events: none` style', async () => {

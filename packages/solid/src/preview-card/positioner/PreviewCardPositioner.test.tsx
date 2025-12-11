@@ -2,7 +2,6 @@ import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { PreviewCard } from '@base-ui-components/solid/preview-card';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 function Trigger(props: PreviewCard.Trigger.Props) {
   return <PreviewCard.Trigger {...props} ref={props.ref} render={(p) => <div {...p()} />} />;
@@ -12,19 +11,13 @@ describe('<PreviewCard.Positioner />', () => {
   const { render } = createRenderer();
 
   describeConformance(PreviewCard.Positioner, () => ({
+    render: (node, props) =>
+      render(() => (
+        <PreviewCard.Root open>
+          <PreviewCard.Portal>{node(props)}</PreviewCard.Portal>
+        </PreviewCard.Root>
+      )),
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <PreviewCard.Root open>
-            <PreviewCard.Portal>
-              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-            </PreviewCard.Portal>
-          </PreviewCard.Root>
-        ),
-        elementProps,
-      );
-    },
   }));
 
   const baselineX = 10;
