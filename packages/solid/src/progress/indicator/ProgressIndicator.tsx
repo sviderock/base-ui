@@ -2,7 +2,7 @@
 import { createMemo, type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { valueToPercent } from '../../utils/valueToPercent';
 import type { ProgressRoot } from '../root/ProgressRoot';
 import { useProgressRootContext } from '../root/ProgressRootContext';
@@ -34,18 +34,13 @@ export function ProgressIndicator(componentProps: ProgressIndicator.Props) {
     };
   });
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        state: state(),
-        props: [{ style: getStyles() }, elementProps],
-        customStyleHookMapping: progressStyleHookMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: [() => ({ style: getStyles() }), elementProps],
+    customStyleHookMapping: progressStyleHookMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace ProgressIndicator {

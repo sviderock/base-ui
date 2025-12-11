@@ -2,22 +2,12 @@ import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { Progress } from '@base-ui-components/solid/progress';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Progress.Indicator />', () => {
   const { render } = createRenderer();
 
   describeConformance(Progress.Indicator, () => ({
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Progress.Root value={40}>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Progress.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) => render(() => <Progress.Root value={40}>{node(props)}</Progress.Root>),
     refInstanceof: window.HTMLDivElement,
   }));
 

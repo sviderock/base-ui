@@ -3,7 +3,7 @@ import { createRenderEffect, onCleanup } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { ProgressRoot } from '../root/ProgressRoot';
 import { useProgressRootContext } from '../root/ProgressRootContext';
 import { progressStyleHookMapping } from '../root/styleHooks';
@@ -29,18 +29,13 @@ export function ProgressLabel(componentProps: ProgressLabel.Props) {
     setLabelId(undefined);
   });
 
-  return (
-    <RenderElement
-      element="span"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        state: state(),
-        props: [{ id: id() }, elementProps],
-        customStyleHookMapping: progressStyleHookMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('span', componentProps, {
+    state,
+    props: [() => ({ id: id() }), elementProps],
+    customStyleHookMapping: progressStyleHookMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace ProgressLabel {

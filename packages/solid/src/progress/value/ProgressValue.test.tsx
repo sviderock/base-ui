@@ -3,22 +3,12 @@ import { Progress } from '@base-ui-components/solid/progress';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Progress.Value />', () => {
   const { render } = createRenderer();
 
   describeConformance(Progress.Value, () => ({
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Progress.Root value={40}>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Progress.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) => render(() => <Progress.Root value={40}>{node(props)}</Progress.Root>),
     refInstanceof: window.HTMLSpanElement,
   }));
 

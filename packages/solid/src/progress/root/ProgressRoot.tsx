@@ -3,7 +3,7 @@ import { createEffect, createMemo, createSignal } from 'solid-js';
 import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
 import { formatNumber } from '../../utils/formatNumber';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { ProgressRootContext } from './ProgressRootContext';
 import { progressStyleHookMapping } from './styleHooks';
 
@@ -83,32 +83,27 @@ export function ProgressRoot(componentProps: ProgressRoot.Props) {
     value,
   };
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    customStyleHookMapping: progressStyleHookMapping,
+    props: [
+      () => ({
+        'aria-labelledby': labelId(),
+        'aria-valuemax': max(),
+        'aria-valuemin': min(),
+        'aria-valuenow': value() ?? undefined,
+        'aria-valuetext': local.getAriaValueText
+          ? local.getAriaValueText(formattedValue(), value())
+          : (componentProps['aria-valuetext'] ??
+            getDefaultAriaValueText(formattedValue(), value())),
+        role: 'progressbar',
+      }),
+      elementProps,
+    ],
+  });
+
   return (
-    <ProgressRootContext.Provider value={contextValue}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={componentProps.ref}
-        params={{
-          state: state(),
-          customStyleHookMapping: progressStyleHookMapping,
-          props: [
-            {
-              'aria-labelledby': labelId(),
-              'aria-valuemax': max(),
-              'aria-valuemin': min(),
-              'aria-valuenow': value() ?? undefined,
-              'aria-valuetext': local.getAriaValueText
-                ? local.getAriaValueText(formattedValue(), value())
-                : (componentProps['aria-valuetext'] ??
-                  getDefaultAriaValueText(formattedValue(), value())),
-              role: 'progressbar',
-            },
-            elementProps,
-          ],
-        }}
-      />
-    </ProgressRootContext.Provider>
+    <ProgressRootContext.Provider value={contextValue}>{element()}</ProgressRootContext.Provider>
   );
 }
 

@@ -1,21 +1,11 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { Progress } from '@base-ui-components/solid/progress';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Progress.Track />', () => {
   const { render } = createRenderer();
 
   describeConformance(Progress.Track, () => ({
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Progress.Root value={40}>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Progress.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) => render(() => <Progress.Root value={40}>{node(props)}</Progress.Root>),
     refInstanceof: window.HTMLDivElement,
   }));
 });

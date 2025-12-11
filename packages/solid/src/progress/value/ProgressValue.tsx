@@ -2,7 +2,7 @@
 import { Show, type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { ProgressRoot } from '../root/ProgressRoot';
 import { useProgressRootContext } from '../root/ProgressRootContext';
 import { progressStyleHookMapping } from '../root/styleHooks';
@@ -13,32 +13,39 @@ import { progressStyleHookMapping } from '../root/styleHooks';
  * Documentation: [Base UI Progress](https://base-ui.com/react/components/progress)
  */
 export function ProgressValue(componentProps: ProgressValue.Props) {
-  const [renderProps, , elementProps] = splitComponentProps(componentProps, []);
+  const [, , elementProps] = splitComponentProps(componentProps, []);
 
   const { value, formattedValue, state } = useProgressRootContext();
 
   const formattedValueArg = () => (value() == null ? 'indeterminate' : formattedValue());
   const formattedValueDisplay = () => (value() == null ? null : formattedValue());
 
-  return (
-    <RenderElement
-      element="span"
-      componentProps={{
-        render: renderProps.render,
-        class: renderProps.class,
-      }}
-      ref={componentProps.ref}
-      params={{
-        state: state(),
-        props: [{ 'aria-hidden': true }, elementProps],
-        customStyleHookMapping: progressStyleHookMapping,
-      }}
-    >
-      <Show when={typeof renderProps.children === 'function'} fallback={formattedValueDisplay()}>
-        {renderProps.children?.(formattedValueArg(), value())}
-      </Show>
-    </RenderElement>
+  const element = useRenderElement(
+    'span',
+    {
+      ...componentProps,
+      get children() {
+        return (
+          <Show
+            when={typeof componentProps.children === 'function'}
+            fallback={formattedValueDisplay()}
+          >
+            {componentProps.children?.(formattedValueArg(), value())}
+          </Show>
+        );
+      },
+    },
+    {
+      state,
+      ref: (el) => {
+        componentProps.ref = el;
+      },
+      props: [{ 'aria-hidden': true }, elementProps],
+      customStyleHookMapping: progressStyleHookMapping,
+    },
   );
+
+  return <>{element()}</>;
 }
 
 export namespace ProgressValue {
