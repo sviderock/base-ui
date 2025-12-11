@@ -1,22 +1,14 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { ScrollArea } from '@base-ui-components/solid/scroll-area';
 import { screen, waitFor } from '@solidjs/testing-library';
-import { Dynamic } from 'solid-js/web';
 
 describe('<ScrollArea.Corner />', () => {
   const { render } = createRenderer();
 
   describeConformance(ScrollArea.Corner, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <ScrollArea.Root>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </ScrollArea.Root>
-        ),
-        elementProps,
-      );
+    render(node, props) {
+      return render(() => <ScrollArea.Root>{node(props)}</ScrollArea.Root>);
     },
   }));
 

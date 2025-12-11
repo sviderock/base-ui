@@ -2,7 +2,7 @@
 import { Show } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
 
 /**
@@ -15,36 +15,25 @@ export function ScrollAreaCorner(componentProps: ScrollAreaCorner.Props) {
   const [, , elementProps] = splitComponentProps(componentProps, []);
   const context = useScrollAreaRootContext();
 
-  return (
-    <Show when={!context.hiddenState.cornerHidden} fallback={null}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={(el) => {
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-          context.refs.cornerRef = el;
-        }}
-        params={{
-          props: [
-            {
-              style: {
-                position: 'absolute',
-                bottom: 0,
-                'inset-inline-end': 0,
-                width: `${context.cornerSize.width}px`,
-                height: `${context.cornerSize.height}px`,
-              },
-            },
-            elementProps,
-          ],
-        }}
-      />
-    </Show>
-  );
+  const element = useRenderElement('div', componentProps, {
+    ref: (el) => {
+      context.refs.cornerRef = el;
+    },
+    props: [
+      () => ({
+        style: {
+          position: 'absolute',
+          bottom: 0,
+          'inset-inline-end': 0,
+          width: `${context.cornerSize.width}px`,
+          height: `${context.cornerSize.height}px`,
+        },
+      }),
+      elementProps,
+    ],
+  });
+
+  return <Show when={!context.hiddenState.cornerHidden}>{element()}</Show>;
 }
 
 export namespace ScrollAreaCorner {

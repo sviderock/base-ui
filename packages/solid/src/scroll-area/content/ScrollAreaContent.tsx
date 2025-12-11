@@ -2,7 +2,7 @@
 import { onCleanup, onMount } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useScrollAreaViewportContext } from '../viewport/ScrollAreaViewportContext';
 
 /**
@@ -34,31 +34,22 @@ export function ScrollAreaContent(componentProps: ScrollAreaContent.Props) {
     });
   });
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-        contentWrapperRef = el;
-      }}
-      params={{
-        props: [
-          {
-            role: 'presentation',
-            style: {
-              'min-width': 'fit-content',
-            },
-          },
-          elementProps,
-        ],
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    ref: (el) => {
+      contentWrapperRef = el;
+    },
+    props: [
+      {
+        role: 'presentation',
+        style: {
+          'min-width': 'fit-content',
+        },
+      },
+      elementProps,
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace ScrollAreaContent {

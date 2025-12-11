@@ -2,7 +2,7 @@
 import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
 import { useScrollAreaScrollbarContext } from '../scrollbar/ScrollAreaScrollbarContext';
 import { ScrollAreaScrollbarCssVars } from '../scrollbar/ScrollAreaScrollbarCssVars';
@@ -24,51 +24,42 @@ export function ScrollAreaThumb(componentProps: ScrollAreaThumb.Props) {
     orientation: scrollbarContext.orientation(),
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-        if (scrollbarContext.orientation() === 'vertical') {
-          rootContext.refs.thumbYRef = el;
-        } else {
-          rootContext.refs.thumbXRef = el;
-        }
-      }}
-      params={{
-        state: state(),
-        props: [
-          {
-            onPointerDown: rootContext.handlePointerDown,
-            onPointerMove: rootContext.handlePointerMove,
-            onPointerUp(event) {
-              if (scrollbarContext.orientation() === 'vertical') {
-                rootContext.setScrollingY(false);
-              }
-              if (scrollbarContext.orientation() === 'horizontal') {
-                rootContext.setScrollingX(false);
-              }
-              rootContext.handlePointerUp(event);
-            },
-            style: {
-              ...(scrollbarContext.orientation() === 'vertical' && {
-                height: `var(${ScrollAreaScrollbarCssVars.scrollAreaThumbHeight})`,
-              }),
-              ...(scrollbarContext.orientation() === 'horizontal' && {
-                width: `var(${ScrollAreaScrollbarCssVars.scrollAreaThumbWidth})`,
-              }),
-            },
-          },
-          elementProps,
-        ],
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      if (scrollbarContext.orientation() === 'vertical') {
+        rootContext.refs.thumbYRef = el;
+      } else {
+        rootContext.refs.thumbXRef = el;
+      }
+    },
+    props: [
+      () => ({
+        onPointerDown: rootContext.handlePointerDown,
+        onPointerMove: rootContext.handlePointerMove,
+        onPointerUp(event) {
+          if (scrollbarContext.orientation() === 'vertical') {
+            rootContext.setScrollingY(false);
+          }
+          if (scrollbarContext.orientation() === 'horizontal') {
+            rootContext.setScrollingX(false);
+          }
+          rootContext.handlePointerUp(event);
+        },
+        style: {
+          ...(scrollbarContext.orientation() === 'vertical' && {
+            height: `var(${ScrollAreaScrollbarCssVars.scrollAreaThumbHeight})`,
+          }),
+          ...(scrollbarContext.orientation() === 'horizontal' && {
+            width: `var(${ScrollAreaScrollbarCssVars.scrollAreaThumbWidth})`,
+          }),
+        },
+      }),
+      elementProps,
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace ScrollAreaThumb {

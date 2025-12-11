@@ -6,7 +6,7 @@ import { splitComponentProps } from '../../solid-helpers';
 import { clamp } from '../../utils/clamp';
 import { styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { MIN_THUMB_SIZE } from '../constants';
 import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
@@ -182,71 +182,63 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
     computeThumbPosition,
   };
 
+  const element = useRenderElement('div', componentProps, {
+    ref: (el) => {
+      batch(() => {
+        viewportEl = el;
+        context.refs.viewportRef = el;
+      });
+    },
+    props: [
+      () => ({
+        role: 'presentation',
+        ...(context.rootId() && { 'data-id': `${context.rootId()}-viewport` }),
+        // https://accessibilityinsights.io/info-examples/web/scrollable-region-focusable/
+        ...((!context.hiddenState.scrollbarXHidden || !context.hiddenState.scrollbarYHidden) && {
+          tabIndex: 0,
+        }),
+        class: styleDisableScrollbar.class,
+        style: {
+          overflow: 'scroll',
+        },
+
+        onScroll: () => {
+          if (!viewportEl) {
+            return;
+          }
+
+          computeThumbPosition();
+
+          if (!programmaticScrollRef) {
+            context.handleScroll({
+              x: viewportEl?.scrollLeft,
+              y: viewportEl?.scrollTop,
+            });
+          }
+
+          // Debounce the restoration of the programmatic flag so that it only
+          // flips back to `true` once scrolling has come to a rest. This ensures
+          // that momentum scrolling (where no further user-interaction events fire)
+          // is still treated as user-driven.
+          // 100 ms without scroll events ≈ scroll end
+          // https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollend_event
+          scrollEndTimeout.start(100, () => {
+            programmaticScrollRef = true;
+          });
+        },
+        onWheel: handleUserInteraction,
+        onTouchMove: handleUserInteraction,
+        onPointerMove: handleUserInteraction,
+        onPointerEnter: handleUserInteraction,
+        onKeyDown: handleUserInteraction,
+      }),
+      elementProps,
+    ],
+  });
+
   return (
     <ScrollAreaViewportContext.Provider value={contextValue}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={(el) => {
-          batch(() => {
-            viewportEl = el;
-            context.refs.viewportRef = el;
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-          });
-        }}
-        params={{
-          props: [
-            {
-              role: 'presentation',
-              ...(context.rootId() && { 'data-id': `${context.rootId()}-viewport` }),
-              // https://accessibilityinsights.io/info-examples/web/scrollable-region-focusable/
-              ...((!context.hiddenState.scrollbarXHidden ||
-                !context.hiddenState.scrollbarYHidden) && {
-                tabIndex: 0,
-              }),
-              class: styleDisableScrollbar.class,
-              style: {
-                overflow: 'scroll',
-              },
-
-              onScroll: () => {
-                if (!viewportEl) {
-                  return;
-                }
-
-                computeThumbPosition();
-
-                if (!programmaticScrollRef) {
-                  context.handleScroll({
-                    x: viewportEl?.scrollLeft,
-                    y: viewportEl?.scrollTop,
-                  });
-                }
-
-                // Debounce the restoration of the programmatic flag so that it only
-                // flips back to `true` once scrolling has come to a rest. This ensures
-                // that momentum scrolling (where no further user-interaction events fire)
-                // is still treated as user-driven.
-                // 100 ms without scroll events ≈ scroll end
-                // https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollend_event
-                scrollEndTimeout.start(100, () => {
-                  programmaticScrollRef = true;
-                });
-              },
-              onWheel: handleUserInteraction,
-              onTouchMove: handleUserInteraction,
-              onPointerMove: handleUserInteraction,
-              onPointerEnter: handleUserInteraction,
-              onKeyDown: handleUserInteraction,
-            },
-            elementProps,
-          ],
-        }}
-      />
+      {element()}
     </ScrollAreaViewportContext.Provider>
   );
 }

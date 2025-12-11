@@ -5,7 +5,7 @@ import { splitComponentProps } from '../../solid-helpers';
 import { STYLE_TAG_ID, styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { SCROLL_TIMEOUT } from '../constants';
 import { ScrollAreaScrollbarDataAttributes } from '../scrollbar/ScrollAreaScrollbarDataAttributes';
@@ -214,36 +214,31 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
     });
   });
 
+  const element = useRenderElement('div', componentProps, {
+    props: [
+      () => ({
+        role: 'presentation',
+        onPointerEnter: handlePointerEnterOrMove,
+        onPointerMove: handlePointerEnterOrMove,
+        onPointerDown(event) {
+          setTouchModality(event.pointerType === 'touch');
+        },
+        onPointerLeave() {
+          setHovering(false);
+        },
+        style: {
+          position: 'relative',
+          [ScrollAreaRootCssVars.scrollAreaCornerHeight as string]: `${cornerSize.height}px`,
+          [ScrollAreaRootCssVars.scrollAreaCornerWidth as string]: `${cornerSize.width}px`,
+        },
+      }),
+      elementProps,
+    ],
+  });
+
   return (
     <ScrollAreaRootContext.Provider value={contextValue}>
-      <>
-        <RenderElement
-          element="div"
-          componentProps={componentProps}
-          ref={componentProps.ref}
-          params={{
-            props: [
-              {
-                role: 'presentation',
-                onPointerEnter: handlePointerEnterOrMove,
-                onPointerMove: handlePointerEnterOrMove,
-                onPointerDown(event) {
-                  setTouchModality(event.pointerType === 'touch');
-                },
-                onPointerLeave() {
-                  setHovering(false);
-                },
-                style: {
-                  position: 'relative',
-                  [ScrollAreaRootCssVars.scrollAreaCornerHeight as string]: `${cornerSize.height}px`,
-                  [ScrollAreaRootCssVars.scrollAreaCornerWidth as string]: `${cornerSize.width}px`,
-                },
-              },
-              elementProps,
-            ],
-          }}
-        />
-      </>
+      {element()}
     </ScrollAreaRootContext.Provider>
   );
 }

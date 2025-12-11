@@ -1,7 +1,6 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { ScrollArea } from '@base-ui-components/solid/scroll-area';
 import { fireEvent, screen } from '@solidjs/testing-library';
-import { Dynamic } from 'solid-js/web';
 import { SCROLL_TIMEOUT } from '../constants';
 
 describe('<ScrollArea.Scrollbar />', () => {
@@ -10,18 +9,11 @@ describe('<ScrollArea.Scrollbar />', () => {
   clock.withFakeTimers();
 
   describeConformance(
-    (props) => <ScrollArea.Scrollbar keepMounted {...props} />,
+    (props) => <ScrollArea.Scrollbar keepMounted {...props} ref={props.ref} />,
     () => ({
       refInstanceof: window.HTMLDivElement,
-      render(node, elementProps = {}) {
-        return render(
-          () => (
-            <ScrollArea.Root>
-              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-            </ScrollArea.Root>
-          ),
-          elementProps,
-        );
+      render(node, props) {
+        return render(() => <ScrollArea.Root>{node(props)}</ScrollArea.Root>);
       },
     }),
   );
