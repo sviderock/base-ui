@@ -1271,7 +1271,7 @@ describe('<Select.Root />', () => {
               <Select.Positioner />
             </Select.Portal>
           </Select.Root>
-          <Field.Label data-testid="label" render={(p) => <span {...p()} />} />
+          <Field.Label data-testid="label" render="span" />
         </Field.Root>
       ));
 

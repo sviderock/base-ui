@@ -13,7 +13,7 @@ import { styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
 import type { Side } from '../../utils/useAnchorPositioning';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useSelectPositionerContext } from '../positioner/SelectPositionerContext';
 import { useSelectRootContext } from '../root/SelectRootContext';
@@ -341,38 +341,28 @@ export function SelectPopup(componentProps: SelectPopup.Props) {
     }),
   }));
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      refs.popupRef = el;
+    },
+    customStyleHookMapping,
+    props: [
+      store.popupProps,
+      defaultProps,
+      () => ({
+        style: store.transitionStatus === 'starting' ? DISABLED_TRANSITIONS_STYLE.style : undefined,
+        class: alignItemWithTriggerActive() ? styleDisableScrollbar.class : undefined,
+      }),
+      elementProps,
+    ],
+  });
+
   return (
     <>
       {styleDisableScrollbar.element}
       <FloatingFocusManager context={context} modal={false} disabled={!store.mounted} restoreFocus>
-        <RenderElement
-          element="div"
-          componentProps={componentProps}
-          ref={(el) => {
-            refs.popupRef = el;
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-          }}
-          params={{
-            state: state(),
-            customStyleHookMapping,
-            props: [
-              store.popupProps,
-              defaultProps(),
-              {
-                style:
-                  store.transitionStatus === 'starting'
-                    ? DISABLED_TRANSITIONS_STYLE.style
-                    : undefined,
-                class: alignItemWithTriggerActive() ? styleDisableScrollbar.class : undefined,
-              },
-              elementProps,
-            ],
-          }}
-        />
+        {element()}
       </FloatingFocusManager>
     </>
   );

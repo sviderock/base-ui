@@ -8,7 +8,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../../solid-hel
 import { useButton } from '../../use-button';
 import { isMouseWithinBounds } from '../../utils/isMouseWithinBounds';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useSelectRootContext } from '../root/SelectRootContext';
 import { SelectItemContext } from './SelectItemContext';
 
@@ -217,30 +217,19 @@ export function SelectItem(componentProps: SelectItem.Props) {
     refs,
   };
 
-  return (
-    <SelectItemContext.Provider value={contextValue}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={(el) => {
-          batch(() => {
-            buttonRef(el);
-            listItem.setRef(el);
-            itemRef = el;
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-          });
-        }}
-        params={{
-          state: state(),
-          props: [rootProps(), defaultProps(), elementProps, getButtonProps],
-        }}
-      />
-    </SelectItemContext.Provider>
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      batch(() => {
+        buttonRef(el);
+        listItem.setRef(el);
+        itemRef = el;
+      });
+    },
+    props: [rootProps, defaultProps, elementProps, getButtonProps],
+  });
+
+  return <SelectItemContext.Provider value={contextValue}>{element()}</SelectItemContext.Provider>;
 }
 
 export namespace SelectItem {

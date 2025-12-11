@@ -4,7 +4,7 @@ import { access, type MaybeAccessor, splitComponentProps } from '../../solid-hel
 import type { BaseUIComponentProps } from '../../utils/types';
 import { Side } from '../../utils/useAnchorPositioning';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { type TransitionStatus, useTransitionStatus } from '../../utils/useTransitionStatus';
 import { useSelectPositionerContext } from '../positioner/SelectPositionerContext';
@@ -157,26 +157,15 @@ export function SelectScrollArrow(componentProps: SelectScrollArrow.Props) {
 
   const shouldRender = () => visible() || keepMounted();
 
-  return (
-    <Show when={shouldRender()}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={(el) => {
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-          scrollArrowRef = el;
-        }}
-        params={{
-          state: state(),
-          props: [defaultProps(), elementProps],
-        }}
-      />
-    </Show>
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      scrollArrowRef = el;
+    },
+    props: [defaultProps, elementProps],
+  });
+
+  return <Show when={shouldRender()}>{element()}</Show>;
 }
 
 export namespace SelectScrollArrow {

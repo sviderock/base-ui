@@ -61,6 +61,7 @@ export function useSelectRoot<T>(params: useSelectRoot.Parameters<T>): useSelect
     setFilled,
     name: fieldName,
     disabled: fieldDisabled,
+    setCodependentRefs,
   } = useFieldRootContext();
   const fieldControlValidation = useFieldControlValidation();
 
@@ -68,14 +69,6 @@ export function useSelectRoot<T>(params: useSelectRoot.Parameters<T>): useSelect
 
   const disabled = () => fieldDisabled() || disabledProp();
   const name = () => fieldName() ?? nameProp();
-
-  createRenderEffect(() => {
-    setControlId(id());
-  });
-
-  onCleanup(() => {
-    setControlId(undefined);
-  });
 
   const [value, setValueUnwrapped] = useControlled({
     controlled: params.value,
@@ -150,6 +143,10 @@ export function useSelectRoot<T>(params: useSelectRoot.Parameters<T>): useSelect
 
   // const controlRef = useLatestRef(store.state.triggerElement);
   const commitValidation = fieldControlValidation.commitValidation;
+
+  onMount(() => {
+    setCodependentRefs('control', { explicitId: id, ref: () => store.triggerElement, id: idProp });
+  });
 
   useField({
     id,

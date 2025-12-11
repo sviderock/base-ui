@@ -3,22 +3,14 @@ import { Select } from '@base-ui-components/solid/select';
 import { act, fireEvent, screen, waitFor } from '@mui/internal-test-utils';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Select.Trigger />', () => {
   const { render } = createRenderer();
 
   describeConformance(Select.Trigger, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Select.Root open>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Select.Root>
-        ),
-        elementProps,
-      );
+    render(node, props) {
+      return render(() => <Select.Root open>{node(props)}</Select.Root>);
     },
   }));
 

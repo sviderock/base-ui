@@ -6,7 +6,7 @@ import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping'
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useSelectPositionerContext } from '../positioner/SelectPositionerContext';
 import { useSelectRootContext } from '../root/SelectRootContext';
 
@@ -35,27 +35,14 @@ export function SelectArrow(componentProps: SelectArrow.Props) {
     uncentered: arrowUncentered(),
   }));
 
-  return (
-    <Show when={alignItemWithTriggerActive() === false}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={(el) => {
-          refs.setArrowRef(el);
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-        }}
-        params={{
-          state: state(),
-          props: [{ style: arrowStyles(), 'aria-hidden': true }, elementProps],
-          customStyleHookMapping,
-        }}
-      />
-    </Show>
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: refs.setArrowRef,
+    props: [() => ({ style: arrowStyles(), 'aria-hidden': true }), elementProps],
+    customStyleHookMapping,
+  });
+
+  return <Show when={alignItemWithTriggerActive() === false}>{element()}</Show>;
 }
 
 export namespace SelectArrow {

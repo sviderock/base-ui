@@ -1,7 +1,7 @@
 'use client';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 
 /**
  * An icon that indicates that the trigger button opens a select menu.
@@ -12,14 +12,23 @@ import { RenderElement } from '../../utils/useRenderElement';
 export function SelectIcon(componentProps: SelectIcon.Props) {
   const [, , elementProps] = splitComponentProps(componentProps, []);
 
-  return (
-    <RenderElement
-      element="span"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{ props: [{ 'aria-hidden': true, children: '▼' }, elementProps] }}
-    />
+  const element = useRenderElement(
+    'span',
+    {
+      ...componentProps,
+      get children() {
+        return componentProps.children ?? '▼';
+      },
+    },
+    {
+      ref: (el) => {
+        componentProps.ref = el;
+      },
+      props: [{ 'aria-hidden': true }, elementProps],
+    },
   );
+
+  return <>{element()}</>;
 }
 
 export namespace SelectIcon {

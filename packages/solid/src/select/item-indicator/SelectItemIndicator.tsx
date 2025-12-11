@@ -4,7 +4,7 @@ import { access, type MaybeAccessor, splitComponentProps } from '../../solid-hel
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { type TransitionStatus, useTransitionStatus } from '../../utils/useTransitionStatus';
 import { useSelectItemContext } from '../item/SelectItemContext';
 
@@ -41,33 +41,32 @@ export function SelectItemIndicator(componentProps: SelectItemIndicator.Props) {
 
   const shouldRender = () => keepMounted() || selected();
 
-  return (
-    <Show when={shouldRender()}>
-      <RenderElement
-        element="span"
-        componentProps={{ ...componentProps, children: componentProps.children ?? '✔️' }}
-        ref={(el) => {
-          indicatorRef = el;
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-        }}
-        params={{
-          state: state(),
-          customStyleHookMapping: transitionStatusMapping,
-          props: [
-            {
-              hidden: !mounted(),
-              'aria-hidden': true,
-            },
-            elementProps,
-          ],
-        }}
-      />
-    </Show>
+  const element = useRenderElement(
+    'span',
+    {
+      ...componentProps,
+      get children() {
+        return componentProps.children ?? '✔️';
+      },
+    },
+    {
+      state,
+      ref: (el) => {
+        indicatorRef = el;
+        componentProps.ref = el;
+      },
+      customStyleHookMapping: transitionStatusMapping,
+      props: [
+        () => ({
+          hidden: !mounted(),
+          'aria-hidden': true,
+        }),
+        elementProps,
+      ],
+    },
   );
+
+  return <Show when={shouldRender()}>{element()}</Show>;
 }
 
 export namespace SelectItemIndicator {

@@ -3,7 +3,7 @@ import { createMemo, Show, type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useSelectRootContext } from '../root/SelectRootContext';
 
 const customStyleHookMapping: CustomStyleHookMapping<SelectValue.State> = {
@@ -17,7 +17,7 @@ const customStyleHookMapping: CustomStyleHookMapping<SelectValue.State> = {
  * Documentation: [Base UI Select](https://base-ui.com/react/components/select)
  */
 export function SelectValue(componentProps: SelectValue.Props) {
-  const [renderProps, , elementProps] = splitComponentProps(componentProps, []);
+  const [, , elementProps] = splitComponentProps(componentProps, []);
 
   const { store, refs } = useSelectRootContext();
 
@@ -35,35 +35,33 @@ export function SelectValue(componentProps: SelectValue.Props) {
     value: store.value,
   }));
 
-  return (
-    <RenderElement
-      element="span"
-      componentProps={{
-        render: renderProps.render,
-        class: renderProps.class,
-      }}
-      ref={(el) => {
+  const element = useRenderElement(
+    'span',
+    {
+      ...componentProps,
+      get children() {
+        return (
+          <Show
+            when={typeof componentProps.children === 'function'}
+            fallback={componentProps.children ?? labelFromItems() ?? store.value}
+          >
+            {(componentProps.children as Function)(store.value)}
+          </Show>
+        );
+      },
+    },
+    {
+      state,
+      ref: (el) => {
+        componentProps.ref = el;
         refs.valueRef = el;
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-      }}
-      params={{
-        state: state(),
-        props: elementProps,
-        customStyleHookMapping,
-      }}
-    >
-      <Show
-        when={typeof componentProps.children === 'function'}
-        fallback={componentProps.children ?? labelFromItems() ?? store.value}
-      >
-        {(componentProps.children as Function)(store.value)}
-      </Show>
-    </RenderElement>
+      },
+      props: elementProps,
+      customStyleHookMapping,
+    },
   );
+
+  return <>{element()}</>;
 }
 
 export namespace SelectValue {

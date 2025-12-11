@@ -4,15 +4,14 @@ import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { fieldValidityMapping } from '../../field/utils/constants';
 import { contains } from '../../floating-ui-solid/utils';
-import { mergeProps } from '../../merge-props';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { getPseudoElementBounds } from '../../utils/getPseudoElementBounds';
 import { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { ownerDocument } from '../../utils/owner';
 import { pressableTriggerOpenStateMapping } from '../../utils/popupStateMapping';
-import { BaseUIComponentProps, type HTMLProps, type WithBaseUIEvent } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { BaseUIComponentProps } from '../../utils/types';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { useSelectRootContext } from '../root/SelectRootContext';
 
@@ -89,13 +88,31 @@ export function SelectTrigger(componentProps: SelectTrigger.Props) {
     timeoutMouseDown.clear();
   });
 
-  const props = createMemo<WithBaseUIEvent<HTMLProps>>(() =>
-    mergeProps<'div'>(
-      store.triggerProps,
-      {
+  const state = createMemo<SelectTrigger.State>(() => ({
+    ...fieldState(),
+    open: store.open,
+    disabled: disabled(),
+    value: store.value,
+    readOnly: readOnly(),
+  }));
+
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      batch(() => {
+        triggerRef = el;
+        buttonRef(el);
+        setStore('triggerElement', el);
+      });
+    },
+    props: [
+      () => store.triggerProps,
+      () => ({
         'aria-labelledby': labelId(),
         'aria-readonly': readOnly() || undefined,
         tabIndex: disabled() ? -1 : 0,
+      }),
+      {
         onFocus(event) {
           setFocused(true);
           // The popup element shouldn't obscure the focused trigger.
@@ -185,40 +202,11 @@ export function SelectTrigger(componentProps: SelectTrigger.Props) {
       // ensure nested useButton does not overwrite the combobox role:
       // <Toolbar.Button render={<Select.Trigger />} />
       { role: 'combobox' },
-    ),
-  );
+    ],
+    customStyleHookMapping,
+  });
 
-  const state = createMemo<SelectTrigger.State>(() => ({
-    ...fieldState(),
-    open: store.open,
-    disabled: disabled(),
-    value: store.value,
-    readOnly: readOnly(),
-  }));
-
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        batch(() => {
-          triggerRef = el;
-          buttonRef(el);
-          setStore('triggerElement', el);
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-        });
-      }}
-      params={{
-        state: state(),
-        props: props(),
-        customStyleHookMapping,
-      }}
-    />
-  );
+  return <>{element()}</>;
 }
 
 export namespace SelectTrigger {

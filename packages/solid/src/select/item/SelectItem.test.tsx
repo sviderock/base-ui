@@ -2,7 +2,6 @@ import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#
 import { Select } from '@base-ui-components/solid/select';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Select.Item />', () => {
   const { render } = createRenderer();
@@ -11,15 +10,8 @@ describe('<Select.Item />', () => {
     (props: any) => <Select.Item {...props} ref={props.ref} value="" />,
     () => ({
       refInstanceof: window.HTMLDivElement,
-      render(node, elementProps = {}) {
-        return render(
-          () => (
-            <Select.Root open>
-              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-            </Select.Root>
-          ),
-          elementProps,
-        );
+      render(node, props) {
+        return render(() => <Select.Root open>{node(props)}</Select.Root>);
       },
     }),
   );

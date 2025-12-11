@@ -2,22 +2,14 @@ import { createRenderer, describeConformance } from '#test-utils';
 import { Select } from '@base-ui-components/solid/select';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Select.Group />', () => {
   const { render } = createRenderer();
 
   describeConformance(Select.Group, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Select.Root open>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Select.Root>
-        ),
-        elementProps,
-      );
+    render(node, props) {
+      return render(() => <Select.Root open>{node(props)}</Select.Root>);
     },
   }));
 

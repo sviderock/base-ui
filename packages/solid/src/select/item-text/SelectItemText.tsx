@@ -2,7 +2,7 @@
 import { batch, createEffect, on } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useSelectItemContext } from '../item/SelectItemContext';
 import { useSelectRootContext } from '../root/SelectRootContext';
 
@@ -29,22 +29,15 @@ export function SelectItemText(componentProps: SelectItemText.Props) {
     }),
   );
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        ref = el;
-        refs.textRef = el;
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-      }}
-      params={{ props: elementProps }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    ref: (el) => {
+      ref = el;
+      refs.textRef = el;
+    },
+    props: elementProps,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace SelectItemText {

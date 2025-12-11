@@ -2,7 +2,6 @@ import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { Select } from '@base-ui-components/solid/select';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 function Trigger(props: Select.Trigger.Props) {
   return <Select.Trigger {...props} ref={props.ref} render={(p) => <div {...p()} />} />;
@@ -13,17 +12,12 @@ describe('<Select.Positioner />', () => {
 
   describeConformance(Select.Positioner, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Select.Root open>
-            <Select.Portal>
-              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-            </Select.Portal>
-          </Select.Root>
-        ),
-        elementProps,
-      );
+    render(node, props) {
+      return render(() => (
+        <Select.Root open>
+          <Select.Portal>{node(props)}</Select.Portal>
+        </Select.Root>
+      ));
     },
   }));
 

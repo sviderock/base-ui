@@ -3,7 +3,7 @@ import { createRenderEffect } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useSelectGroupContext } from '../group/SelectGroupContext';
 
 /**
@@ -23,14 +23,11 @@ export function SelectGroupLabel(componentProps: SelectGroupLabel.Props) {
     setLabelId(id());
   });
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{ props: [{ id: id() }, elementProps] }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    props: [() => ({ id: id() }), elementProps],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace SelectGroupLabel {

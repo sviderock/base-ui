@@ -10,7 +10,7 @@ import { inertValue } from '../../utils/inertValue';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useAnchorPositioning, type Align, type Side } from '../../utils/useAnchorPositioning';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { clearPositionerStyles } from '../popup/utils';
 import { useSelectFloatingContext, useSelectRootContext } from '../root/SelectRootContext';
 import { SelectPositionerContext } from './SelectPositionerContext';
@@ -173,6 +173,13 @@ export function SelectPositioner(componentProps: SelectPositioner.Props) {
     setControlledAlignItemWithTrigger,
   };
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: setPositionerElement,
+    customStyleHookMapping: popupStateMapping,
+    props: [defaultProps, elementProps],
+  });
+
   return (
     <CompositeList
       refs={{ elements: refs.listRef, labels: refs.labelsRef }}
@@ -182,23 +189,7 @@ export function SelectPositioner(componentProps: SelectPositioner.Props) {
         {store.mounted && store.modal && (
           <InternalBackdrop managed inert={inertValue(!store.open)} cutout={store.triggerElement} />
         )}
-        <RenderElement
-          element="div"
-          componentProps={componentProps}
-          ref={(el) => {
-            setPositionerElement(el);
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-          }}
-          params={{
-            state: state(),
-            customStyleHookMapping: popupStateMapping,
-            props: [defaultProps(), elementProps],
-          }}
-        />
+        {element()}
       </SelectPositionerContext.Provider>
     </CompositeList>
   );

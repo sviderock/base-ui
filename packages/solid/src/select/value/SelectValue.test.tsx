@@ -4,22 +4,14 @@ import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { createSignal } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Select.Value />', () => {
   const { render } = createRenderer();
 
   describeConformance(Select.Value, () => ({
     refInstanceof: window.HTMLSpanElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Select.Root open>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Select.Root>
-        ),
-        elementProps,
-      );
+    render(node, props) {
+      return render(() => <Select.Root open>{node(props)}</Select.Root>);
     },
   }));
 
