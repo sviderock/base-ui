@@ -1,4 +1,5 @@
 import {
+  children,
   createMemo,
   createSignal,
   onMount,
@@ -104,3 +105,15 @@ export type CodepenedentRefs<T extends string[]> = {
     explicitId: Accessor<string | undefined>;
   };
 };
+
+// https://github.com/solidjs/solid/issues/2478#issuecomment-2888503241
+export function childrenLazy(resolver: () => JSX.Element) {
+  const _s = Symbol();
+  let x: any = _s;
+  return () => {
+    if (x === _s) {
+      x = children(resolver);
+    }
+    return x;
+  };
+}

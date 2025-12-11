@@ -1,5 +1,4 @@
 import {
-  children,
   createMemo,
   Show,
   splitProps,
@@ -9,7 +8,7 @@ import {
 } from 'solid-js';
 import { Dynamic, type DynamicProps } from 'solid-js/web';
 import { mergeProps, mergePropsN } from '../merge-props';
-import { access, type MaybeAccessor } from '../solid-helpers';
+import { access, childrenLazy, type MaybeAccessor } from '../solid-helpers';
 import { EMPTY_OBJECT } from './constants';
 import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
 import { resolveClassName } from './resolveClassName';
@@ -29,12 +28,14 @@ export function useRenderElement<
   RefType extends RenderedElementType['ref'],
   Enabled extends boolean | undefined = undefined,
 >(
-  element: TagName,
+  elementProp: MaybeAccessor<TagName>,
   componentProps: RenderElement.ComponentProps<State, TagName, RenderedElementType>,
   params: RenderElement.Parameters<State, TagName, RenderedElementType, RefType, Enabled>,
 ) {
+  const element = () => access(elementProp);
   const state = createMemo(() => params.state?.() ?? (EMPTY_OBJECT as State));
   const enabled = createMemo(() => access(params.enabled) ?? true);
+  const props = createMemo(() => access(params.props));
   const safeChildren = childrenLazy(() => componentProps.children ?? params.children);
 
   const styleHooks = createMemo<Record<string, string> | undefined>(() => {
@@ -47,10 +48,8 @@ export function useRenderElement<
   });
 
   const outProps = createMemo(() => {
-    const mergedParams = Array.isArray(params.props)
-      ? mergePropsN(params.props)
-      : access(params.props);
-
+    const p = props();
+    const mergedParams = Array.isArray(p) ? mergePropsN(p) : p;
     if (mergedParams === undefined) {
       return EMPTY_OBJECT;
     }
@@ -61,7 +60,7 @@ export function useRenderElement<
     });
   });
 
-  const renderer = (props: any) => (componentProps.render as Function)(props, state());
+  const renderer = (p: any) => (componentProps.render as Function)(p, state());
   const Component = createMemo<DynamicProps<ValidComponent>['component']>(() => {
     if (typeof componentProps.render === 'function') {
       return renderer;
@@ -71,7 +70,7 @@ export function useRenderElement<
       return componentProps.render;
     }
 
-    return element;
+    return element();
   });
 
   return (renderFnProps?: HTMLProps) => {
@@ -79,8 +78,8 @@ export function useRenderElement<
       <Show when={enabled()}>
         <Dynamic
           component={Component()}
-          {...(element === 'button' ? { type: 'button' } : {})}
-          {...(element === 'img' ? { alt: '' } : {})}
+          {...(element() === 'button' ? { type: 'button' } : {})}
+          {...(element() === 'img' ? { alt: '' } : {})}
           {...mergeProps(
             renderFnProps,
             typeof componentProps.render === 'object'
@@ -129,18 +128,6 @@ export function useRenderElement<
   };
 }
 
-// https://github.com/solidjs/solid/issues/2478#issuecomment-2888503241
-function childrenLazy(resolver: () => JSX.Element) {
-  const _s = Symbol();
-  let x: any = _s;
-  return () => {
-    if (x === _s) {
-      x = children(resolver);
-    }
-    return x;
-  };
-}
-
 export namespace RenderElement {
   export type Parameters<
     State extends Record<string, MaybeAccessor<any>>,
@@ -172,11 +159,13 @@ export namespace RenderElement {
      */
     children?: JSX.Element;
     props?:
-      | BaseUIComponentProps<TagName, State>
+      | MaybeAccessor<BaseUIComponentProps<TagName, State>>
       | Array<
           | BaseUIComponentProps<TagName, State>
           | undefined
-          | ((props: BaseUIComponentProps<TagName, State>) => BaseUIComponentProps<TagName, State>)
+          | ((
+              props: BaseUIComponentProps<TagName, State>,
+            ) => BaseUIComponentProps<TagName, State> | undefined | null)
         >;
 
     /**

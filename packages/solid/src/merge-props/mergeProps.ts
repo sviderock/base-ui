@@ -200,7 +200,7 @@ function resolvePropsGetter<T extends ElementType>(
   previousProps: PropsOf<T>,
 ) {
   if (isPropsGetter(inputProps)) {
-    return inputProps(previousProps);
+    return inputProps(previousProps) ?? (EMPTY_PROPS as PropsOf<T>);
   }
 
   return inputProps ?? (EMPTY_PROPS as PropsOf<T>);

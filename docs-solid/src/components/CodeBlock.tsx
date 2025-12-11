@@ -103,12 +103,16 @@ export function Pre(componentProps: ComponentProps<'pre'>) {
         style={{ overflow: undefined }}
         render={(p) => (
           <pre
-            {...p()}
+            {...p}
             {...props}
             id={codeId()}
-            class={clsx('CodeBlockPre', p().class, local.class)}
+            class={clsx('CodeBlockPre', typeof p.class === 'string' ? p.class : '', local.class)}
             ref={(el) => {
-              p().ref(el);
+              if (typeof p.ref === 'function') {
+                p.ref(el);
+              } else {
+                p.ref = el;
+              }
               if (typeof props.ref === 'function') {
                 props.ref(el);
               } else {
