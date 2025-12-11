@@ -1,7 +1,7 @@
 'use client';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useNavigationMenuRootContext } from '../root/NavigationMenuRootContext';
 
 /**
@@ -15,21 +15,12 @@ export function NavigationMenuViewport(componentProps: NavigationMenuViewport.Pr
 
   const { setViewportElement } = useNavigationMenuRootContext();
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        setViewportElement(el);
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-      }}
-      params={{ props: elementProps }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    ref: setViewportElement,
+    props: elementProps,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace NavigationMenuViewport {

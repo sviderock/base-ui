@@ -1,10 +1,9 @@
 'use client';
-import { type ComponentProps } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import { useFloatingTree } from '../../floating-ui-solid';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import {
   useNavigationMenuRootContext,
   useNavigationMenuTreeContext,
@@ -24,56 +23,34 @@ export function NavigationMenuLink(componentProps: NavigationMenuLink.Props) {
   const nodeId = useNavigationMenuTreeContext();
   const tree = useFloatingTree();
 
-  return (
-    <CompositeItem
-      tabIndex={undefined}
-      render={(p) => (
-        <RenderElement
-          element="a"
-          componentProps={componentProps}
-          ref={(el) => {
-            if (p() && typeof p().ref === 'function') {
-              (p().ref as Function)(el);
-            } else {
-              p().ref = el as unknown as HTMLDivElement;
-            }
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-          }}
-          params={{
-            props: [
-              p() as ComponentProps<'a'>,
+  const element = useRenderElement('a', componentProps, {
+    props: [
+      {
+        onBlur(event) {
+          if (
+            isOutsideMenuEvent(
               {
-                onBlur(event) {
-                  if (
-                    isOutsideMenuEvent(
-                      {
-                        currentTarget: event.currentTarget,
-                        relatedTarget: event.relatedTarget as HTMLElement | null,
-                      },
-                      {
-                        popupElement: popupElement(),
-                        rootRef: refs.rootRef,
-                        tree,
-                        virtualFloatingTree: floatingRootContext()?.dataRef.virtualFloatingTree,
-                        nodeId: nodeId?.(),
-                      },
-                    )
-                  ) {
-                    setValue(null, event, undefined);
-                  }
-                },
+                currentTarget: event.currentTarget,
+                relatedTarget: event.relatedTarget as HTMLElement | null,
               },
-              elementProps,
-            ],
-          }}
-        />
-      )}
-    />
-  );
+              {
+                popupElement: popupElement(),
+                rootRef: refs.rootRef,
+                tree,
+                virtualFloatingTree: floatingRootContext()?.dataRef.virtualFloatingTree,
+                nodeId: nodeId?.(),
+              },
+            )
+          ) {
+            setValue(null, event, undefined);
+          }
+        },
+      },
+      elementProps,
+    ],
+  });
+
+  return <CompositeItem tabIndex={undefined} render={element} />;
 }
 
 export namespace NavigationMenuLink {

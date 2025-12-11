@@ -1,12 +1,5 @@
 'use client';
-import {
-  batch,
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-  type ComponentProps,
-} from 'solid-js';
+import { batch, createEffect, createMemo, createSignal, onCleanup } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import {
   safePolygon,
@@ -36,7 +29,7 @@ import {
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useAnimationFrame } from '../../utils/useAnimationFrame';
 import { useAnimationsFinished } from '../../utils/useAnimationsFinished';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import { useNavigationMenuItemContext } from '../item/NavigationMenuItemContext';
@@ -358,83 +351,65 @@ export function NavigationMenuTrigger(componentProps: NavigationMenuTrigger.Prop
     setPointerType(event.pointerType as 'mouse' | 'touch' | 'pen' | '');
   }
 
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: setTriggerElement,
+    customStyleHookMapping: pressableTriggerOpenStateMapping,
+    props: [
+      getReferenceProps,
+      {
+        tabIndex: 0,
+        onMouseEnter: handleOpenEvent,
+        onClick: handleOpenEvent,
+        onPointerEnter: handleSetPointerType,
+        onPointerDown: handleSetPointerType,
+        [TRIGGER_IDENTIFIER as string]: '',
+        onMouseMove() {
+          allowFocusRef = false;
+        },
+        onKeyDown(event) {
+          allowFocusRef = true;
+          const openHorizontal = orientation() === 'horizontal' && event.key === 'ArrowDown';
+          const openVertical = orientation() === 'vertical' && event.key === 'ArrowRight';
+
+          if (openHorizontal || openVertical) {
+            setValue(itemValue(), event, 'list-navigation');
+            handleOpenEvent(event);
+            stopEvent(event);
+          }
+        },
+        onBlur(event) {
+          if (
+            event.relatedTarget &&
+            isOutsideMenuEvent(
+              {
+                currentTarget: event.currentTarget,
+                relatedTarget: event.relatedTarget as HTMLElement | null,
+              },
+              {
+                popupElement: popupElement(),
+                rootRef: refs.rootRef,
+                tree,
+                virtualFloatingTree: context.dataRef.virtualFloatingTree,
+                nodeId: nodeId?.(),
+              },
+            )
+          ) {
+            setValue(null, event, 'focus-out');
+          }
+        },
+      },
+      () => ({
+        'aria-expanded': isActiveItem(),
+        'aria-controls': isActiveItem() ? popupElement()?.id : undefined,
+      }),
+      elementProps,
+    ],
+  });
+
   return (
     <>
-      <CompositeItem
-        render={(p) => (
-          <RenderElement
-            element="button"
-            componentProps={componentProps}
-            ref={(el) => {
-              if (p() && typeof p().ref === 'function') {
-                (p().ref as Function)(el);
-              } else {
-                p().ref = el as unknown as HTMLDivElement;
-              }
-              setTriggerElement(el);
-              if (typeof componentProps.ref === 'function') {
-                componentProps.ref(el);
-              } else {
-                componentProps.ref = el;
-              }
-            }}
-            params={{
-              state: state(),
-              customStyleHookMapping: pressableTriggerOpenStateMapping,
-              props: [
-                p() as ComponentProps<'button'>,
-                getReferenceProps,
-                {
-                  tabIndex: 0,
-                  onMouseEnter: handleOpenEvent,
-                  onClick: handleOpenEvent,
-                  onPointerEnter: handleSetPointerType,
-                  onPointerDown: handleSetPointerType,
-                  'aria-expanded': isActiveItem(),
-                  'aria-controls': isActiveItem() ? popupElement()?.id : undefined,
-                  [TRIGGER_IDENTIFIER as string]: '',
-                  onMouseMove() {
-                    allowFocusRef = false;
-                  },
-                  onKeyDown(event) {
-                    allowFocusRef = true;
-                    const openHorizontal =
-                      orientation() === 'horizontal' && event.key === 'ArrowDown';
-                    const openVertical = orientation() === 'vertical' && event.key === 'ArrowRight';
-
-                    if (openHorizontal || openVertical) {
-                      setValue(itemValue(), event, 'list-navigation');
-                      handleOpenEvent(event);
-                      stopEvent(event);
-                    }
-                  },
-                  onBlur(event) {
-                    if (
-                      event.relatedTarget &&
-                      isOutsideMenuEvent(
-                        {
-                          currentTarget: event.currentTarget,
-                          relatedTarget: event.relatedTarget as HTMLElement | null,
-                        },
-                        {
-                          popupElement: popupElement(),
-                          rootRef: refs.rootRef,
-                          tree,
-                          virtualFloatingTree: context.dataRef.virtualFloatingTree,
-                          nodeId: nodeId?.(),
-                        },
-                      )
-                    ) {
-                      setValue(null, event, 'focus-out');
-                    }
-                  },
-                },
-                elementProps,
-              ],
-            }}
-          />
-        )}
-      />
+      <CompositeItem render={element} />
 
       {isActiveItem() && (
         <>

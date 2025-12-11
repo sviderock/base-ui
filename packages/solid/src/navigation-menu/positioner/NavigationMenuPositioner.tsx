@@ -21,7 +21,7 @@ import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useAnchorPositioning, type Align, type Side } from '../../utils/useAnchorPositioning';
 import { useAnimationsFinished } from '../../utils/useAnimationsFinished';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useNavigationMenuPortalContext } from '../portal/NavigationMenuPortalContext';
 import {
   useNavigationMenuRootContext,
@@ -210,48 +210,41 @@ export function NavigationMenuPositioner(componentProps: NavigationMenuPositione
     instant: instant(),
   }));
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    customStyleHookMapping: popupStateMapping,
+    ref: (el) => {
+      setPositionerElement(el);
+      positionerRef = el;
+    },
+    props: [
+      defaultProps,
+      // https://codesandbox.io/s/tabbable-portal-f4tng?file=/src/TabbablePortal.tsx
+      {
+        'on:focusin': {
+          capture: true,
+          handleEvent: (event) => {
+            if (positionerRef && isOutsideEvent(event)) {
+              enableFocusInside(positionerRef);
+            }
+          },
+        },
+        'on:focusout': {
+          capture: true,
+          handleEvent: (event) => {
+            if (positionerRef && isOutsideEvent(event)) {
+              disableFocusInside(positionerRef);
+            }
+          },
+        },
+      },
+      elementProps,
+    ],
+  });
+
   return (
     <NavigationMenuPositionerContext.Provider value={positioning}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={(el) => {
-          setPositionerElement(el);
-          positionerRef = el;
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-        }}
-        params={{
-          state: state(),
-          customStyleHookMapping: popupStateMapping,
-          props: [
-            defaultProps(),
-            // https://codesandbox.io/s/tabbable-portal-f4tng?file=/src/TabbablePortal.tsx
-            {
-              'on:focusin': {
-                capture: true,
-                handleEvent: (event) => {
-                  if (positionerRef && isOutsideEvent(event)) {
-                    enableFocusInside(positionerRef);
-                  }
-                },
-              },
-              'on:focusout': {
-                capture: true,
-                handleEvent: (event) => {
-                  if (positionerRef && isOutsideEvent(event)) {
-                    disableFocusInside(positionerRef);
-                  }
-                },
-              },
-            },
-            elementProps,
-          ],
-        }}
-      />
+      {element()}
     </NavigationMenuPositionerContext.Provider>
   );
 }

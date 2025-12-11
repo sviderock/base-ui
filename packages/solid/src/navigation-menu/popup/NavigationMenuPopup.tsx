@@ -14,7 +14,7 @@ import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useNavigationMenuPositionerContext } from '../positioner/NavigationMenuPositionerContext';
 import { useNavigationMenuRootContext } from '../root/NavigationMenuRootContext';
@@ -81,6 +81,26 @@ export function NavigationMenuPopup(componentProps: NavigationMenuPopup.Props) {
     return { isOriginSide, isPhysicalLeft };
   });
 
+  const element = useRenderElement('nav', componentProps, {
+    state,
+    ref: setPopupElement,
+    props: [
+      () => ({
+        id: id(),
+        tabIndex: -1,
+        style: calculatedStyles().isOriginSide
+          ? {
+              position: 'absolute',
+              [calculatedStyles().isOriginSide ? 'bottom' : 'top']: '0',
+              [calculatedStyles().isPhysicalLeft ? 'right' : 'left']: '0',
+            }
+          : {},
+      }),
+      elementProps,
+    ],
+    customStyleHookMapping,
+  });
+
   return (
     <>
       <FocusGuard
@@ -100,23 +120,7 @@ export function NavigationMenuPopup(componentProps: NavigationMenuPopup.Props) {
           }
         }}
       />
-      <RenderElement
-        element="nav"
-        componentProps={componentProps}
-        ref={(el) => {
-          setPopupElement(el);
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-        }}
-        params={{
-          state: state(),
-          customStyleHookMapping,
-          props: [{ id: id(), tabIndex: -1 }, elementProps],
-        }}
-      />
+      {element()}
       <FocusGuard
         ref={(el) => {
           refs.afterInsideRef = el;

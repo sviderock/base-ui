@@ -99,10 +99,8 @@ describe('<NavigationMenu.Root />', () => {
   clock.withFakeTimers();
 
   describeConformance(NavigationMenu.Root, () => ({
+    render,
     refInstanceof: window.HTMLElement,
-    render(node, elementProps = {}) {
-      return render(node, elementProps);
-    },
   }));
 
   describe('interactions', () => {

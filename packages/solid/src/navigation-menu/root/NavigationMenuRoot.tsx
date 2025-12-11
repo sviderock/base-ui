@@ -15,6 +15,7 @@ import type { BaseOpenChangeReason } from '../../utils/translateOpenChangeReason
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
 import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import {
   NavigationMenuRootContext,
   NavigationMenuTreeContext,
@@ -194,25 +195,17 @@ function TreeContext(componentProps: NavigationMenuRoot.Props) {
     nested: nested(),
   }));
 
+  const element = useRenderElement(() => (nested() ? 'div' : 'nav'), componentProps, {
+    state,
+    ref: (el) => {
+      refs.rootRef = el;
+    },
+    props: [() => ({ 'aria-orientation': orientation() }), elementProps],
+  });
+
   return (
     <NavigationMenuTreeContext.Provider value={nodeId}>
-      <RenderElement
-        element={nested() ? 'div' : 'nav'}
-        componentProps={componentProps}
-        // TODO: fix this type
-        ref={(el: any) => {
-          refs.rootRef = el;
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-        }}
-        params={{
-          state: state(),
-          props: [{ 'aria-orientation': orientation() }, elementProps],
-        }}
-      />
+      {element()}
     </NavigationMenuTreeContext.Provider>
   );
 }

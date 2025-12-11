@@ -3,7 +3,7 @@ import { createMemo } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTransitionStatus } from '../../utils/useTransitionStatus';
 import { useNavigationMenuRootContext } from '../root/NavigationMenuRootContext';
 import { NavigationMenuItemContext } from './NavigationMenuItemContext';
@@ -37,14 +37,11 @@ export function NavigationMenuItem(componentProps: NavigationMenuItem.Props) {
     isActive: isActiveItem,
   };
 
+  const element = useRenderElement('div', componentProps, { props: elementProps });
+
   return (
     <NavigationMenuItemContext.Provider value={context}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={componentProps.ref}
-        params={{ props: elementProps }}
-      />
+      <>{element()}</>
     </NavigationMenuItemContext.Provider>
   );
 }

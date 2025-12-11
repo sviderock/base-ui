@@ -5,7 +5,7 @@ import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useNavigationMenuRootContext } from '../root/NavigationMenuRootContext';
 
@@ -30,28 +30,20 @@ export function NavigationMenuBackdrop(componentProps: NavigationMenuBackdrop.Pr
     transitionStatus: transitionStatus(),
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        state: state(),
-        customStyleHookMapping,
-        props: [
-          {
-            role: 'presentation',
-            hidden: !mounted(),
-            style: {
-              'user-select': 'none',
-              '-webkit-user-select': 'none',
-            },
-          },
-          elementProps,
-        ],
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    customStyleHookMapping,
+    props: [
+      () => ({
+        role: 'presentation',
+        hidden: !mounted(),
+        style: { 'user-select': 'none', '-webkit-user-select': 'none' },
+      }),
+      elementProps,
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace NavigationMenuBackdrop {

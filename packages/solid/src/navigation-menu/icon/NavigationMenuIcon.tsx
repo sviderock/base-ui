@@ -3,7 +3,7 @@ import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useNavigationMenuItemContext } from '../item/NavigationMenuItemContext';
 import { useNavigationMenuRootContext } from '../root/NavigationMenuRootContext';
 
@@ -24,18 +24,13 @@ export function NavigationMenuIcon(componentProps: NavigationMenuIcon.Props) {
     open: isActiveItem(),
   }));
 
-  return (
-    <RenderElement
-      element="span"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        state: state(),
-        customStyleHookMapping: triggerOpenStateMapping,
-        props: [{ 'aria-hidden': true, children: '▼' }, elementProps],
-      }}
-    />
-  );
+  const element = useRenderElement('span', componentProps, {
+    state,
+    customStyleHookMapping: triggerOpenStateMapping,
+    props: [{ 'aria-hidden': true, children: '▼' }, elementProps],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace NavigationMenuIcon {

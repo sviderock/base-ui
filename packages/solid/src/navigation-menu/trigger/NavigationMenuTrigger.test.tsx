@@ -10,20 +10,16 @@ describe('<NavigationMenu.Trigger />', () => {
 
   describeConformance(NavigationMenu.Trigger, () => ({
     refInstanceof: window.HTMLButtonElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <NavigationMenu.Root>
-            <NavigationMenu.List>
-              <NavigationMenu.Item>
-                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-              </NavigationMenu.Item>
-            </NavigationMenu.List>
-          </NavigationMenu.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props = {}) =>
+      render(() => (
+        <NavigationMenu.Root>
+          <NavigationMenu.List>
+            <NavigationMenu.Item>
+              <Dynamic component={node} {...props} ref={props.ref} />
+            </NavigationMenu.Item>
+          </NavigationMenu.List>
+        </NavigationMenu.Root>
+      )),
   }));
 
   it.skipIf(isJSDOM)('handles focus and positioner height', async () => {

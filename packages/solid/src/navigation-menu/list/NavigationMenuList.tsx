@@ -3,7 +3,7 @@ import { createMemo } from 'solid-js';
 import { CompositeRoot } from '../../composite/root/CompositeRoot';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useNavigationMenuRootContext } from '../root/NavigationMenuRootContext';
 
 /**
@@ -21,34 +21,10 @@ export function NavigationMenuList(componentProps: NavigationMenuList.Props) {
     open: open(),
   }));
 
+  const element = useRenderElement('div', componentProps, { state, props: elementProps });
+
   return (
-    <CompositeRoot
-      loop={false}
-      orientation={orientation()}
-      stopEventPropagation
-      render={(p) => (
-        <RenderElement
-          element="div"
-          componentProps={componentProps}
-          ref={(el) => {
-            if (p() && typeof p().ref === 'function') {
-              (p().ref as Function)(el);
-            } else {
-              p().ref = el;
-            }
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-          }}
-          params={{
-            state: state(),
-            props: [p(), elementProps],
-          }}
-        />
-      )}
-    />
+    <CompositeRoot loop={false} orientation={orientation()} stopEventPropagation render={element} />
   );
 }
 

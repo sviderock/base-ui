@@ -12,7 +12,7 @@ import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { AnimationFrame } from '../../utils/useAnimationFrame';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useNavigationMenuItemContext } from '../item/NavigationMenuItemContext';
 import {
@@ -89,48 +89,32 @@ export function NavigationMenuContent(componentProps: NavigationMenuContent.Prop
 
   const shouldRender = () => viewportElement() != null && mounted();
 
+  const element = useRenderElement('div', componentProps, {
+    enabled: shouldRender,
+    state,
+    ref: (el) => {
+      ref = el;
+      handleCurrentContentRef(el);
+    },
+    props: [
+      () =>
+        !open() && mounted()
+          ? {
+              style: { position: 'absolute', top: 0, left: 0 },
+              inert: inertValue(!focusInside()),
+              ...commonProps,
+            }
+          : commonProps,
+      elementProps,
+    ],
+    customStyleHookMapping,
+  });
+
   return (
     <Show when={shouldRender()}>
       <Portal mount={viewportElement()!}>
         <FloatingNode id={nodeId?.()}>
-          <CompositeRoot
-            stopEventPropagation
-            render={(p) => (
-              <RenderElement
-                element="div"
-                componentProps={componentProps}
-                ref={(el) => {
-                  if (p() && typeof p().ref === 'function') {
-                    (p().ref as Function)(el);
-                  } else {
-                    p().ref = el;
-                  }
-                  ref = el;
-                  handleCurrentContentRef(el);
-                  if (typeof componentProps.ref === 'function') {
-                    componentProps.ref(el);
-                  } else {
-                    componentProps.ref = el;
-                  }
-                }}
-                params={{
-                  state: state(),
-                  customStyleHookMapping,
-                  props: [
-                    p(),
-                    !open() && mounted()
-                      ? {
-                          style: { position: 'absolute', top: 0, left: 0 },
-                          inert: inertValue(!focusInside()),
-                          ...commonProps,
-                        }
-                      : commonProps,
-                    elementProps,
-                  ],
-                }}
-              />
-            )}
-          />
+          <CompositeRoot stopEventPropagation render={element} />
         </FloatingNode>
       </Portal>
     </Show>
