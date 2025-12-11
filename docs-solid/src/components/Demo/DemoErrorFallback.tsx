@@ -1,6 +1,7 @@
 import { Show } from 'solid-js';
 
 export function DemoErrorFallback(props: { err: any; reset: () => void }) {
+  console.error(props.err);
   return (
     <div role="alert">
       <p>There was an error while rendering the demo.</p>

@@ -46,12 +46,10 @@ export function useRenderElement<
     return undefined;
   });
 
-  const outProps = (renderFnProps?: HTMLProps) => {
-    const mergedParams = mergeProps(
-      renderFnProps,
-      typeof componentProps.render === 'object' ? (componentProps.render as object) : {},
-      Array.isArray(params.props) ? mergePropsN(params.props) : access(params.props),
-    );
+  const outProps = createMemo(() => {
+    const mergedParams = Array.isArray(params.props)
+      ? mergePropsN(params.props)
+      : access(params.props);
 
     if (mergedParams === undefined) {
       return EMPTY_OBJECT;
@@ -60,62 +58,72 @@ export function useRenderElement<
     const [, rest] = splitProps(mergedParams, ['children']);
     return mergeProps(styleHooks(), rest, {
       class: resolveClassName(componentProps.class, state),
-      ref: (el: any) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-
-        if (
-          componentProps.render &&
-          typeof componentProps.render === 'object' &&
-          'ref' in componentProps.render
-        ) {
-          if (typeof componentProps.render.ref === 'function') {
-            componentProps.render.ref(el);
-          } else {
-            componentProps.render.ref = el;
-          }
-        }
-
-        if (typeof params.ref === 'function') {
-          params.ref(el);
-        } else {
-          params.ref = el;
-        }
-
-        if (renderFnProps) {
-          if (typeof renderFnProps.ref === 'function') {
-            renderFnProps.ref(el);
-          } else {
-            renderFnProps.ref = el;
-          }
-        }
-      },
     });
-  };
+  });
+
+  const renderer = (props: any) => (componentProps.render as Function)(props, state());
+  const Component = createMemo<DynamicProps<ValidComponent>['component']>(() => {
+    if (typeof componentProps.render === 'function') {
+      return renderer;
+    }
+
+    if (typeof componentProps.render === 'string') {
+      return componentProps.render;
+    }
+
+    return element;
+  });
 
   return (renderFnProps?: HTMLProps) => {
     return (
       <Show when={enabled()}>
-        <Show
-          when={typeof componentProps.render === 'function' && componentProps.render}
-          fallback={
-            <Dynamic
-              component={
-                typeof componentProps.render === 'string' ? componentProps.render : element
+        <Dynamic
+          component={Component()}
+          {...(element === 'button' ? { type: 'button' } : {})}
+          {...(element === 'img' ? { alt: '' } : {})}
+          {...mergeProps(
+            renderFnProps,
+            typeof componentProps.render === 'object'
+              ? (componentProps.render as object)
+              : undefined,
+            outProps(),
+          )}
+          ref={(el: any) => {
+            if (typeof componentProps.ref === 'function') {
+              componentProps.ref(el);
+            } else {
+              componentProps.ref = el;
+            }
+
+            if (
+              componentProps.render &&
+              typeof componentProps.render === 'object' &&
+              'ref' in componentProps.render
+            ) {
+              if (typeof componentProps.render.ref === 'function') {
+                componentProps.render.ref(el);
+              } else {
+                componentProps.render.ref = el;
               }
-              {...(element === 'button' ? { type: 'button' } : {})}
-              {...(element === 'img' ? { alt: '' } : {})}
-              {...outProps(renderFnProps)}
-            >
-              {safeChildren()}
-            </Dynamic>
-          }
+            }
+
+            if (typeof params.ref === 'function') {
+              params.ref(el);
+            } else {
+              params.ref = el;
+            }
+
+            if (renderFnProps) {
+              if (typeof renderFnProps.ref === 'function') {
+                renderFnProps.ref(el);
+              } else {
+                renderFnProps.ref = el;
+              }
+            }
+          }}
         >
-          {(renderer) => renderer()(outProps(renderFnProps), state())}
-        </Show>
+          {safeChildren()}
+        </Dynamic>
       </Show>
     );
   };

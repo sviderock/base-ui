@@ -171,9 +171,9 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
   });
 
   createEffect(() => {
-    queueMicrotask(() => {
-      menuEvents.emit('openchange', { open: open(), nodeId: nodeId(), parentNodeId });
-    });
+    // queueMicrotask(() => {
+    menuEvents.emit('openchange', { open: open(), nodeId: nodeId(), parentNodeId });
+    // });
   });
 
   const state = createMemo<MenuPositioner.State>(() => ({
