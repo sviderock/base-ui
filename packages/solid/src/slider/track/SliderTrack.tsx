@@ -1,7 +1,7 @@
 'use client';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { SliderRoot } from '../root/SliderRoot';
 import { useSliderRootContext } from '../root/SliderRootContext';
 import { sliderStyleHookMapping } from '../root/styleHooks';
@@ -17,18 +17,13 @@ export function SliderTrack(componentProps: SliderTrack.Props) {
 
   const { state } = useSliderRootContext();
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        state: state(),
-        props: [{ style: { position: 'relative' } }, elementProps],
-        customStyleHookMapping: sliderStyleHookMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: [{ style: { position: 'relative' } }, elementProps],
+    customStyleHookMapping: sliderStyleHookMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace SliderTrack {

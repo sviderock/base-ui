@@ -6,7 +6,7 @@ import {
 import { Field } from '@base-ui-components/solid/field';
 import { Form } from '@base-ui-components/solid/form';
 import { Slider } from '@base-ui-components/solid/slider';
-import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
+import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy, stub } from 'sinon';
 import { createSignal, onCleanup, onMount } from 'solid-js';
@@ -2040,7 +2040,7 @@ describe.skipIf(typeof Touch === 'undefined')('<Slider.Root />', () => {
               <Slider.Thumb />
             </Slider.Control>
           </Slider.Root>
-          <Field.Label data-testid="label" render={(p) => <span {...p()} />} />
+          <Field.Label data-testid="label" render="span" />
         </Field.Root>
       ));
 

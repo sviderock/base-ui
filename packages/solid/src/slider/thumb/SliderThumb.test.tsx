@@ -37,15 +37,12 @@ describe('<Slider.Thumb />', () => {
   const { render } = createRenderer();
 
   describeConformance(Slider.Thumb, () => ({
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Slider.Root>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Slider.Root>
-        ),
-        elementProps,
-      );
+    render: (node, props = {}) => {
+      return render(() => (
+        <Slider.Root>
+          <Dynamic component={node} {...props} ref={props.ref} />
+        </Slider.Root>
+      ));
     },
     refInstanceof: window.HTMLDivElement,
   }));

@@ -3,21 +3,13 @@ import { Slider } from '@base-ui-components/solid/slider';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Slider.Value />', () => {
   const { render } = createRenderer();
 
   describeConformance(Slider.Value, () => ({
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Slider.Root>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Slider.Root>
-        ),
-        elementProps,
-      );
+    render: (node, props) => {
+      return render(() => <Slider.Root>{node(props)}</Slider.Root>);
     },
     refInstanceof: window.HTMLOutputElement,
   }));

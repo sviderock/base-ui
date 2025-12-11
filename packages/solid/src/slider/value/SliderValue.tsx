@@ -3,7 +3,7 @@ import { createMemo, Show, type Accessor, type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { formatNumber } from '../../utils/formatNumber';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { SliderRoot } from '../root/SliderRoot';
 import { useSliderRootContext } from '../root/SliderRootContext';
 import { sliderStyleHookMapping } from '../root/styleHooks';
@@ -15,7 +15,7 @@ import { sliderStyleHookMapping } from '../root/styleHooks';
  * Documentation: [Base UI Slider](https://base-ui.com/react/components/slider)
  */
 export function SliderValue(componentProps: SliderValue.Props) {
-  const [renderProps, local, elementProps] = splitComponentProps(componentProps, ['aria-live']);
+  const [, local, elementProps] = splitComponentProps(componentProps, ['aria-live']);
 
   const { thumbArray, state, values, refs, locale } = useSliderRootContext();
 
@@ -47,31 +47,35 @@ export function SliderValue(componentProps: SliderValue.Props) {
     return arr.join(' – ');
   });
 
-  return (
-    <RenderElement
-      element="output"
-      componentProps={{
-        render: renderProps.render,
-        class: renderProps.class,
-      }}
-      ref={componentProps.ref}
-      params={{
-        state: state(),
-        customStyleHookMapping: sliderStyleHookMapping,
-        props: [
-          {
-            'aria-live': local['aria-live'] ?? 'off',
-            for: outputFor(),
-          },
-          elementProps,
-        ],
-      }}
-    >
-      <Show when={componentProps.children} fallback={defaultDisplayValue()}>
-        {componentProps.children?.(formattedValues, values)}
-      </Show>
-    </RenderElement>
+  const element = useRenderElement(
+    'output',
+    {
+      ...componentProps,
+      get children() {
+        return (
+          <Show when={componentProps.children} fallback={defaultDisplayValue()}>
+            {componentProps.children?.(formattedValues, values)}
+          </Show>
+        );
+      },
+    },
+    {
+      state,
+      ref: (el) => {
+        componentProps.ref = el;
+      },
+      customStyleHookMapping: sliderStyleHookMapping,
+      props: [
+        () => ({
+          'aria-live': local['aria-live'] ?? 'off',
+          for: outputFor(),
+        }),
+        elementProps,
+      ],
+    },
   );
+
+  return <>{element()}</>;
 }
 
 export namespace SliderValue {

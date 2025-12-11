@@ -6,10 +6,12 @@ import {
   createRenderEffect,
   onCleanup,
   Show,
+  splitProps,
   type Accessor,
   type ComponentProps,
   type JSX,
 } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import {
   ARROW_DOWN,
   ARROW_LEFT,
@@ -23,12 +25,13 @@ import { useCompositeListItem } from '../../composite/list/useCompositeListItem'
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { mergeProps } from '../../merge-props';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { access, childrenLazy, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { formatNumber } from '../../utils/formatNumber';
 import { getStyleHookProps } from '../../utils/getStyleHookProps';
 import { resolveClassName } from '../../utils/resolveClassName';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import type { SliderRoot } from '../root/SliderRoot';
 import { useSliderRootContext } from '../root/SliderRootContext';
@@ -89,7 +92,7 @@ function getNewValue(
  * Documentation: [Base UI Slider](https://base-ui.com/react/components/slider)
  */
 export function SliderThumb(componentProps: SliderThumb.Props) {
-  const [renderProps, local, elementProps] = splitComponentProps(componentProps, [
+  const [, local, elementProps] = splitComponentProps(componentProps, [
     'disabled',
     'getAriaLabel',
     'getAriaValueText',
@@ -190,7 +193,7 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
     return mergeProps(
       {
         [SliderThumbDataAttributes.index]: index(),
-        class: resolveClassName(renderProps.class, state),
+        class: resolveClassName(componentProps.class, state),
         id: id(),
         onFocus() {
           batch(() => {
@@ -305,11 +308,6 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
         ref: (el: HTMLElement) => {
           setListItemRef(el);
           thumbRef = el;
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
         },
         style: getThumbStyle(),
         tabIndex: externalTabIndex() ?? (disabled() ? undefined : 0),
@@ -384,27 +382,39 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
     );
   });
 
-  return (
-    <Show
-      when={renderProps.render === undefined}
-      fallback={(renderProps.render as Function)(thumbProps, inputProps, state)}
-    >
-      <div
-        {...thumbProps()}
-        ref={(el) => {
-          thumbProps().ref(el);
-        }}
-      >
-        {thumbProps().children ?? renderProps.children}
-        <input
-          {...inputProps()}
-          ref={(el) => {
-            inputProps().ref = el;
-          }}
-        />
-      </div>
-    </Show>
+  const element = useRenderElement(
+    'div',
+    {
+      ...componentProps,
+      get children() {
+        if (componentProps.render == null) {
+          // eslint-disable-next-line solid/components-return-once
+          return (
+            <>
+              {thumbProps().children ?? componentProps.children}
+              <input
+                {...inputProps()}
+                ref={(el) => {
+                  inputProps().ref = el;
+                }}
+              />
+            </>
+          );
+        }
+
+        return undefined;
+      },
+    },
+    {
+      state,
+      ref: (el) => {
+        setListItemRef(el);
+        thumbRef = el;
+      },
+      props: thumbProps,
+    },
   );
+  return <>{element()}</>;
 }
 
 export interface ThumbMetadata {
@@ -443,10 +453,11 @@ export namespace SliderThumb {
      *
      * Accepts a `ReactElement` or a function that returns the element to render.
      */
-    render?: (
-      props: Accessor<ComponentProps<'div'>>,
-      inputProps: Accessor<ComponentProps<'input'>>,
-      state: Accessor<State>,
-    ) => JSX.Element;
+    render?: Exclude<BaseUIComponentProps<'div', State>['render'], Function> &
+      ((
+        props: ComponentProps<'div'>,
+        inputProps: ComponentProps<'input'>,
+        state: State,
+      ) => JSX.Element);
   }
 }

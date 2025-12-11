@@ -2,7 +2,7 @@
 import { createMemo, type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps, Orientation } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { SliderRoot } from '../root/SliderRoot';
 import { useSliderRootContext } from '../root/SliderRootContext';
 import { sliderStyleHookMapping } from '../root/styleHooks';
@@ -67,18 +67,13 @@ export function SliderIndicator(componentProps: SliderIndicator.Props) {
     };
   });
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        state: state(),
-        props: [{ style: style() }, elementProps],
-        customStyleHookMapping: sliderStyleHookMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: [() => ({ style: style() }), elementProps],
+    customStyleHookMapping: sliderStyleHookMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace SliderIndicator {

@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createMemo, createSignal, For, Show } from 'solid-js';
+import { createEffect, createMemo, createSignal, For, onMount, Show } from 'solid-js';
 import { CompositeList, type CompositeMetadata } from '../../composite/list/CompositeList';
 import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../../field/root/FieldRoot';
@@ -14,7 +14,7 @@ import { ownerDocument } from '../../utils/owner';
 import type { BaseUIComponentProps, Orientation } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import { warn } from '../../utils/warn';
 import type { ThumbMetadata } from '../thumb/SliderThumb';
@@ -66,7 +66,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
     'tabIndex',
     'value',
   ]);
-  const ariaLabelledbyProp = () => local['aria-labelledby'];
+  const ariaLabelledbyProp = () => access(local['aria-labelledby']);
   const defaultValue = () => access(local.defaultValue);
   const disabledProp = () => access(local.disabled) ?? false;
   const idProp = () => access(local.id);
@@ -94,6 +94,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
     setDirty,
     validityData,
     validationMode,
+    setCodependentRefs,
   } = useFieldRootContext();
 
   const fieldControlValidation = useFieldControlValidation();
@@ -149,7 +150,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
     if (!range()) {
       return [clamp(valueUnwrapped() as number, min(), max())];
     }
-    return (valueUnwrapped() as Array<number>).slice().sort(asc);
+    return (valueUnwrapped() as unknown as Array<number>).slice().sort(asc);
   });
 
   const setValue = (newValue: number | number[], thumbIndex: number, event: Event) => {
@@ -234,6 +235,10 @@ export function SliderRoot<Value extends number | readonly number[]>(
     }
   });
 
+  onMount(() => {
+    setCodependentRefs('control', { explicitId: id, ref: () => sliderRef, id: idProp });
+  });
+
   const state = createMemo<SliderRoot.State>(() => ({
     ...fieldState(),
     activeThumbIndex: active(),
@@ -251,8 +256,6 @@ export function SliderRoot<Value extends number | readonly number[]>(
     active,
     disabled,
     dragging,
-    // TODO: fix typing
-    // @ts-ignore
     fieldControlValidation,
     refs,
     handleInputChange,
@@ -276,6 +279,23 @@ export function SliderRoot<Value extends number | readonly number[]>(
     values,
   };
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      sliderRef = el;
+    },
+    customStyleHookMapping: sliderStyleHookMapping,
+    props: [
+      () => ({
+        'aria-labelledby': ariaLabelledby(),
+        id: id(),
+        role: 'group',
+      }),
+      fieldControlValidation.getValidationProps,
+      elementProps,
+    ],
+  });
+
   return (
     <SliderRootContext.Provider value={contextValue}>
       <CompositeList
@@ -286,31 +306,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
           setThumbArray(Array.from(newMap.values()));
         }}
       >
-        <RenderElement
-          element="div"
-          componentProps={componentProps}
-          ref={(el) => {
-            sliderRef = el;
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-          }}
-          params={{
-            state: state(),
-            customStyleHookMapping: sliderStyleHookMapping,
-            props: [
-              {
-                'aria-labelledby': ariaLabelledby(),
-                id: id(),
-                role: 'group',
-              },
-              fieldControlValidation.getValidationProps,
-              elementProps,
-            ],
-          }}
-        />
+        {element()}
 
         <Show
           when={range()}

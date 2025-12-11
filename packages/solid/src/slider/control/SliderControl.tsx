@@ -6,7 +6,7 @@ import { splitComponentProps } from '../../solid-helpers';
 import { clamp } from '../../utils/clamp';
 import { ownerDocument } from '../../utils/owner';
 import type { BaseUIComponentProps, Orientation } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { valueToPercent } from '../../utils/valueToPercent';
 import type { SliderRoot } from '../root/SliderRoot';
 import { useSliderRootContext } from '../root/SliderRootContext';
@@ -343,82 +343,73 @@ export function SliderControl(componentProps: SliderControl.Props) {
     }
   });
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        batch(() => {
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      batch(() => {
+        registerFieldControlRef(el);
+        controlRef = el;
+        setStylesRef(el);
+      });
+    },
+    customStyleHookMapping: sliderStyleHookMapping,
+    props: [
+      {
+        onPointerDown(event: PointerEvent) {
+          if (disabled()) {
+            return;
           }
-          registerFieldControlRef(el);
-          controlRef = el;
-          setStylesRef(el);
-        });
-      }}
-      params={{
-        state: state(),
-        customStyleHookMapping: sliderStyleHookMapping,
-        props: [
-          {
-            onPointerDown(event: PointerEvent) {
-              if (disabled()) {
-                return;
-              }
 
-              if (event.defaultPrevented) {
-                return;
-              }
+          if (event.defaultPrevented) {
+            return;
+          }
 
-              // Only handle left clicks
-              if (event.button !== 0) {
-                return;
-              }
+          // Only handle left clicks
+          if (event.button !== 0) {
+            return;
+          }
 
-              // Avoid text selection
-              event.preventDefault();
+          // Avoid text selection
+          event.preventDefault();
 
-              const fingerPosition = getFingerPosition(event, touchIdRef);
+          const fingerPosition = getFingerPosition(event, touchIdRef);
 
-              if (fingerPosition != null) {
-                const finger = getFingerState(fingerPosition, true);
+          if (fingerPosition != null) {
+            const finger = getFingerState(fingerPosition, true);
 
-                if (finger == null) {
-                  return;
-                }
+            if (finger == null) {
+              return;
+            }
 
-                focusThumb(finger.thumbIndex);
-                setDragging(true);
-                // if the event lands on a thumb, don't change the value, just get the
-                // percentageValue difference represented by the distance between the click origin
-                // and the coordinates of the value on the track area
-                if (refs.thumbRefs.includes(event.target as HTMLElement)) {
-                  offsetRef =
-                    valueToPercent(values()[finger.thumbIndex], min(), max()) / 100 -
-                    finger.valueRescaled;
-                } else {
-                  setValue(finger.value, finger.thumbIndex, event);
-                }
-              }
+            focusThumb(finger.thumbIndex);
+            setDragging(true);
+            // if the event lands on a thumb, don't change the value, just get the
+            // percentageValue difference represented by the distance between the click origin
+            // and the coordinates of the value on the track area
+            if (refs.thumbRefs.includes(event.target as HTMLElement)) {
+              offsetRef =
+                valueToPercent(values()[finger.thumbIndex], min(), max()) / 100 -
+                finger.valueRescaled;
+            } else {
+              setValue(finger.value, finger.thumbIndex, event);
+            }
+          }
 
-              if (event.pointerId) {
-                controlRef?.setPointerCapture(event.pointerId);
-              }
+          if (event.pointerId) {
+            controlRef?.setPointerCapture(event.pointerId);
+          }
 
-              moveCountRef = 0;
-              const doc = ownerDocument(controlRef);
-              doc.addEventListener('pointermove', handleTouchMove, { passive: true });
-              doc.addEventListener('pointerup', handleTouchEnd);
-            },
-          },
-          elementProps,
-        ],
-      }}
-    />
-  );
+          moveCountRef = 0;
+          const doc = ownerDocument(controlRef);
+          doc.addEventListener('pointermove', handleTouchMove, { passive: true });
+          doc.addEventListener('pointerup', handleTouchEnd);
+        },
+      },
+      elementProps,
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 export interface FingerPosition {
