@@ -7,7 +7,7 @@ import { Field } from '@base-ui-components/solid/field';
 import { Form } from '@base-ui-components/solid/form';
 import { Radio } from '@base-ui-components/solid/radio';
 import { RadioGroup } from '@base-ui-components/solid/radio-group';
-import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
+import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { createSignal } from 'solid-js';

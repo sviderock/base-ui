@@ -14,7 +14,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../solid-helper
 import type { BaseUIComponentProps } from '../utils/types';
 import { useBaseUiId } from '../utils/useBaseUiId';
 import { useControlled } from '../utils/useControlled';
-import { RenderElement } from '../utils/useRenderElement';
+import { useRenderElement } from '../utils/useRenderElementV2';
 import { visuallyHidden } from '../utils/visuallyHidden';
 
 import { RadioGroupContext } from './RadioGroupContext';
@@ -168,6 +168,27 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
     readOnly: readOnly() ?? false,
   }));
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    customStyleHookMapping: fieldValidityMapping,
+    props: [
+      () => ({
+        role: 'radiogroup',
+        'aria-required': required() || undefined,
+        'aria-disabled': disabled() || undefined,
+        'aria-readonly': readOnly() || undefined,
+        'aria-labelledby': labelId(),
+        onFocus() {
+          setFocused(true);
+        },
+        onBlur,
+        onKeyDown: onKeyDownCapture,
+      }),
+      fieldControlValidation.getValidationProps,
+      elementProps,
+    ],
+  });
+
   return (
     <RadioGroupContext.Provider
       value={{
@@ -188,45 +209,7 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
         enableHomeAndEndKeys={false}
         modifierKeys={MODIFIER_KEYS}
         stopEventPropagation
-        render={(p) => (
-          <RenderElement
-            element="div"
-            componentProps={componentProps}
-            ref={(el) => {
-              if (p() && typeof p().ref === 'function') {
-                (p().ref as Function)(el);
-              } else {
-                p().ref = el;
-              }
-              if (typeof componentProps.ref === 'function') {
-                componentProps.ref(el);
-              } else {
-                componentProps.ref = el;
-              }
-            }}
-            params={{
-              state: state(),
-              customStyleHookMapping: fieldValidityMapping,
-              props: [
-                p(),
-                {
-                  role: 'radiogroup',
-                  'aria-required': required() || undefined,
-                  'aria-disabled': disabled() || undefined,
-                  'aria-readonly': readOnly() || undefined,
-                  'aria-labelledby': labelId(),
-                  onFocus() {
-                    setFocused(true);
-                  },
-                  onBlur,
-                  onKeyDown: onKeyDownCapture,
-                },
-                fieldControlValidation.getValidationProps,
-                elementProps,
-              ],
-            }}
-          />
-        )}
+        render={element}
       />
       <input
         ref={(el) => {
