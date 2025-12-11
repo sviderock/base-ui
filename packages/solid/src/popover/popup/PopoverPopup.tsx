@@ -10,7 +10,7 @@ import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
 import { InteractionType } from '../../utils/useEnhancedClickHandler';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { usePopoverPositionerContext } from '../positioner/PopoverPositionerContext';
 import { usePopoverRootContext } from '../root/PopoverRootContext';
@@ -84,6 +84,23 @@ export function PopoverPopup(componentProps: PopoverPopup.Props) {
     transitionStatus: transitionStatus(),
   }));
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      refs.popupRef = el;
+    },
+    customStyleHookMapping,
+    props: [
+      popupProps,
+      () => ({
+        'aria-labelledby': titleId(),
+        'aria-describedby': descriptionId(),
+      }),
+      () => (transitionStatus() === 'starting' ? DISABLED_TRANSITIONS_STYLE : EMPTY_OBJECT),
+      elementProps,
+    ],
+  });
+
   return (
     <FloatingFocusManager
       context={positioner.context}
@@ -92,31 +109,7 @@ export function PopoverPopup(componentProps: PopoverPopup.Props) {
       initialFocus={resolvedInitialFocus()}
       returnFocus={finalFocus()}
     >
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={(el) => {
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-          refs.popupRef = el;
-        }}
-        params={{
-          state: state(),
-          customStyleHookMapping,
-          props: [
-            popupProps(),
-            {
-              'aria-labelledby': titleId(),
-              'aria-describedby': descriptionId(),
-            },
-            transitionStatus() === 'starting' ? DISABLED_TRANSITIONS_STYLE : EMPTY_OBJECT,
-            elementProps,
-          ],
-        }}
-      />
+      {element()}
     </FloatingFocusManager>
   );
 }

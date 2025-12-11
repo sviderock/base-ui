@@ -8,7 +8,7 @@ import {
   triggerOpenStateMapping,
 } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { usePopoverRootContext } from '../root/PopoverRootContext';
 
 /**
@@ -52,28 +52,19 @@ export function PopoverTrigger(componentProps: PopoverTrigger.Props) {
     },
   }));
 
-  return (
-    <RenderElement
-      element="button"
-      componentProps={componentProps}
-      ref={(el) => {
-        batch(() => {
-          buttonRef(el);
-          setTriggerElement(el);
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-        });
-      }}
-      params={{
-        state: state(),
-        props: [triggerProps(), elementProps, getButtonProps],
-        customStyleHookMapping: customStyleHookMapping(),
-      }}
-    />
-  );
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: (el) => {
+      batch(() => {
+        buttonRef(el);
+        setTriggerElement(el);
+      });
+    },
+    props: [triggerProps, elementProps, getButtonProps],
+    customStyleHookMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace PopoverTrigger {

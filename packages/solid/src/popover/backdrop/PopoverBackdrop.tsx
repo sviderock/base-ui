@@ -5,7 +5,7 @@ import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { usePopoverRootContext } from '../root/PopoverRootContext';
 
@@ -30,29 +30,24 @@ export function PopoverBackdrop(props: PopoverBackdrop.Props) {
     transitionStatus: transitionStatus(),
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={props}
-      ref={props.ref}
-      params={{
-        state: state(),
-        customStyleHookMapping,
-        props: [
-          {
-            role: 'presentation',
-            hidden: !mounted(),
-            style: {
-              'pointer-events': openReason() === 'trigger-hover' ? 'none' : undefined,
-              'user-select': 'none',
-              '-webkit-user-select': 'none',
-            },
-          },
-          elementProps,
-        ],
-      }}
-    />
-  );
+  const element = useRenderElement('div', props, {
+    state,
+    customStyleHookMapping,
+    props: [
+      () => ({
+        role: 'presentation',
+        hidden: !mounted(),
+        style: {
+          'pointer-events': openReason() === 'trigger-hover' ? 'none' : undefined,
+          'user-select': 'none',
+          '-webkit-user-select': 'none',
+        },
+      }),
+      elementProps,
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace PopoverBackdrop {

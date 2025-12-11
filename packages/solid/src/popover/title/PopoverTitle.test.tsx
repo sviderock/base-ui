@@ -2,29 +2,22 @@ import { createRenderer, describeConformance } from '#test-utils';
 import { Popover } from '@base-ui-components/solid/popover';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Popover.Title />', () => {
   const { render } = createRenderer();
 
   describeConformance(Popover.Title, () => ({
+    render: (node, props) =>
+      render(() => (
+        <Popover.Root open>
+          <Popover.Portal>
+            <Popover.Positioner>
+              <Popover.Popup>{node(props)}</Popover.Popup>
+            </Popover.Positioner>
+          </Popover.Portal>
+        </Popover.Root>
+      )),
     refInstanceof: window.HTMLHeadingElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Popover.Root open>
-            <Popover.Portal>
-              <Popover.Positioner>
-                <Popover.Popup>
-                  <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-                </Popover.Popup>
-              </Popover.Positioner>
-            </Popover.Portal>
-          </Popover.Root>
-        ),
-        elementProps,
-      );
-    },
   }));
 
   it('labels the popup element with its id', async () => {

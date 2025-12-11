@@ -2,29 +2,22 @@ import { createRenderer, describeConformance } from '#test-utils';
 import { Popover } from '@base-ui-components/solid/popover';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Popover.Close />', () => {
   const { render } = createRenderer();
 
   describeConformance(Popover.Close, () => ({
+    render: (node, props) =>
+      render(() => (
+        <Popover.Root open>
+          <Popover.Portal>
+            <Popover.Positioner>
+              <Popover.Popup>{node(props)}</Popover.Popup>
+            </Popover.Positioner>
+          </Popover.Portal>
+        </Popover.Root>
+      )),
     refInstanceof: window.HTMLButtonElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Popover.Root open>
-            <Popover.Portal>
-              <Popover.Positioner>
-                <Popover.Popup>
-                  <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-                </Popover.Popup>
-              </Popover.Positioner>
-            </Popover.Portal>
-          </Popover.Root>
-        ),
-        elementProps,
-      );
-    },
   }));
 
   it('should close popover when clicked', async () => {

@@ -3,27 +3,20 @@ import { Popover } from '@base-ui-components/solid/popover';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Popover.Popup />', () => {
   const { render } = createRenderer();
 
   describeConformance(Popover.Popup, () => ({
+    render: (node, props) =>
+      render(() => (
+        <Popover.Root open>
+          <Popover.Portal>
+            <Popover.Positioner>{node(props)}</Popover.Positioner>
+          </Popover.Portal>
+        </Popover.Root>
+      )),
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Popover.Root open>
-            <Popover.Portal>
-              <Popover.Positioner>
-                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-              </Popover.Positioner>
-            </Popover.Portal>
-          </Popover.Root>
-        ),
-        elementProps,
-      );
-    },
   }));
 
   it('should render the children', async () => {

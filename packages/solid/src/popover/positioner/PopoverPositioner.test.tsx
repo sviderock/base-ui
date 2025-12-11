@@ -3,7 +3,6 @@ import { Popover } from '@base-ui-components/solid/popover';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 
 function Trigger(props: Popover.Trigger.Props) {
   return <Popover.Trigger {...props} ref={props.ref} render={(p) => <div {...p()} />} />;
@@ -13,19 +12,13 @@ describe('<Popover.Positioner />', () => {
   const { render } = createRenderer();
 
   describeConformance(Popover.Positioner, () => ({
+    render: (node, props) =>
+      render(() => (
+        <Popover.Root open>
+          <Popover.Portal>{node(props)}</Popover.Portal>
+        </Popover.Root>
+      )),
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Popover.Root open>
-            <Popover.Portal>
-              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-            </Popover.Portal>
-          </Popover.Root>
-        ),
-        elementProps,
-      );
-    },
   }));
 
   const baselineX = 10;

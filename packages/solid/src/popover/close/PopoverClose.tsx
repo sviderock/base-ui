@@ -1,7 +1,7 @@
 'use client';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { usePopoverRootContext } from '../root/PopoverRootContext';
 /**
  * A button that closes the popover.
@@ -14,23 +14,18 @@ export function PopoverClose(props: PopoverClose.Props) {
 
   const { setOpen } = usePopoverRootContext();
 
-  return (
-    <RenderElement
-      element="button"
-      componentProps={props}
-      ref={props.ref}
-      params={{
-        props: [
-          {
-            onClick(event) {
-              setOpen(false, event, 'close-press');
-            },
-          },
-          elementProps,
-        ],
-      }}
-    />
-  );
+  const element = useRenderElement('button', props, {
+    props: [
+      {
+        onClick(event) {
+          setOpen(false, event, 'close-press');
+        },
+      },
+      elementProps,
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace PopoverClose {

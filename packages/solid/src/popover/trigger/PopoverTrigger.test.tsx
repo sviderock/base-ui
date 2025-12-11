@@ -2,24 +2,14 @@ import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#
 import { Popover } from '@base-ui-components/solid/popover';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 import { PATIENT_CLICK_THRESHOLD } from '../../utils/constants';
 
 describe('<Popover.Trigger />', () => {
   const { render } = createRenderer();
 
   describeConformance(Popover.Trigger, () => ({
+    render: (node, props) => render(() => <Popover.Root open>{node(props)}</Popover.Root>),
     refInstanceof: window.HTMLButtonElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Popover.Root open>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Popover.Root>
-        ),
-        elementProps,
-      );
-    },
   }));
 
   describe('prop: disabled', () => {

@@ -8,7 +8,7 @@ import { InternalBackdrop } from '../../utils/InternalBackdrop';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
 import { useAnchorPositioning, type Align, type Side } from '../../utils/useAnchorPositioning';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { usePopoverPortalContext } from '../portal/PopoverPortalContext';
 import { usePopoverRootContext } from '../root/PopoverRootContext';
 import { PopoverPositionerContext } from './PopoverPositionerContext';
@@ -108,6 +108,13 @@ export function PopoverPositioner(componentProps: PopoverPositioner.Props) {
     anchorHidden: positioner.anchorHidden(),
   }));
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: setPositionerElement,
+    props: [positioner.props, elementProps],
+    customStyleHookMapping: popupStateMapping,
+  });
+
   return (
     <PopoverPositionerContext.Provider value={positioner}>
       <Show
@@ -121,25 +128,7 @@ export function PopoverPositioner(componentProps: PopoverPositioner.Props) {
         <InternalBackdrop managed inert={inertValue(!open())} cutout={triggerElement()} />
       </Show>
 
-      <FloatingNode id={nodeId()}>
-        <RenderElement
-          element="div"
-          componentProps={componentProps}
-          ref={(el) => {
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-            setPositionerElement(el);
-          }}
-          params={{
-            state: state(),
-            props: [positioner.props(), elementProps],
-            customStyleHookMapping: popupStateMapping,
-          }}
-        />
-      </FloatingNode>
+      <FloatingNode id={nodeId()}>{element()}</FloatingNode>
     </PopoverPositionerContext.Provider>
   );
 }

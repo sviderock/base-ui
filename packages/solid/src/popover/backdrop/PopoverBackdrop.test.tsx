@@ -1,23 +1,13 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { Popover } from '@base-ui-components/solid/popover';
 import { screen, waitFor } from '@solidjs/testing-library';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Popover.Backdrop />', () => {
   const { render } = createRenderer();
 
   describeConformance(Popover.Backdrop, () => ({
+    render: (node, props) => render(() => <Popover.Root open>{node(props)}</Popover.Root>),
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Popover.Root open>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Popover.Root>
-        ),
-        elementProps,
-      );
-    },
   }));
 
   it('sets `pointer-events: none` style on backdrop if opened by hover', async () => {
