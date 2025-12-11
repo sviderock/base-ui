@@ -3,7 +3,6 @@ import { NumberField } from '@base-ui-components/solid/number-field';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { Dynamic } from 'solid-js/web';
 import { isWebKit } from '../../utils/detectBrowser';
 import { NumberFieldScrubAreaContext } from '../scrub-area/NumberFieldScrubAreaContext';
 
@@ -26,20 +25,16 @@ describe.skipIf(isWebKit)('<NumberField.ScrubAreaCursor />', () => {
 
   describeConformance(NumberField.ScrubAreaCursor, () => ({
     refInstanceof: window.HTMLSpanElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <NumberField.Root>
-            <NumberField.ScrubArea>
-              <NumberFieldScrubAreaContext.Provider value={defaultScrubAreaContext}>
-                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-              </NumberFieldScrubAreaContext.Provider>
-            </NumberField.ScrubArea>
-          </NumberField.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) =>
+      render(() => (
+        <NumberField.Root>
+          <NumberField.ScrubArea>
+            <NumberFieldScrubAreaContext.Provider value={defaultScrubAreaContext}>
+              {node(props)}
+            </NumberFieldScrubAreaContext.Provider>
+          </NumberField.ScrubArea>
+        </NumberField.Root>
+      )),
   }));
 
   it('has presentation role', async () => {

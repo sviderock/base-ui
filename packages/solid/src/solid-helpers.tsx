@@ -96,3 +96,11 @@ export function createAccessors<
 
   return accessors;
 }
+
+export type CodepenedentRefs<T extends string[]> = {
+  [K in T[number]]?: {
+    ref: Accessor<HTMLElement | null | undefined>;
+    id: Accessor<string | undefined>;
+    explicitId: Accessor<string | undefined>;
+  };
+};

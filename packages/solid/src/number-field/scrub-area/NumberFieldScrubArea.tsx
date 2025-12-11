@@ -4,7 +4,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../../solid-hel
 import { isWebKit } from '../../utils/detectBrowser';
 import { ownerDocument, ownerWindow } from '../../utils/owner';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { NumberFieldRoot } from '../root/NumberFieldRoot';
 import { useNumberFieldRootContext } from '../root/NumberFieldRootContext';
 import { DEFAULT_STEP } from '../utils/constants';
@@ -244,25 +244,18 @@ export function NumberFieldScrubArea(componentProps: NumberFieldScrubArea.Props)
     teleportDistance,
   };
 
+  const element = useRenderElement('span', componentProps, {
+    state,
+    ref: (el) => {
+      refs.scrubAreaRef = el;
+    },
+    props: [defaultProps, elementProps],
+    customStyleHookMapping: styleHookMapping,
+  });
+
   return (
     <NumberFieldScrubAreaContext.Provider value={contextValue}>
-      <RenderElement
-        element="span"
-        componentProps={componentProps}
-        ref={(el) => {
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-          refs.scrubAreaRef = el;
-        }}
-        params={{
-          state: state(),
-          props: [defaultProps(), elementProps],
-          customStyleHookMapping: styleHookMapping,
-        }}
-      />
+      {element()}
     </NumberFieldScrubAreaContext.Provider>
   );
 }

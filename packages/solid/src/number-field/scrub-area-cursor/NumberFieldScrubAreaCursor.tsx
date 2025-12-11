@@ -5,7 +5,7 @@ import { splitComponentProps } from '../../solid-helpers';
 import { isWebKit } from '../../utils/detectBrowser';
 import { ownerDocument } from '../../utils/owner';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { NumberFieldRoot } from '../root/NumberFieldRoot';
 import { useNumberFieldRootContext } from '../root/NumberFieldRootContext';
 import { useNumberFieldScrubAreaContext } from '../scrub-area/NumberFieldScrubAreaContext';
@@ -31,40 +31,29 @@ export function NumberFieldScrubAreaCursor(componentProps: NumberFieldScrubAreaC
   const shouldRender = () =>
     isScrubbing() && !isWebKit && !isTouchInput() && !isPointerLockDenied();
 
-  return (
-    <Portal mount={ownerDocument(domElement()).body}>
-      <RenderElement
-        element="span"
-        componentProps={componentProps}
-        ref={(el) => {
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-          refs.scrubAreaCursorRef = el;
-          setDomElement(el);
-        }}
-        params={{
-          enabled: shouldRender(),
-          state: state(),
-          customStyleHookMapping: styleHookMapping,
-          props: [
-            {
-              role: 'presentation',
-              style: {
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                'pointer-events': 'none',
-              },
-            },
-            elementProps,
-          ],
-        }}
-      />
-    </Portal>
-  );
+  const element = useRenderElement('span', componentProps, {
+    enabled: shouldRender,
+    state,
+    ref: (el) => {
+      refs.scrubAreaCursorRef = el;
+      setDomElement(el);
+    },
+    props: [
+      {
+        role: 'presentation',
+        style: {
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          'pointer-events': 'none',
+        },
+      },
+      elementProps,
+    ],
+    customStyleHookMapping: styleHookMapping,
+  });
+
+  return <Portal mount={ownerDocument(domElement()).body}>{element()}</Portal>;
 }
 
 export namespace NumberFieldScrubAreaCursor {

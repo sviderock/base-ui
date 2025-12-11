@@ -1,7 +1,7 @@
 'use client';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { NumberFieldRoot } from '../root/NumberFieldRoot';
 import { useNumberFieldRootContext } from '../root/NumberFieldRootContext';
 import { styleHookMapping } from '../utils/styleHooks';
@@ -17,18 +17,13 @@ export function NumberFieldGroup(componentProps: NumberFieldGroup.Props) {
 
   const { state } = useNumberFieldRootContext();
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={componentProps.ref}
-      params={{
-        state: state(),
-        props: [{ role: 'group' }, elementProps],
-        customStyleHookMapping: styleHookMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: [{ role: 'group' }, elementProps],
+    customStyleHookMapping: styleHookMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace NumberFieldGroup {

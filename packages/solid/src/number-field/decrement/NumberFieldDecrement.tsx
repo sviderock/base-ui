@@ -2,7 +2,7 @@
 import { access, splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { NumberFieldRoot } from '../root/NumberFieldRoot';
 import { useNumberFieldRootContext } from '../root/NumberFieldRootContext';
 import { useNumberFieldButton } from '../root/useNumberFieldButton';
@@ -62,25 +62,14 @@ export function NumberFieldDecrement(componentProps: NumberFieldDecrement.Props)
     disabled,
   });
 
-  return (
-    <RenderElement
-      element="button"
-      componentProps={componentProps}
-      ref={(el) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-        buttonRef(el);
-      }}
-      params={{
-        state: state(),
-        props: [props(), elementProps, getButtonProps],
-        customStyleHookMapping: styleHookMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: buttonRef,
+    props: [props, elementProps, getButtonProps],
+    customStyleHookMapping: styleHookMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace NumberFieldDecrement {

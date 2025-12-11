@@ -55,7 +55,6 @@ describe('<Meter.Value />', () => {
         </Meter.Root>
       ));
 
-      console.log(renderSpy.lastCall.args);
       expect(renderSpy.lastCall.args[0]).to.deep.equal(formatValue(30));
       expect(renderSpy.lastCall.args[1]).to.deep.equal(30);
     });

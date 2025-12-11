@@ -9,7 +9,7 @@ import { useFormContext } from '../../form/FormContext';
 import { splitComponentProps } from '../../solid-helpers';
 import { formatNumber, formatNumberMaxPrecision } from '../../utils/formatNumber';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { NumberFieldRoot } from '../root/NumberFieldRoot';
 import { useNumberFieldRootContext } from '../root/NumberFieldRootContext';
 import { DEFAULT_STEP } from '../utils/constants';
@@ -335,26 +335,17 @@ export function NumberFieldInput(componentProps: NumberFieldInput.Props) {
     },
   }));
 
-  return (
-    <RenderElement
-      element="input"
-      componentProps={componentProps}
-      ref={(el) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-        refs.inputRef = el;
-        fieldControlRefs.inputRef = el;
-      }}
-      params={{
-        state: state(),
-        props: [inputProps(), getInputValidationProps(), getValidationProps(), elementProps],
-        customStyleHookMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('input', componentProps, {
+    state,
+    ref: (el) => {
+      refs.inputRef = el;
+      fieldControlRefs.inputRef = el;
+    },
+    props: [inputProps, () => getInputValidationProps(), () => getValidationProps(), elementProps],
+    customStyleHookMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace NumberFieldInput {

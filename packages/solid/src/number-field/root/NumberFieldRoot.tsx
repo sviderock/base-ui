@@ -20,7 +20,7 @@ import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
 import { useInterval } from '../../utils/useInterval';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { CHANGE_VALUE_TICK_DELAY, DEFAULT_STEP, START_AUTO_CHANGE_DELAY } from '../utils/constants';
 import { getNumberLocaleDetails, PERCENTAGES } from '../utils/parse';
@@ -74,7 +74,6 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
   const locale = () => access(local.locale);
 
   const {
-    setControlId,
     setDirty,
     validityData,
     setValidityData,
@@ -83,7 +82,7 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
     invalid,
     name: fieldName,
     state: fieldState,
-    setChildRefs,
+    setCodependentRefs: setChildRefs,
   } = useFieldRootContext();
 
   const disabled = () => fieldDisabled() || disabledProp();
@@ -398,18 +397,15 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
     state,
   };
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: elementProps,
+    customStyleHookMapping: styleHookMapping,
+  });
+
   return (
     <NumberFieldRootContext.Provider value={contextValue}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={componentProps.ref}
-        params={{
-          state: state(),
-          props: elementProps,
-          customStyleHookMapping: styleHookMapping,
-        }}
-      />
+      {element()}
       <Show when={name()}>
         <input
           type="hidden"

@@ -2,7 +2,6 @@ import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { NumberField } from '@base-ui-components/solid/number-field';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 import { isWebKit } from '../../utils/detectBrowser';
 
 function createPointerMoveEvent({ movementX = 0, movementY = 0 }) {
@@ -18,16 +17,7 @@ describe('<NumberField.ScrubArea />', () => {
 
   describeConformance(NumberField.ScrubArea, () => ({
     refInstanceof: window.HTMLSpanElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <NumberField.Root>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </NumberField.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) => render(() => <NumberField.Root>{node(props)}</NumberField.Root>),
   }));
 
   it('has presentation role', async () => {

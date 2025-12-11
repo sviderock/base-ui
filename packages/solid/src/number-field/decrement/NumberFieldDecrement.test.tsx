@@ -4,7 +4,6 @@ import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { createSignal } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 import { CHANGE_VALUE_TICK_DELAY, START_AUTO_CHANGE_DELAY } from '../utils/constants';
 
 describe('<NumberField.Decrement />', () => {
@@ -12,16 +11,7 @@ describe('<NumberField.Decrement />', () => {
 
   describeConformance(NumberField.Decrement, () => ({
     refInstanceof: window.HTMLButtonElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <NumberField.Root>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />{' '}
-          </NumberField.Root>
-        ),
-        elementProps,
-      );
-    },
+    render: (node, props) => render(() => <NumberField.Root>{node(props)}</NumberField.Root>),
   }));
 
   it('has decrease label', async () => {
