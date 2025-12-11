@@ -4,7 +4,6 @@ import { RadioGroup } from '@base-ui-components/solid/radio-group';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Radio.Indicator />', () => {
   beforeEach(() => {
@@ -14,17 +13,8 @@ describe('<Radio.Indicator />', () => {
   const { render } = createRenderer();
 
   describeConformance(Radio.Indicator, () => ({
+    render: (node, props) => render(() => <Radio.Root value="">{node(props)}</Radio.Root>),
     refInstanceof: window.HTMLSpanElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Radio.Root value="">
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Radio.Root>
-        ),
-        elementProps,
-      );
-    },
   }));
 
   it('should remove the indicator when there is no exit animation defined', async ({ skip }) => {

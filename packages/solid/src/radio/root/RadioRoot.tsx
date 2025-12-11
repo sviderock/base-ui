@@ -18,7 +18,7 @@ import { useButton } from '../../use-button';
 import { NOOP } from '../../utils/noop';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import { customStyleHookMapping } from '../utils/customStyleHookMapping';
 import { RadioRootContext } from './RadioRootContext';
@@ -165,37 +165,22 @@ export function RadioRoot(componentProps: RadioRoot.Props) {
     required,
   };
 
-  const element = (compositeItemProps?: Accessor<ComponentProps<any>>) => {
-    return (
-      <RenderElement
-        element="button"
-        componentProps={componentProps}
-        ref={(el) => {
-          batch(() => {
-            compositeItemProps?.().ref(el);
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-            registerControlRef(el);
-            buttonRef(el);
-          });
-        }}
-        params={{
-          state: state(),
-          customStyleHookMapping,
-          props: [
-            compositeItemProps?.(),
-            rootProps(),
-            fieldControlValidation?.getValidationProps ?? undefined,
-            elementProps,
-            getButtonProps,
-          ],
-        }}
-      />
-    );
-  };
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: (el) => {
+      batch(() => {
+        registerControlRef(el);
+        buttonRef(el);
+      });
+    },
+    customStyleHookMapping,
+    props: [
+      rootProps,
+      (p) => fieldControlValidation?.getValidationProps(p),
+      elementProps,
+      getButtonProps,
+    ],
+  });
 
   return (
     <RadioRootContext.Provider value={context}>

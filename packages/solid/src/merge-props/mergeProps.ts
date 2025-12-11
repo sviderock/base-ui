@@ -105,7 +105,10 @@ export function mergePropsN<T extends ElementType>(props: InputProps<T>[]): Prop
 
 function mergeOne<T extends ElementType>(merged: Record<string, any>, inputProps: InputProps<T>) {
   if (isPropsGetter(inputProps)) {
-    return isAccessor(inputProps) ? mutablyMergeInto(merged, inputProps()) : inputProps(merged);
+    const data = isAccessor(inputProps)
+      ? mutablyMergeInto(merged, inputProps())
+      : inputProps(merged);
+    return data != null ? data : merged;
   }
   return mutablyMergeInto(merged, inputProps);
 }
