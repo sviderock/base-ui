@@ -1,12 +1,12 @@
 'use client';
-import { batch, createMemo, Show, type Accessor, type ComponentProps } from 'solid-js';
+import { batch, createMemo, Show } from 'solid-js';
 import { CompositeItem } from '../composite/item/CompositeItem';
 import { access, splitComponentProps, type MaybeAccessor } from '../solid-helpers';
 import { useToggleGroupContext } from '../toggle-group/ToggleGroupContext';
 import { useButton } from '../use-button/useButton';
 import type { BaseUIComponentProps } from '../utils/types';
 import { useControlled } from '../utils/useControlled';
-import { RenderElement } from '../utils/useRenderElement';
+import { useRenderElement } from '../utils/useRenderElementV2';
 
 /**
  * A two-state button that can be on or off.
@@ -62,43 +62,24 @@ export function Toggle(componentProps: Toggle.Props) {
     pressed: pressed(),
   }));
 
-  const element = (compositeItemProps?: Accessor<ComponentProps<any>>) => {
-    return (
-      <RenderElement
-        element="button"
-        componentProps={componentProps}
-        ref={(el) => {
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: buttonRef,
+    props: [
+      () => ({
+        'aria-pressed': pressed(),
+        onClick(event) {
+          const nextPressed = !pressed();
           batch(() => {
-            compositeItemProps?.().ref(el);
-            buttonRef(el);
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
+            setPressedState(nextPressed);
+            onPressedChange(nextPressed, event);
           });
-        }}
-        params={{
-          state: state(),
-          props: [
-            compositeItemProps?.(),
-            {
-              'aria-pressed': pressed(),
-              onClick(event) {
-                const nextPressed = !pressed();
-                batch(() => {
-                  setPressedState(nextPressed);
-                  onPressedChange(nextPressed, event);
-                });
-              },
-            },
-            elementProps,
-            getButtonProps,
-          ],
-        }}
-      />
-    );
-  };
+        },
+      }),
+      elementProps,
+      getButtonProps,
+    ],
+  });
 
   return (
     <Show when={groupContext} fallback={element()}>

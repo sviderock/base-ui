@@ -1,11 +1,11 @@
 'use client';
-import { batch, createMemo, Show, type Accessor, type ComponentProps } from 'solid-js';
+import { batch, createMemo, Show } from 'solid-js';
 import { CompositeRoot } from '../composite/root/CompositeRoot';
 import { access, splitComponentProps, type MaybeAccessor } from '../solid-helpers';
 import { useToolbarRootContext } from '../toolbar/root/ToolbarRootContext';
 import type { BaseUIComponentProps, Orientation } from '../utils/types';
 import { useControlled } from '../utils/useControlled';
-import { RenderElement } from '../utils/useRenderElement';
+import { useRenderElement } from '../utils/useRenderElementV2';
 import { ToggleGroupContext } from './ToggleGroupContext';
 import { ToggleGroupDataAttributes } from './ToggleGroupDataAttributes';
 
@@ -92,35 +92,11 @@ export function ToggleGroup(componentProps: ToggleGroup.Props) {
     value: groupValue,
   };
 
-  const element = (compositeItemProps?: Accessor<ComponentProps<any>>) => {
-    return (
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={(el) => {
-          batch(() => {
-            compositeItemProps?.().ref(el);
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-          });
-        }}
-        params={{
-          state: state(),
-          customStyleHookMapping,
-          props: [
-            compositeItemProps?.(),
-            {
-              role: 'group',
-            },
-            elementProps,
-          ],
-        }}
-      />
-    );
-  };
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: [{ role: 'group' }, elementProps],
+    customStyleHookMapping,
+  });
 
   const memoizedElement = createMemo(() => element());
 
