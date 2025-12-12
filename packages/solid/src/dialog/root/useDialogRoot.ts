@@ -20,12 +20,7 @@ import {
   type OpenChangeReason as FloatingUIOpenChangeReason,
 } from '../../floating-ui-solid';
 import { getTarget } from '../../floating-ui-solid/utils';
-import {
-  access,
-  createAccessors,
-  type CodepenedentRefs,
-  type MaybeAccessor,
-} from '../../solid-helpers';
+import { access, type CodepenedentRefs, type MaybeAccessor } from '../../solid-helpers';
 import {
   translateOpenChangeReason,
   type BaseOpenChangeReason,
