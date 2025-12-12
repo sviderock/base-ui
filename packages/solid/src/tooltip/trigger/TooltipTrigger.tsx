@@ -3,7 +3,7 @@ import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTooltipRootContext } from '../root/TooltipRootContext';
 
 /**
@@ -18,25 +18,14 @@ export function TooltipTrigger(componentProps: TooltipTrigger.Props) {
   const { open, setTriggerElement, triggerProps } = useTooltipRootContext();
   const state = createMemo<TooltipTrigger.State>(() => ({ open: open() }));
 
-  return (
-    <RenderElement
-      element="button"
-      componentProps={componentProps}
-      ref={(el) => {
-        setTriggerElement(el);
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-      }}
-      params={{
-        state: state(),
-        props: [triggerProps(), elementProps],
-        customStyleHookMapping: triggerOpenStateMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: setTriggerElement,
+    props: [triggerProps, elementProps],
+    customStyleHookMapping: triggerOpenStateMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace TooltipTrigger {

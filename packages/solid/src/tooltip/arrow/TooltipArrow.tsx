@@ -4,7 +4,7 @@ import { splitComponentProps } from '../../solid-helpers';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTooltipPositionerContext } from '../positioner/TooltipPositionerContext';
 
 /**
@@ -26,25 +26,14 @@ export function TooltipArrow(componentProps: TooltipArrow.Props) {
     uncentered: arrowUncentered(),
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        setArrowRef(el);
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-      }}
-      params={{
-        state: state(),
-        props: [{ style: arrowStyles(), 'aria-hidden': true }, elementProps],
-        customStyleHookMapping: popupStateMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: setArrowRef,
+    props: [() => ({ style: arrowStyles(), 'aria-hidden': true }), elementProps],
+    customStyleHookMapping: popupStateMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace TooltipArrow {

@@ -1,13 +1,4 @@
-import {
-  children,
-  createMemo,
-  createSignal,
-  onMount,
-  splitProps,
-  type Accessor,
-  type JSX,
-  type SplitProps,
-} from 'solid-js';
+import { children, onMount, splitProps, type Accessor, type JSX, type SplitProps } from 'solid-js';
 
 export function callEventHandler<T, E extends Event>(
   eventHandler: JSX.EventHandlerUnion<T, E> | undefined,
@@ -66,36 +57,6 @@ export function splitComponentProps<
     T,
     [componentPropsToOmit: ['class', 'render', 'children'], ...K]
   >;
-}
-
-type ExtractKey<T> = T extends string ? T : T extends { key: string } ? T['key'] : string;
-type ExtractValue<T> = T extends { initialValue: () => infer I } ? I : string | undefined;
-
-export function createAccessors<
-  const T extends (string | { key: string; initialValue: () => unknown })[],
->(keys: T) {
-  const accessors = {} as {
-    [K in T[number] as ExtractKey<K>]: Accessor<ExtractValue<K>>;
-  } & {
-    [K in T[number] as `set${Capitalize<ExtractKey<K>>}`]: (
-      newAccessor: Accessor<ExtractValue<K>>,
-    ) => void;
-  };
-
-  for (const keyItem of keys) {
-    const [storedAccessor, setStoredAccessor] = createSignal<any>(
-      typeof keyItem === 'object' && 'initialValue' in keyItem
-        ? keyItem.initialValue
-        : () => undefined,
-    );
-    const key = typeof keyItem === 'string' ? keyItem : keyItem.key;
-    const capitalizedKey = `set${key.charAt(0).toUpperCase()}${key.slice(1)}`;
-
-    (accessors as any)[key] = createMemo(() => storedAccessor()());
-    (accessors as any)[capitalizedKey] = (newAccessor: any) => setStoredAccessor(() => newAccessor);
-  }
-
-  return accessors;
 }
 
 export type CodepenedentRefs<T extends string[]> = {

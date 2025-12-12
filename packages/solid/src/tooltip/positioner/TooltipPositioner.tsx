@@ -5,7 +5,7 @@ import { POPUP_COLLISION_AVOIDANCE } from '../../utils/constants';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
 import { useAnchorPositioning, type Align, type Side } from '../../utils/useAnchorPositioning';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTooltipPortalContext } from '../portal/TooltipPortalContext';
 import { useTooltipRootContext } from '../root/TooltipRootContext';
 import { TooltipPositionerContext } from './TooltipPositionerContext';
@@ -106,25 +106,16 @@ export function TooltipPositioner(componentProps: TooltipPositioner.Props) {
     arrowUncentered: positioner.arrowUncentered,
   };
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: setPositionerElement,
+    props: [positioner.props, elementProps],
+    customStyleHookMapping: popupStateMapping,
+  });
+
   return (
     <TooltipPositionerContext.Provider value={contextValue}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={(el) => {
-          setPositionerElement(el);
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-        }}
-        params={{
-          state: state(),
-          props: [positioner.props(), elementProps],
-          customStyleHookMapping: popupStateMapping,
-        }}
-      />
+      {element()}
     </TooltipPositionerContext.Provider>
   );
 }

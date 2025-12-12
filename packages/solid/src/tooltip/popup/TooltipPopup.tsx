@@ -8,7 +8,7 @@ import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useTooltipPositionerContext } from '../positioner/TooltipPositionerContext';
 import { useTooltipRootContext } from '../root/TooltipRootContext';
@@ -49,29 +49,20 @@ export function TooltipPopup(componentProps: TooltipPopup.Props) {
     transitionStatus: transitionStatus(),
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={componentProps}
-      ref={(el) => {
-        refs.popupRef = el;
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-      }}
-      params={{
-        state: state(),
-        props: [
-          popupProps(),
-          transitionStatus() === 'starting' ? DISABLED_TRANSITIONS_STYLE : EMPTY_OBJECT,
-          elementProps,
-        ],
-        customStyleHookMapping,
-      }}
-    />
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      refs.popupRef = el;
+    },
+    props: [
+      popupProps,
+      () => (transitionStatus() === 'starting' ? DISABLED_TRANSITIONS_STYLE : EMPTY_OBJECT),
+      elementProps,
+    ],
+    customStyleHookMapping,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace TooltipPopup {

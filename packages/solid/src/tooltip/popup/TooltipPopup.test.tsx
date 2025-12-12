@@ -2,26 +2,22 @@ import { createRenderer, describeConformance } from '#test-utils';
 import { Tooltip } from '@base-ui-components/solid/tooltip';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Tooltip.Popup />', () => {
   const { render } = createRenderer();
 
   describeConformance(Tooltip.Popup, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Tooltip.Root open>
-            <Tooltip.Portal>
-              <Tooltip.Positioner>
-                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-              </Tooltip.Positioner>
-            </Tooltip.Portal>
-          </Tooltip.Root>
-        ),
-        elementProps,
-      );
+    render(node, props) {
+      return render(() => (
+        <Tooltip.Root open>
+          <Tooltip.Portal>
+            <Tooltip.Positioner>
+              {node(props)}
+            </Tooltip.Positioner>
+          </Tooltip.Portal>
+        </Tooltip.Root>
+      ));
     },
   }));
 

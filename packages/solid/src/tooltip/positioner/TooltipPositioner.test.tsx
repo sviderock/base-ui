@@ -2,10 +2,9 @@ import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { Tooltip } from '@base-ui-components/solid/tooltip';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 function Trigger(props: Tooltip.Trigger.Props) {
-  return <Tooltip.Trigger {...props} ref={props.ref} render={(p) => <div {...p()} />} />;
+  return <Tooltip.Trigger {...props} ref={props.ref} render="div" />;
 }
 
 describe('<Tooltip.Positioner />', () => {
@@ -13,17 +12,12 @@ describe('<Tooltip.Positioner />', () => {
 
   describeConformance(Tooltip.Positioner, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Tooltip.Root open>
-            <Tooltip.Portal>
-              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-            </Tooltip.Portal>
-          </Tooltip.Root>
-        ),
-        elementProps,
-      );
+    render(node, props) {
+      return render(() => (
+        <Tooltip.Root open>
+          <Tooltip.Portal>{node(props)}</Tooltip.Portal>
+        </Tooltip.Root>
+      ));
     },
   }));
 

@@ -36,7 +36,14 @@ export function useRenderElement<
   const state = createMemo(() => params.state?.() ?? (EMPTY_OBJECT as State));
   const enabled = createMemo(() => access(params.enabled) ?? true);
   const props = createMemo(() => access(params.props));
-  const safeChildren = childrenLazy(() => params.children ?? componentProps.children);
+  const safeChildren = childrenLazy(
+    () =>
+      access(params.children) ??
+      access(componentProps.children) ??
+      (typeof componentProps.render === 'object'
+        ? access(componentProps.render?.children)
+        : undefined),
+  );
 
   const styleHooks = createMemo<Record<string, string> | undefined>(() => {
     if (params.disableStyleHooks !== true) {
