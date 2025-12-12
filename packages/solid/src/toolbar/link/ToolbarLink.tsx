@@ -1,9 +1,9 @@
 'use client';
-import { createMemo, type ComponentProps } from 'solid-js';
+import { createMemo } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { ToolbarRoot } from '../root/ToolbarRoot';
 import { useToolbarRootContext } from '../root/ToolbarRootContext';
 
@@ -28,32 +28,10 @@ export function ToolbarLink(componentProps: ToolbarLink.Props) {
     orientation: orientation(),
   }));
 
+  const element = useRenderElement('a', componentProps, { state, props: elementProps });
+
   return (
-    <CompositeItem<ToolbarRoot.ItemMetadata>
-      metadata={TOOLBAR_LINK_METADATA}
-      render={(p) => (
-        <RenderElement
-          element="a"
-          componentProps={componentProps}
-          ref={(el) => {
-            if (p() && typeof p().ref === 'function') {
-              (p().ref as Function)(el);
-            } else {
-              p().ref = el as unknown as HTMLDivElement;
-            }
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-          }}
-          params={{
-            state: state(),
-            props: [p() as ComponentProps<'a'>, elementProps],
-          }}
-        />
-      )}
-    />
+    <CompositeItem<ToolbarRoot.ItemMetadata> metadata={TOOLBAR_LINK_METADATA} render={element} />
   );
 }
 

@@ -11,7 +11,6 @@ import { Toolbar } from '@base-ui-components/solid/toolbar';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { Dynamic } from 'solid-js/web';
 import { CompositeRootContext } from '../../composite/root/CompositeRootContext';
 import { NOOP } from '../../utils/noop';
 import { ToolbarRootContext } from '../root/ToolbarRootContext';
@@ -33,17 +32,14 @@ describe('<Toolbar.Button />', () => {
 
   describeConformance(Toolbar.Button, () => ({
     refInstanceof: window.HTMLButtonElement,
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <ToolbarRootContext.Provider value={testToolbarContext}>
-            <CompositeRootContext.Provider value={testCompositeContext}>
-              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-            </CompositeRootContext.Provider>
-          </ToolbarRootContext.Provider>
-        ),
-        elementProps,
-      );
+    render: (node, props) => {
+      return render(() => (
+        <ToolbarRootContext.Provider value={testToolbarContext}>
+          <CompositeRootContext.Provider value={testCompositeContext}>
+            {node(props)}
+          </CompositeRootContext.Provider>
+        </ToolbarRootContext.Provider>
+      ));
     },
   }));
 
@@ -99,7 +95,7 @@ describe('<Toolbar.Button />', () => {
       it('renders a switch', async () => {
         render(() => (
           <Toolbar.Root>
-            <Toolbar.Button data-testid="button" render={(p) => <Switch.Root {...p()} />} />
+            <Toolbar.Button data-testid="button" render={Switch.Root} />
           </Toolbar.Root>
         ));
 
@@ -113,13 +109,11 @@ describe('<Toolbar.Button />', () => {
           <Toolbar.Root>
             <Toolbar.Button
               onClick={handleClick}
-              render={(p) => (
-                <Switch.Root
-                  {...p()}
-                  defaultChecked={false}
-                  onCheckedChange={handleCheckedChange}
-                />
-              )}
+              render={{
+                component: Switch.Root,
+                defaultChecked: false,
+                onCheckedChange: handleCheckedChange,
+              }}
             />
           </Toolbar.Root>
         ));
@@ -154,7 +148,10 @@ describe('<Toolbar.Button />', () => {
             <Toolbar.Button
               disabled
               onClick={handleClick}
-              render={(p) => <Switch.Root {...p()} onCheckedChange={handleCheckedChange} />}
+              render={{
+                component: Switch.Root,
+                onCheckedChange: handleCheckedChange,
+              }}
             />
           </Toolbar.Root>
         ));
@@ -189,7 +186,10 @@ describe('<Toolbar.Button />', () => {
             <Menu.Root>
               <Toolbar.Button
                 data-testid="button"
-                render={(p) => <Menu.Trigger {...p()}>Toggle</Menu.Trigger>}
+                render={{
+                  component: Menu.Trigger,
+                  children: 'Toggle',
+                }}
               />
               <Menu.Portal>
                 <Menu.Positioner>
@@ -216,7 +216,10 @@ describe('<Toolbar.Button />', () => {
               <Toolbar.Button
                 data-testid="button"
                 onClick={handleClick}
-                render={(p) => <Menu.Trigger {...p()}>Toggle</Menu.Trigger>}
+                render={{
+                  component: Menu.Trigger,
+                  children: 'Toggle',
+                }}
               />
               <Menu.Portal>
                 <Menu.Positioner>
@@ -284,7 +287,10 @@ describe('<Toolbar.Button />', () => {
                 data-testid="button"
                 disabled
                 onClick={handleClick}
-                render={(p) => <Menu.Trigger {...p()}>Toggle</Menu.Trigger>}
+                render={{
+                  component: Menu.Trigger,
+                  children: 'Toggle',
+                }}
               />
               <Menu.Portal>
                 <Menu.Positioner>
@@ -325,7 +331,7 @@ describe('<Toolbar.Button />', () => {
         render(() => (
           <Toolbar.Root>
             <Select.Root defaultValue="a">
-              <Toolbar.Button data-testid="button" render={(p) => <Select.Trigger {...p()} />} />
+              <Toolbar.Button data-testid="button" render={Select.Trigger} />
               <Select.Portal>
                 <Select.Positioner>
                   <Select.Popup>
@@ -348,7 +354,7 @@ describe('<Toolbar.Button />', () => {
         const { user } = render(() => (
           <Toolbar.Root>
             <Select.Root defaultValue="a" onValueChange={handleValueChange}>
-              <Toolbar.Button data-testid="button" render={(p) => <Select.Trigger {...p()} />} />
+              <Toolbar.Button data-testid="button" render={Select.Trigger} />
               <Select.Portal>
                 <Select.Positioner>
                   <Select.Popup data-testid="popup">
@@ -401,7 +407,7 @@ describe('<Toolbar.Button />', () => {
         const { user } = render(() => (
           <Toolbar.Root>
             <Select.Root defaultValue="a" onValueChange={onValueChange} onOpenChange={onOpenChange}>
-              <Toolbar.Button disabled render={(p) => <Select.Trigger {...p()} />} />
+              <Toolbar.Button disabled render={Select.Trigger} />
               <Select.Portal>
                 <Select.Positioner>
                   <Select.Popup>
@@ -442,7 +448,12 @@ describe('<Toolbar.Button />', () => {
         render(() => (
           <Toolbar.Root>
             <Dialog.Root modal={false}>
-              <Toolbar.Button render={(p) => <Dialog.Trigger {...p()} data-testid="trigger" />} />
+              <Toolbar.Button
+                render={{
+                  component: Dialog.Trigger,
+                  'data-testid': 'trigger',
+                }}
+              />
               <Dialog.Portal>
                 <Dialog.Backdrop />
                 <Dialog.Popup>
@@ -461,7 +472,7 @@ describe('<Toolbar.Button />', () => {
         const { user } = render(() => (
           <Toolbar.Root>
             <Dialog.Root modal={false} onOpenChange={onOpenChange}>
-              <Toolbar.Button render={(p) => <Dialog.Trigger {...p()} />} />
+              <Toolbar.Button render={Dialog.Trigger} />
               <Dialog.Portal>
                 <Dialog.Backdrop />
                 <Dialog.Popup>
@@ -499,7 +510,7 @@ describe('<Toolbar.Button />', () => {
         const { user } = render(() => (
           <Toolbar.Root>
             <Dialog.Root modal={false} onOpenChange={onOpenChange}>
-              <Toolbar.Button disabled render={(p) => <Dialog.Trigger {...p()} />} />
+              <Toolbar.Button disabled render={Dialog.Trigger} />
               <Dialog.Portal>
                 <Dialog.Backdrop />
                 <Dialog.Popup>
@@ -533,7 +544,7 @@ describe('<Toolbar.Button />', () => {
         const { user } = render(() => (
           <Toolbar.Root>
             <Dialog.Root modal={false} onOpenChange={onOpenChange}>
-              <Toolbar.Button render={(p) => <Dialog.Trigger {...p()} />}>dialog</Toolbar.Button>
+              <Toolbar.Button render={Dialog.Trigger}>dialog</Toolbar.Button>
               <Dialog.Portal>
                 <Dialog.Popup />
               </Dialog.Portal>
@@ -564,7 +575,10 @@ describe('<Toolbar.Button />', () => {
           <Toolbar.Root>
             <AlertDialog.Root>
               <Toolbar.Button
-                render={(p) => <AlertDialog.Trigger {...p()} data-testid="trigger" />}
+                render={{
+                  component: AlertDialog.Trigger,
+                  'data-testid': 'trigger',
+                }}
               />
               <AlertDialog.Portal>
                 <AlertDialog.Backdrop />
@@ -584,7 +598,7 @@ describe('<Toolbar.Button />', () => {
         const { user } = render(() => (
           <Toolbar.Root>
             <AlertDialog.Root onOpenChange={onOpenChange}>
-              <Toolbar.Button render={(p) => <AlertDialog.Trigger {...p()} />} />
+              <Toolbar.Button render={AlertDialog.Trigger} />
               <AlertDialog.Portal>
                 <AlertDialog.Backdrop />
                 <AlertDialog.Popup>
@@ -622,7 +636,7 @@ describe('<Toolbar.Button />', () => {
         const { user } = render(() => (
           <Toolbar.Root>
             <AlertDialog.Root onOpenChange={onOpenChange}>
-              <Toolbar.Button disabled render={(p) => <AlertDialog.Trigger {...p()} />} />
+              <Toolbar.Button disabled render={AlertDialog.Trigger} />
               <AlertDialog.Portal>
                 <AlertDialog.Backdrop />
                 <AlertDialog.Popup>
@@ -656,9 +670,7 @@ describe('<Toolbar.Button />', () => {
         const { user } = render(() => (
           <Toolbar.Root>
             <AlertDialog.Root onOpenChange={onOpenChange}>
-              <Toolbar.Button render={(p) => <AlertDialog.Trigger {...p()} />}>
-                dialog
-              </Toolbar.Button>
+              <Toolbar.Button render={AlertDialog.Trigger}>dialog</Toolbar.Button>
               <AlertDialog.Portal>
                 <AlertDialog.Popup />
               </AlertDialog.Portal>
@@ -688,7 +700,12 @@ describe('<Toolbar.Button />', () => {
         render(() => (
           <Toolbar.Root>
             <Popover.Root>
-              <Toolbar.Button render={(p) => <Popover.Trigger {...p()} data-testid="trigger" />} />
+              <Toolbar.Button
+                render={{
+                  component: Popover.Trigger,
+                  'data-testid': 'trigger',
+                }}
+              />
               <Popover.Portal>
                 <Popover.Positioner>
                   <Popover.Popup>Content</Popover.Popup>
@@ -707,7 +724,7 @@ describe('<Toolbar.Button />', () => {
         const { user } = render(() => (
           <Toolbar.Root>
             <Popover.Root onOpenChange={onOpenChange}>
-              <Toolbar.Button render={(p) => <Popover.Trigger {...p()} />} />
+              <Toolbar.Button render={Popover.Trigger} />
               <Popover.Portal>
                 <Popover.Positioner>
                   <Popover.Popup>Content</Popover.Popup>
@@ -743,7 +760,7 @@ describe('<Toolbar.Button />', () => {
         const { user } = render(() => (
           <Toolbar.Root>
             <Popover.Root onOpenChange={onOpenChange}>
-              <Toolbar.Button disabled render={(p) => <Popover.Trigger {...p()} />} />
+              <Toolbar.Button disabled render={Popover.Trigger} />
               <Popover.Portal>
                 <Popover.Positioner>
                   <Popover.Popup>Content</Popover.Popup>
@@ -776,10 +793,10 @@ describe('<Toolbar.Button />', () => {
       it('renders toggle and toggle group', async () => {
         render(() => (
           <Toolbar.Root>
-            <Toolbar.Button render={(p) => <Toggle {...p()} value="apple" />} />
+            <Toolbar.Button render={{ component: Toggle, value: 'apple' }} />
             <ToggleGroup>
-              <Toolbar.Button render={(p) => <Toggle {...p()} value="one" />} />
-              <Toolbar.Button render={(p) => <Toggle {...p()} value="two" />} />
+              <Toolbar.Button render={{ component: Toggle, value: 'one' }} />
+              <Toolbar.Button render={{ component: Toggle, value: 'two' }} />
             </ToggleGroup>
           </Toolbar.Root>
         ));
@@ -794,19 +811,10 @@ describe('<Toolbar.Button />', () => {
         const onPressedChange = spy();
         const { user } = render(() => (
           <Toolbar.Root>
-            <Toolbar.Button
-              render={(p) => <Toggle {...p()} onPressedChange={onPressedChange} />}
-              value="apple"
-            />
+            <Toolbar.Button render={{ component: Toggle, onPressedChange }} value="apple" />
             <ToggleGroup>
-              <Toolbar.Button
-                render={(p) => <Toggle {...p()} onPressedChange={onPressedChange} />}
-                value="one"
-              />
-              <Toolbar.Button
-                render={(p) => <Toggle {...p()} onPressedChange={onPressedChange} />}
-                value="two"
-              />
+              <Toolbar.Button render={{ component: Toggle, onPressedChange }} value="one" />
+              <Toolbar.Button render={{ component: Toggle, onPressedChange }} value="two" />
             </ToggleGroup>
           </Toolbar.Root>
         ));
@@ -854,18 +862,18 @@ describe('<Toolbar.Button />', () => {
           <Toolbar.Root>
             <Toolbar.Button
               disabled
-              render={(p) => <Toggle {...p()} onPressedChange={onPressedChange} />}
+              render={{ component: Toggle, onPressedChange }}
               value="apple"
             />
             <ToggleGroup>
               <Toolbar.Button
                 disabled
-                render={(p) => <Toggle {...p()} onPressedChange={onPressedChange} />}
+                render={{ component: Toggle, onPressedChange }}
                 value="one"
               />
               <Toolbar.Button
                 disabled
-                render={(p) => <Toggle {...p()} onPressedChange={onPressedChange} />}
+                render={{ component: Toggle, onPressedChange }}
                 value="two"
               />
             </ToggleGroup>

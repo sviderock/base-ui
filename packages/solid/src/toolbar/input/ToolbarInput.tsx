@@ -5,7 +5,7 @@ import { CompositeItem } from '../../composite/item/CompositeItem';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useFocusableWhenDisabled } from '../../utils/useFocusableWhenDisabled';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useToolbarGroupContext } from '../group/ToolbarGroupContext';
 import type { ToolbarRoot } from '../root/ToolbarRoot';
 import { useToolbarRootContext } from '../root/ToolbarRootContext';
@@ -45,54 +45,32 @@ export function ToolbarInput(componentProps: ToolbarInput.Props) {
     focusable: focusableWhenDisabled(),
   }));
 
-  return (
-    <CompositeItem<ToolbarRoot.ItemMetadata>
-      metadata={itemMetadata()}
-      render={(p) => (
-        <RenderElement
-          element="input"
-          componentProps={componentProps}
-          ref={(el) => {
-            if (p() && typeof p().ref === 'function') {
-              (p().ref as Function)(el);
-            } else {
-              p().ref = el;
-            }
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
-            }
-          }}
-          params={{
-            state: state(),
-            props: [
-              p() as ComponentProps<'input'>,
-              {
-                onClick(event) {
-                  if (disabled()) {
-                    event.preventDefault();
-                  }
-                },
-                onKeyDown(event) {
-                  if (event.key !== ARROW_LEFT && event.key !== ARROW_RIGHT && disabled()) {
-                    stopEvent(event);
-                  }
-                },
-                onPointerDown(event) {
-                  if (disabled()) {
-                    event.preventDefault();
-                  }
-                },
-              },
-              elementProps,
-              focusableWhenDisabledProps(),
-            ],
-          }}
-        />
-      )}
-    />
-  );
+  const element = useRenderElement('input', componentProps, {
+    state,
+    props: [
+      {
+        onClick(event) {
+          if (disabled()) {
+            event.preventDefault();
+          }
+        },
+        onKeyDown(event) {
+          if (event.key !== ARROW_LEFT && event.key !== ARROW_RIGHT && disabled()) {
+            stopEvent(event);
+          }
+        },
+        onPointerDown(event) {
+          if (disabled()) {
+            event.preventDefault();
+          }
+        },
+      },
+      elementProps,
+      focusableWhenDisabledProps,
+    ],
+  });
+
+  return <CompositeItem<ToolbarRoot.ItemMetadata> metadata={itemMetadata()} render={element} />;
 }
 
 export namespace ToolbarInput {

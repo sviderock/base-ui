@@ -7,7 +7,6 @@ import { Toolbar } from '@base-ui-components/solid/toolbar';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import type { JSX } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 import { type Orientation } from '../../utils/types';
 
 describe('<Toolbar.Root />', () => {

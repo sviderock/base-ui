@@ -4,7 +4,6 @@ import { Toolbar } from '@base-ui-components/solid/toolbar';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { Dynamic } from 'solid-js/web';
 import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP } from '../../composite/composite';
 import { CompositeRootContext } from '../../composite/root/CompositeRootContext';
 import { NOOP } from '../../utils/noop';
@@ -29,17 +28,14 @@ describe('<Toolbar.Input />', () => {
   describeConformance(Toolbar.Input, () => ({
     refInstanceof: window.HTMLInputElement,
     testRenderPropWith: 'input',
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <ToolbarRootContext.Provider value={testToolbarContext}>
-            <CompositeRootContext.Provider value={testCompositeContext}>
-              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-            </CompositeRootContext.Provider>
-          </ToolbarRootContext.Provider>
-        ),
-        elementProps,
-      );
+    render: (node, props) => {
+      return render(() => (
+        <ToolbarRootContext.Provider value={testToolbarContext}>
+          <CompositeRootContext.Provider value={testCompositeContext}>
+            {node(props)}
+          </CompositeRootContext.Provider>
+        </ToolbarRootContext.Provider>
+      ));
     },
   }));
 
@@ -109,7 +105,7 @@ describe('<Toolbar.Input />', () => {
         <Toolbar.Root>
           <NumberField.Root>
             <NumberField.Group>
-              <Toolbar.Input render={(p) => <NumberField.Input {...p()} />} />
+              <Toolbar.Input render={NumberField.Input} />
             </NumberField.Group>
           </NumberField.Root>
         </Toolbar.Root>
@@ -125,7 +121,7 @@ describe('<Toolbar.Input />', () => {
           <NumberField.Root min={1} max={10} defaultValue={5} onValueChange={onValueChange}>
             <NumberField.Group>
               <NumberField.Decrement />
-              <Toolbar.Input render={(p) => <NumberField.Input {...p()} />} />
+              <Toolbar.Input render={NumberField.Input} />
               <NumberField.Increment />
             </NumberField.Group>
           </NumberField.Root>
@@ -154,7 +150,7 @@ describe('<Toolbar.Input />', () => {
           <NumberField.Root min={1} max={10} defaultValue={5} onValueChange={onValueChange}>
             <NumberField.Group>
               <NumberField.Decrement />
-              <Toolbar.Input disabled render={(p) => <NumberField.Input {...p()} />} />
+              <Toolbar.Input disabled render={NumberField.Input} />
               <NumberField.Increment />
             </NumberField.Group>
           </NumberField.Root>

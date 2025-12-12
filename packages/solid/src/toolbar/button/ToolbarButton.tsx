@@ -1,10 +1,10 @@
 'use client';
-import { batch, createMemo, onMount, type ComponentProps } from 'solid-js';
+import { createMemo } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useToolbarGroupContext } from '../group/ToolbarGroupContext';
 import type { ToolbarRoot } from '../root/ToolbarRoot';
 import { useToolbarRootContext } from '../root/ToolbarRootContext';
@@ -45,44 +45,20 @@ export function ToolbarButton(componentProps: ToolbarButton.Props) {
     focusable: focusableWhenDisabled(),
   }));
 
-  return (
-    <CompositeItem<ToolbarRoot.ItemMetadata>
-      metadata={itemMetadata}
-      render={(p) => (
-        <RenderElement
-          element="button"
-          componentProps={componentProps}
-          ref={(el) => {
-            batch(() => {
-              if (p() && typeof p().ref === 'function') {
-                (p().ref as Function)(el);
-              } else {
-                p().ref = el as unknown as HTMLDivElement;
-              }
-              buttonRef(el);
-              if (typeof componentProps.ref === 'function') {
-                componentProps.ref(el);
-              } else {
-                componentProps.ref = el;
-              }
-            });
-          }}
-          params={{
-            state: state(),
-            props: [
-              p() as ComponentProps<'button'>,
-              elementProps,
-              // for integrating with Menu and Select disabled states, `disabled` is
-              // intentionally duplicated even though getButtonProps includes it already
-              // TODO: follow up after https://github.com/mui/base-ui/issues/1976#issuecomment-2916905663
-              { disabled: disabled() },
-              getButtonProps,
-            ],
-          }}
-        />
-      )}
-    />
-  );
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: buttonRef,
+    props: [
+      elementProps,
+      // for integrating with Menu and Select disabled states, `disabled` is
+      // intentionally duplicated even though getButtonProps includes it already
+      // TODO: follow up after https://github.com/mui/base-ui/issues/1976#issuecomment-2916905663
+      () => ({ disabled: disabled() }),
+      getButtonProps,
+    ],
+  });
+
+  return <CompositeItem<ToolbarRoot.ItemMetadata> metadata={itemMetadata} render={element} />;
 }
 
 export namespace ToolbarButton {

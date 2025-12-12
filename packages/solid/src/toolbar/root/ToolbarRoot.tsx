@@ -4,7 +4,7 @@ import type { CompositeMetadata } from '../../composite/list/CompositeList';
 import { CompositeRoot } from '../../composite/root/CompositeRoot';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { Orientation as BaseOrientation, BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { ToolbarRootContext } from './ToolbarRootContext';
 
 /**
@@ -50,6 +50,17 @@ export function ToolbarRoot(componentProps: ToolbarRoot.Props) {
     orientation: orientation(),
   }));
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: [
+      () => ({
+        'aria-orientation': orientation(),
+        role: 'toolbar',
+      }),
+      elementProps,
+    ],
+  });
+
   return (
     <ToolbarRootContext.Provider value={toolbarRootContext}>
       <CompositeRoot<ToolbarRoot.ItemMetadata>
@@ -60,35 +71,7 @@ export function ToolbarRoot(componentProps: ToolbarRoot.Props) {
           setItemArray(Array.from(newMap.values()));
         }}
         orientation={orientation()}
-        render={(p) => (
-          <RenderElement
-            element="div"
-            componentProps={componentProps}
-            ref={(el) => {
-              if (p() && typeof p().ref === 'function') {
-                (p().ref as Function)(el);
-              } else {
-                p().ref = el;
-              }
-              if (typeof componentProps.ref === 'function') {
-                componentProps.ref(el);
-              } else {
-                componentProps.ref = el;
-              }
-            }}
-            params={{
-              state: state(),
-              props: [
-                p(),
-                {
-                  'aria-orientation': orientation(),
-                  role: 'toolbar',
-                },
-                elementProps,
-              ],
-            }}
-          />
-        )}
+        render={element}
       />
     </ToolbarRootContext.Provider>
   );

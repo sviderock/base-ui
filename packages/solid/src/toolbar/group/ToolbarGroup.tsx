@@ -2,7 +2,7 @@
 import { createMemo } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { ToolbarRoot } from '../root/ToolbarRoot';
 import { useToolbarRootContext } from '../root/ToolbarRootContext';
 import { ToolbarGroupContext } from './ToolbarGroupContext';
@@ -30,18 +30,13 @@ export function ToolbarGroup(componentProps: ToolbarGroup.Props) {
     orientation: orientation(),
   }));
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: [{ role: 'group' }, elementProps],
+  });
+
   return (
-    <ToolbarGroupContext.Provider value={contextValue}>
-      <RenderElement
-        element="div"
-        componentProps={componentProps}
-        ref={componentProps.ref}
-        params={{
-          state: state(),
-          props: [{ role: 'group' }, elementProps],
-        }}
-      />
-    </ToolbarGroupContext.Provider>
+    <ToolbarGroupContext.Provider value={contextValue}>{element()}</ToolbarGroupContext.Provider>
   );
 }
 
