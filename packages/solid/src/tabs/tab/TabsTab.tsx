@@ -7,7 +7,7 @@ import { useButton } from '../../use-button';
 import { ownerDocument } from '../../utils/owner';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTabsListContext } from '../list/TabsListContext';
 import type { TabsRoot } from '../root/TabsRoot';
 import { useTabsRootContext } from '../root/TabsRootContext';
@@ -149,47 +149,38 @@ export function TabsTab(componentProps: TabsTab.Props) {
     orientation: orientation(),
   }));
 
-  return (
-    <RenderElement
-      element="button"
-      componentProps={componentProps}
-      ref={(el) => {
-        batch(() => {
-          buttonRef(el);
-          setCompositeItemRef(el);
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-        });
-      }}
-      params={{
-        state: state(),
-        props: [
-          {
-            role: 'tab',
-            'aria-controls': tabPanelId(),
-            'aria-selected': selected(),
-            id: id(),
-            onClick,
-            onFocus,
-            onPointerDown,
-            [ACTIVE_COMPOSITE_ITEM as string]: selected() ? '' : undefined,
-            'on:keydown': {
-              capture: true,
-              handleEvent() {
-                isNavigatingRef = true;
-              },
-            },
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: (el) => {
+      batch(() => {
+        buttonRef(el);
+        setCompositeItemRef(el);
+      });
+    },
+    props: [
+      () => ({
+        role: 'tab',
+        'aria-controls': tabPanelId(),
+        'aria-selected': selected(),
+        id: id(),
+        onClick,
+        onFocus,
+        onPointerDown,
+        [ACTIVE_COMPOSITE_ITEM as string]: selected() ? '' : undefined,
+        'on:keydown': {
+          capture: true,
+          handleEvent() {
+            isNavigatingRef = true;
           },
-          elementProps,
-          getButtonProps,
-          compositeItemProps(),
-        ],
-      }}
-    />
-  );
+        },
+      }),
+      elementProps,
+      getButtonProps,
+      compositeItemProps,
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace TabsTab {

@@ -6,7 +6,7 @@ import { useDirection } from '../../direction-provider/DirectionContext';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { Orientation as BaseOrientation, BaseUIComponentProps } from '../../utils/types';
 import { useControlled } from '../../utils/useControlled';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TabsPanel } from '../panel/TabsPanel';
 import type { TabsTab } from '../tab/TabsTab';
 import { TabsRootContext } from './TabsRootContext';
@@ -147,6 +147,12 @@ export function TabsRoot(componentProps: TabsRoot.Props) {
     tabActivationDirection: tabActivationDirection(),
   }));
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    props: elementProps,
+    customStyleHookMapping: tabsStyleHookMapping,
+  });
+
   return (
     <TabsRootContext.Provider value={tabsContextValue}>
       <CompositeList<TabsPanel.Metadata>
@@ -155,16 +161,7 @@ export function TabsRoot(componentProps: TabsRoot.Props) {
           setTabPanelArray(Array.from(newMap.values()));
         }}
       >
-        <RenderElement
-          element="div"
-          componentProps={componentProps}
-          ref={componentProps.ref}
-          params={{
-            state: state(),
-            props: elementProps,
-            customStyleHookMapping: tabsStyleHookMapping,
-          }}
-        />
+        {element()}
       </CompositeList>
     </TabsRootContext.Provider>
   );

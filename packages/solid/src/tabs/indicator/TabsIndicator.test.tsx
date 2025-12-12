@@ -3,24 +3,20 @@ import { Tabs } from '@base-ui-components/solid/tabs';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Tabs.Indicator />', () => {
   const { render } = createRenderer();
 
   describeConformance(Tabs.Indicator, () => ({
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Tabs.Root defaultValue={1}>
-            <Tabs.List>
-              <Tabs.Tab value={1} />
-              <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-            </Tabs.List>
-          </Tabs.Root>
-        ),
-        elementProps,
-      );
+    render: (node, props) => {
+      return render(() => (
+        <Tabs.Root defaultValue={1}>
+          <Tabs.List>
+            <Tabs.Tab value={1} />
+            {node(props)}
+          </Tabs.List>
+        </Tabs.Root>
+      ));
     },
     refInstanceof: window.HTMLSpanElement,
     testRenderPropWith: 'div',

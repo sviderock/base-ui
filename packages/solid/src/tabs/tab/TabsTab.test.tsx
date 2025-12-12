@@ -1,6 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
 import { Tabs } from '@base-ui-components/solid/tabs';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Tabs.Tab />', () => {
   const { render } = createRenderer();
@@ -8,17 +7,14 @@ describe('<Tabs.Tab />', () => {
   describeConformance(
     (props) => <Tabs.Tab {...props} ref={props.ref} value="1" />,
     () => ({
-      render: (node, elementProps = {}) => {
-        return render(
-          () => (
-            <Tabs.Root>
-              <Tabs.List>
-                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-              </Tabs.List>
-            </Tabs.Root>
-          ),
-          elementProps,
-        );
+      render: (node, props) => {
+        return render(() => (
+          <Tabs.Root>
+            <Tabs.List>
+              {node(props)}
+            </Tabs.List>
+          </Tabs.Root>
+        ));
       },
       refInstanceof: window.HTMLButtonElement,
     }),

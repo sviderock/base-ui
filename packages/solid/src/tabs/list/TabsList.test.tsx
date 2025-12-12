@@ -2,21 +2,17 @@ import { createRenderer, describeConformance } from '#test-utils';
 import { Tabs } from '@base-ui-components/solid/tabs';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 
 describe('<Tabs.List />', () => {
   const { render } = createRenderer();
 
   describeConformance(Tabs.List, () => ({
-    render: (node, elementProps = {}) => {
-      return render(
-        () => (
-          <Tabs.Root>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Tabs.Root>
-        ),
-        elementProps,
-      );
+    render: (node, props) => {
+      return render(() => (
+        <Tabs.Root>
+          {node(props)}
+        </Tabs.Root>
+      ));
     },
     refInstanceof: window.HTMLDivElement,
   }));

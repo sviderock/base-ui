@@ -1,10 +1,10 @@
 'use client';
-import { createMemo } from 'solid-js';
+import { createMemo, Show } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { tabsStyleHookMapping } from '../root/styleHooks';
 import type { TabsRoot } from '../root/TabsRoot';
 import { useTabsRootContext } from '../root/TabsRootContext';
@@ -52,38 +52,33 @@ export function TabsPanel(componentProps: TabsPanel.Props) {
     tabActivationDirection: tabActivationDirection(),
   }));
 
-  return (
-    <RenderElement
-      element="div"
-      componentProps={{
-        ...componentProps,
-        children: hidden() && !keepMounted() ? undefined : componentProps.children,
-      }}
-      ref={(el) => {
-        setListItemRef(el);
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-      }}
-      params={{
-        state: state(),
-        props: [
-          {
-            'aria-labelledby': correspondingTabId(),
-            hidden: hidden(),
-            id: id(),
-            role: 'tabpanel',
-            tabIndex: hidden() ? -1 : 0,
-            [TabsPanelDataAttributes.index as string]: index(),
-          },
-          elementProps,
-        ],
-        customStyleHookMapping: tabsStyleHookMapping,
-      }}
-    />
+  const element = useRenderElement(
+    'div',
+    {
+      ...componentProps,
+      get children() {
+        return hidden() && !keepMounted() ? undefined : componentProps.children;
+      },
+    },
+    {
+      state,
+      ref: setListItemRef,
+      props: [
+        () => ({
+          'aria-labelledby': correspondingTabId(),
+          hidden: hidden(),
+          id: id(),
+          role: 'tabpanel',
+          tabIndex: hidden() ? -1 : 0,
+          [TabsPanelDataAttributes.index as string]: index(),
+        }),
+        elementProps,
+      ],
+      customStyleHookMapping: tabsStyleHookMapping,
+    },
   );
+
+  return <>{element()}</>;
 }
 
 export namespace TabsPanel {

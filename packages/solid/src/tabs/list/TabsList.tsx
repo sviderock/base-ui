@@ -3,7 +3,7 @@ import { createEffect, createMemo, createSignal, type Accessor } from 'solid-js'
 import { CompositeRoot } from '../../composite/root/CompositeRoot';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { tabsStyleHookMapping } from '../root/styleHooks';
 import type { TabsRoot } from '../root/TabsRoot';
 import { useTabsRootContext } from '../root/TabsRootContext';
@@ -66,6 +66,21 @@ export function TabsList(componentProps: TabsList.Props) {
     value,
   };
 
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      refs.tabsListRef = el;
+    },
+    props: [
+      () => ({
+        'aria-orientation': orientation() === 'vertical' ? 'vertical' : undefined,
+        role: 'tablist',
+      }),
+      elementProps,
+    ],
+    customStyleHookMapping: tabsStyleHookMapping,
+  });
+
   return (
     <TabsListContext.Provider value={tabsListContextValue}>
       <CompositeRoot<TabsTab.Metadata>
@@ -78,37 +93,7 @@ export function TabsList(componentProps: TabsList.Props) {
           setTabArray(Array.from(newMap.entries()).map(([node, metadata]) => ({ node, metadata })));
         }}
         disabledIndices={EMPTY_ARRAY}
-        render={(p) => (
-          <RenderElement
-            element="div"
-            componentProps={componentProps}
-            ref={(el) => {
-              if (p && typeof p.ref === 'function') {
-                (p.ref as Function)(el);
-              } else {
-                p.ref = el;
-              }
-              refs.tabsListRef = el;
-              if (typeof componentProps.ref === 'function') {
-                componentProps.ref(el);
-              } else {
-                componentProps.ref = el;
-              }
-            }}
-            params={{
-              state: state(),
-              customStyleHookMapping: tabsStyleHookMapping,
-              props: [
-                p,
-                {
-                  'aria-orientation': orientation() === 'vertical' ? 'vertical' : undefined,
-                  role: 'tablist',
-                },
-                elementProps,
-              ],
-            }}
-          />
-        )}
+        render={element}
       />
     </TabsListContext.Provider>
   );

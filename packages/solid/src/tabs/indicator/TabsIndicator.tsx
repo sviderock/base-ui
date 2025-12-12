@@ -12,7 +12,7 @@ import { useDirection } from '../../direction-provider/DirectionContext';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { generateId } from '../../utils/generateId';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTabsListContext } from '../list/TabsListContext';
 import { tabsStyleHookMapping } from '../root/styleHooks';
 import type { TabsRoot } from '../root/TabsRoot';
@@ -44,6 +44,15 @@ export function TabsIndicator(componentProps: TabsIndicator.Props) {
 
   const [instanceId] = createSignal(generateId('tab'));
   const [isMounted, setIsMounted] = createSignal(false);
+  const [meta, setMeta] = createSignal({
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 0,
+    height: 0,
+    isTabSelected: false,
+  });
   const { value: activeTabValue } = useTabsRootContext();
 
   const direction = useDirection();
@@ -55,8 +64,36 @@ export function TabsIndicator(componentProps: TabsIndicator.Props) {
   createEffect(() => {
     if (value() != null && refs.tabsListRef != null && typeof ResizeObserver !== 'undefined') {
       const resizeObserver = new ResizeObserver(() => {
-        // TODO: rerender
-        // rerender();
+        setMeta((prev) => {
+          if (value() != null && refs.tabsListRef != null) {
+            const selectedTab = getTabElementBySelectedValue(value());
+            const tabsList = refs.tabsListRef;
+
+            if (selectedTab != null) {
+              return {
+                left: selectedTab.offsetLeft - tabsList.clientLeft,
+                right:
+                  direction() === 'ltr'
+                    ? tabsList.scrollWidth -
+                      selectedTab.offsetLeft -
+                      selectedTab.offsetWidth -
+                      tabsList.clientLeft
+                    : selectedTab.offsetLeft - tabsList.clientLeft,
+                top: selectedTab.offsetTop - tabsList.clientTop,
+                bottom:
+                  tabsList.scrollHeight -
+                  selectedTab.offsetTop -
+                  selectedTab.offsetHeight -
+                  tabsList.clientTop,
+                width: selectedTab.offsetWidth,
+                height: selectedTab.offsetHeight,
+                isTabSelected: true,
+              };
+            }
+          }
+
+          return prev;
+        });
       });
 
       resizeObserver.observe(refs.tabsListRef);
@@ -67,43 +104,6 @@ export function TabsIndicator(componentProps: TabsIndicator.Props) {
     }
 
     return;
-  });
-
-  const meta = createMemo(() => {
-    let left = 0;
-    let right = 0;
-    let top = 0;
-    let bottom = 0;
-    let width = 0;
-    let height = 0;
-    let isTabSelected = false;
-
-    if (value() != null && refs.tabsListRef != null) {
-      const selectedTab = getTabElementBySelectedValue(value());
-      const tabsList = refs.tabsListRef;
-      isTabSelected = true;
-
-      if (selectedTab != null) {
-        left = selectedTab.offsetLeft - tabsList.clientLeft;
-        right =
-          direction() === 'ltr'
-            ? tabsList.scrollWidth -
-              selectedTab.offsetLeft -
-              selectedTab.offsetWidth -
-              tabsList.clientLeft
-            : selectedTab.offsetLeft - tabsList.clientLeft;
-        top = selectedTab.offsetTop - tabsList.clientTop;
-        bottom =
-          tabsList.scrollHeight -
-          selectedTab.offsetTop -
-          selectedTab.offsetHeight -
-          tabsList.clientTop;
-        width = selectedTab.offsetWidth;
-        height = selectedTab.offsetHeight;
-      }
-    }
-
-    return { left, right, top, bottom, width, height, isTabSelected };
   });
 
   const selectedTabPosition = createMemo(() =>
@@ -142,32 +142,29 @@ export function TabsIndicator(componentProps: TabsIndicator.Props) {
     tabActivationDirection: tabActivationDirection(),
   }));
 
+  const element = useRenderElement('span', componentProps, {
+    state,
+    props: [
+      () => ({
+        role: 'presentation',
+        style: style(),
+        hidden: !displayIndicator(), // do not display the indicator before the layout is settled
+      }),
+      elementProps,
+      () => ({
+        ['data-instance-id' as string]: !(isMounted() && renderBeforeHydration())
+          ? instanceId()
+          : undefined,
+        // // @ts-expect-error - suppressHydrationWarning is not a valid attribute for Solid
+        // suppressHydrationWarning: true,
+      }),
+    ],
+    customStyleHookMapping,
+  });
+
   return (
     <Show when={activeTabValue() != null}>
-      <RenderElement
-        element="span"
-        componentProps={componentProps}
-        ref={componentProps.ref}
-        params={{
-          state: state(),
-          props: [
-            {
-              role: 'presentation',
-              style: style(),
-              hidden: !displayIndicator(), // do not display the indicator before the layout is settled
-            },
-            elementProps,
-            {
-              ['data-instance-id' as string]: !(isMounted() && renderBeforeHydration())
-                ? instanceId()
-                : undefined,
-              // @ts-expect-error - suppressHydrationWarning is not a valid attribute for Solid
-              suppressHydrationWarning: true,
-            },
-          ],
-          customStyleHookMapping,
-        }}
-      />
+      {element()}
       {!isMounted() && renderBeforeHydration() && (
         <script
           // eslint-disable-next-line solid/no-innerhtml
