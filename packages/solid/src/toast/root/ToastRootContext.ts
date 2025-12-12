@@ -1,4 +1,6 @@
 import { createContext, useContext, type Accessor } from 'solid-js';
+import type { SetStoreFunction, Store } from 'solid-js/store';
+import type { CodepenedentRefs } from '../../solid-helpers';
 import type { ToastObject } from '../useToastManager';
 
 export interface ToastRootContext {
@@ -7,12 +9,12 @@ export interface ToastRootContext {
     rootRef: HTMLElement | null | undefined;
   };
   titleId: Accessor<string | undefined>;
-  setTitleId: (newAccessor: Accessor<string | undefined>) => void;
   descriptionId: Accessor<string | undefined>;
-  setDescriptionId: (newAccessor: Accessor<string | undefined>) => void;
   swipeDirection: Accessor<'up' | 'down' | 'left' | 'right' | undefined>;
   renderScreenReaderContent: Accessor<boolean>;
   swiping: Accessor<boolean>;
+  codependentRefs: Store<CodepenedentRefs<['title', 'description']>>;
+  setCodependentRefs: SetStoreFunction<CodepenedentRefs<['title', 'description']>>;
 }
 
 export const ToastRootContext = createContext<ToastRootContext | undefined>(undefined);

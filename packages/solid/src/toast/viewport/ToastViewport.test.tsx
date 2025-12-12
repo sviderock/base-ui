@@ -2,7 +2,6 @@ import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { Toast } from '@base-ui-components/solid/toast';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 import { Button, List } from '../utils/test-utils';
 
 describe('<Toast.Viewport />', () => {
@@ -10,15 +9,12 @@ describe('<Toast.Viewport />', () => {
 
   describeConformance(Toast.Viewport, () => ({
     refInstanceof: window.HTMLDivElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Toast.Provider>
-            <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-          </Toast.Provider>
-        ),
-        elementProps,
-      );
+    render(node, props) {
+      return render(() => (
+        <Toast.Provider>
+          {node(props)}
+        </Toast.Provider>
+      ));
     },
   }));
 

@@ -1,5 +1,5 @@
 'use client';
-import { createMemo, Show } from 'solid-js';
+import { createMemo } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -52,31 +52,23 @@ export function TabsPanel(componentProps: TabsPanel.Props) {
     tabActivationDirection: tabActivationDirection(),
   }));
 
-  const element = useRenderElement(
-    'div',
-    {
-      ...componentProps,
-      get children() {
-        return hidden() && !keepMounted() ? undefined : componentProps.children;
-      },
-    },
-    {
-      state,
-      ref: setListItemRef,
-      props: [
-        () => ({
-          'aria-labelledby': correspondingTabId(),
-          hidden: hidden(),
-          id: id(),
-          role: 'tabpanel',
-          tabIndex: hidden() ? -1 : 0,
-          [TabsPanelDataAttributes.index as string]: index(),
-        }),
-        elementProps,
-      ],
-      customStyleHookMapping: tabsStyleHookMapping,
-    },
-  );
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: setListItemRef,
+    props: [
+      () => ({
+        'aria-labelledby': correspondingTabId(),
+        hidden: hidden(),
+        id: id(),
+        role: 'tabpanel',
+        tabIndex: hidden() ? -1 : 0,
+        [TabsPanelDataAttributes.index as string]: index(),
+      }),
+      elementProps,
+    ],
+    customStyleHookMapping: tabsStyleHookMapping,
+    children: () => (hidden() && !keepMounted() ? undefined : componentProps.children),
+  });
 
   return <>{element()}</>;
 }

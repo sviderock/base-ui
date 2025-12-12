@@ -1,9 +1,9 @@
 'use client';
-import { createMemo, onCleanup, onMount, Show } from 'solid-js';
+import { createMemo, onMount } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useId } from '../../utils/useId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useToastRootContext } from '../root/ToastRootContext';
 
 /**
@@ -14,41 +14,32 @@ import { useToastRootContext } from '../root/ToastRootContext';
  * Documentation: [Base UI Toast](https://base-ui.com/react/components/toast)
  */
 export function ToastDescription(componentProps: ToastDescription.Props) {
-  const [renderProps, local, elementProps] = splitComponentProps(componentProps, ['id']);
+  const [, local, elementProps] = splitComponentProps(componentProps, ['id']);
 
   const { toast } = useToastRootContext();
 
   const id = useId(() => local.id);
+  let ref: HTMLElement;
 
-  const { setDescriptionId } = useToastRootContext();
+  const { setCodependentRefs } = useToastRootContext();
 
   onMount(() => {
-    setDescriptionId(id);
-    onCleanup(() => {
-      setDescriptionId(() => undefined);
-    });
+    setCodependentRefs('description', { explicitId: id, ref: () => ref, id: () => local.id });
   });
 
   const state = createMemo<ToastDescription.State>(() => ({ type: toast().type }));
 
-  return (
-    <Show when={Boolean(componentProps.children ?? toast().description)}>
-      <RenderElement
-        element="p"
-        componentProps={{
-          render: renderProps.render,
-          class: renderProps.class,
-        }}
-        ref={componentProps.ref}
-        params={{
-          state: state(),
-          props: [{ id: id() }, elementProps],
-        }}
-      >
-        {componentProps.children ?? toast().description}
-      </RenderElement>
-    </Show>
-  );
+  const element = useRenderElement('p', componentProps, {
+    enabled: () => Boolean(componentProps.children ?? toast().description),
+    state,
+    ref: (el) => {
+      ref = el;
+    },
+    props: [() => ({ id: id() }), elementProps],
+    children: () => componentProps.children ?? toast().description,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace ToastDescription {

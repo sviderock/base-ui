@@ -1,5 +1,5 @@
 'use client';
-import { createMemo, Show, type JSX } from 'solid-js';
+import { createMemo, type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -35,31 +35,18 @@ export function SelectValue(componentProps: SelectValue.Props) {
     value: store.value,
   }));
 
-  const element = useRenderElement(
-    'span',
-    {
-      ...componentProps,
-      get children() {
-        return (
-          <Show
-            when={typeof componentProps.children === 'function'}
-            fallback={componentProps.children ?? labelFromItems() ?? store.value}
-          >
-            {(componentProps.children as Function)(store.value)}
-          </Show>
-        );
-      },
+  const element = useRenderElement('span', componentProps, {
+    state,
+    ref: (el) => {
+      refs.valueRef = el;
     },
-    {
-      state,
-      ref: (el) => {
-        componentProps.ref = el;
-        refs.valueRef = el;
-      },
-      props: elementProps,
-      customStyleHookMapping,
-    },
-  );
+    props: elementProps,
+    customStyleHookMapping,
+    children: () =>
+      typeof componentProps.children === 'function'
+        ? componentProps.children?.(store.value)
+        : (componentProps.children ?? labelFromItems() ?? store.value),
+  });
 
   return <>{element()}</>;
 }

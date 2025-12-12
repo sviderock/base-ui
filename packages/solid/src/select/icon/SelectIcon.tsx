@@ -12,21 +12,10 @@ import { useRenderElement } from '../../utils/useRenderElementV2';
 export function SelectIcon(componentProps: SelectIcon.Props) {
   const [, , elementProps] = splitComponentProps(componentProps, []);
 
-  const element = useRenderElement(
-    'span',
-    {
-      ...componentProps,
-      get children() {
-        return componentProps.children ?? '▼';
-      },
-    },
-    {
-      ref: (el) => {
-        componentProps.ref = el;
-      },
-      props: [{ 'aria-hidden': true }, elementProps],
-    },
-  );
+  const element = useRenderElement('span', componentProps, {
+    props: [{ 'aria-hidden': true }, elementProps],
+    children: () => componentProps.children ?? '▼',
+  });
 
   return <>{element()}</>;
 }

@@ -36,7 +36,7 @@ export function useRenderElement<
   const state = createMemo(() => params.state?.() ?? (EMPTY_OBJECT as State));
   const enabled = createMemo(() => access(params.enabled) ?? true);
   const props = createMemo(() => access(params.props));
-  const safeChildren = childrenLazy(() => componentProps.children ?? params.children);
+  const safeChildren = childrenLazy(() => params.children ?? componentProps.children);
 
   const styleHooks = createMemo<Record<string, string> | undefined>(() => {
     if (params.disableStyleHooks !== true) {
@@ -157,7 +157,7 @@ export namespace RenderElement {
     /**
      * Intrinsic props to be spread on the rendered element.
      */
-    children?: JSX.Element;
+    children?: JSX.Element | ((...args: any[]) => JSX.Element);
     props?:
       | MaybeAccessor<BaseUIComponentProps<TagName, State>>
       | Array<
@@ -210,7 +210,7 @@ export namespace RenderElement {
     /**
      * The children to render.
      */
-    children?: JSX.Element;
+    children?: JSX.Element | ((...args: any[]) => JSX.Element);
     /**
      * The ref to apply to the rendered element.
      */

@@ -3,7 +3,6 @@ import { Toast } from '@base-ui-components/solid/toast';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { For } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 import { Button, List } from '../utils/test-utils';
 
 const toast: Toast.Root.ToastObject = {
@@ -18,17 +17,12 @@ describe('<Toast.Root />', () => {
     (props: any) => <Toast.Root {...props} ref={props.ref} toast={toast} />,
     () => ({
       refInstanceof: window.HTMLDivElement,
-      render(node, elementProps = {}) {
-        return render(
-          () => (
-            <Toast.Provider>
-              <Toast.Viewport>
-                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-              </Toast.Viewport>
-            </Toast.Provider>
-          ),
-          elementProps,
-        );
+      render(node, props) {
+        return render(() => (
+          <Toast.Provider>
+            <Toast.Viewport>{node(props)}</Toast.Viewport>
+          </Toast.Provider>
+        ));
       },
     }),
   );

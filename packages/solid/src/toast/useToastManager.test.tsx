@@ -3,7 +3,7 @@ import { Toast } from '@base-ui-components/solid/toast';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { createEffect, createSignal, For } from 'solid-js';
+import { createSignal, For } from 'solid-js';
 import { useToastManager } from './useToastManager';
 import { List } from './utils/test-utils';
 
@@ -801,6 +801,7 @@ describe('useToast', () => {
           <button
             onClick={() => {
               const nextCount = count() + 1;
+
               setCount(nextCount);
               add({ title: `toast-${nextCount}` });
             }}

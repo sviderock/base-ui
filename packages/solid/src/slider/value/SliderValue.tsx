@@ -1,5 +1,5 @@
 'use client';
-import { createMemo, Show, type Accessor, type JSX } from 'solid-js';
+import { createMemo, type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { formatNumber } from '../../utils/formatNumber';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -47,33 +47,18 @@ export function SliderValue(componentProps: SliderValue.Props) {
     return arr.join(' – ');
   });
 
-  const element = useRenderElement(
-    'output',
-    {
-      ...componentProps,
-      get children() {
-        return (
-          <Show when={componentProps.children} fallback={defaultDisplayValue()}>
-            {componentProps.children?.(formattedValues, values)}
-          </Show>
-        );
-      },
-    },
-    {
-      state,
-      ref: (el) => {
-        componentProps.ref = el;
-      },
-      customStyleHookMapping: sliderStyleHookMapping,
-      props: [
-        () => ({
-          'aria-live': local['aria-live'] ?? 'off',
-          for: outputFor(),
-        }),
-        elementProps,
-      ],
-    },
-  );
+  const element = useRenderElement('output', componentProps, {
+    state,
+    customStyleHookMapping: sliderStyleHookMapping,
+    props: [
+      () => ({
+        'aria-live': local['aria-live'] ?? 'off',
+        for: outputFor(),
+      }),
+      elementProps,
+    ],
+    children: () => componentProps.children?.(formattedValues(), values()) ?? defaultDisplayValue(),
+  });
 
   return <>{element()}</>;
 }
@@ -83,9 +68,6 @@ export namespace SliderValue {
     extends Omit<BaseUIComponentProps<'output', SliderRoot.State>, 'children'> {
     children?:
       | null
-      | ((
-          formattedValues: Accessor<readonly string[]>,
-          values: Accessor<readonly number[]>,
-        ) => JSX.Element);
+      | ((formattedValues: readonly string[], values: readonly number[]) => JSX.Element);
   }
 }

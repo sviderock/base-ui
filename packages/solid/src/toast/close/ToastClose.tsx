@@ -3,7 +3,7 @@ import { createMemo } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useToastContext } from '../provider/ToastProviderContext';
 import { useToastRootContext } from '../root/ToastRootContext';
 
@@ -28,32 +28,21 @@ export function ToastClose(componentProps: ToastClose.Props) {
 
   const state = createMemo<ToastClose.State>(() => ({ type: toast().type }));
 
-  return (
-    <RenderElement
-      element="button"
-      componentProps={componentProps}
-      ref={(el) => {
-        if (typeof componentProps.ref === 'function') {
-          componentProps.ref(el);
-        } else {
-          componentProps.ref = el;
-        }
-        buttonRef(el);
-      }}
-      params={{
-        state: state(),
-        props: [
-          {
-            onClick() {
-              close(toast().id);
-            },
-          },
-          elementProps,
-          getButtonProps,
-        ],
-      }}
-    />
-  );
+  const element = useRenderElement('button', componentProps, {
+    state,
+    ref: buttonRef,
+    props: [
+      {
+        onClick() {
+          close(toast().id);
+        },
+      },
+      elementProps,
+      getButtonProps,
+    ],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace ToastClose {

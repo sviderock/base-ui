@@ -58,8 +58,8 @@ export function FieldError(componentProps: FieldError.Props) {
     enabled: rendered,
     customStyleHookMapping: fieldValidityMapping,
     props: [() => ({ id: id() }), elementProps],
-    get children() {
-      return (
+    children: () =>
+      componentProps.children ?? (
         <>
           {formError() ||
             (validityData.errors.length > 1 ? (
@@ -71,8 +71,7 @@ export function FieldError(componentProps: FieldError.Props) {
               validityData.error
             ))}
         </>
-      );
-    },
+      ),
   });
 
   return <>{element()}</>;

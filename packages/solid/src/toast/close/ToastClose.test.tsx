@@ -2,7 +2,6 @@ import { createRenderer, describeConformance } from '#test-utils';
 import { Toast } from '@base-ui-components/solid/toast';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 import { Button, List } from '../utils/test-utils';
 
 describe('<Toast.Close />', () => {
@@ -15,19 +14,14 @@ describe('<Toast.Close />', () => {
 
   describeConformance(Toast.Close, () => ({
     refInstanceof: window.HTMLButtonElement,
-    render(node, elementProps = {}) {
-      return render(
-        () => (
-          <Toast.Provider>
-            <Toast.Viewport>
-              <Toast.Root toast={toast}>
-                <Dynamic component={node} {...elementProps} ref={elementProps.ref} />
-              </Toast.Root>
-            </Toast.Viewport>
-          </Toast.Provider>
-        ),
-        elementProps,
-      );
+    render(node, props) {
+      return render(() => (
+        <Toast.Provider>
+          <Toast.Viewport>
+            <Toast.Root toast={toast}>{node(props)}</Toast.Root>
+          </Toast.Viewport>
+        </Toast.Provider>
+      ));
     },
   }));
 

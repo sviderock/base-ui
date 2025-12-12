@@ -1,17 +1,13 @@
 'use client';
 import {
   batch,
-  createEffect,
   createMemo,
   createRenderEffect,
   onCleanup,
-  Show,
-  splitProps,
   type Accessor,
   type ComponentProps,
   type JSX,
 } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 import {
   ARROW_DOWN,
   ARROW_LEFT,
@@ -25,7 +21,7 @@ import { useCompositeListItem } from '../../composite/list/useCompositeListItem'
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { mergeProps } from '../../merge-props';
-import { access, childrenLazy, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { formatNumber } from '../../utils/formatNumber';
 import { getStyleHookProps } from '../../utils/getStyleHookProps';
 import { resolveClassName } from '../../utils/resolveClassName';
@@ -382,38 +378,26 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
     );
   });
 
-  const element = useRenderElement(
-    'div',
-    {
-      ...componentProps,
-      get children() {
-        if (componentProps.render == null) {
-          // eslint-disable-next-line solid/components-return-once
-          return (
-            <>
-              {thumbProps().children ?? componentProps.children}
-              <input
-                {...inputProps()}
-                ref={(el) => {
-                  inputProps().ref = el;
-                }}
-              />
-            </>
-          );
-        }
-
-        return undefined;
-      },
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      setListItemRef(el);
+      thumbRef = el;
     },
-    {
-      state,
-      ref: (el) => {
-        setListItemRef(el);
-        thumbRef = el;
-      },
-      props: thumbProps,
-    },
-  );
+    props: thumbProps,
+    children: () =>
+      componentProps.render == null ? (
+        <>
+          {thumbProps().children ?? componentProps.children}
+          <input
+            {...inputProps()}
+            ref={(el) => {
+              inputProps().ref = el;
+            }}
+          />
+        </>
+      ) : undefined,
+  });
   return <>{element()}</>;
 }
 

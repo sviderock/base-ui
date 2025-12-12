@@ -3,16 +3,18 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  on,
   onCleanup,
   onMount,
   type ComponentProps,
 } from 'solid-js';
+import { createStore } from 'solid-js/store';
 import type { Accessorify } from '../../floating-ui-solid';
 import { activeElement, contains, getTarget } from '../../floating-ui-solid/utils';
 import {
   access,
-  createAccessors,
   splitComponentProps,
+  type CodepenedentRefs,
   type MaybeAccessor,
 } from '../../solid-helpers';
 import { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
@@ -21,7 +23,7 @@ import { ownerDocument } from '../../utils/owner';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { visuallyHidden } from '../../utils/visuallyHidden';
@@ -124,14 +126,14 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
   const [dragDismissed, setDragDismissed] = createSignal(false);
   const [dragOffset, setDragOffset] = createSignal({ x: 0, y: 0 });
   const [initialTransform, setInitialTransform] = createSignal({ x: 0, y: 0, scale: 1 });
-  const { titleId, descriptionId, setTitleId, setDescriptionId } = createAccessors([
-    'titleId',
-    'descriptionId',
-  ]);
-
+  const [titleId, setTitleId] = createSignal<string | undefined>();
+  const [descriptionId, setDescriptionId] = createSignal<string | undefined>();
   const [lockedDirection, setLockedDirection] = createSignal<'horizontal' | 'vertical' | null>(
     null,
   );
+  const [codependentRefs, setCodependentRefs] = createStore<
+    CodepenedentRefs<['title', 'description']>
+  >({});
 
   const refs: ToastRootContext['refs'] = {
     rootRef: null,
@@ -539,11 +541,11 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
     renderScreenReaderContent,
     toast,
     titleId,
-    setTitleId,
     descriptionId,
-    setDescriptionId,
     swiping: isSwiping,
     swipeDirection: currentSwipeDirection,
+    codependentRefs,
+    setCodependentRefs,
   };
 
   const state = createMemo<ToastRoot.State>(() => ({
@@ -555,53 +557,55 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
     swipeDirection: toastRoot.swipeDirection(),
   }));
 
-  return (
-    <ToastRootContext.Provider value={toastRoot}>
-      <RenderElement
-        element="div"
-        componentProps={{
-          class: componentProps.class,
-          render: componentProps.render,
-        }}
-        ref={(el) => {
-          toastRoot.refs.rootRef = el;
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-        }}
-        params={{
-          state: state(),
-          customStyleHookMapping,
-          props: [props(), elementProps],
-        }}
-      >
-        {/** Screen readers won't announce the text upon DOM insertion of the component.
-        We need to wait until the next tick to render the children so that screen
-        readers can announce the contents.
-        */}
-        <>
-          {componentProps.children}
-          {!focused() && (
-            <div
-              style={visuallyHidden}
-              {...(toast().priority === 'high'
-                ? { role: 'alert', 'aria-atomic': true }
-                : { role: 'status', 'aria-live': 'polite' })}
-            >
-              {toastRoot.renderScreenReaderContent() && (
-                <>
-                  {toast().title && <div>{toast().title}</div>}
-                  {toast().description && <div>{toast().description}</div>}
-                </>
-              )}
-            </div>
-          )}
-        </>
-      </RenderElement>
-    </ToastRootContext.Provider>
+  createEffect(
+    on(
+      [() => toastRoot.codependentRefs.title, () => toastRoot.codependentRefs.description],
+      ([title, description]) => {
+        if (title) {
+          setTitleId(title.explicitId());
+        }
+        if (description) {
+          setDescriptionId(description.explicitId());
+        }
+
+        onCleanup(() => {
+          setTitleId(undefined);
+          setDescriptionId(undefined);
+        });
+      },
+    ),
   );
+
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      toastRoot.refs.rootRef = el;
+    },
+    props: [props, elementProps],
+    customStyleHookMapping,
+    children: () => (
+      <>
+        {componentProps.children}
+        {!focused() && (
+          <div
+            style={visuallyHidden}
+            {...(toast().priority === 'high'
+              ? { role: 'alert', 'aria-atomic': true }
+              : { role: 'status', 'aria-live': 'polite' })}
+          >
+            {toastRoot.renderScreenReaderContent() && (
+              <>
+                {toast().title && <div>{toast().title}</div>}
+                {toast().description && <div>{toast().description}</div>}
+              </>
+            )}
+          </div>
+        )}
+      </>
+    ),
+  });
+
+  return <ToastRootContext.Provider value={toastRoot}>{element()}</ToastRootContext.Provider>;
 }
 
 export namespace ToastRoot {

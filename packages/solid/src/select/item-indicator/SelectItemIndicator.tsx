@@ -41,30 +41,21 @@ export function SelectItemIndicator(componentProps: SelectItemIndicator.Props) {
 
   const shouldRender = () => keepMounted() || selected();
 
-  const element = useRenderElement(
-    'span',
-    {
-      ...componentProps,
-      get children() {
-        return componentProps.children ?? '✔️';
-      },
+  const element = useRenderElement('span', componentProps, {
+    state,
+    ref: (el) => {
+      indicatorRef = el;
     },
-    {
-      state,
-      ref: (el) => {
-        indicatorRef = el;
-        componentProps.ref = el;
-      },
-      customStyleHookMapping: transitionStatusMapping,
-      props: [
-        () => ({
-          hidden: !mounted(),
-          'aria-hidden': true,
-        }),
-        elementProps,
-      ],
-    },
-  );
+    customStyleHookMapping: transitionStatusMapping,
+    props: [
+      () => ({
+        hidden: !mounted(),
+        'aria-hidden': true,
+      }),
+      elementProps,
+    ],
+    children: () => componentProps.children ?? '✔️',
+  });
 
   return <Show when={shouldRender()}>{element()}</Show>;
 }

@@ -5,7 +5,7 @@ import { splitComponentProps } from '../../solid-helpers';
 import { FocusGuard } from '../../utils/FocusGuard';
 import { ownerDocument, ownerWindow } from '../../utils/owner';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useToastContext } from '../provider/ToastProviderContext';
 import { isFocusVisible } from '../utils/focusVisible';
 import { ToastViewportContext } from './ToastViewportContext';
@@ -17,7 +17,7 @@ import { ToastViewportContext } from './ToastViewportContext';
  * Documentation: [Base UI Toast](https://base-ui.com/react/components/toast)
  */
 export function ToastViewport(componentProps: ToastViewport.Props) {
-  const [renderProps, , elementProps] = splitComponentProps(componentProps, []);
+  const [, , elementProps] = splitComponentProps(componentProps, []);
 
   const {
     toasts,
@@ -195,32 +195,27 @@ export function ToastViewport(componentProps: ToastViewport.Props) {
 
   const contextValue = { refs };
 
+  const children = createMemo(() => (
+    <>
+      {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
+      {componentProps.children}
+      {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
+    </>
+  ));
+
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      refs.viewportRef = el;
+    },
+    props: [props, elementProps],
+    children,
+  });
+
   return (
     <ToastViewportContext.Provider value={contextValue}>
       {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
-      <RenderElement
-        element="div"
-        componentProps={{
-          render: renderProps.render,
-          class: renderProps.class,
-        }}
-        ref={(el) => {
-          refs.viewportRef = el;
-          if (typeof componentProps.ref === 'function') {
-            componentProps.ref(el);
-          } else {
-            componentProps.ref = el;
-          }
-        }}
-        params={{
-          state: state(),
-          props: [props(), elementProps],
-        }}
-      >
-        {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
-        {componentProps.children}
-        {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
-      </RenderElement>
+      {element()}
     </ToastViewportContext.Provider>
   );
 }

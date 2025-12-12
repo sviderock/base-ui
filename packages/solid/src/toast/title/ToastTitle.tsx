@@ -1,9 +1,9 @@
 'use client';
-import { createMemo, onCleanup, onMount, Show } from 'solid-js';
+import { createMemo, onMount } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useId } from '../../utils/useId';
-import { RenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useToastRootContext } from '../root/ToastRootContext';
 
 /**
@@ -13,42 +13,32 @@ import { useToastRootContext } from '../root/ToastRootContext';
  * Documentation: [Base UI Toast](https://base-ui.com/react/components/toast)
  */
 export function ToastTitle(componentProps: ToastTitle.Props) {
-  const [renderProps, local, elementProps] = splitComponentProps(componentProps, ['id']);
+  const [, local, elementProps] = splitComponentProps(componentProps, ['id']);
 
   const { toast } = useToastRootContext();
 
   const id = useId(() => local.id);
+  let ref: HTMLElement;
 
-  const { setTitleId } = useToastRootContext();
+  const { setCodependentRefs } = useToastRootContext();
 
   onMount(() => {
-    setTitleId(id);
-    onCleanup(() => {
-      setTitleId(() => undefined);
-    });
+    setCodependentRefs('title', { explicitId: id, ref: () => ref, id: () => local.id });
   });
 
   const state = createMemo<ToastTitle.State>(() => ({ type: toast().type }));
 
-  return (
-    <Show when={Boolean(componentProps.children ?? toast().title)}>
-      <RenderElement
-        element="h2"
-        componentProps={{
-          render: renderProps.render,
-          class: renderProps.class,
-        }}
-        ref={componentProps.ref}
-        params={{
-          state: state(),
-          props: [{ id: id() }, elementProps],
-          enabled: Boolean(componentProps.children ?? toast().title),
-        }}
-      >
-        {componentProps.children ?? toast().title}
-      </RenderElement>
-    </Show>
-  );
+  const element = useRenderElement('h2', componentProps, {
+    enabled: () => Boolean(componentProps.children ?? toast().title),
+    state,
+    ref: (el) => {
+      ref = el;
+    },
+    props: [() => ({ id: id() }), elementProps],
+    children: () => componentProps.children ?? toast().title,
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace ToastTitle {
