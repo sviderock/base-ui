@@ -19,11 +19,7 @@ export default function ExampleCheckboxGroup() {
         setLoading(false);
       }}
     >
-      <Field.Root
-        name="toppings"
-        render={(props) => <Fieldset.Root {...props()} />}
-        class={styles.Fieldset}
-      >
+      <Field.Root name="toppings" render={Fieldset.Root} class={styles.Fieldset}>
         <Fieldset.Legend class={styles.Legend}>Extra toppings</Fieldset.Legend>
         <CheckboxGroup defaultValue={[]} disabled={loading()} class={styles.CheckboxGroup}>
           <Field.Label class={styles.Item}>

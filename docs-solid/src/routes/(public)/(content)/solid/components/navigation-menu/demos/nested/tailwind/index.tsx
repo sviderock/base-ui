@@ -111,7 +111,7 @@ function Link(props: NavigationMenu.Link.Props) {
         // Use the `render` prop to render your framework's Link component
         // for client-side routing.
         // e.g. `<NextLink href={props.href} />` instead of `<a />`.
-        (props) => <A {...props()} />
+        (props) => <A {...(props as any)} />
       }
       {...props}
     />

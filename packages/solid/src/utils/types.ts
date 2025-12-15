@@ -30,10 +30,7 @@ export type WithBaseUIEvent<T> = {
  * @template Props Props to be spread on the rendered element.
  * @template State Component's internal state.
  */
-export type ComponentRenderFn<Props, State, T extends ValidComponent> = (
-  props: Props,
-  state: State,
-) => DynamicProps<T>;
+export type ComponentRenderFn<Props, State> = (props: Props, state: Accessor<State>) => JSX.Element;
 
 /**
  * Props shared by all Base UI components.
@@ -60,8 +57,7 @@ export type BaseUIComponentProps<
   render?:
     | keyof JSX.IntrinsicElements
     | DynamicProps<RenderFnElement>
-    // | ComponentRenderFn<Record<string, unknown>, State, RenderFnElement>
-    | ((props: Record<string, unknown>, state: Accessor<State>) => JSX.Element)
+    | ComponentRenderFn<JSX.HTMLAttributes<any>, State>
     | null;
 };
 

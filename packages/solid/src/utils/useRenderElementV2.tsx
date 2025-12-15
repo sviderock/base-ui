@@ -12,7 +12,7 @@ import { access, childrenLazy, type MaybeAccessor } from '../solid-helpers';
 import { EMPTY_OBJECT } from './constants';
 import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
 import { resolveClassName } from './resolveClassName';
-import type { BaseUIComponentProps, HTMLProps } from './types';
+import type { BaseUIComponentProps, ComponentRenderFn, HTMLProps } from './types';
 
 export type ComponentPropsToOmit<State extends Record<string, any>> =
   keyof RenderElement.ComponentProps<
@@ -67,7 +67,7 @@ export function useRenderElement<
     });
   });
 
-  const renderer = (p: any) => (componentProps.render as Function)(p, state());
+  const renderer = (p: any) => (componentProps.render as Function)(p, state);
   const Component = createMemo<DynamicProps<ValidComponent>['component']>(() => {
     if (typeof componentProps.render === 'function') {
       return renderer;
@@ -211,8 +211,7 @@ export namespace RenderElement {
     render?:
       | keyof JSX.IntrinsicElements
       | DynamicProps<RenderFnElement>
-      // | ComponentRenderFn<Record<string, unknown>, State, RenderFnElement>
-      | ((props: Record<string, unknown>, state: Accessor<State>) => JSX.Element)
+      | ComponentRenderFn<Record<string, unknown>, State, RenderFnElement>
       | null;
     /**
      * The children to render.
