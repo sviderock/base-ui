@@ -6,7 +6,7 @@ import { useDirection } from '../../direction-provider/DirectionContext';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { Orientation as BaseOrientation, BaseUIComponentProps } from '../../utils/types';
 import { useControlled } from '../../utils/useControlled';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import type { TabsPanel } from '../panel/TabsPanel';
 import type { TabsTab } from '../tab/TabsTab';
 import { TabsRootContext } from './TabsRootContext';

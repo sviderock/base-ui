@@ -6,7 +6,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../../solid-hel
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { REGULAR_ITEM, useMenuItem } from '../item/useMenuItem';
 import { useMenuRootContext } from '../root/MenuRootContext';
 import { itemMapping } from '../utils/styleHookMapping';

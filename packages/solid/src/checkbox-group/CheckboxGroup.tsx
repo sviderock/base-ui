@@ -10,7 +10,7 @@ import { type MaybeAccessor, access, splitComponentProps } from '../solid-helper
 import type { BaseUIComponentProps } from '../utils/types';
 import { useBaseUiId } from '../utils/useBaseUiId';
 import { useControlled } from '../utils/useControlled';
-import { useRenderElement } from '../utils/useRenderElementV2';
+import { useRenderElement } from '../utils/useRenderElement';
 import { CheckboxGroupContext } from './CheckboxGroupContext';
 import { useCheckboxGroupParent } from './useCheckboxGroupParent';
 

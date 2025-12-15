@@ -14,8 +14,7 @@ import { ownerDocument } from '../../utils/owner';
 import type { BaseOpenChangeReason } from '../../utils/translateOpenChangeReason';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { RenderElement } from '../../utils/useRenderElement';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import {
   NavigationMenuRootContext,
   NavigationMenuTreeContext,

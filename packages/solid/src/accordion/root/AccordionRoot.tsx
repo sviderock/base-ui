@@ -15,7 +15,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../../solid-hel
 import { isElementDisabled } from '../../utils/isElementDisabled';
 import { BaseUIComponentProps, Orientation } from '../../utils/types';
 import { useControlled } from '../../utils/useControlled';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { warn } from '../../utils/warn';
 import { AccordionRootContext } from './AccordionRootContext';
 

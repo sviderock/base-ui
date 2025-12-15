@@ -4,7 +4,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../../solid-hel
 import { isWebKit } from '../../utils/detectBrowser';
 import { ownerDocument, ownerWindow } from '../../utils/owner';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import type { NumberFieldRoot } from '../root/NumberFieldRoot';
 import { useNumberFieldRootContext } from '../root/NumberFieldRootContext';
 import { DEFAULT_STEP } from '../utils/constants';

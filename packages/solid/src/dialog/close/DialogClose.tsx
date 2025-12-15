@@ -2,7 +2,7 @@
 import { createMemo } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useDialogRootContext } from '../root/DialogRootContext';
 import { useDialogClose } from './useDialogClose';
 

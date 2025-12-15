@@ -1,102 +1,140 @@
-import { children, createMemo, Match, splitProps, Switch, type Accessor, type JSX } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
+import {
+  createMemo,
+  Show,
+  splitProps,
+  type Accessor,
+  type Component,
+  type JSX,
+  type ValidComponent,
+} from 'solid-js';
+import { Dynamic, type DynamicProps } from 'solid-js/web';
 import { mergeProps, mergePropsN } from '../merge-props';
-import { access, type MaybeAccessor, type MaybeAccessorValue } from '../solid-helpers';
+import { access, childrenLazy, type MaybeAccessor } from '../solid-helpers';
 import { EMPTY_OBJECT } from './constants';
 import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
 import { resolveClassName } from './resolveClassName';
 import type { BaseUIComponentProps, ComponentRenderFn, HTMLProps } from './types';
 
-export type ComponentPropsToOmit<State extends Record<string, any>> =
-  keyof RenderElement.ComponentProps<State>;
-
-export function RenderElement<
-  State extends MaybeAccessor<Record<string, MaybeAccessor<any>>>,
+export function useRenderElement<
+  State extends Record<string, MaybeAccessor<any>>,
   TagName extends keyof JSX.IntrinsicElements,
   RenderedElementType extends JSX.IntrinsicElements[TagName],
+  RefType extends RenderedElementType['ref'],
   Enabled extends boolean | undefined = undefined,
->(props: {
-  element: TagName;
-  // TODO: needed as a separate prop to properly reassign refs https://stackoverflow.com/a/71137252
-  ref: RenderedElementType['ref'];
-  componentProps: RenderElement.ComponentProps<State>;
-  params: RenderElement.Parameters<State, TagName, Enabled>;
-  children?: JSX.Element;
-}): JSX.Element {
-  const state = createMemo(
-    () => access(props.params.state) ?? (EMPTY_OBJECT as MaybeAccessorValue<State>),
+>(
+  elementProp: MaybeAccessor<TagName>,
+  componentProps: RenderElement.ComponentProps<State, TagName, RenderedElementType>,
+  params: RenderElement.Parameters<State, TagName, RenderedElementType, RefType, Enabled>,
+): Component {
+  const element = createMemo(() => access(elementProp));
+  const state = createMemo(() => params.state?.() ?? (EMPTY_OBJECT as State));
+  const enabled = createMemo(() => access(params.enabled) ?? true);
+  const props = createMemo(() => access(params.props));
+  const safeChildren = childrenLazy(
+    () =>
+      access(params.children) ??
+      access(componentProps.children) ??
+      (typeof componentProps.render === 'object'
+        ? access(componentProps.render?.children)
+        : undefined),
   );
-  const enabled = createMemo(() => props.params.enabled ?? true);
-  const renderProp = createMemo(() => props.componentProps.render);
-  const resolvedChildren = children(() => props.componentProps.children ?? props.children);
 
-  const styleHooks = createMemo((): Record<string, string> | undefined => {
-    if (props.params.disableStyleHooks !== true) {
+  const styleHooks = createMemo<Record<string, string> | undefined>(() => {
+    if (params.disableStyleHooks !== true) {
       return enabled()
-        ? getStyleHookProps(state(), props.params.customStyleHookMapping)
+        ? getStyleHookProps(state(), access(params.customStyleHookMapping))
         : EMPTY_OBJECT;
     }
     return undefined;
   });
 
-  const outProps = createMemo<JSX.HTMLAttributes<any>>(() => {
-    if (enabled() === false) {
-      return EMPTY_OBJECT;
-    }
-
-    const p = props.params.props;
+  const outProps = createMemo(() => {
+    const p = props();
     const mergedParams = Array.isArray(p) ? mergePropsN(p) : p;
     if (mergedParams === undefined) {
       return EMPTY_OBJECT;
     }
 
-    // TODO: exclude ref from this list
-    const [, rest] = splitProps(mergedParams, ['children', 'ref']);
-    const mergedProps = mergeProps(styleHooks(), rest, {
-      class: resolveClassName(props.componentProps.class, state()),
-      ref: props.ref,
+    const [, rest] = splitProps(mergedParams, ['children']);
+    return mergeProps(styleHooks(), rest, {
+      class: resolveClassName(componentProps.class, state),
     });
-
-    if (props.componentProps.render) {
-      mergedProps.children = resolvedChildren();
-    }
-
-    return mergedProps;
   });
 
-  const memoizedRender = createMemo<JSX.Element>(() => {
-    if (enabled() === false) {
-      return null;
+  const renderer = (p: any) => (componentProps.render as Function)(p, state);
+  const Component = createMemo<DynamicProps<ValidComponent>['component']>(() => {
+    if (typeof componentProps.render === 'function') {
+      return renderer;
     }
 
-    const cachedRender = renderProp();
-    if (cachedRender) {
-      return cachedRender(outProps as Accessor<Record<string, unknown>>, state);
+    if (typeof componentProps.render === 'string') {
+      return componentProps.render;
     }
 
-    return null;
-  }) as unknown as JSX.Element;
+    return element();
+  });
 
-  return (
-    <Switch>
-      <Match when={enabled() === true && props.componentProps.render}>{memoizedRender}</Match>
-      <Match when={enabled() === true}>
+  return (renderFnProps) => {
+    return (
+      <Show when={enabled()}>
         <Dynamic
-          component={props.element as keyof JSX.IntrinsicElements}
-          {...(props.element === 'button' ? { type: 'button' } : {})}
-          {...(props.element === 'img' ? { alt: '' } : {})}
-          {...outProps()}
+          component={Component()}
+          {...(element() === 'button' ? { type: 'button' } : {})}
+          {...(element() === 'img' ? { alt: '' } : {})}
+          {...mergeProps(
+            renderFnProps,
+            typeof componentProps.render === 'object'
+              ? (componentProps.render as object)
+              : undefined,
+            outProps(),
+          )}
+          ref={(el: any) => {
+            if (typeof componentProps.ref === 'function') {
+              componentProps.ref(el);
+            } else {
+              componentProps.ref = el;
+            }
+
+            if (
+              componentProps.render &&
+              typeof componentProps.render === 'object' &&
+              'ref' in componentProps.render
+            ) {
+              if (typeof componentProps.render.ref === 'function') {
+                componentProps.render.ref(el);
+              } else {
+                componentProps.render.ref = el;
+              }
+            }
+
+            if (typeof params.ref === 'function') {
+              params.ref(el);
+            } else {
+              params.ref = el;
+            }
+
+            if (renderFnProps) {
+              if (typeof renderFnProps.ref === 'function') {
+                renderFnProps.ref(el);
+              } else {
+                renderFnProps.ref = el;
+              }
+            }
+          }}
         >
-          {resolvedChildren()}
+          {safeChildren()}
         </Dynamic>
-      </Match>
-    </Switch>
-  );
+      </Show>
+    );
+  };
 }
+
 export namespace RenderElement {
   export type Parameters<
-    State,
+    State extends Record<string, MaybeAccessor<any>>,
     TagName extends keyof JSX.IntrinsicElements,
+    RenderedElementType extends JSX.IntrinsicElements[TagName],
+    RefType extends RenderedElementType['ref'],
     Enabled extends boolean | undefined,
   > = {
     /**
@@ -104,31 +142,37 @@ export namespace RenderElement {
      * This is useful for rendering a component conditionally.
      * @default true
      */
-    enabled?: Enabled;
+    enabled?: MaybeAccessor<Enabled>;
     /**
      * @deprecated
      */
     propGetter?: (externalProps: HTMLProps) => HTMLProps;
     /**
+     * The ref to apply to the rendered element.
+     */
+    ref?: RefType | null | HTMLElement;
+    /**
      * The state of the component.
      */
-    state?: State;
-
+    state?: Accessor<State>;
     /**
      * Intrinsic props to be spread on the rendered element.
      */
+    children?: JSX.Element | ((...args: any[]) => JSX.Element);
     props?:
-      | BaseUIComponentProps<TagName, State>
+      | MaybeAccessor<BaseUIComponentProps<TagName, State>>
       | Array<
           | BaseUIComponentProps<TagName, State>
           | undefined
-          | ((props: BaseUIComponentProps<TagName, State>) => BaseUIComponentProps<TagName, State>)
+          | ((
+              props: BaseUIComponentProps<TagName, State>,
+            ) => BaseUIComponentProps<TagName, State> | undefined | null)
         >;
 
     /**
      * A mapping of state to style hooks.
      */
-    customStyleHookMapping?: CustomStyleHookMapping<MaybeAccessorValue<State>>;
+    customStyleHookMapping?: MaybeAccessor<CustomStyleHookMapping<State>>;
   } /* This typing ensures `disableStyleHookMapping` is constantly defined or undefined */ & (
     | {
         /**
@@ -144,19 +188,32 @@ export namespace RenderElement {
       }
   );
 
-  export interface ComponentProps<State> {
+  export interface ComponentProps<
+    State extends Record<string, MaybeAccessor<any>>,
+    TagName extends keyof JSX.IntrinsicElements,
+    RenderedElementType extends JSX.IntrinsicElements[TagName],
+    RenderFnElement extends ValidComponent = ValidComponent,
+  > {
     /**
      * The class name to apply to the rendered element.
      * Can be a string or a function that accepts the state and returns a string.
      */
-    class?: string | ((state: State) => string);
+    class?: string | ((state: Accessor<State>) => string);
     /**
      * The render prop or Solid element to override the default element.
      */
-    render?: ComponentRenderFn<Record<string, unknown>, State> | null;
+    render?:
+      | keyof JSX.IntrinsicElements
+      | DynamicProps<RenderFnElement>
+      | ComponentRenderFn<Record<string, unknown>, State>
+      | null;
     /**
      * The children to render.
      */
-    children?: JSX.Element;
+    children?: JSX.Element | ((...args: any[]) => JSX.Element);
+    /**
+     * The ref to apply to the rendered element.
+     */
+    ref?: RenderedElementType['ref'];
   }
 }

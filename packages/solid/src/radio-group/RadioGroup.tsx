@@ -14,7 +14,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../solid-helper
 import type { BaseUIComponentProps } from '../utils/types';
 import { useBaseUiId } from '../utils/useBaseUiId';
 import { useControlled } from '../utils/useControlled';
-import { useRenderElement } from '../utils/useRenderElementV2';
+import { useRenderElement } from '../utils/useRenderElement';
 import { visuallyHidden } from '../utils/visuallyHidden';
 
 import { RadioGroupContext } from './RadioGroupContext';

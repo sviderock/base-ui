@@ -23,7 +23,7 @@ import { ownerDocument } from '../../utils/owner';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useTimeout } from '../../utils/useTimeout';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { visuallyHidden } from '../../utils/visuallyHidden';

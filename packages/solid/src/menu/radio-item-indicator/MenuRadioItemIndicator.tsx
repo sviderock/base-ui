@@ -3,7 +3,7 @@ import { createMemo } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { TransitionStatus, useTransitionStatus } from '../../utils/useTransitionStatus';
 import { useMenuRadioItemContext } from '../radio-item/MenuRadioItemContext';
 import { itemMapping } from '../utils/styleHookMapping';

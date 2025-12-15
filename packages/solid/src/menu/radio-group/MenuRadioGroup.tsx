@@ -3,7 +3,7 @@ import { batch, createMemo, type JSX } from 'solid-js';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useControlled } from '../../utils/useControlled';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { MenuRadioGroupContext } from './MenuRadioGroupContext';
 
 /**

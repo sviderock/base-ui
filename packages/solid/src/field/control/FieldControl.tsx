@@ -4,7 +4,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../../solid-hel
 import { useControlled } from '../../utils';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { FieldRoot } from '../root/FieldRoot';
 import { useFieldRootContext } from '../root/FieldRootContext';
 import { useField } from '../useField';

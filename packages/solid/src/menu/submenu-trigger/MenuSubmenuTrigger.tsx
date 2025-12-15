@@ -7,7 +7,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../../solid-hel
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useMenuItem } from '../item/useMenuItem';
 import { useMenuRootContext } from '../root/MenuRootContext';
 

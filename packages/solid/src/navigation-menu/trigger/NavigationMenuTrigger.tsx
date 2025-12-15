@@ -29,7 +29,7 @@ import {
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useAnimationFrame } from '../../utils/useAnimationFrame';
 import { useAnimationsFinished } from '../../utils/useAnimationsFinished';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useTimeout } from '../../utils/useTimeout';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import { useNavigationMenuItemContext } from '../item/NavigationMenuItemContext';

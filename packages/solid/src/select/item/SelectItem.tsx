@@ -8,7 +8,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../../solid-hel
 import { useButton } from '../../use-button';
 import { isMouseWithinBounds } from '../../utils/isMouseWithinBounds';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useSelectRootContext } from '../root/SelectRootContext';
 import { SelectItemContext } from './SelectItemContext';
 

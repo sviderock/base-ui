@@ -1,30 +1,37 @@
 import { expectType } from '#test-utils';
-import type { JSX } from 'solid-js';
-import { RenderElement } from './useRenderElement';
+import type { Component } from 'solid-js';
+import { useRenderElement } from './useRenderElement';
 
-const element1 = <RenderElement element="div" componentProps={{}} params={{}} ref={undefined} />;
+const element1 = useRenderElement('div', {}, {});
 
-expectType<JSX.Element, typeof element1>(element1);
+expectType<Component, typeof element1>(element1);
 
-const element2 = (
-  <RenderElement element="div" componentProps={{}} params={{ enabled: true }} ref={undefined} />
+const element2 = useRenderElement(
+  'div',
+  {},
+  {
+    enabled: true,
+  },
 );
 
-expectType<JSX.Element, typeof element2>(element2);
+expectType<Component, typeof element2>(element2);
 
-const element3 = (
-  <RenderElement element="div" componentProps={{}} params={{ enabled: false }} ref={undefined} />
+const element3 = useRenderElement(
+  'div',
+  {},
+  {
+    enabled: false,
+  },
 );
 
-expectType<JSX.Element, typeof element3>(element3);
+expectType<Component, typeof element3>(element3);
 
-const element4 = (
-  <RenderElement
-    element="div"
-    componentProps={{}}
-    params={{ enabled: Math.random() > 0.5 }}
-    ref={undefined}
-  />
+const element4 = useRenderElement(
+  'div',
+  {},
+  {
+    enabled: Math.random() > 0.5,
+  },
 );
 
-expectType<JSX.Element, typeof element4>(element4);
+expectType<Component, typeof element4>(element4);
