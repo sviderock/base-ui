@@ -70,8 +70,8 @@ describe('<Progress.Value />', () => {
             <Progress.Value data-testid="value">{renderSpy}</Progress.Value>
           </Progress.Root>
         ));
-        expect(renderSpy.lastCall.args[0]).to.deep.equal('indeterminate');
-        expect(renderSpy.lastCall.args[1]).to.deep.equal(null);
+        expect((renderSpy.lastCall as any).proxy.args[0][0]).to.deep.equal('indeterminate');
+        expect((renderSpy.lastCall as any).proxy.args[0][1]).to.deep.equal(null);
       });
     });
   });

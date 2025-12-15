@@ -21,9 +21,9 @@ export function SliderValue(componentProps: SliderValue.Props) {
 
   const outputFor = createMemo(() => {
     let htmlFor = '';
-    for (const thumbMetadata of thumbArray()) {
-      if (thumbMetadata?.inputId()) {
-        htmlFor += `${thumbMetadata.inputId()} `;
+    for (const thumb of thumbArray()) {
+      if (thumb.metadata?.inputId) {
+        htmlFor += `${thumb.metadata?.inputId} `;
       }
     }
     return htmlFor.trim() === '' ? undefined : htmlFor.trim();

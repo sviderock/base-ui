@@ -1,4 +1,5 @@
 'use client';
+import { batch } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -33,9 +34,13 @@ export function CompositeRoot<Metadata extends {}>(componentProps: CompositeRoot
   const direction = useDirection();
   const compositeRoot = useCompositeRoot(local, direction);
 
-  function onMapChange(newMap: Map<Element, CompositeMetadata<Metadata> | null>) {
-    local.onMapChange?.(newMap);
-    compositeRoot.onMapChange(newMap);
+  function onMapChange(
+    newMap: Array<{ element: Element; metadata: CompositeMetadata<Metadata> | null }>,
+  ) {
+    batch(() => {
+      local.onMapChange?.(newMap);
+      compositeRoot.onMapChange(newMap);
+    });
   }
 
   const contextValue: CompositeRootContext = {
@@ -71,7 +76,9 @@ export namespace CompositeRoot {
     itemSizes?: MaybeAccessor<Dimensions[] | undefined>;
     dense?: MaybeAccessor<boolean | undefined>;
     enableHomeAndEndKeys?: MaybeAccessor<boolean | undefined>;
-    onMapChange?: (newMap: Map<Node, CompositeMetadata<Metadata> | null>) => void;
+    onMapChange?: (
+      newMap: Array<{ element: Element; metadata: CompositeMetadata<Metadata> | null }>,
+    ) => void;
     stopEventPropagation?: MaybeAccessor<boolean | undefined>;
     refs?: {
       rootRef?: HTMLElement | null | undefined;

@@ -70,7 +70,7 @@ export function ToolbarInput(componentProps: ToolbarInput.Props) {
     ],
   });
 
-  return <CompositeItem<ToolbarRoot.ItemMetadata> metadata={itemMetadata()} render={element} />;
+  return <CompositeItem<ToolbarRoot.ItemMetadata> metadata={itemMetadata} render={element} />;
 }
 
 export namespace ToolbarInput {

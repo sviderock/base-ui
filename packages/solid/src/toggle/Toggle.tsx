@@ -1,5 +1,5 @@
 'use client';
-import { batch, createMemo, Show } from 'solid-js';
+import { batch, createMemo, onMount, Show } from 'solid-js';
 import { CompositeItem } from '../composite/item/CompositeItem';
 import { access, splitComponentProps, type MaybeAccessor } from '../solid-helpers';
 import { useToggleGroupContext } from '../toggle-group/ToggleGroupContext';
@@ -48,8 +48,10 @@ export function Toggle(componentProps: Toggle.Props) {
   });
 
   const onPressedChange = (nextPressed: boolean, event: Event) => {
-    groupContext?.setGroupValue?.(value(), nextPressed, event);
-    local.onPressedChange?.(nextPressed, event);
+    batch(() => {
+      groupContext?.setGroupValue?.(value(), nextPressed, event);
+      local.onPressedChange?.(nextPressed, event);
+    });
   };
 
   const { getButtonProps, buttonRef } = useButton({

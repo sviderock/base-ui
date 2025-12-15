@@ -75,7 +75,7 @@ export interface UseCompositeRootParameters {
 
 const EMPTY_ARRAY: never[] = [];
 
-export function useCompositeRoot<Metadata extends MaybeAccessor<unknown>>(
+export function useCompositeRoot<Metadata>(
   params: UseCompositeRootParameters,
   direction: Accessor<TextDirection>,
 ) {
@@ -124,12 +124,14 @@ export function useCompositeRoot<Metadata extends MaybeAccessor<unknown>>(
     }
   });
 
-  function onMapChange(map: Map<Element, CompositeMetadata<any>>) {
-    if (map.size === 0 || hasSetDefaultIndexRef) {
+  function onMapChange(
+    newMap: Array<{ element: Element; metadata: CompositeMetadata<any> | null }>,
+  ) {
+    if (newMap.length === 0 || hasSetDefaultIndexRef) {
       return;
     }
     hasSetDefaultIndexRef = true;
-    const sortedElements = Array.from(map.keys());
+    const sortedElements = newMap.map((item) => item.element);
     const activeItem = sortedElements.find((compositeElement) =>
       compositeElement?.hasAttribute(ACTIVE_COMPOSITE_ITEM),
     ) as HTMLElement | null;

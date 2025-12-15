@@ -40,10 +40,7 @@ export function testPropForwarding(
       };
 
       render(element, {
-        render: (props) => (
-          console.log({ props, otherProps }),
-          (<Dynamic component={Element} {...props} data-testid="custom-root" />)
-        ),
+        render: (props) => <Dynamic component={Element} {...props} data-testid="custom-root" />,
         ...otherProps,
       });
 

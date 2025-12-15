@@ -89,9 +89,7 @@ export function TabsList(componentProps: TabsList.Props) {
         loop={loop()}
         orientation={orientation()}
         onHighlightedIndexChange={setHighlightedTabIndex}
-        onMapChange={(newMap) => {
-          setTabArray(Array.from(newMap.entries()).map(([node, metadata]) => ({ node, metadata })));
-        }}
+        onMapChange={setTabArray}
         disabledIndices={EMPTY_ARRAY}
         render={element}
       />

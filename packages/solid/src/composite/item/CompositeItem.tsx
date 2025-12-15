@@ -1,5 +1,5 @@
 'use client';
-import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
+import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useCompositeItem } from './useCompositeItem';

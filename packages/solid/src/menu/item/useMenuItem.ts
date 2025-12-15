@@ -18,7 +18,6 @@ export function useMenuItem(params: useMenuItem.Parameters): useMenuItem.ReturnV
   const allowMouseUpTriggerRef = () => access(params.allowMouseUpTriggerRef);
   const typingRef = () => access(params.typingRef);
   const nativeButton = () => access(params.nativeButton);
-  const itemMetadata = () => access(params.itemMetadata);
 
   let itemRef = null as HTMLElement | null | undefined;
 
@@ -35,7 +34,7 @@ export function useMenuItem(params: useMenuItem.Parameters): useMenuItem.ReturnV
         role: 'menuitem',
         tabIndex: highlighted() ? 0 : -1,
         onMouseEnter() {
-          const metadata = itemMetadata();
+          const metadata = params.itemMetadata;
           if (metadata.type !== 'submenu-trigger') {
             return;
           }
@@ -61,7 +60,7 @@ export function useMenuItem(params: useMenuItem.Parameters): useMenuItem.ReturnV
           if (itemRef && allowMouseUpTriggerRef()) {
             // This fires whenever the user clicks on the trigger, moves the cursor, and releases it over the item.
             // We trigger the click and override the `closeOnClick` preference to always close the menu.
-            if (itemMetadata().type === 'regular-item') {
+            if (params.itemMetadata.type === 'regular-item') {
               itemRef.click();
             }
           }
@@ -121,7 +120,7 @@ export namespace useMenuItem {
     /**
      * Additional data specific to the item type.
      */
-    itemMetadata: MaybeAccessor<Metadata>;
+    itemMetadata: Metadata;
   }
 
   export type Metadata =

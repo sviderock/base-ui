@@ -4,9 +4,9 @@ import { access, type MaybeAccessor } from '../../solid-helpers';
 import type { CompositeMetadata } from './CompositeList';
 import { useCompositeListContext } from './CompositeListContext';
 
-export interface UseCompositeListItemParameters<Metadata extends MaybeAccessor<unknown>> {
+export interface UseCompositeListItemParameters<Metadata> {
   label?: MaybeAccessor<string | null | undefined>;
-  metadata?: Metadata;
+  metadata?: MaybeAccessor<Metadata | undefined | null>;
   textRef?: MaybeAccessor<HTMLElement | null | undefined>;
   /** Enables guessing the indexes. This avoids a re-render after mount, which is useful for
    * large lists. This should be used for lists that are likely flat and vertical, other cases
@@ -40,7 +40,7 @@ function initialIndex(
 /**
  * Used to register a list item and its index (DOM position) in the `CompositeList`.
  */
-export function useCompositeListItem<Metadata extends MaybeAccessor<unknown>>(
+export function useCompositeListItem<Metadata>(
   params: UseCompositeListItemParameters<Metadata> = {},
 ): UseCompositeListItemReturnValue {
   const context = useCompositeListContext();
@@ -78,7 +78,7 @@ export function useCompositeListItem<Metadata extends MaybeAccessor<unknown>>(
   createEffect(() => {
     const node = componentRef();
     if (node) {
-      context.register(node, access(params.metadata));
+      context.register(node, params.metadata);
       context.subscribeMapChange(onMapChange);
     }
 

@@ -42,10 +42,10 @@ export function TabsRoot(componentProps: TabsRoot.Props) {
   });
 
   const [tabPanelArray, setTabPanelArray] = createSignal<
-    Array<CompositeMetadata<TabsPanel.Metadata> | null>
+    Array<{ element: Element; metadata: CompositeMetadata<TabsPanel.Metadata> | null }>
   >([]);
   const [tabArray, setTabArray] = createSignal<
-    Array<{ node: Node; metadata: CompositeMetadata<TabsTab.Metadata> | null }>
+    Array<{ element: Element; metadata: CompositeMetadata<TabsTab.Metadata> | null }>
   >([]);
 
   const [tabActivationDirection, setTabActivationDirection] =
@@ -69,7 +69,7 @@ export function TabsRoot(componentProps: TabsRoot.Props) {
       return undefined;
     }
 
-    for (const tabPanelMetadata of tabPanelArray()) {
+    for (const { metadata: tabPanelMetadata } of tabPanelArray()) {
       // find by tabValue
       if (tabValue !== undefined && tabPanelMetadata && tabValue === tabPanelMetadata?.value) {
         return tabPanelMetadata.id;
@@ -121,9 +121,9 @@ export function TabsRoot(componentProps: TabsRoot.Props) {
       return null;
     }
 
-    for (const { node: tabElement, metadata: tabMetadata } of tabArray()) {
-      if (tabMetadata != null && selectedValue === (tabMetadata.value ?? tabMetadata.index)) {
-        return tabElement as HTMLElement;
+    for (const { element, metadata } of tabArray()) {
+      if (metadata != null && selectedValue === (metadata?.value ?? metadata?.index)) {
+        return element as HTMLElement;
       }
     }
 
@@ -157,9 +157,7 @@ export function TabsRoot(componentProps: TabsRoot.Props) {
     <TabsRootContext.Provider value={tabsContextValue}>
       <CompositeList<TabsPanel.Metadata>
         refs={{ elements: tabPanelRefs }}
-        onMapChange={(newMap) => {
-          setTabPanelArray(Array.from(newMap.values()));
-        }}
+        onMapChange={setTabPanelArray}
       >
         {element()}
       </CompositeList>

@@ -32,7 +32,7 @@ export function useRenderElement<
   componentProps: RenderElement.ComponentProps<State, TagName, RenderedElementType>,
   params: RenderElement.Parameters<State, TagName, RenderedElementType, RefType, Enabled>,
 ) {
-  const element = () => access(elementProp);
+  const element = createMemo(() => access(elementProp));
   const state = createMemo(() => params.state?.() ?? (EMPTY_OBJECT as State));
   const enabled = createMemo(() => access(params.enabled) ?? true);
   const props = createMemo(() => access(params.props));
@@ -212,7 +212,7 @@ export namespace RenderElement {
       | keyof JSX.IntrinsicElements
       | DynamicProps<RenderFnElement>
       // | ComponentRenderFn<Record<string, unknown>, State, RenderFnElement>
-      | ((props: Record<string, unknown>, state: State) => JSX.Element)
+      | ((props: Record<string, unknown>, state: Accessor<State>) => JSX.Element)
       | null;
     /**
      * The children to render.

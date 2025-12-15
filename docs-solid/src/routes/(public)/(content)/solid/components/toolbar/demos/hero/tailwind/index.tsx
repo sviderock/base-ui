@@ -9,7 +9,7 @@ export default function ExampleToolbar() {
     <Toolbar.Root class="flex w-150 items-center gap-px rounded-md border border-gray-200 bg-gray-50 p-0.5">
       <ToggleGroup class="flex gap-1" aria-label="Alignment">
         <Toolbar.Button
-          render={(props) => <Toggle {...props()} />}
+          render={Toggle}
           aria-label="Align left"
           value="align-left"
           class="flex h-8 items-center justify-center rounded-sm px-[0.75rem] font-[inherit] text-sm font-medium text-gray-600 select-none hover:bg-gray-100 focus-visible:bg-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-800 active:bg-gray-200 data-[pressed]:bg-gray-100 data-[pressed]:text-gray-900"
@@ -17,7 +17,7 @@ export default function ExampleToolbar() {
           Align Left
         </Toolbar.Button>
         <Toolbar.Button
-          render={(props) => <Toggle {...props()} />}
+          render={Toggle}
           aria-label="Align right"
           value="align-right"
           class="flex h-8 items-center justify-center rounded-sm px-[0.75rem] font-[inherit] text-sm font-medium text-gray-600 select-none hover:bg-gray-100 focus-visible:bg-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-800 active:bg-gray-200 data-[pressed]:bg-gray-100 data-[pressed]:text-gray-900"
@@ -43,8 +43,7 @@ export default function ExampleToolbar() {
       <Toolbar.Separator class="m-1 h-4 w-px bg-gray-300" />
       <Select.Root defaultValue="Helvetica">
         <Toolbar.Button
-          // @ts-expect-error - TODO: fix typing
-          render={(props) => <Select.Trigger {...props()} />}
+          render={Select.Trigger}
           class="flex h-8 min-w-32 items-center justify-between rounded-sm px-[0.75rem] font-[inherit] text-sm font-medium text-gray-600 select-none hover:bg-gray-100 focus-visible:bg-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-800 active:bg-gray-200 data-[pressed]:bg-gray-100 data-[pressed]:text-gray-900"
         >
           <Select.Value />

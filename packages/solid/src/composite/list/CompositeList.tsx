@@ -1,99 +1,92 @@
 'use client';
-import { createEffect, createMemo, createSignal, createUniqueId, type JSX } from 'solid-js';
+import { createEffect, createMemo, createSignal, createUniqueId, on, type JSX } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
+import { access, type MaybeAccessor } from '../../solid-helpers';
 import { CompositeListContext } from './CompositeListContext';
 
-export type CompositeMetadata<CustomMetadata> = { index?: number | null } & CustomMetadata;
 type NodeId = string;
+export type CompositeMetadata<CustomMetadata> = { index?: number | null } & CustomMetadata;
 
 /**
  * Provides context for a list of items in a composite component.
  * @internal
  */
 export function CompositeList<Metadata>(props: CompositeList.Props<Metadata>) {
+  const listeners: Function[] = [];
+  const nodeIds = new Map<Element, NodeId>();
   const [nextIndex, setNextIndex] = createSignal(0);
-  const [store, setStore] = createStore({
-    internalMap: new Map<Element, { uid: NodeId; metadata: CompositeMetadata<Metadata> | null }>(),
-    internalNodeIdMap: {} as Record<NodeId, Element>,
-    listeners: [] as Function[],
-  });
+  const [nodes, setNodes] = createStore<Record<NodeId, { element: Element; metadata: Metadata }>>(
+    {},
+  );
 
-  const map = createMemo(() => {
-    const entries = Object.values(store.internalNodeIdMap).map(
-      (node) => [node, store.internalMap.get(node)?.metadata ?? null] as const,
-    );
-    return new Map<Element, CompositeMetadata<Metadata> | null>(entries);
+  const nodesAsArray = createMemo(() => {
+    return Object.values(nodes)
+      .sort((a, b) => sortByDocumentPosition(a.element, b.element))
+      .map((node, index) => ({
+        element: node.element,
+        metadata: { index, ...node.metadata },
+      }));
   });
 
   const sortedMap = createMemo(() => {
     const newMap = new Map<Element, CompositeMetadata<Metadata>>();
-    const sortedNodes = Array.from(map().keys()).sort(sortByDocumentPosition);
-
-    sortedNodes.forEach((node, index) => {
-      const metadata = map().get(node) ?? ({} as CompositeMetadata<Metadata>);
-      newMap.set(node, { ...metadata, index });
-    });
-
+    nodesAsArray().forEach((node) => newMap.set(node.element, node.metadata));
     return newMap;
   });
 
-  function register(node: Element, metadata: Metadata) {
-    const uid = store.internalMap.get(node)?.uid ?? createUniqueId();
-    setStore(
-      produce((currentState) => {
-        currentState.internalMap.set(node, { uid, metadata: metadata ?? null });
-        currentState.internalNodeIdMap[uid] = node;
+  function register(node: Element, metadata: MaybeAccessor<Metadata>) {
+    const uid = nodeIds?.get(node) ?? createUniqueId();
+    nodeIds.set(node, uid);
+    setNodes(
+      produce((prevNodes) => {
+        prevNodes[uid] = {
+          element: node,
+          metadata: { ...(prevNodes[uid]?.metadata ?? {}), ...access(metadata) },
+        };
       }),
     );
   }
 
   function unregister(node: Element) {
-    const uid = store.internalMap.get(node)?.uid;
+    const uid = nodeIds.get(node);
     if (uid) {
-      setStore(
-        produce((currentState) => {
-          currentState.internalMap.delete(node);
-          delete currentState.internalNodeIdMap[uid];
+      nodeIds.delete(node);
+      setNodes(
+        produce((prevNodes) => {
+          delete prevNodes[uid];
         }),
       );
     }
   }
 
-  createEffect(() => {
-    const sorted = sortedMap();
-    if (props.refs.elements.length !== sorted.size) {
-      props.refs.elements.length = sorted.size;
+  function subscribeMapChange(fn: (map: Map<Element, CompositeMetadata<Metadata> | null>) => void) {
+    if (listeners.includes(fn) === false) {
+      listeners.push(fn);
     }
-    if (props.refs.labels && props.refs.labels.length !== sorted.size) {
-      props.refs.labels.length = sorted.size;
-    }
-    props.onMapChange?.(sorted);
-  });
-
-  function subscribeMapChange(fn: Function) {
-    setStore(
-      produce((currentState) => {
-        if (currentState.listeners.includes(fn) === false) {
-          currentState.listeners.push(fn);
-        }
-      }),
-    );
   }
 
-  function unsubscribeMapChange(fn: Function) {
-    setStore(
-      produce((currentState) => {
-        const index = currentState.listeners.indexOf(fn);
-        if (index !== -1) {
-          currentState.listeners.splice(index, 1);
-        }
-      }),
-    );
+  function unsubscribeMapChange(
+    fn: (map: Map<Element, CompositeMetadata<Metadata> | null>) => void,
+  ) {
+    const index = listeners.indexOf(fn);
+    if (index !== -1) {
+      listeners.splice(index, 1);
+    }
   }
 
-  createEffect(() => {
-    store.listeners.forEach((l) => l(sortedMap()));
-  });
+  createEffect(
+    on(nodesAsArray, (newArray) => {
+      if (props.refs.elements.length !== newArray.length) {
+        props.refs.elements.length = newArray.length;
+      }
+      if (props.refs.labels && props.refs.labels.length !== newArray.length) {
+        props.refs.labels.length = newArray.length;
+      }
+      props.onMapChange?.(newArray);
+    }),
+  );
+
+  createEffect(on(sortedMap, (sorted) => listeners.forEach((l) => l(sorted))));
 
   return (
     <CompositeListContext.Provider
@@ -146,6 +139,8 @@ export namespace CompositeList {
       labels?: Array<string | null>;
     };
 
-    onMapChange?: (newMap: Map<Element, CompositeMetadata<Metadata> | null>) => void;
+    onMapChange?: (
+      newMap: Array<{ element: Element; metadata: CompositeMetadata<Metadata> | null }>,
+    ) => void;
   }
 }

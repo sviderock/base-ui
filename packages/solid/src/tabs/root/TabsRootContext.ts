@@ -1,5 +1,6 @@
 'use client';
 import { createContext, useContext, type Accessor, type Setter } from 'solid-js';
+import type { CompositeMetadata } from '../../composite/list/CompositeList';
 import type { TextDirection } from '../../direction-provider/DirectionContext';
 import type { TabsTab } from '../tab/TabsTab';
 
@@ -44,7 +45,7 @@ export interface TabsRootContext {
    */
   getTabPanelIdByTabValueOrIndex: (tabValue: any, index: number) => string | undefined;
   setTabArray: Setter<
-    Array<{ node: Node; metadata: (TabsTab.Metadata & { index?: number | null }) | null }>
+    Array<{ element: Element; metadata: CompositeMetadata<TabsTab.Metadata> | null }>
   >;
   /**
    * The position of the active tab relative to the previously active tab.

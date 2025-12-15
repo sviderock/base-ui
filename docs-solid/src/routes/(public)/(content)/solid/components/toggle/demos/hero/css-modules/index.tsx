@@ -11,14 +11,14 @@ export default function ExampleToggle() {
         render={(props, state) => {
           if (state().pressed) {
             return (
-              <button type="button" {...props()}>
+              <button type="button" {...props}>
                 <HeartFilledIcon class={styles.Icon} />
               </button>
             );
           }
 
           return (
-            <button type="button" {...props()}>
+            <button type="button" {...props}>
               <HeartOutlineIcon class={styles.Icon} />
             </button>
           );

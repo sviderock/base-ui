@@ -10,7 +10,7 @@ export default function ExampleToolbar() {
     <Toolbar.Root class={styles.Toolbar}>
       <ToggleGroup class={styles.Group} aria-label="Alignment">
         <Toolbar.Button
-          render={(props) => <Toggle {...props()} />}
+          render={Toggle}
           aria-label="Align left"
           value="align-left"
           class={styles.Button}
@@ -18,7 +18,7 @@ export default function ExampleToolbar() {
           Align Left
         </Toolbar.Button>
         <Toolbar.Button
-          render={(props) => <Toggle {...props()} />}
+          render={Toggle}
           aria-label="Align right"
           value="align-right"
           class={styles.Button}
@@ -37,11 +37,7 @@ export default function ExampleToolbar() {
       </Toolbar.Group>
       <Toolbar.Separator class={styles.Separator} />
       <Select.Root defaultValue="Helvetica">
-        <Toolbar.Button
-          // @ts-expect-error - TODO: fix typing
-          render={(props) => <Select.Trigger {...props()} />}
-          class={styles.Button}
-        >
+        <Toolbar.Button render={Select.Trigger} class={styles.Button}>
           <Select.Value />
           <Select.Icon>
             <ChevronUpDownIcon />

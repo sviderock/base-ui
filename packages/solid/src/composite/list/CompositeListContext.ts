@@ -1,11 +1,15 @@
 'use client';
 import { createContext, useContext, type Accessor } from 'solid-js';
+import type { MaybeAccessor } from '../../solid-helpers';
+import type { CompositeMetadata } from './CompositeList';
 
 export interface CompositeListContextValue<Metadata> {
-  register: (node: Element, metadata: Metadata) => void;
+  register: (node: Element, metadata: MaybeAccessor<Metadata>) => void;
   unregister: (node: Element) => void;
-  subscribeMapChange: (fn: (map: Map<Element, Metadata | null>) => void) => void;
-  unsubscribeMapChange: (fn: Function) => void;
+  subscribeMapChange: (fn: (map: Map<Element, CompositeMetadata<Metadata> | null>) => void) => void;
+  unsubscribeMapChange: (
+    fn: (map: Map<Element, CompositeMetadata<Metadata> | null>) => void,
+  ) => void;
   refs: {
     elements: Array<HTMLElement | null | undefined>;
     labels?: Array<string | null>;

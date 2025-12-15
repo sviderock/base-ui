@@ -7,7 +7,9 @@ import type { ToolbarRoot } from './ToolbarRoot';
 export interface ToolbarRootContext {
   disabled: Accessor<boolean>;
   orientation: Accessor<Orientation>;
-  setItemArray: Setter<Array<CompositeMetadata<ToolbarRoot.ItemMetadata> | null>>;
+  setItemArray: Setter<
+    Array<{ element: Element; metadata: CompositeMetadata<ToolbarRoot.ItemMetadata> | null }>
+  >;
 }
 
 export const ToolbarRootContext = createContext<ToolbarRootContext | undefined>(undefined);

@@ -1,17 +1,14 @@
 'use client';
 import { batch, createMemo, createSignal } from 'solid-js';
-import { type MaybeAccessor } from '../../solid-helpers';
 import type { HTMLProps } from '../../utils/types';
 import { useCompositeListItem } from '../list/useCompositeListItem';
 import { useCompositeRootContext } from '../root/CompositeRootContext';
 
-export interface UseCompositeItemParameters<Metadata extends MaybeAccessor<unknown>> {
+export interface UseCompositeItemParameters<Metadata> {
   metadata?: Metadata;
 }
 
-export function useCompositeItem<Metadata extends MaybeAccessor<unknown>>(
-  params: UseCompositeItemParameters<Metadata>,
-) {
+export function useCompositeItem<Metadata>(params: UseCompositeItemParameters<Metadata>) {
   const context = useCompositeRootContext();
   const listItem = useCompositeListItem(params);
   const isHighlighted = () => context.highlightedIndex() === listItem.index();

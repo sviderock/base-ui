@@ -142,10 +142,8 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
     setControlId(undefined);
   });
 
-  const thumbMetadata = { inputId };
-
   const { setRef: setListItemRef, index } = useCompositeListItem<ThumbMetadata>({
-    metadata: thumbMetadata,
+    metadata: () => ({ inputId: inputId() }),
   });
 
   const thumbValue = () => sliderValues()[index()];
@@ -402,7 +400,7 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
 }
 
 export interface ThumbMetadata {
-  inputId: Accessor<string | undefined>;
+  inputId: string | undefined;
 }
 
 export namespace SliderThumb {

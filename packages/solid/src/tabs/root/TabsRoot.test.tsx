@@ -62,7 +62,6 @@ describe('<Tabs.Root />', () => {
         </Tabs.Root>
       ));
 
-      screen.debug();
       expect(screen.getAllByRole('tab').map((tab) => tab.tabIndex)).to.have.ordered.members([
         -1, 0,
       ]);
@@ -92,7 +91,6 @@ describe('<Tabs.Root />', () => {
 
       const tabs = screen.getAllByRole('tab');
       const tabPanels = screen.getAllByRole('tabpanel', { hidden: true });
-      screen.debug();
 
       expect(tabPanels[0]).to.have.attribute('aria-labelledby', tabs[1].id);
       expect(tabPanels[1]).to.have.attribute('aria-labelledby', tabs[0].id);
@@ -216,7 +214,6 @@ describe('<Tabs.Root />', () => {
         </Tabs.Root>
       ));
 
-      screen.debug();
       fireEvent.contextMenu(screen.getAllByRole('tab')[1]);
       expect(handleChange.callCount).to.equal(0);
     });

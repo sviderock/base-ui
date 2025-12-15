@@ -26,14 +26,15 @@ export function ToolbarRoot(componentProps: ToolbarRoot.Props) {
   const orientation = () => access(local.orientation) ?? 'horizontal';
 
   const [itemArray, setItemArray] = createSignal<
-    Array<CompositeMetadata<ToolbarRoot.ItemMetadata> | null>
+    Array<{ element: Element; metadata: CompositeMetadata<ToolbarRoot.ItemMetadata> | null }>
   >([]);
 
   const disabledIndices = createMemo(() => {
     const output: number[] = [];
-    for (const itemMetadata of itemArray()) {
-      if (itemMetadata?.index && !itemMetadata.focusableWhenDisabled) {
-        output.push(itemMetadata.index);
+    for (const { metadata } of itemArray()) {
+      const idx = metadata?.index;
+      if (idx && !metadata?.focusableWhenDisabled) {
+        output.push(idx);
       }
     }
     return output;
@@ -67,9 +68,7 @@ export function ToolbarRoot(componentProps: ToolbarRoot.Props) {
         cols={cols()}
         disabledIndices={disabledIndices()}
         loop={loop()}
-        onMapChange={(newMap) => {
-          setItemArray(Array.from(newMap.values()));
-        }}
+        onMapChange={setItemArray}
         orientation={orientation()}
         render={element}
       />

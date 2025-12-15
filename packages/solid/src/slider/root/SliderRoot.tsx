@@ -125,9 +125,9 @@ export function SliderRoot<Value extends number | readonly number[]>(
   // - The active state isn't transferred when inversing a range slider.
   const [active, setActive] = createSignal(-1);
   const [dragging, setDragging] = createSignal(false);
-  const [thumbArray, setThumbArray] = createSignal<Array<CompositeMetadata<ThumbMetadata> | null>>(
-    [],
-  );
+  const [thumbArray, setThumbArray] = createSignal<
+    Array<{ element: Element; metadata: CompositeMetadata<ThumbMetadata> | null }>
+  >([]);
 
   useField({
     id,
@@ -298,14 +298,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
 
   return (
     <SliderRootContext.Provider value={contextValue}>
-      <CompositeList
-        refs={{ elements: refs.thumbRefs }}
-        onMapChange={(newMap) => {
-          // TODO: fix typing
-          // @ts-ignore
-          setThumbArray(Array.from(newMap.values()));
-        }}
-      >
+      <CompositeList refs={{ elements: refs.thumbRefs }} onMapChange={setThumbArray}>
         {element()}
 
         <Show

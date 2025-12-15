@@ -72,7 +72,9 @@ export interface SliderRootContext {
    */
   step: Accessor<number>;
   tabIndex: Accessor<number | null>;
-  thumbArray: Accessor<Array<CompositeMetadata<ThumbMetadata> | null>>;
+  thumbArray: Accessor<
+    Array<{ element: Element; metadata: CompositeMetadata<ThumbMetadata> | null }>
+  >;
   /**
    * The value(s) of the slider
    */
