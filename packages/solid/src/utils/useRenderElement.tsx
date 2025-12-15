@@ -3,7 +3,6 @@ import {
   Show,
   splitProps,
   type Accessor,
-  type Component,
   type JSX,
   type ValidComponent,
 } from 'solid-js';
@@ -25,7 +24,7 @@ export function useRenderElement<
   elementProp: MaybeAccessor<TagName>,
   componentProps: RenderElement.ComponentProps<State, TagName, RenderedElementType>,
   params: RenderElement.Parameters<State, TagName, RenderedElementType, RefType, Enabled>,
-): Component {
+) {
   const element = createMemo(() => access(elementProp));
   const state = createMemo(() => params.state?.() ?? (EMPTY_OBJECT as State));
   const enabled = createMemo(() => access(params.enabled) ?? true);
@@ -74,7 +73,7 @@ export function useRenderElement<
     return element();
   });
 
-  return (renderFnProps) => {
+  return (renderFnProps?: HTMLProps) => {
     return (
       <Show when={enabled()}>
         <Dynamic

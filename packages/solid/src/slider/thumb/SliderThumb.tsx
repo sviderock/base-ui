@@ -1,13 +1,5 @@
 'use client';
-import {
-  batch,
-  createMemo,
-  createRenderEffect,
-  onCleanup,
-  type Accessor,
-  type ComponentProps,
-  type JSX,
-} from 'solid-js';
+import { batch, createMemo, type ComponentProps, type JSX } from 'solid-js';
 import {
   ARROW_DOWN,
   ARROW_LEFT,
@@ -130,17 +122,9 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
   const externalTabIndex = () => tabIndexProp() ?? contextTabIndex();
 
   const direction = useDirection();
-  const { setControlId, setTouched, setFocused, validationMode } = useFieldRootContext();
+  const { setTouched, setFocused, validationMode } = useFieldRootContext();
 
   let thumbRef = null as HTMLElement | null | undefined;
-
-  createRenderEffect(() => {
-    setControlId(inputId());
-  });
-
-  onCleanup(() => {
-    setControlId(undefined);
-  });
 
   const { setRef: setListItemRef, index } = useCompositeListItem<ThumbMetadata>({
     metadata: () => ({ inputId: inputId() }),

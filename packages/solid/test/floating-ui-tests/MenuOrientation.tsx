@@ -221,11 +221,8 @@ export function MenuComponent(
         ref={(el) => {
           refs.setReference(el);
           item.setRef(el);
-          if (typeof props.ref === 'function') {
-            props.ref(el);
-          } else {
-            props.ref = el;
-          }
+          // eslint-disable-next-line solid/reactivity
+          props.ref = el;
         }}
         data-open={isOpen() ? '' : undefined}
         // eslint-disable-next-line no-nested-ternary
@@ -341,11 +338,8 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLButtonEle
       {...elementProps}
       ref={(el) => {
         item.setRef(el);
-        if (typeof props.ref === 'function') {
-          props.ref(el);
-        } else {
-          props.ref = el;
-        }
+        // eslint-disable-next-line solid/reactivity
+        props.ref = el;
       }}
       type="button"
       role="menuitem"

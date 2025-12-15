@@ -59,7 +59,9 @@ export function CheckboxIndicator(componentProps: CheckboxIndicator.Props) {
 
   const element = useRenderElement('span', componentProps, {
     state: indicatorState,
-    ref: indicatorRef,
+    ref: (el) => {
+      indicatorRef = el;
+    },
     customStyleHookMapping,
     props: elementProps,
     enabled: shouldRender,

@@ -1,10 +1,8 @@
 import {
   batch,
   createEffect,
-  createRenderEffect,
   createSelector,
   on,
-  onCleanup,
   onMount,
   type Accessor,
   type JSX,

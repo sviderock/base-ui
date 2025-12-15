@@ -3,7 +3,6 @@ import {
   batch,
   createEffect,
   createMemo,
-  createRenderEffect,
   createSignal,
   on,
   onCleanup,
@@ -97,10 +96,6 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
 
   const id = useBaseUiId(idProp);
 
-  onMount(() => {
-    setChildRefs('control', { explicitId: id, ref: () => refs.inputRef, id: () => id });
-  });
-
   const [valueUnwrapped, setValueUnwrapped] = useControlled<number | null>({
     controlled: valueProp,
     default: defaultValue,
@@ -118,6 +113,10 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
     isPressedRef: false,
     movesAfterTouchRef: 0,
   };
+
+  onMount(() => {
+    setChildRefs('control', { explicitId: id, ref: () => refs.inputRef, id });
+  });
 
   createEffect(() => {
     refs.valueRef = value();

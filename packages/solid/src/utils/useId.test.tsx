@@ -17,8 +17,8 @@ describe('useId', () => {
     const [id, setId] = createSignal('some-id');
 
     function TestComponent(props: TestComponentProps) {
-      const id = useId(() => props.id);
-      return <span data-testid="target" id={access(id)} />;
+      const implicitId = useId(() => props.id);
+      return <span data-testid="target" id={implicitId()} />;
     }
 
     render(() => <TestComponent id={id()} />);
@@ -34,8 +34,8 @@ describe('useId', () => {
     const [id, setId] = createSignal<string | undefined>();
 
     function TestComponent(props: TestComponentProps) {
-      const id = useId(() => props.id);
-      return <span data-testid="target" id={access(id)} />;
+      const implicitId = useId(() => props.id);
+      return <span data-testid="target" id={implicitId()} />;
     }
     render(() => <TestComponent id={id()} />);
 
@@ -46,8 +46,8 @@ describe('useId', () => {
 
   it('can be suffixed', () => {
     function Widget() {
-      const id = useId();
-      const labelId = () => `${access(id)}-label`;
+      const implicitId = useId();
+      const labelId = () => `${implicitId()}-label`;
 
       return (
         <>

@@ -1,5 +1,3 @@
-/* eslint-disable testing-library/no-node-access */
-/* eslint-disable @typescript-eslint/no-shadow */
 import { flushMicrotasks } from '#test-utils';
 import { cleanup, fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';

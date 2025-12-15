@@ -53,15 +53,14 @@ export function testPropForwarding(
      * TODO: figure out if this would need to be supported
      * This is skipped as when the element is a JSX element – Solid has already resolved the element
      */
-    it.skip('forwards custom props to the customized element defined using JSX', () => {
+    it('forwards custom props to the customized element defined using JSX', () => {
       const otherProps = {
         lang: 'fr',
         'data-foobar': randomStringValue(),
       };
 
       render(element, {
-        // @ts-expect-error
-        render: <Dynamic component={Element} data-testid="custom-root" />,
+        render: (props) => <Dynamic component={Element} {...props} data-testid="custom-root" />,
         ...otherProps,
       });
 
@@ -99,14 +98,16 @@ export function testPropForwarding(
       expect(customRoot.getAttribute('style')).to.contain('color: green');
     });
 
-    /**
-     * TODO: figure out if this would need to be supported
-     * This is skipped as when the element is a JSX element – Solid has already resolved the element
-     */
-    it.skip('forwards the custom `style` attribute defined on the render function', () => {
+    it('forwards the custom `style` attribute defined on the render function', () => {
       render(element, {
-        // @ts-expect-error
-        render: <Element style={{ color: 'green' }} data-testid="custom-root" />,
+        render: (props) => (
+          <Dynamic
+            component={Element}
+            {...props}
+            style={{ color: 'green' }}
+            data-testid="custom-root"
+          />
+        ),
       });
 
       const customRoot = screen.getByTestId('custom-root');

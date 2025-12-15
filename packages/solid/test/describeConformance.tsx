@@ -7,6 +7,8 @@ import {
 } from '@solidjs/testing-library';
 import type { userEvent } from '@testing-library/user-event';
 import { type Component, type JSX, type Ref, type ValidComponent } from 'solid-js';
+import type { DynamicProps } from 'solid-js/web';
+import type { ComponentRenderFn } from '../src/utils/types';
 import { testClassName } from './conformanceTests/className';
 import { testPropForwarding } from './conformanceTests/propForwarding';
 import { testRefForwarding } from './conformanceTests/refForwarding';
@@ -128,7 +130,11 @@ export interface ConformanceOptions {
 }
 
 export type ConformantComponentProps = {
-  render?: ValidComponent;
+  render?:
+    | keyof JSX.IntrinsicElements
+    | DynamicProps<any>
+    | ComponentRenderFn<Record<string, unknown>, any>
+    | null;
   ref?: Ref<any>;
   'data-testid'?: string;
   class?: string | ((state: unknown) => string);
@@ -141,7 +147,7 @@ export interface BaseUiConformanceTestsOptions<
   Props extends Record<string, any> = ConformantComponentProps,
 > extends Omit<Partial<ConformanceOptions>, 'render' | 'mount' | 'skip' | 'classes'> {
   render: (
-    element: (props?: Props) => JSX.Element,
+    element: (props: Props) => JSX.Element,
     elementProps?: Props,
     options?: RenderOptions | undefined,
   ) => MuiRenderResult;
@@ -171,7 +177,10 @@ function describeConformanceFn(
 
   filteredTests.forEach((testKey) => {
     const test = fullSuite[testKey];
-    test(minimalElement, getOptions as any);
+    test(minimalElement, () => ({
+      ...getOptions(),
+      render: (props, ...args) => getOptions().render(props ?? {}, ...args),
+    }));
   });
 }
 

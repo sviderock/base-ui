@@ -1,4 +1,3 @@
-/* eslint-disable testing-library/no-node-access */
 import { flushMicrotasks, isJSDOM } from '#test-utils';
 import { fireEvent, render, screen } from '@solidjs/testing-library';
 import { createSignal, onMount } from 'solid-js';

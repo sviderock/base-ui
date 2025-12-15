@@ -1,5 +1,5 @@
 import solid from 'eslint-plugin-solid/configs/typescript';
-// @ts-expect-error
+// @ts-expect-error relative import
 // eslint-disable-next-line import/no-relative-packages
 import defaultConfig from '../../eslint.config.mjs';
 

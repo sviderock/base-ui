@@ -31,6 +31,21 @@ export function testRenderProp(
     it('renders a customized root element with a function', () => {
       const testValue = randomStringValue();
       render(element, {
+        render: (props) => <Wrapper {...props} data-test-value={testValue} />,
+      });
+
+      expect(screen.queryByTestId('base-ui-wrapper')).not.to.equal(null);
+      expect(screen.queryByTestId('wrapped')).not.to.equal(null);
+      expect(screen.queryByTestId('wrapped')).to.have.attribute('data-test-value', testValue);
+    });
+
+    /**
+     * TODO: This is
+     * This is skipped as when the element is a JSX element – Solid has already resolved the element
+     */
+    it('renders a customized root element with an implicit Dynamic element', () => {
+      const testValue = randomStringValue();
+      render(element, {
         render: { component: Wrapper, 'data-test-value': testValue },
       });
 
@@ -43,26 +58,9 @@ export function testRenderProp(
      * TODO JSX SUPPORT: figure out if this would need to be supported
      * This is skipped as when the element is a JSX element – Solid has already resolved the element
      */
-    it.skip('renders a customized root element with an element', () => {
-      const testValue = randomStringValue();
-      render(element, {
-        // @ts-expect-error
-        render: <Wrapper data-test-value={testValue} />,
-      });
-
-      expect(screen.queryByTestId('base-ui-wrapper')).not.to.equal(null);
-      expect(screen.queryByTestId('wrapped')).not.to.equal(null);
-      expect(screen.queryByTestId('wrapped')).to.have.attribute('data-test-value', testValue);
-    });
-
-    /**
-     * TODO JSX SUPPORT: figure out if this would need to be supported
-     * This is skipped as when the element is a JSX element – Solid has already resolved the element
-     */
-    it.skip('renders a customized root element with an element', () => {
-      render(element, {
-        // @ts-expect-error
-        render: <Wrapper />,
+    it('renders a customized root element with an element', () => {
+      render(element as any, {
+        render: Wrapper,
       });
 
       expect(document.querySelector('[data-testid="base-ui-wrapper"]')).not.to.equal(null);
@@ -76,12 +74,7 @@ export function testRenderProp(
           <Dynamic
             component={element}
             ref={instanceFromRef}
-            render={{
-              component: Wrapper,
-              ref: (el) => {
-                instanceFromRef = el;
-              },
-            }}
+            render={(props) => <Wrapper {...props} />}
             data-testid="wrapped"
           />
         );
@@ -96,7 +89,7 @@ export function testRenderProp(
      * TODO JSX SUPPORT: figure out if this would need to be supported
      * This is skipped as when the element is a JSX element – Solid has already resolved the element
      */
-    it.skip('should merge the rendering element ref with the custom component ref', () => {
+    it('should merge the rendering element ref with the custom component ref', () => {
       let refA = null as HTMLElement | null;
       let refB = null as HTMLElement | null;
 
@@ -104,17 +97,15 @@ export function testRenderProp(
         return (
           <Dynamic
             component={element}
-            ref={(el: HTMLElement | null) => {
+            ref={(el: any) => {
               refA = el;
             }}
-            // @ts-expect-error
-            render={
-              <Wrapper
-                ref={(el: HTMLElement | null) => {
-                  refB = el;
-                }}
-              />
-            }
+            render={{
+              component: Wrapper,
+              ref: (el: any) => {
+                refB = el;
+              },
+            }}
             data-testid="wrapped"
           />
         );
@@ -130,15 +121,20 @@ export function testRenderProp(
       expect(refB!).to.have.attribute('data-testid', 'wrapped');
     });
 
-    it.skip('should merge the rendering element className with the custom component className', () => {
+    it('should merge the rendering element className with the custom component className', () => {
       function Test() {
         return (
           <Dynamic
             component={element}
             class="component-classname"
-            // @ts-expect-error
-            render={<Element class="render-prop-classname" />}
             data-testid="test-component"
+            render={(props) => (
+              <Dynamic
+                component={Element}
+                {...props}
+                class={`${props.class} render-prop-classname`}
+              />
+            )}
           />
         );
       }
@@ -150,19 +146,20 @@ export function testRenderProp(
       expect(component.classList.contains('render-prop-classname')).to.equal(true);
     });
 
-    /**
-     * TODO JSX SUPPORT: figure out if this would need to be supported
-     * This is skipped as when the element is a JSX element – Solid has already resolved the element
-     */
-    it.skip('should merge the rendering element resolved className with the custom component className', () => {
+    it('should merge the rendering element resolved className with the custom component className', () => {
       function Test() {
         return (
           <Dynamic
             component={element}
             class={() => 'conditional-component-classname'}
-            // @ts-expect-error
-            render={<Element class="render-prop-classname" />}
             data-testid="test-component"
+            render={(props) => (
+              <Dynamic
+                component={Element}
+                {...props}
+                class={`${props.class} render-prop-classname`}
+              />
+            )}
           />
         );
       }

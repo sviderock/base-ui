@@ -1,3 +1,4 @@
+/* eslint-disable testing-library/no-container */
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { Checkbox } from '@base-ui-components/solid/checkbox';
 import { CheckboxGroup } from '@base-ui-components/solid/checkbox-group';
@@ -30,8 +31,8 @@ describe('<Checkbox.Root />', () => {
 
   describe('extra props', () => {
     it('can override the built-in attributes', async () => {
-      const { container } = render(() => <Checkbox.Root role="switch" />);
-      expect(container.firstElementChild as HTMLElement).to.have.attribute('role', 'switch');
+      render(() => <Checkbox.Root role="switch" />);
+      expect(screen.getByRole('switch')).to.have.attribute('role', 'switch');
     });
   });
 

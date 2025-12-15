@@ -317,7 +317,7 @@ describe('<CheckboxGroup />', () => {
   describe('Field.Label', () => {
     it('implicit association', async () => {
       const changeSpy = spy();
-      const { container } = render(() => (
+      render(() => (
         <Field.Root name="apple">
           <CheckboxGroup defaultValue={['fuji-apple', 'gala-apple']}>
             <Field.Label>
@@ -336,7 +336,7 @@ describe('<CheckboxGroup />', () => {
         </Field.Root>
       ));
 
-      const labels = container.querySelectorAll('label');
+      const labels = screen.getAllByRole('checkbox');
       expect(labels.length).to.equal(3);
       labels.forEach((label) => {
         expect(label).to.not.have.attribute('for');

@@ -179,6 +179,7 @@ export function popupConformanceTests(config: PopupTestConfig) {
           return (
             <div>
               {}
+              {/* eslint-disable-next-line solid/no-innerhtml */}
               <style innerHTML={style} />
               {prepareComponent({
                 root: { open: () => props.open },

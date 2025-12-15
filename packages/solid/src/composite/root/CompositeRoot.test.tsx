@@ -1,3 +1,4 @@
+/* eslint-disable testing-library/no-wait-for-multiple-assertions */
 import { createRenderer, flushMicrotasks, isJSDOM } from '#test-utils';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';

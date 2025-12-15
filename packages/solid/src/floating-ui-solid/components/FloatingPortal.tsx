@@ -1,5 +1,4 @@
 import {
-  children,
   createContext,
   createEffect,
   createMemo,
@@ -165,8 +164,6 @@ export function FloatingPortal(props: FloatingPortalProps): JSX.Element {
   const [afterOutsideRef, setAfterOutsideRef] = createSignal<HTMLSpanElement | null>(null);
   const [beforeInsideRef, setBeforeInsideRef] = createSignal<HTMLSpanElement | null>(null);
   const [afterInsideRef, setAfterInsideRef] = createSignal<HTMLSpanElement | null>(null);
-  const [portalMounted, setPortalMounted] = createSignal(false);
-  const resolvedChildren = children(() => portalMounted() && props.children);
 
   const shouldRenderGuards = () =>
     // The FocusManager and therefore floating element are currently open/
