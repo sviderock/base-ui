@@ -42,7 +42,7 @@ export default function ExampleDialog() {
               class="min-h-48 w-full rounded-md border border-gray-200 px-3.5 py-2 text-base text-gray-900 focus:outline focus:outline-2 focus:-outline-offset-1 focus:outline-blue-800"
               placeholder="What’s on your mind?"
               value={textareaValue()}
-              onChange={(event) => setTextareaValue(event.target.value)}
+              onInput={(event) => setTextareaValue(event.target.value)}
             />
             <div class="flex justify-end gap-4">
               <Dialog.Close class="flex h-10 items-center justify-center rounded-md border border-gray-200 bg-gray-50 px-3.5 text-base font-medium text-gray-900 select-none hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-800 active:bg-gray-100">

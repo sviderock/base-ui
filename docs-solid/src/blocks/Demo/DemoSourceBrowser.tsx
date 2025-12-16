@@ -1,7 +1,7 @@
 import { combineStyle } from '@solid-primitives/props';
 import { clientOnly } from '@solidjs/start';
 import clsx from 'clsx';
-import { createMemo, Show, useContext, type ComponentProps, type JSX } from 'solid-js';
+import { createMemo, Show, useContext, type ComponentProps } from 'solid-js';
 import { DemoContext } from './DemoContext';
 
 export const DemoSourceBrowser = clientOnly(async () => ({ default: _DemoSourceBrowser }), {

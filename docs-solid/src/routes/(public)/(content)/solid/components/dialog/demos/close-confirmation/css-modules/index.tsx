@@ -41,7 +41,7 @@ export default function ExampleDialog() {
               class={styles.Textarea}
               placeholder="What’s on your mind?"
               value={textareaValue()}
-              onChange={(event) => setTextareaValue(event.target.value)}
+              onInput={(event) => setTextareaValue(event.target.value)}
             />
             <div class={styles.Actions}>
               <Dialog.Close class={styles.Button}>Cancel</Dialog.Close>

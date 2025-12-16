@@ -8,21 +8,15 @@ export default function ExampleToggle() {
       <Toggle
         aria-label="Favorite"
         class={styles.Button}
-        render={(props, state) => {
-          if (state().pressed) {
-            return (
-              <button type="button" {...props}>
-                <HeartFilledIcon class={styles.Icon} />
-              </button>
-            );
-          }
-
-          return (
-            <button type="button" {...props}>
+        render={(props, state) => (
+          <button type="button" {...props}>
+            {state().pressed ? (
+              <HeartFilledIcon class={styles.Icon} />
+            ) : (
               <HeartOutlineIcon class={styles.Icon} />
-            </button>
-          );
-        }}
+            )}
+          </button>
+        )}
       />
     </div>
   );

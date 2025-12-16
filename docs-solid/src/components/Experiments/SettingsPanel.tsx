@@ -225,7 +225,7 @@ function renderTextInput(
       <Input
         type="text"
         value={value}
-        onChange={(event) => onChange(event.currentTarget.value)}
+        onInput={(event) => onChange(event.currentTarget.value)}
         class={classes.input}
       />
     </Field.Root>
@@ -244,7 +244,7 @@ function renderNumberInput(
       <Input
         type="number"
         value={value}
-        onChange={(event) => onChange(event.currentTarget.valueAsNumber)}
+        onInput={(event) => onChange(event.currentTarget.valueAsNumber)}
         class={classes.numberInput}
       />
     </Field.Root>

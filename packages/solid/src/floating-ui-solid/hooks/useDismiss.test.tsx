@@ -39,9 +39,13 @@ function App(
   const [open, setOpen] = createSignal(true);
   const { context, refs } = useFloating({
     open,
-    onOpenChange(open, _, reason) {
+    onOpenChange(open, event, reason) {
       setOpen(open);
-      if (access(props.outsidePress)) {
+      if (
+        typeof props.outsidePress === 'function'
+          ? props.outsidePress(event as MouseEvent)
+          : props.outsidePress
+      ) {
         expect(reason).toBe('outside-press');
       } else if (access(props.escapeKey)) {
         expect(reason).toBe('escape-key');

@@ -81,7 +81,7 @@ export interface UseDismissProps {
    * ```
    * @default true
    */
-  outsidePress?: boolean | ((event?: MouseEvent) => boolean);
+  outsidePress?: boolean | ((event: MouseEvent) => boolean);
   /**
    * The type of event to use to determine an outside “press”.
    * - `pointerdown` is eager on both mouse + touch input.
