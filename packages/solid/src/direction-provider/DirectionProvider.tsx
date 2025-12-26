@@ -1,6 +1,5 @@
 'use client';
 import { type JSX } from 'solid-js';
-import { type MaybeAccessor, access } from '../solid-helpers';
 import { DirectionContext, type TextDirection } from './DirectionContext';
 
 /**
@@ -9,7 +8,7 @@ import { DirectionContext, type TextDirection } from './DirectionContext';
  * Documentation: [Base UI Direction Provider](https://base-ui.com/react/utils/direction-provider)
  */
 export function DirectionProvider(props: DirectionProvider.Props) {
-  const direction = () => access(props.direction) ?? 'ltr';
+  const direction = () => props.direction ?? 'ltr';
   return (
     <DirectionContext.Provider value={{ direction }}>{props.children}</DirectionContext.Provider>
   );
@@ -22,6 +21,6 @@ export namespace DirectionProvider {
      * The reading direction of the text
      * @default 'ltr'
      */
-    direction?: MaybeAccessor<TextDirection | undefined>;
+    direction?: TextDirection;
   }
 }
