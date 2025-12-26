@@ -23,7 +23,7 @@ describe('<CheckboxGroup />', () => {
       function App() {
         const [value, setValue] = createSignal(['red']);
         return (
-          <CheckboxGroup value={value} onValueChange={setValue}>
+          <CheckboxGroup value={value()} onValueChange={setValue}>
             <Checkbox.Root name="red" data-testid="red" />
             <Checkbox.Root name="green" data-testid="green" />
             <Checkbox.Root name="blue" data-testid="blue" />
@@ -69,7 +69,7 @@ describe('<CheckboxGroup />', () => {
         const [value, setValue] = createSignal<string[]>([]);
         return (
           <CheckboxGroup
-            value={value}
+            value={value()}
             onValueChange={(nextValue) => {
               setValue(nextValue);
               handleValueChange(nextValue);
@@ -484,7 +484,7 @@ describe('<CheckboxGroup />', () => {
             }}
           >
             <Field.Root name="apple">
-              <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
+              <CheckboxGroup value={value()} onValueChange={setValue} allValues={allValues}>
                 <Checkbox.Root parent />
                 <Checkbox.Root value="fuji-apple" />
                 <Checkbox.Root value="gala-apple" />

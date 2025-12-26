@@ -91,7 +91,7 @@ export function AccordionRoot(componentProps: AccordionRoot.Props) {
   const accordionItemElements: (HTMLElement | null | undefined)[] = [];
 
   const [value, setValue] = useControlled({
-    controlled: local.value,
+    controlled: () => local.value,
     default: defaultValue,
     name: 'Accordion',
     state: 'value',

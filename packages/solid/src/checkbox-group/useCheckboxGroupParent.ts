@@ -1,6 +1,5 @@
 'use client';
 import { batch, createSignal, type Accessor } from 'solid-js';
-import { access, type MaybeAccessor } from '../solid-helpers';
 import { useBaseUiId } from '../utils/useBaseUiId';
 
 const EMPTY: string[] = [];
@@ -8,8 +7,8 @@ const EMPTY: string[] = [];
 export function useCheckboxGroupParent(
   params: useCheckboxGroupParent.Parameters,
 ): useCheckboxGroupParent.ReturnValue {
-  const allValues = () => access(params.allValues) ?? EMPTY;
-  const value = () => access(params.value) ?? EMPTY;
+  const allValues = () => params.allValues?.() ?? EMPTY;
+  const value = () => params.value?.() ?? EMPTY;
 
   let uncontrolledStateRef = value();
   const disabledStatesRef = new Map<string, boolean>();
@@ -21,12 +20,20 @@ export function useCheckboxGroupParent(
   const indeterminate = () => value().length !== allValues().length && value().length > 0;
 
   const getParentProps: useCheckboxGroupParent.ReturnValue['getParentProps'] = () => ({
-    id: id(),
-    indeterminate: indeterminate(),
-    checked: checked(),
-    'aria-controls': allValues()
-      .map((v) => `${id()}-${v}`)
-      .join(' '),
+    get id() {
+      return id();
+    },
+    get indeterminate() {
+      return indeterminate();
+    },
+    get checked() {
+      return checked();
+    },
+    get 'aria-controls'() {
+      return allValues()
+        .map((v) => `${id()}-${v}`)
+        .join(' ');
+    },
     onCheckedChange(_, event) {
       batch(() => {
         const uncontrolledState = uncontrolledStateRef;
@@ -71,9 +78,15 @@ export function useCheckboxGroupParent(
   });
 
   const getChildProps: useCheckboxGroupParent.ReturnValue['getChildProps'] = (name: string) => ({
-    name,
-    id: `${id()}-${name}`,
-    checked: value().includes(name),
+    get name() {
+      return name;
+    },
+    get id() {
+      return `${id()}-${name}`;
+    },
+    get checked() {
+      return value().includes(name);
+    },
     onCheckedChange(nextChecked, event) {
       batch(() => {
         const newValue = value().slice();
@@ -100,8 +113,8 @@ export function useCheckboxGroupParent(
 
 export namespace useCheckboxGroupParent {
   export interface Parameters {
-    allValues?: MaybeAccessor<string[] | undefined>;
-    value?: MaybeAccessor<string[] | undefined>;
+    allValues?: Accessor<string[] | undefined>;
+    value?: Accessor<string[] | undefined>;
     onValueChange?: (value: string[], event: Event) => void;
   }
 

@@ -23,7 +23,7 @@ export default function ExampleCheckboxGroup() {
             class={styles.Indicator}
             render={(props, state) => (
               <span {...props}>
-                {state().indeterminate ? (
+                {state.indeterminate ? (
                   <HorizontalRuleIcon class={styles.Icon} />
                 ) : (
                   <CheckIcon class={styles.Icon} />

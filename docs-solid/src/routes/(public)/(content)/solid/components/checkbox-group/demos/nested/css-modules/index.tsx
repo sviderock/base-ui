@@ -39,7 +39,7 @@ export default function PermissionsForm() {
             class={styles.Indicator}
             render={(props, state) => (
               <span {...props}>
-                {state().indeterminate ? (
+                {state.indeterminate ? (
                   <HorizontalRuleIcon class={styles.Icon} />
                 ) : (
                   <CheckIcon class={styles.Icon} />
@@ -90,7 +90,7 @@ export default function PermissionsForm() {
               class={styles.Indicator}
               render={(props, state) => (
                 <span {...props}>
-                  {state().indeterminate ? (
+                  {state.indeterminate ? (
                     <HorizontalRuleIcon class={styles.Icon} />
                   ) : (
                     <CheckIcon class={styles.Icon} />

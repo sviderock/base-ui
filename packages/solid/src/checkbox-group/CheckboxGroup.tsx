@@ -1,16 +1,16 @@
 'use client';
-import { batch, createMemo } from 'solid-js';
+import { batch, mergeProps } from 'solid-js';
 import { PARENT_CHECKBOX } from '../checkbox/root/CheckboxRoot';
 import { useFieldControlValidation } from '../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../field/root/FieldRoot';
 import { useFieldRootContext } from '../field/root/FieldRootContext';
 import { useField } from '../field/useField';
 import { fieldValidityMapping } from '../field/utils/constants';
-import { type MaybeAccessor, access, splitComponentProps } from '../solid-helpers';
+import { splitComponentProps } from '../solid-helpers';
 import type { BaseUIComponentProps } from '../utils/types';
 import { useBaseUiId } from '../utils/useBaseUiId';
 import { useControlled } from '../utils/useControlled';
-import { useRenderElement } from '../utils/useRenderElement';
+import { useRenderElement } from '../utils/useRenderElementV2';
 import { CheckboxGroupContext } from './CheckboxGroupContext';
 import { useCheckboxGroupParent } from './useCheckboxGroupParent';
 
@@ -29,11 +29,6 @@ export function CheckboxGroup(componentProps: CheckboxGroup.Props) {
     'render',
     'value',
   ]);
-  const allValues = () => access(local.allValues);
-  const defaultValue = () => access(local.defaultValue);
-  const disabledProp = () => access(local.disabled) ?? false;
-  const idProp = () => access(local.id);
-  const externalValue = () => access(local.value);
 
   const {
     disabled: fieldDisabled,
@@ -42,13 +37,13 @@ export function CheckboxGroup(componentProps: CheckboxGroup.Props) {
     state: fieldState,
   } = useFieldRootContext();
 
-  const disabled = () => fieldDisabled() || disabledProp();
+  const disabled = () => fieldDisabled() || (local.disabled ?? false);
 
   const fieldControlValidation = useFieldControlValidation();
 
   const [value, setValueUnwrapped] = useControlled({
-    controlled: externalValue,
-    default: defaultValue,
+    controlled: () => local.value,
+    default: () => local.defaultValue,
     name: 'CheckboxGroup',
     state: 'value',
   });
@@ -61,14 +56,14 @@ export function CheckboxGroup(componentProps: CheckboxGroup.Props) {
   };
 
   const parent = useCheckboxGroupParent({
-    allValues,
-    value: externalValue,
+    allValues: () => local.allValues,
+    value: () => local.value,
     onValueChange: (...args) => {
       local.onValueChange?.(...args);
     },
   });
 
-  const id = useBaseUiId(idProp);
+  const id = useBaseUiId(() => local.id);
 
   let controlRef: HTMLButtonElement | null | undefined = null;
   const registerControlRef = (element: HTMLButtonElement | null | undefined) => {
@@ -88,9 +83,9 @@ export function CheckboxGroup(componentProps: CheckboxGroup.Props) {
   });
 
   const contextValue: CheckboxGroupContext = {
-    allValues,
+    allValues: () => local.allValues,
     value,
-    defaultValue,
+    defaultValue: () => local.defaultValue,
     setValue,
     parent,
     disabled,
@@ -98,19 +93,24 @@ export function CheckboxGroup(componentProps: CheckboxGroup.Props) {
     registerControlRef,
   };
 
-  const state = createMemo<CheckboxGroup.State>(() => ({
-    ...fieldState,
-    disabled: disabled(),
-  }));
+  const state: CheckboxGroup.State = mergeProps(fieldState, {
+    get disabled() {
+      return disabled();
+    },
+  });
 
   const element = useRenderElement('div', componentProps, {
     state,
     customStyleHookMapping: fieldValidityMapping,
     props: [
-      () => ({
-        role: 'group',
-        'aria-labelledby': labelId(),
-      }),
+      {
+        get role() {
+          return 'group' as const;
+        },
+        get 'aria-labelledby'() {
+          return labelId();
+        },
+      },
       elementProps,
     ],
   });
@@ -134,13 +134,13 @@ export namespace CheckboxGroup {
      *
      * To render an uncontrolled checkbox group, use the `defaultValue` prop instead.
      */
-    value?: MaybeAccessor<string[] | undefined>;
+    value?: string[];
     /**
      * Names of the checkboxes in the group that should be initially ticked.
      *
      * To render a controlled checkbox group, use the `value` prop instead.
      */
-    defaultValue?: MaybeAccessor<string[] | undefined>;
+    defaultValue?: string[];
     /**
      * Event handler called when a checkbox in the group is ticked or unticked.
      * Provides the new value as an argument.
@@ -149,11 +149,11 @@ export namespace CheckboxGroup {
     /**
      * Names of all checkboxes in the group. Use this when creating a parent checkbox.
      */
-    allValues?: MaybeAccessor<string[] | undefined>;
+    allValues?: string[];
     /**
      * Whether the component should ignore user interaction.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
   }
 }

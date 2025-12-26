@@ -130,10 +130,11 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
     groupContext?.fieldControlValidation ?? localFieldControlValidation;
 
   const [checked, setCheckedState] = useControlled({
-    controlled: () =>
-      value() && groupValue() && !parent()
+    controlled: () => {
+      return value() && groupValue() && !parent()
         ? groupValue()!.includes(value()!)
-        : groupProps().local.checked,
+        : groupProps().local.checked;
+    },
     default: () =>
       value() && defaultGroupValue() && !parent()
         ? defaultGroupValue()!.includes(value()!)
@@ -142,7 +143,7 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
     state: 'checked',
   });
 
-  const id = useBaseUiId(local.id);
+  const id = useBaseUiId(() => local.id);
 
   onMount(() => {
     setChildRefs('control', { explicitId: id, ref: controlRef, id: () => local.id });

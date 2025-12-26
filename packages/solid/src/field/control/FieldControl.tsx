@@ -68,8 +68,8 @@ export function FieldControl(componentProps: FieldControl.Props) {
   });
 
   const [value, setValueUnwrapped] = useControlled({
-    controlled: local.value,
-    default: local.defaultValue,
+    controlled: () => local.value,
+    default: () => local.defaultValue,
     name: 'FieldControl',
     state: 'value',
   });

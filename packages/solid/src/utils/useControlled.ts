@@ -1,6 +1,6 @@
 'use client';
-import { createEffect, createMemo, createSignal, type Signal } from 'solid-js';
-import { access, type MaybeAccessor } from '../solid-helpers';
+import { createEffect, createMemo, createSignal, type Accessor, type Signal } from 'solid-js';
+import { access } from '../solid-helpers';
 
 // TODO: uncomment once we enable eslint-plugin-react-compiler // eslint-disable-next-line react-compiler/react-compiler -- process.env never changes, dependency arrays are intentionally ignored
 
@@ -8,11 +8,11 @@ export interface UseControlledProps<T = unknown> {
   /**
    * Holds the component value when it's controlled.
    */
-  controlled: MaybeAccessor<T | undefined>;
+  controlled: Accessor<T | undefined>;
   /**
    * The default value when uncontrolled.
    */
-  default: MaybeAccessor<T | undefined>;
+  default: Accessor<T | undefined>;
   /**
    * The component name displayed in warnings.
    */

@@ -16,7 +16,7 @@ describe('useCheckboxGroupParent', () => {
     function App() {
       const [value, setValue] = createSignal<string[]>([]);
       return (
-        <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
+        <CheckboxGroup value={value()} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" onCheckedChange={parentCheckedChange} />
           <Checkbox.Root value="a" />
           <Checkbox.Root value="b" onCheckedChange={childCheckedChange} />
@@ -62,7 +62,7 @@ describe('useCheckboxGroupParent', () => {
     function App() {
       const [value, setValue] = createSignal<string[]>([]);
       return (
-        <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
+        <CheckboxGroup value={value()} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" />
           <Checkbox.Root value="a" onCheckedChange={childCheckedChange} />
           <Checkbox.Root value="b" />
@@ -90,7 +90,7 @@ describe('useCheckboxGroupParent', () => {
     function App() {
       const [value, setValue] = createSignal<string[]>(['a']);
       return (
-        <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
+        <CheckboxGroup value={value()} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" />
           <Checkbox.Root value="a" data-testid="checkboxA" />
           <Checkbox.Root value="b" />
@@ -110,7 +110,7 @@ describe('useCheckboxGroupParent', () => {
     function App() {
       const [value, setValue] = createSignal<string[]>(['a']);
       return (
-        <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
+        <CheckboxGroup value={value()} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" />
           <Checkbox.Root value="a" data-testid="checkboxA" />
           <Checkbox.Root value="b" />
@@ -143,7 +143,7 @@ describe('useCheckboxGroupParent', () => {
     function App() {
       const [value, setValue] = createSignal<string[]>([]);
       return (
-        <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
+        <CheckboxGroup value={value()} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" />
           <Checkbox.Root value="a" />
           <Checkbox.Root value="b" />
@@ -164,7 +164,7 @@ describe('useCheckboxGroupParent', () => {
     function App() {
       const [value, setValue] = createSignal<string[]>([]);
       return (
-        <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
+        <CheckboxGroup value={value()} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" />
           <Checkbox.Root value="a" data-testid="checkboxA" />
           <Checkbox.Root value="b" />
@@ -212,7 +212,7 @@ describe('useCheckboxGroupParent', () => {
     function App() {
       const [value, setValue] = createSignal<string[]>([]);
       return (
-        <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
+        <CheckboxGroup value={value()} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" />
           <Checkbox.Root value="a" disabled data-testid="checkboxA" />
           <Checkbox.Root value="b" />
@@ -234,7 +234,7 @@ describe('useCheckboxGroupParent', () => {
     function App() {
       const [value, setValue] = createSignal<string[]>(['a']);
       return (
-        <CheckboxGroup value={value} onValueChange={setValue} allValues={allValues}>
+        <CheckboxGroup value={value()} onValueChange={setValue} allValues={allValues}>
           <Checkbox.Root parent data-testid="parent" />
           <Checkbox.Root value="a" data-testid="checkboxA" disabled />
           <Checkbox.Root value="b" data-testid="checkboxB" />
