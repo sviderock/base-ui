@@ -2,8 +2,8 @@
 import {
   batch,
   createEffect,
-  createMemo,
   createSignal,
+  mergeProps,
   on,
   onCleanup,
   onMount,
@@ -11,7 +11,7 @@ import {
 } from 'solid-js';
 import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { access, splitComponentProps } from '../../solid-helpers';
 import { isIOS } from '../../utils/detectBrowser';
 import { formatNumber, formatNumberMaxPrecision } from '../../utils/formatNumber';
 import { ownerDocument, ownerWindow } from '../../utils/owner';
@@ -19,7 +19,7 @@ import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
 import { useInterval } from '../../utils/useInterval';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { CHANGE_VALUE_TICK_DELAY, DEFAULT_STEP, START_AUTO_CHANGE_DELAY } from '../utils/constants';
 import { getNumberLocaleDetails, PERCENTAGES } from '../utils/parse';
@@ -55,22 +55,14 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
     'locale',
     'refs',
   ]);
-  const idProp = () => access(local.id);
-  const min = () => access(local.min);
-  const max = () => access(local.max);
   const smallStep = () => access(local.smallStep) ?? 0.1;
   const step = () => access(local.step) ?? 1;
   const largeStep = () => access(local.largeStep) ?? 10;
   const required = () => access(local.required) ?? false;
   const disabledProp = () => access(local.disabled) ?? false;
   const readOnly = () => access(local.readOnly) ?? false;
-  const nameProp = () => access(local.name);
-  const defaultValue = () => access(local.defaultValue);
-  const valueProp = () => access(local.value);
   const allowWheelScrub = () => access(local.allowWheelScrub) ?? false;
   const snapOnStep = () => access(local.snapOnStep) ?? false;
-  const format = () => access(local.format);
-  const locale = () => access(local.locale);
 
   const {
     setDirty,
@@ -85,20 +77,20 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
   } = useFieldRootContext();
 
   const disabled = () => fieldDisabled() || disabledProp();
-  const name = () => fieldName() ?? nameProp();
+  const name = () => fieldName() ?? local.name;
 
   const [isScrubbing, setIsScrubbing] = createSignal(false);
 
-  const minWithDefault = () => min() ?? Number.MIN_SAFE_INTEGER;
-  const maxWithDefault = () => max() ?? Number.MAX_SAFE_INTEGER;
-  const minWithZeroDefault = () => min() ?? 0;
-  const formatStyle = () => format()?.style;
+  const minWithDefault = () => local.min ?? Number.MIN_SAFE_INTEGER;
+  const maxWithDefault = () => local.max ?? Number.MAX_SAFE_INTEGER;
+  const minWithZeroDefault = () => local.min ?? 0;
+  const formatStyle = () => local.format?.style;
 
-  const id = useBaseUiId(idProp);
+  const id = useBaseUiId(() => local.id);
 
   const [valueUnwrapped, setValueUnwrapped] = useControlled<number | null>({
-    controlled: valueProp,
-    default: defaultValue,
+    controlled: () => local.value,
+    default: () => local.defaultValue,
     name: 'NumberField',
     state: 'value',
   });
@@ -108,7 +100,7 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
   const refs: NumberFieldRootContext['refs'] = {
     inputRef: null,
     allowInputSyncRef: true,
-    formatOptionsRef: format(),
+    formatOptionsRef: local.format,
     valueRef: value(),
     isPressedRef: false,
     movesAfterTouchRef: 0,
@@ -138,10 +130,10 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
   });
 
   function getProcessedValue() {
-    if (valueProp() !== undefined) {
-      return getControlledInputValue(value(), locale(), format());
+    if (local.value !== undefined) {
+      return getControlledInputValue(value(), local.locale, local.format);
     }
-    return formatNumber(value(), locale(), format());
+    return formatNumber(value(), local.locale, local.format);
   }
 
   // During SSR, the value is formatted on the server, whose locale may differ from the client's
@@ -152,15 +144,15 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
   const [inputMode, setInputMode] = createSignal<InputMode>('numeric');
 
   createEffect(
-    on([value, valueProp, locale, format, inputValue], () => {
+    on([value, () => local.value, () => local.locale, () => local.format, inputValue], () => {
       if (!refs.allowInputSyncRef) {
         return;
       }
 
       const nextInputValue =
-        valueProp() !== undefined
-          ? getControlledInputValue(value(), locale(), format())
-          : formatNumber(value(), locale(), format());
+        local.value !== undefined
+          ? getControlledInputValue(value(), local.locale, local.format)
+          : formatNumber(value(), local.locale, local.format);
 
       if (nextInputValue !== inputValue()) {
         setInputValueUnwrapped(nextInputValue);
@@ -186,7 +178,7 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
   };
 
   const getAllowedNonNumericKeys = () => {
-    const { decimal, group, currency } = getNumberLocaleDetails(locale(), format());
+    const { decimal, group, currency } = getNumberLocaleDetails(local.locale, local.format);
 
     const keys = new Set(['.', ',', decimal, group]);
 
@@ -235,7 +227,7 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
       // to overwrite the user-provided text until blur, so we gate on
       // `allowInputSyncRef`.
       if (refs.allowInputSyncRef) {
-        setInputValueUnwrapped(formatNumber(validatedValue, locale(), format()));
+        setInputValueUnwrapped(formatNumber(validatedValue, local.locale, local.format));
       }
     });
     // TODO: force render
@@ -251,7 +243,7 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
   ) => {
     const prevValue = currentValue == null ? refs.valueRef : currentValue;
     const nextValue =
-      typeof prevValue === 'number' ? prevValue + amount * dir : Math.max(0, min() ?? 0);
+      typeof prevValue === 'number' ? prevValue + amount * dir : Math.max(0, local.min ?? 0);
     setValue(nextValue, event, dir);
   };
 
@@ -357,15 +349,26 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
     });
   });
 
-  const state = createMemo<NumberFieldRoot.State>(() => ({
-    ...fieldState,
-    disabled: disabled(),
-    readOnly: readOnly(),
-    required: required(),
-    value: value(),
-    inputValue: inputValue(),
-    scrubbing: isScrubbing(),
-  }));
+  const state: NumberFieldRoot.State = mergeProps(fieldState, {
+    get disabled() {
+      return disabled();
+    },
+    get readOnly() {
+      return readOnly();
+    },
+    get required() {
+      return required();
+    },
+    get value() {
+      return value();
+    },
+    get inputValue() {
+      return inputValue();
+    },
+    get scrubbing() {
+      return isScrubbing();
+    },
+  });
 
   const contextValue: NumberFieldRootContext = {
     refs,
@@ -387,10 +390,10 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
     invalid,
     inputMode,
     getAllowedNonNumericKeys,
-    min,
-    max,
+    min: () => local.min,
+    max: () => local.max,
+    locale: () => local.locale,
     setInputValue,
-    locale,
     isScrubbing,
     setIsScrubbing,
     state,
@@ -428,82 +431,82 @@ export namespace NumberFieldRoot {
     /**
      * The id of the input element.
      */
-    id?: MaybeAccessor<string | undefined>;
+    id?: string;
     /**
      * The minimum value of the input element.
      */
-    min?: MaybeAccessor<number | undefined>;
+    min?: number;
     /**
      * The maximum value of the input element.
      */
-    max?: MaybeAccessor<number | undefined>;
+    max?: number;
     /**
      * The small step value of the input element when incrementing while the meta key is held. Snaps
      * to multiples of this value.
      * @default 0.1
      */
-    smallStep?: MaybeAccessor<number | undefined>;
+    smallStep?: number;
     /**
      * Amount to increment and decrement with the buttons and arrow keys,
      * or to scrub with pointer movement in the scrub area.
      * @default 1
      */
-    step?: MaybeAccessor<number | undefined>;
+    step?: number;
     /**
      * The large step value of the input element when incrementing while the shift key is held. Snaps
      * to multiples of this value.
      * @default 10
      */
-    largeStep?: MaybeAccessor<number | undefined>;
+    largeStep?: number;
     /**
      * Whether the user must enter a value before submitting a form.
      * @default false
      */
-    required?: MaybeAccessor<boolean | undefined>;
+    required?: boolean;
     /**
      * Whether the component should ignore user interaction.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
     /**
      * Whether the field is forcefully marked as invalid.
      * @default false
      */
-    invalid?: MaybeAccessor<boolean | undefined>;
+    invalid?: boolean;
     /**
      * Whether the user should be unable to change the field value.
      * @default false
      */
-    readOnly?: MaybeAccessor<boolean | undefined>;
+    readOnly?: boolean;
     /**
      * Identifies the field when a form is submitted.
      */
-    name?: MaybeAccessor<string | undefined>;
+    name?: string;
     /**
      * The raw numeric value of the field.
      */
-    value?: MaybeAccessor<number | null | undefined>;
+    value?: number | null;
     /**
      * The uncontrolled value of the field when it’s initially rendered.
      *
      * To render a controlled number field, use the `value` prop instead.
      */
-    defaultValue?: MaybeAccessor<number | undefined>;
+    defaultValue?: number;
     /**
      * Whether to allow the user to scrub the input value with the mouse wheel while focused and
      * hovering over the input.
      * @default false
      */
-    allowWheelScrub?: MaybeAccessor<boolean | undefined>;
+    allowWheelScrub?: boolean;
     /**
      * Whether the value should snap to the nearest step when incrementing or decrementing.
      * @default false
      */
-    snapOnStep?: MaybeAccessor<boolean | undefined>;
+    snapOnStep?: boolean;
     /**
      * Options to format the input value.
      */
-    format?: MaybeAccessor<Intl.NumberFormatOptions | undefined>;
+    format?: Intl.NumberFormatOptions;
     /**
      * Callback fired when the number value changes.
      * @param {number | null} value The new value.
@@ -514,7 +517,7 @@ export namespace NumberFieldRoot {
      * The locale of the input element.
      * Defaults to the user's runtime locale.
      */
-    locale?: MaybeAccessor<Intl.LocalesArgument | undefined>;
+    locale?: Intl.LocalesArgument;
     refs?: {
       /**
        * A ref to access the hidden input element.

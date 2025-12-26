@@ -1,15 +1,16 @@
 'use client';
-import { batch, createEffect, createMemo, type ComponentProps } from 'solid-js';
+import { batch, createEffect, type JSX } from 'solid-js';
 import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { useField } from '../../field/useField';
 import { fieldValidityMapping } from '../../field/utils/constants';
 import { stopEvent } from '../../floating-ui-solid/utils';
 import { useFormContext } from '../../form/FormContext';
+import { combineProps } from '../../merge-props';
 import { splitComponentProps } from '../../solid-helpers';
 import { formatNumber, formatNumberMaxPrecision } from '../../utils/formatNumber';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { NumberFieldRoot } from '../root/NumberFieldRoot';
 import { useNumberFieldRootContext } from '../root/NumberFieldRootContext';
 import { DEFAULT_STEP } from '../utils/constants';
@@ -116,24 +117,40 @@ export function NumberFieldInput(componentProps: NumberFieldInput.Props) {
     commitValidation(value(), true);
   });
 
-  const inputProps = createMemo<ComponentProps<'input'>>(() => ({
-    id: id(),
-    required: required(),
-    disabled: disabled(),
-    readOnly: readOnly(),
-    inputMode: inputMode(),
-    value: inputValue(),
+  const inputProps: JSX.InputHTMLAttributes<HTMLInputElement> = {
     type: 'text',
     autocomplete: 'nope',
     autocorrect: 'off',
     spellcheck: 'false',
     'aria-roledescription': 'Number field',
-    'aria-invalid': invalid() || undefined,
-    'aria-labelledby': labelId(),
-    // TODO: does we need this for Solid?
+    get id() {
+      return id();
+    },
+    get required() {
+      return required();
+    },
+    get disabled() {
+      return disabled();
+    },
+    get readOnly() {
+      return readOnly();
+    },
+    get inputMode() {
+      return inputMode();
+    },
+    get value() {
+      return inputValue();
+    },
+    get 'aria-invalid'() {
+      return invalid() || undefined;
+    },
+    get 'aria-labelledby'() {
+      return labelId();
+    },
+    // TODO: do we need this for Solid?
     // If the server's locale does not match the client's locale, the formatting may not match,
     // causing a hydration mismatch.
-    suppressHydrationWarning: true,
+    // suppressHydrationWarning: true,
     onFocus(event) {
       if (event.defaultPrevented || readOnly() || disabled() || hasTouchedInputRef) {
         return;
@@ -333,7 +350,7 @@ export function NumberFieldInput(componentProps: NumberFieldInput.Props) {
         });
       }
     },
-  }));
+  };
 
   const element = useRenderElement('input', componentProps, {
     state,
@@ -341,7 +358,12 @@ export function NumberFieldInput(componentProps: NumberFieldInput.Props) {
       refs.inputRef = el;
       fieldControlRefs.inputRef = el;
     },
-    props: [inputProps, () => getInputValidationProps(), () => getValidationProps(), elementProps],
+    props: [
+      inputProps,
+      (props) => combineProps(props, getInputValidationProps()),
+      (props) => combineProps(props, getValidationProps()),
+      elementProps,
+    ],
     customStyleHookMapping,
   });
 

@@ -1,10 +1,10 @@
 'use client';
-import { createEffect, createMemo, createSignal, onCleanup } from 'solid-js';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { createEffect, createSignal, onCleanup } from 'solid-js';
+import { access, splitComponentProps } from '../../solid-helpers';
 import { isWebKit } from '../../utils/detectBrowser';
 import { ownerDocument, ownerWindow } from '../../utils/owner';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { NumberFieldRoot } from '../root/NumberFieldRoot';
 import { useNumberFieldRootContext } from '../root/NumberFieldRootContext';
 import { DEFAULT_STEP } from '../utils/constants';
@@ -27,7 +27,6 @@ export function NumberFieldScrubArea(componentProps: NumberFieldScrubArea.Props)
   ]);
   const direction = () => access(local.direction) ?? 'horizontal';
   const pixelSensitivity = () => access(local.pixelSensitivity) ?? 2;
-  const teleportDistance = () => access(local.teleportDistance);
 
   const { state } = useNumberFieldRootContext();
 
@@ -76,7 +75,7 @@ export function NumberFieldScrubArea(componentProps: NumberFieldScrubArea.Props)
       return;
     }
 
-    const rect = getViewportRect(teleportDistance(), scrubAreaEl);
+    const rect = getViewportRect(local.teleportDistance, scrubAreaEl);
 
     const coords = virtualCursorCoords;
     const newCoords = {
@@ -193,7 +192,7 @@ export function NumberFieldScrubArea(componentProps: NumberFieldScrubArea.Props)
     });
   });
 
-  const defaultProps = createMemo<HTMLProps>(() => ({
+  const defaultProps: HTMLProps = {
     role: 'presentation',
     style: {
       'touch-action': 'none',
@@ -232,7 +231,7 @@ export function NumberFieldScrubArea(componentProps: NumberFieldScrubArea.Props)
         }
       }
     },
-  }));
+  };
 
   const contextValue: NumberFieldScrubAreaContext = {
     isScrubbing,
@@ -241,7 +240,7 @@ export function NumberFieldScrubArea(componentProps: NumberFieldScrubArea.Props)
     refs,
     direction,
     pixelSensitivity,
-    teleportDistance,
+    teleportDistance: () => local.teleportDistance,
   };
 
   const element = useRenderElement('span', componentProps, {
@@ -268,17 +267,17 @@ export namespace NumberFieldScrubArea {
      * Cursor movement direction in the scrub area.
      * @default 'horizontal'
      */
-    direction?: MaybeAccessor<'horizontal' | 'vertical' | undefined>;
+    direction?: 'horizontal' | 'vertical';
     /**
      * Determines how many pixels the cursor must move before the value changes.
      * A higher value will make scrubbing less sensitive.
      * @default 2
      */
-    pixelSensitivity?: MaybeAccessor<number | undefined>;
+    pixelSensitivity?: number;
     /**
      * If specified, determines the distance that the cursor may move from the center
      * of the scrub area before it will loop back around.
      */
-    teleportDistance?: MaybeAccessor<number | undefined>;
+    teleportDistance?: number;
   }
 }

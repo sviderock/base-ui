@@ -47,11 +47,20 @@ export function useNumberFieldButton(
     }
   };
 
-  const props = createMemo<HTMLProps>(() => ({
-    disabled: disabled() || (isIncrement() ? isMax() : isMin()),
-    'aria-readonly': readOnly() || undefined,
-    'aria-label': isIncrement() ? 'Increase' : 'Decrease',
-    'aria-controls': id(),
+  const props: HTMLProps = {
+    // @ts-expect-error - disabled is not a valid attribute for HTMLProps
+    get disabled() {
+      return disabled() || (isIncrement() ? isMax() : isMin());
+    },
+    get 'aria-readonly'() {
+      return readOnly() || undefined;
+    },
+    get 'aria-label'() {
+      return isIncrement() ? 'Increase' : 'Decrease';
+    },
+    get 'aria-controls'() {
+      return id();
+    },
     // Keyboard users shouldn't have access to the buttons, since they can use the input element
     // to change the value. On the other hand, `aria-hidden` is not applied because touch screen
     // readers should be able to use the buttons.
@@ -164,7 +173,7 @@ export function useNumberFieldButton(
 
       params.stopAutoChange();
     },
-  }));
+  };
 
   return { props };
 }
@@ -202,6 +211,6 @@ export namespace useNumberFieldButton {
   }
 
   export interface ReturnValue {
-    props: Accessor<HTMLProps>;
+    props: HTMLProps;
   }
 }

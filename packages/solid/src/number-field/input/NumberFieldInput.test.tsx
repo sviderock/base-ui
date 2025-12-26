@@ -210,7 +210,7 @@ describe('<NumberField.Input />', () => {
       const [value, setValue] = createSignal<number | null>(0);
       return (
         <NumberField.Root
-          value={value}
+          value={value()}
           onValueChange={(val) => {
             onValueChange(val);
             setValue(val);
@@ -247,7 +247,7 @@ describe('<NumberField.Input />', () => {
       const [value, setValue] = createSignal<number | null>(5);
       return (
         <NumberField.Root
-          value={value}
+          value={value()}
           onValueChange={(val) => {
             onValueChange(val);
             setValue(val);
@@ -280,7 +280,7 @@ describe('<NumberField.Input />', () => {
   it('should allow typing after precision is preserved on blur', async () => {
     const onValueChange = spy();
 
-    function Controlled(props: { value: MaybeAccessor<number | null> }) {
+    function Controlled(props: { value: number | null }) {
       return (
         <NumberField.Root value={props.value} onValueChange={onValueChange}>
           <NumberField.Input />
@@ -289,7 +289,7 @@ describe('<NumberField.Input />', () => {
     }
 
     const [value, setValue] = createSignal<number | null>(null);
-    const { user } = render(() => <Controlled value={value} />);
+    const { user } = render(() => <Controlled value={value()} />);
     const input = screen.getByRole('textbox');
 
     setValue(1.23456);
@@ -314,7 +314,7 @@ describe('<NumberField.Input />', () => {
   it('should format to canonical representation when input differs from max precision', async () => {
     const onValueChange = spy();
 
-    function Controlled(props: { value: MaybeAccessor<number | null> }) {
+    function Controlled(props: { value: number | null }) {
       return (
         <NumberField.Root value={props.value} onValueChange={onValueChange}>
           <NumberField.Input />
@@ -323,7 +323,7 @@ describe('<NumberField.Input />', () => {
     }
 
     const [value, setValue] = createSignal<number | null>(null);
-    const { user } = render(() => <Controlled value={value} />);
+    const { user } = render(() => <Controlled value={value()} />);
     const input = screen.getByRole('textbox');
 
     setValue(1.23456);
@@ -343,7 +343,7 @@ describe('<NumberField.Input />', () => {
   it('should handle multiple blur cycles with precision preservation', async () => {
     const onValueChange = spy();
 
-    function Controlled(props: { value: MaybeAccessor<number | null> }) {
+    function Controlled(props: { value: number | null }) {
       return (
         <NumberField.Root value={props.value} onValueChange={onValueChange}>
           <NumberField.Input />
@@ -352,7 +352,7 @@ describe('<NumberField.Input />', () => {
     }
 
     const [value, setValue] = createSignal<number | null>(null);
-    render(() => <Controlled value={value} />);
+    render(() => <Controlled value={value()} />);
     const input = screen.getByRole('textbox');
 
     setValue(1.23456789);
@@ -375,7 +375,7 @@ describe('<NumberField.Input />', () => {
   it('should handle edge case where parsed value equals current value but input differs', async () => {
     const onValueChange = spy();
 
-    function Controlled(props: { value: MaybeAccessor<number | null> }) {
+    function Controlled(props: { value: number | null }) {
       return (
         <NumberField.Root value={props.value} onValueChange={onValueChange}>
           <NumberField.Input />
@@ -384,7 +384,7 @@ describe('<NumberField.Input />', () => {
     }
 
     const [value, setValue] = createSignal<number | null>(null);
-    const { user } = render(() => <Controlled value={value} />);
+    const { user } = render(() => <Controlled value={value()} />);
     const input = screen.getByRole('textbox');
 
     setValue(1.5);
@@ -408,7 +408,7 @@ describe('<NumberField.Input />', () => {
       const [value, setValue] = createSignal<number | null>(null);
       return (
         <NumberField.Root
-          value={value}
+          value={value()}
           onValueChange={(val) => {
             onValueChange(val);
             setValue(val);
@@ -439,7 +439,7 @@ describe('<NumberField.Input />', () => {
   it('should round to explicit maximumFractionDigits on blur', async () => {
     const onValueChange = spy();
 
-    function Controlled(props: { value: MaybeAccessor<number | null> }) {
+    function Controlled(props: { value: number | null }) {
       return (
         <NumberField.Root
           value={props.value}
@@ -452,7 +452,7 @@ describe('<NumberField.Input />', () => {
     }
 
     const [value, setValue] = createSignal<number | null>(null);
-    render(() => <Controlled value={value} />);
+    render(() => <Controlled value={value()} />);
     const input = screen.getByRole('textbox');
 
     setValue(1.23456);
@@ -474,7 +474,7 @@ describe('<NumberField.Input />', () => {
       const [value, setValue] = createSignal<number | null>(null);
       return (
         <NumberField.Root
-          value={value}
+          value={value()}
           onValueChange={(val) => {
             onValueChange(val);
             setValue(val);

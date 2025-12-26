@@ -53,7 +53,7 @@ describe('<NumberField.Decrement />', () => {
     function Controlled() {
       const [value, setValue] = createSignal<number | null>(null);
       return (
-        <NumberField.Root value={value} onValueChange={setValue}>
+        <NumberField.Root value={value()} onValueChange={setValue}>
           <NumberField.Input />
           <NumberField.Decrement />
           <button onClick={() => setValue(1.23456)}>external</button>

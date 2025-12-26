@@ -2,7 +2,7 @@
 import { access, splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { NumberFieldRoot } from '../root/NumberFieldRoot';
 import { useNumberFieldRootContext } from '../root/NumberFieldRootContext';
 import { useNumberFieldButton } from '../root/useNumberFieldButton';
@@ -16,7 +16,6 @@ import { styleHookMapping } from '../utils/styleHooks';
  */
 export function NumberFieldDecrement(componentProps: NumberFieldDecrement.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['disabled']);
-  const disabledProp = () => access(local.disabled) ?? false;
 
   const {
     disabled: contextDisabled,
@@ -37,7 +36,7 @@ export function NumberFieldDecrement(componentProps: NumberFieldDecrement.Props)
     refs,
   } = useNumberFieldRootContext();
 
-  const disabled = () => disabledProp() || contextDisabled();
+  const disabled = () => (local.disabled ?? false) || contextDisabled();
 
   const { props } = useNumberFieldButton({
     isIncrement: false,
@@ -58,9 +57,7 @@ export function NumberFieldDecrement(componentProps: NumberFieldDecrement.Props)
     refs,
   });
 
-  const { getButtonProps, buttonRef } = useButton({
-    disabled,
-  });
+  const { getButtonProps, buttonRef } = useButton({ disabled });
 
   const element = useRenderElement('button', componentProps, {
     state,

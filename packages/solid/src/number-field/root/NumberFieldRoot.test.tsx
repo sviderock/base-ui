@@ -45,7 +45,7 @@ describe('<NumberField />', () => {
   describe('prop: value', () => {
     it('should accept a number value that can change over time', async () => {
       const [value, setValue] = createSignal(1);
-      render(() => <NumberField value={value} />);
+      render(() => <NumberField value={value()} />);
       const input = screen.getByRole('textbox');
       expect(input).to.have.value('1');
       setValue(2);
@@ -80,7 +80,7 @@ describe('<NumberField />', () => {
         const [value, setValue] = createSignal<number | null>(1);
         return (
           <NumberField
-            value={value}
+            value={value()}
             onValueChange={(val) => {
               onValueChange(val);
               setValue(val);
@@ -101,7 +101,7 @@ describe('<NumberField />', () => {
         const [value, setValue] = createSignal<number | null>(null);
         return (
           <NumberField
-            value={value}
+            value={value()}
             onValueChange={(val) => {
               onValueChange(val);
               setValue(val);
@@ -122,7 +122,7 @@ describe('<NumberField />', () => {
         const [value, setValue] = createSignal<number | null>(5);
         return (
           <NumberField
-            value={value}
+            value={value()}
             onValueChange={(val) => {
               onValueChange(val);
               setValue(val);
@@ -178,7 +178,7 @@ describe('<NumberField />', () => {
         const [value, setValue] = createSignal<number | null>(5);
         return (
           <NumberField
-            value={value}
+            value={value()}
             onValueChange={(v) => {
               fn(v);
               setValue(v);
@@ -204,7 +204,7 @@ describe('<NumberField />', () => {
         const [value, setValue] = createSignal<number | null>(5);
         return (
           <NumberField
-            value={value}
+            value={value()}
             onValueChange={(v) => {
               fn(v);
               setValue(v);
@@ -231,7 +231,7 @@ describe('<NumberField />', () => {
         const [value, setValue] = createSignal<number | null>(5);
         return (
           <NumberField
-            value={value}
+            value={value()}
             onValueChange={(v) => {
               fn(v);
               setValue(v);
@@ -257,7 +257,7 @@ describe('<NumberField />', () => {
         const [value, setValue] = createSignal<number | null>(5);
         return (
           <NumberField
-            value={value}
+            value={value()}
             onValueChange={(v) => {
               fn(v);
               setValue(v);
@@ -402,7 +402,7 @@ describe('<NumberField />', () => {
         const [val, setVal] = createSignal<number | null>(1);
         return (
           <div>
-            <NumberField value={val} onValueChange={setVal} />
+            <NumberField value={val()} onValueChange={setVal} />
             <button onClick={() => setVal(1234)}>set</button>
           </div>
         );
@@ -575,11 +575,9 @@ describe('<NumberField />', () => {
 
     it('clears errors on change', async () => {
       function App() {
-        const [errors, setErrors] = createSignal({
-          test: 'test',
-        });
+        const [errors, setErrors] = createSignal({ test: 'test' });
         return (
-          <Form errors={errors} onClearErrors={setErrors}>
+          <Form errors={errors()} onClearErrors={setErrors}>
             <Field.Root name="test" data-testid="field">
               <NumberField defaultValue={1} />
               <Field.Error data-testid="error" />

@@ -44,7 +44,7 @@ export interface NumberFieldRootContext {
   locale: Accessor<Intl.LocalesArgument>;
   isScrubbing: Accessor<boolean>;
   setIsScrubbing: Setter<boolean>;
-  state: Accessor<NumberFieldRoot.State>;
+  state: NumberFieldRoot.State;
 }
 
 export const NumberFieldRootContext = createContext<NumberFieldRootContext>();
