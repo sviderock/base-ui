@@ -1,14 +1,17 @@
 'use client';
 
-import { createContext, useContext, type Accessor, type Setter } from 'solid-js';
+import { createContext, useContext, type Accessor } from 'solid-js';
+import type { SetStoreFunction, Store } from 'solid-js/store';
+import type { CodependentRefs } from '../../solid-helpers';
 
 export type MeterRootContext = {
   formattedValue: Accessor<string>;
   max: Accessor<number>;
   min: Accessor<number>;
   percentageValue: Accessor<number>;
-  setLabelId: Setter<string | undefined>;
   value: Accessor<number>;
+  codependentRefs: Store<CodependentRefs<['label']>>;
+  setCodependentRefs: SetStoreFunction<CodependentRefs<['label']>>;
 };
 
 export const MeterRootContext = createContext<MeterRootContext>();

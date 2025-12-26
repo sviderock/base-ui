@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createSignal, on } from 'solid-js';
+import { createEffect, createSignal, on, onCleanup } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { splitComponentProps, type CodependentRefs } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -39,6 +39,10 @@ export function FieldsetRoot(componentProps: FieldsetRoot.Props) {
         if (legend) {
           setLegendId(legend.id() ?? legend.explicitId());
         }
+
+        onCleanup(() => {
+          setLegendId(undefined);
+        });
       },
     ),
   );

@@ -1,7 +1,8 @@
 'use client';
+import type { JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { MeterRoot } from '../root/MeterRoot';
 import { useMeterRootContext } from '../root/MeterRootContext';
 
@@ -18,13 +19,15 @@ export function MeterIndicator(componentProps: MeterIndicator.Props) {
 
   const element = useRenderElement('div', componentProps, {
     props: [
-      () => ({
-        style: {
-          'inset-inline-start': 0,
-          height: 'inherit',
-          width: `${percentageValue()}%`,
+      {
+        get style(): JSX.CSSProperties {
+          return {
+            'inset-inline-start': 0,
+            height: 'inherit',
+            width: `${percentageValue()}%`,
+          };
         },
-      }),
+      },
       elementProps,
     ],
   });

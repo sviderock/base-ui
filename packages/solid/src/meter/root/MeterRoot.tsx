@@ -1,9 +1,10 @@
 'use client';
-import { createMemo, createSignal } from 'solid-js';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { createEffect, createMemo, createSignal, on, onCleanup } from 'solid-js';
+import { createStore } from 'solid-js/store';
+import { access, splitComponentProps, type CodependentRefs } from '../../solid-helpers';
 import { formatNumber } from '../../utils/formatNumber';
 import { BaseUIComponentProps, HTMLProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { valueToPercent } from '../../utils/valueToPercent';
 import { MeterRootContext } from './MeterRootContext';
 
@@ -34,46 +35,70 @@ export function MeterRoot(componentProps: MeterRoot.Props) {
     'min',
     'value',
   ]);
-  const format = () => access(local.format);
-  const locale = () => access(local.locale);
   const max = () => access(local.max) ?? 100;
   const min = () => access(local.min) ?? 0;
-  const value = () => access(local.value);
 
   const [labelId, setLabelId] = createSignal<string>();
+  const [codependentRefs, setCodependentRefs] = createStore<CodependentRefs<['label']>>({});
 
-  const percentageValue = () => valueToPercent(value(), min(), max());
-  const formattedValue = () => formatValue(value(), locale(), format());
+  const percentageValue = () => valueToPercent(local.value, min(), max());
+  const formattedValue = () => formatValue(local.value, local.locale, local.format);
 
   const ariaValuetext = createMemo(() => {
     if (local.getAriaValueText) {
-      return local.getAriaValueText(formattedValue(), value());
+      return local.getAriaValueText(formattedValue(), local.value);
     }
 
-    if (format()) {
+    if (local.format) {
       return formattedValue();
     }
 
     return `${percentageValue()}%`;
   });
 
-  const defaultProps = createMemo<HTMLProps>(() => ({
-    'aria-labelledby': labelId(),
-    'aria-valuemax': max(),
-    'aria-valuemin': min(),
-    'aria-valuenow': percentageValue() / 100,
-    'aria-valuetext': ariaValuetext(),
+  const defaultProps: HTMLProps = {
     role: 'meter',
-  }));
+    get 'aria-labelledby'() {
+      return labelId();
+    },
+    get 'aria-valuemax'() {
+      return max();
+    },
+    get 'aria-valuemin'() {
+      return min();
+    },
+    get 'aria-valuenow'() {
+      return percentageValue() / 100;
+    },
+    get 'aria-valuetext'() {
+      return ariaValuetext();
+    },
+  };
 
   const contextValue: MeterRootContext = {
     formattedValue,
     max,
     min,
     percentageValue,
-    setLabelId,
-    value,
+    value: () => local.value,
+    codependentRefs,
+    setCodependentRefs,
   };
+
+  createEffect(
+    on(
+      () => codependentRefs.label,
+      (label) => {
+        if (label) {
+          setLabelId(label.id() ?? label.explicitId());
+        }
+
+        onCleanup(() => {
+          setLabelId(undefined);
+        });
+      },
+    ),
+  );
 
   const element = useRenderElement('div', componentProps, {
     props: [defaultProps, elementProps],
@@ -89,7 +114,7 @@ export namespace MeterRoot {
     /**
      * Options to format the value.
      */
-    format?: MaybeAccessor<Intl.NumberFormatOptions | undefined>;
+    format?: Intl.NumberFormatOptions;
     /**
      * A function that returns a string value that provides a human-readable text alternative for the current value of the meter.
      * @param {string} formattedValue The formatted value
@@ -101,20 +126,20 @@ export namespace MeterRoot {
      * The locale used by `Intl.NumberFormat` when formatting the value.
      * Defaults to the user's runtime locale.
      */
-    locale?: MaybeAccessor<Intl.LocalesArgument | undefined>;
+    locale?: Intl.LocalesArgument;
     /**
      * The maximum value
      * @default 100
      */
-    max?: MaybeAccessor<number | undefined>;
+    max?: number;
     /**
      * The minimum value
      * @default 0
      */
-    min?: MaybeAccessor<number | undefined>;
+    min?: number;
     /**
      * The current value.
      */
-    value: MaybeAccessor<number>;
+    value: number;
   }
 }

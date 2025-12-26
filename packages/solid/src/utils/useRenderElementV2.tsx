@@ -1,4 +1,4 @@
-import { mergeProps, Show, type JSX, type ValidComponent } from 'solid-js';
+import { Show, type JSX, type ValidComponent } from 'solid-js';
 import { Dynamic, type DynamicProps } from 'solid-js/web';
 import { combineProps } from '../merge-props/combineProps';
 import { access, type MaybeAccessor } from '../solid-helpers';
@@ -82,7 +82,7 @@ export function useRenderElement<
             },
           ])}
         >
-          {componentProps.children}
+          {params.children ?? componentProps.children}
         </Dynamic>
       </Show>
     );

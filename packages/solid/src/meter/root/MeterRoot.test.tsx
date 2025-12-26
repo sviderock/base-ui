@@ -37,7 +37,7 @@ describe('<Meter.Root />', () => {
     it('should update aria-valuenow when value changes', async () => {
       const [value, setValue] = createSignal(50);
       render(() => (
-        <Meter.Root value={value}>
+        <Meter.Root value={value()}>
           <Meter.Track>
             <Meter.Indicator />
           </Meter.Track>
