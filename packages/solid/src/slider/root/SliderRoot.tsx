@@ -240,7 +240,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
   });
 
   const state = createMemo<SliderRoot.State>(() => ({
-    ...fieldState(),
+    ...fieldState,
     activeThumbIndex: active(),
     disabled: disabled(),
     dragging: dragging(),

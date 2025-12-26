@@ -1,11 +1,11 @@
 'use client';
-import { batch, createEffect, createMemo, createSignal, on, onCleanup } from 'solid-js';
+import { batch, createEffect, createSignal, on, onCleanup } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { useFieldsetRootContext } from '../../fieldset/root/FieldsetRootContext';
 import { useFormContext } from '../../form/FormContext';
-import { access, splitComponentProps, type Args, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps, type Args } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { DEFAULT_VALIDITY_STATE, fieldValidityMapping } from '../utils/constants';
 import { FieldRootContext, type FieldRootChildRefs } from './FieldRootContext';
 
@@ -24,10 +24,9 @@ export function FieldRoot(componentProps: FieldRoot.Props) {
     'validationMode',
     'invalid',
   ]);
-  const validationDebounceTime = () => access(local.validationDebounceTime) ?? 0;
-  const validationMode = () => access(local.validationMode) ?? 'onBlur';
-  const disabledProp = () => access(local.disabled) ?? false;
-  const name = () => access(local.name);
+  const validationDebounceTime = () => local.validationDebounceTime ?? 0;
+  const validationMode = () => local.validationMode ?? 'onBlur';
+  const disabledProp = () => local.disabled ?? false;
 
   const { disabled: disabledFieldset } = useFieldsetRootContext();
 
@@ -61,9 +60,11 @@ export function FieldRoot(componentProps: FieldRoot.Props) {
   };
 
   const invalid = () => {
-    const n = name();
     const err = errors();
-    return Boolean(local.invalid || (n && {}.hasOwnProperty.call(err, n) && err[n] !== undefined));
+    return Boolean(
+      local.invalid ||
+        (local.name && {}.hasOwnProperty.call(err, local.name) && err[local.name] !== undefined),
+    );
   };
 
   const [validityData, setValidityData] = createStore<FieldValidityData>({
@@ -76,14 +77,26 @@ export function FieldRoot(componentProps: FieldRoot.Props) {
 
   const valid = () => !invalid() && validityData.state.valid;
 
-  const state = createMemo<FieldRoot.State>(() => ({
-    disabled: disabled(),
-    touched: touched(),
-    dirty: dirty(),
-    valid: valid(),
-    filled: filled(),
-    focused: focused(),
-  }));
+  const state: FieldRoot.State = {
+    get disabled() {
+      return disabled();
+    },
+    get touched() {
+      return touched();
+    },
+    get dirty() {
+      return dirty();
+    },
+    get valid() {
+      return valid();
+    },
+    get filled() {
+      return filled();
+    },
+    get focused() {
+      return focused();
+    },
+  };
 
   const contextValue: FieldRootContext = {
     invalid,
@@ -95,7 +108,7 @@ export function FieldRoot(componentProps: FieldRoot.Props) {
     setCodependentRefs: setChildRefs,
     messageIds,
     setMessageIds,
-    name,
+    name: () => local.name,
     validityData,
     setValidityData,
     disabled,
@@ -195,12 +208,12 @@ export namespace FieldRoot {
      * Takes precedence over the `disabled` prop on the `<Field.Control>` component.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
     /**
      * Identifies the field when a form is submitted.
      * Takes precedence over the `name` prop on the `<Field.Control>` component.
      */
-    name?: MaybeAccessor<string | undefined>;
+    name?: string;
     /**
      * A function for custom validation. Return a string or an array of strings with
      * the error message(s) if the value is invalid, or `null` if the value is valid.
@@ -216,16 +229,16 @@ export namespace FieldRoot {
      * - **onChange** triggers validation on every change to the control value
      * @default 'onBlur'
      */
-    validationMode?: MaybeAccessor<'onBlur' | 'onChange' | undefined>;
+    validationMode?: 'onBlur' | 'onChange';
     /**
      * How long to wait between `validate` callbacks if
      * `validationMode="onChange"` is used. Specified in milliseconds.
      * @default 0
      */
-    validationDebounceTime?: MaybeAccessor<number | undefined>;
+    validationDebounceTime?: number;
     /**
      * Whether the field is forcefully marked as invalid.
      */
-    invalid?: MaybeAccessor<boolean | undefined>;
+    invalid?: boolean;
   }
 }

@@ -174,7 +174,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
   );
 
   const state = createMemo<SwitchRoot.State>(() => ({
-    ...fieldState(),
+    ...fieldState,
     checked: checked(),
     disabled: disabled(),
     readOnly: readOnly(),
@@ -182,11 +182,11 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
   }));
 
   const context: SwitchRootContext = {
-    touched: () => fieldState().touched,
-    dirty: () => fieldState().dirty,
-    valid: () => fieldState().valid,
-    filled: () => fieldState().filled,
-    focused: () => fieldState().focused,
+    touched: () => fieldState.touched,
+    dirty: () => fieldState.dirty,
+    valid: () => fieldState.valid,
+    filled: () => fieldState.filled,
+    focused: () => fieldState.focused,
     checked,
     disabled,
     readOnly,

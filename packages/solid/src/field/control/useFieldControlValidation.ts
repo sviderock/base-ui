@@ -1,7 +1,7 @@
 'use client';
 import { reconcile } from 'solid-js/store';
 import { useFormContext } from '../../form/FormContext';
-import { mergeProps } from '../../merge-props';
+import { combineProps } from '../../merge-props';
 import type { HTMLProps } from '../../utils/types';
 import { useTimeout } from '../../utils/useTimeout';
 import { useFieldRootContext } from '../root/FieldRootContext';
@@ -61,7 +61,7 @@ export function useFieldControlValidation() {
     }
 
     if (revalidate) {
-      if (state().valid !== false) {
+      if (state.valid !== false) {
         return;
       }
 
@@ -214,17 +214,17 @@ export function useFieldControlValidation() {
   };
 
   const getValidationProps = (externalProps = {}) => {
-    return mergeProps<any>(
+    return combineProps<any>(
       {
         ...(messageIds().length && { 'aria-describedby': messageIds().join(' ') }),
-        ...(state().valid === false && { 'aria-invalid': true }),
+        ...(state.valid === false && { 'aria-invalid': true }),
       },
       externalProps,
     );
   };
 
   const getInputValidationProps = (externalProps = {}) => {
-    return mergeProps<'input'>(
+    return combineProps<'input'>(
       {
         onInput(event) {
           // Workaround for https://github.com/facebook/react/issues/9023

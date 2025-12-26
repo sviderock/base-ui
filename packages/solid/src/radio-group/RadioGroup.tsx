@@ -162,7 +162,7 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
   );
 
   const state = createMemo<RadioGroup.State>(() => ({
-    ...fieldState(),
+    ...fieldState,
     disabled: disabled() ?? false,
     required: required() ?? false,
     readOnly: readOnly() ?? false,
@@ -192,7 +192,7 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
   return (
     <RadioGroupContext.Provider
       value={{
-        ...fieldState(),
+        ...fieldState,
         checkedValue,
         disabled,
         name,

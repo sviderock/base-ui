@@ -146,7 +146,7 @@ export function RadioRoot(componentProps: RadioRoot.Props) {
   }));
 
   const state = createMemo<RadioRoot.State>(() => ({
-    ...fieldState(),
+    ...fieldState,
     required: required(),
     disabled: disabled(),
     readOnly: readOnly(),
@@ -154,10 +154,10 @@ export function RadioRoot(componentProps: RadioRoot.Props) {
   }));
 
   const context: RadioRootContext = {
-    dirty: () => fieldState().dirty,
-    valid: () => fieldState().valid,
-    filled: () => fieldState().filled,
-    focused: () => fieldState().focused,
+    dirty: () => fieldState.dirty,
+    valid: () => fieldState.valid,
+    filled: () => fieldState.filled,
+    focused: () => fieldState.focused,
     disabled,
     touched,
     readOnly,

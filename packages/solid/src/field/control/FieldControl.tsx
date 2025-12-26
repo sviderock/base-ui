@@ -1,10 +1,11 @@
 'use client';
-import { createEffect, createMemo, onMount, type ComponentProps } from 'solid-js';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { createEffect, mergeProps, onMount, type JSX } from 'solid-js';
+import { combineProps } from '../../merge-props';
+import { splitComponentProps } from '../../solid-helpers';
 import { useControlled } from '../../utils';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { FieldRoot } from '../root/FieldRoot';
 import { useFieldRootContext } from '../root/FieldRootContext';
 import { useField } from '../useField';
@@ -30,15 +31,12 @@ export function FieldControl(componentProps: FieldControl.Props) {
     'onValueChange',
     'defaultValue',
   ]);
-  const nameProp = () => access(local.name);
-  const valueProp = () => access(local.value);
-  const disabledProp = () => access(local.disabled) ?? false;
-  const defaultValue = () => access(local.defaultValue);
+  const disabledProp = () => local.disabled ?? false;
 
   const { state: fieldState, name: fieldName, disabled: fieldDisabled } = useFieldRootContext();
 
   const disabled = () => fieldDisabled() || disabledProp();
-  const name = () => fieldName() ?? nameProp();
+  const name = () => fieldName() ?? local.name;
 
   const {
     labelId,
@@ -61,17 +59,17 @@ export function FieldControl(componentProps: FieldControl.Props) {
   });
 
   createEffect(() => {
-    const hasExternalValue = valueProp() != null;
-    if (refs.inputRef?.value || (hasExternalValue && valueProp() !== '')) {
+    const hasExternalValue = local.value != null;
+    if (refs.inputRef?.value || (hasExternalValue && local.value !== '')) {
       setFilled(true);
-    } else if (hasExternalValue && valueProp() === '') {
+    } else if (hasExternalValue && local.value === '') {
       setFilled(false);
     }
   });
 
   const [value, setValueUnwrapped] = useControlled({
-    controlled: valueProp,
-    default: defaultValue,
+    controlled: local.value,
+    default: local.defaultValue,
     name: 'FieldControl',
     state: 'value',
   });
@@ -90,7 +88,11 @@ export function FieldControl(componentProps: FieldControl.Props) {
     controlRef: () => refs.inputRef,
   });
 
-  const controlState = createMemo(() => ({ ...fieldState(), disabled: disabled() }));
+  const controlState: FieldControl.State = mergeProps(fieldState, {
+    get disabled() {
+      return disabled();
+    },
+  });
 
   const element = useRenderElement('input', componentProps, {
     state: controlState,
@@ -99,12 +101,22 @@ export function FieldControl(componentProps: FieldControl.Props) {
     },
     customStyleHookMapping: fieldValidityMapping,
     props: [
-      () => ({
-        id: id(),
-        disabled: disabled(),
-        name: name(),
-        'aria-labelledby': labelId(),
-        value: value(),
+      {
+        get id() {
+          return id();
+        },
+        get disabled() {
+          return disabled();
+        },
+        get name() {
+          return name();
+        },
+        get 'aria-labelledby'() {
+          return labelId();
+        },
+        get value() {
+          return value();
+        },
         onChange(event) {
           if (value() != null) {
             setValue(event.currentTarget.value, event);
@@ -130,9 +142,9 @@ export function FieldControl(componentProps: FieldControl.Props) {
             commitValidation(event.currentTarget.value);
           }
         },
-      }),
-      () => getValidationProps(),
-      () => getInputValidationProps(),
+      },
+      (props) => combineProps(props, getValidationProps()),
+      (props) => combineProps(props, getInputValidationProps()),
       elementProps,
     ],
   });
@@ -148,6 +160,6 @@ export namespace FieldControl {
      * Callback fired when the `value` changes. Use when controlled.
      */
     onValueChange?: (value: string, event: Event) => void;
-    defaultValue?: MaybeAccessor<ComponentProps<'input'>['value'] | undefined>;
+    defaultValue?: JSX.InputHTMLAttributes<HTMLInputElement>['value'];
   }
 }

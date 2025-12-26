@@ -1,10 +1,10 @@
 'use client';
-import { createEffect, createMemo, For, onCleanup } from 'solid-js';
+import { createEffect, createMemo, For, onCleanup, splitProps } from 'solid-js';
 import { useFormContext } from '../../form/FormContext';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { FieldRoot } from '../root/FieldRoot';
 import { useFieldRootContext } from '../root/FieldRootContext';
 import { fieldValidityMapping } from '../utils/constants';
@@ -16,8 +16,7 @@ import { fieldValidityMapping } from '../utils/constants';
  * Documentation: [Base UI Field](https://base-ui.com/react/components/field)
  */
 export function FieldError(componentProps: FieldError.Props) {
-  const [, local, elementProps] = splitComponentProps(componentProps, ['id', 'match']);
-  const match = createMemo(() => access(local.match));
+  const [local, elementProps] = splitProps(componentProps, ['id', 'match']);
 
   const id = useBaseUiId(() => local.id);
 
@@ -29,11 +28,10 @@ export function FieldError(componentProps: FieldError.Props) {
 
   const rendered = createMemo(() => {
     let isRendered = false;
-    const m = match();
-    if (formError() || m === true) {
+    if (formError() || local.match === true) {
       isRendered = true;
-    } else if (m) {
-      isRendered = Boolean(validityData.state[m]);
+    } else if (local.match) {
+      isRendered = Boolean(validityData.state[local.match]);
     } else {
       isRendered = validityData.state.valid === false;
     }
@@ -57,21 +55,33 @@ export function FieldError(componentProps: FieldError.Props) {
     state,
     enabled: rendered,
     customStyleHookMapping: fieldValidityMapping,
-    props: [() => ({ id: id() }), elementProps],
-    children: () =>
-      componentProps.children ?? (
-        <>
-          {formError() ||
-            (validityData.errors.length > 1 ? (
-              <ul>
-                {' '}
-                <For each={validityData.errors}>{(message) => <li>{message}</li>}</For>{' '}
-              </ul>
-            ) : (
-              validityData.error
-            ))}
-        </>
-      ),
+    props: [
+      {
+        get id() {
+          return id();
+        },
+        get children() {
+          return (
+            <>
+              {componentProps.children ?? (
+                <>
+                  {formError() ||
+                    (validityData.errors.length > 1 ? (
+                      <ul>
+                        {' '}
+                        <For each={validityData.errors}>{(message) => <li>{message}</li>}</For>{' '}
+                      </ul>
+                    ) : (
+                      validityData.error
+                    ))}
+                </>
+              )}
+            </>
+          );
+        },
+      },
+      elementProps,
+    ],
   });
 
   return <>{element()}</>;
@@ -87,6 +97,6 @@ export namespace FieldError {
      * Specifying `true` will always show the error message, and lets external libraries
      * control the visibility.
      */
-    match?: MaybeAccessor<boolean | keyof ValidityState | undefined>;
+    match?: boolean | keyof ValidityState;
   }
 }

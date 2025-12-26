@@ -89,7 +89,7 @@ export function SelectTrigger(componentProps: SelectTrigger.Props) {
   });
 
   const state = createMemo<SelectTrigger.State>(() => ({
-    ...fieldState(),
+    ...fieldState,
     open: store.open,
     disabled: disabled(),
     value: store.value,

@@ -358,7 +358,7 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
   });
 
   const state = createMemo<NumberFieldRoot.State>(() => ({
-    ...fieldState(),
+    ...fieldState,
     disabled: disabled(),
     readOnly: readOnly(),
     required: required(),

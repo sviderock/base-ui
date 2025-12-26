@@ -293,7 +293,7 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
   });
 
   const state = createMemo<CheckboxRoot.State>(() => ({
-    ...fieldState(),
+    ...fieldState,
     checked: computedChecked(),
     disabled: disabled(),
     readOnly: readOnly(),

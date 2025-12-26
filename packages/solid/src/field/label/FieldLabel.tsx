@@ -4,7 +4,7 @@ import { getTarget } from '../../floating-ui-solid/utils';
 import { access, splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { FieldRoot } from '../root/FieldRoot';
 import { useFieldRootContext } from '../root/FieldRootContext';
 import { fieldValidityMapping } from '../utils/constants';
@@ -17,16 +17,15 @@ import { fieldValidityMapping } from '../utils/constants';
  */
 export function FieldLabel(componentProps: FieldLabel.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['id']);
-  const idProp = () => access(local.id);
 
   const { labelId, state, controlId, setCodependentRefs } = useFieldRootContext(false);
 
-  const id = useBaseUiId(idProp);
+  const id = useBaseUiId(local.id);
   const htmlFor = () => controlId() ?? undefined;
   let ref: HTMLElement;
 
   onMount(() => {
-    setCodependentRefs('label', { explicitId: id, ref: () => ref, id: idProp });
+    setCodependentRefs('label', { explicitId: id, ref: () => ref, id: () => local.id });
   });
 
   const element = useRenderElement('label', componentProps, {
@@ -36,9 +35,13 @@ export function FieldLabel(componentProps: FieldLabel.Props) {
     },
     customStyleHookMapping: fieldValidityMapping,
     props: [
-      () => ({
-        id: labelId(),
-        for: htmlFor(),
+      {
+        get id() {
+          return labelId();
+        },
+        get for() {
+          return htmlFor();
+        },
         onMouseDown(event) {
           const target = getTarget(event) as HTMLElement | null;
           if (target?.closest('button,input,select,textarea')) {
@@ -50,7 +53,7 @@ export function FieldLabel(componentProps: FieldLabel.Props) {
             event.preventDefault();
           }
         },
-      }),
+      },
       elementProps,
     ],
   });

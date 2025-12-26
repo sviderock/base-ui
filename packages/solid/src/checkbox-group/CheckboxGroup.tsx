@@ -99,7 +99,7 @@ export function CheckboxGroup(componentProps: CheckboxGroup.Props) {
   };
 
   const state = createMemo<CheckboxGroup.State>(() => ({
-    ...fieldState(),
+    ...fieldState,
     disabled: disabled(),
   }));
 

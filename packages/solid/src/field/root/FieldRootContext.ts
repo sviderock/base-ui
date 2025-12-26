@@ -1,12 +1,12 @@
 'use client';
 import { createContext, useContext, type Accessor, type Setter } from 'solid-js';
 import { type SetStoreFunction, type Store } from 'solid-js/store';
-import type { CodepenedentRefs } from '../../solid-helpers';
+import type { CodependentRefs } from '../../solid-helpers';
 import { NOOP } from '../../utils/noop';
 import { DEFAULT_VALIDITY_STATE } from '../utils/constants';
 import type { FieldRoot, FieldValidityData } from './FieldRoot';
 
-export type FieldRootChildRefs = CodepenedentRefs<['label', 'control']>;
+export type FieldRootChildRefs = CodependentRefs<['label', 'control']>;
 
 export interface FieldRootContext {
   invalid: Accessor<boolean | undefined>;
@@ -38,7 +38,7 @@ export interface FieldRootContext {
   ) => string | string[] | null | Promise<string | string[] | null>;
   validationMode: Accessor<'onBlur' | 'onChange'>;
   validationDebounceTime: Accessor<number>;
-  state: Accessor<FieldRoot.State>;
+  state: FieldRoot.State;
   refs: {
     markedDirtyRef: boolean;
   };
@@ -75,14 +75,14 @@ export const FieldRootContext = createContext<FieldRootContext>({
   validate: () => null,
   validationMode: () => 'onBlur' as const,
   validationDebounceTime: () => 0,
-  state: () => ({
+  state: {
     disabled: false,
     valid: null,
     touched: false,
     dirty: false,
     filled: false,
     focused: false,
-  }),
+  },
   refs: {
     markedDirtyRef: false,
   },
