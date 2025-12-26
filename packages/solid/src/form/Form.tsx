@@ -8,7 +8,7 @@ import {
   type MaybeAccessor,
 } from '../solid-helpers';
 import type { BaseUIComponentProps } from '../utils/types';
-import { useRenderElement } from '../utils/useRenderElement';
+import { useRenderElement } from '../utils/useRenderElementV2';
 import { FormContext } from './FormContext';
 
 const EMPTY = {};
@@ -25,7 +25,6 @@ export function Form(componentProps: Form.Props) {
     'onClearErrors',
     'onSubmit',
   ]);
-  const errors = () => access(local.errors);
   const [formRef, setFormRef] = createStore<FormContext['formRef']>({ fields: {} });
   let submitted = false;
 
@@ -56,7 +55,7 @@ export function Form(componentProps: Form.Props) {
   );
 
   const clearErrors = (name: string | undefined) => {
-    const err = errors();
+    const err = local.errors;
     if (name && err && EMPTY.hasOwnProperty.call(err, name)) {
       const nextErrors = { ...err };
       delete nextErrors[name];
@@ -67,12 +66,12 @@ export function Form(componentProps: Form.Props) {
   const contextValue: FormContext = {
     formRef,
     setFormRef,
-    errors: () => errors() ?? {},
+    errors: () => local.errors ?? {},
     clearErrors,
   };
 
   const element = useRenderElement('form', componentProps, {
-    state: () => EMPTY,
+    state: EMPTY,
     props: [
       {
         noValidate: true,
@@ -103,7 +102,7 @@ export namespace Form {
      * An object where the keys correspond to the `name` attribute of the form fields,
      * and the values correspond to the error(s) related to that field.
      */
-    errors?: MaybeAccessor<ReturnType<FormContext['errors']> | undefined>;
+    errors?: ReturnType<FormContext['errors']>;
     /**
      * Event handler called when the `errors` object is cleared.
      */
