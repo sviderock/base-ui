@@ -1,8 +1,8 @@
 'use client';
-import { createMemo, type JSX } from 'solid-js';
+import { type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { valueToPercent } from '../../utils/valueToPercent';
 import type { ProgressRoot } from '../root/ProgressRoot';
 import { useProgressRootContext } from '../root/ProgressRootContext';
@@ -22,21 +22,24 @@ export function ProgressIndicator(componentProps: ProgressIndicator.Props) {
   const percentageValue = () =>
     Number.isFinite(value()) && value() !== null ? valueToPercent(value()!, min(), max()) : null;
 
-  const getStyles = createMemo<JSX.CSSProperties>(() => {
-    if (percentageValue() == null) {
-      return {} as JSX.CSSProperties;
-    }
-
-    return {
-      'inset-inline-start': 0,
-      height: 'inherit',
-      width: `${percentageValue()}%`,
-    };
-  });
-
   const element = useRenderElement('div', componentProps, {
     state,
-    props: [() => ({ style: getStyles() }), elementProps],
+    props: [
+      {
+        get style(): JSX.CSSProperties {
+          if (percentageValue() == null) {
+            return {};
+          }
+
+          return {
+            'inset-inline-start': 0,
+            height: 'inherit',
+            width: `${percentageValue()}%`,
+          };
+        },
+      },
+      elementProps,
+    ],
     customStyleHookMapping: progressStyleHookMapping,
   });
 

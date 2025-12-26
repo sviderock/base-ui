@@ -1,9 +1,9 @@
 'use client';
-import { createRenderEffect, onCleanup } from 'solid-js';
+import { onMount } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { ProgressRoot } from '../root/ProgressRoot';
 import { useProgressRootContext } from '../root/ProgressRootContext';
 import { progressStyleHookMapping } from '../root/styleHooks';
@@ -18,20 +18,27 @@ export function ProgressLabel(componentProps: ProgressLabel.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['id']);
 
   const id = useBaseUiId(() => local.id);
+  let ref!: HTMLElement;
 
-  const { setLabelId, state } = useProgressRootContext();
+  const { setCodependentRefs, state } = useProgressRootContext();
 
-  createRenderEffect(() => {
-    setLabelId(id());
-  });
-
-  onCleanup(() => {
-    setLabelId(undefined);
+  onMount(() => {
+    setCodependentRefs('label', { explicitId: id, ref: () => ref, id: () => local.id });
   });
 
   const element = useRenderElement('span', componentProps, {
     state,
-    props: [() => ({ id: id() }), elementProps],
+    ref: (el) => {
+      ref = el;
+    },
+    props: [
+      {
+        get id() {
+          return id();
+        },
+      },
+      elementProps,
+    ],
     customStyleHookMapping: progressStyleHookMapping,
   });
 

@@ -1,9 +1,10 @@
 'use client';
-import { createEffect, createMemo, createSignal } from 'solid-js';
-import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
+import { createEffect, createMemo, createSignal, on, onCleanup } from 'solid-js';
+import { createStore } from 'solid-js/store';
+import { splitComponentProps, type CodependentRefs } from '../../solid-helpers';
 import { formatNumber } from '../../utils/formatNumber';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { ProgressRootContext } from './ProgressRootContext';
 import { progressStyleHookMapping } from './styleHooks';
 
@@ -46,58 +47,84 @@ export function ProgressRoot(componentProps: ProgressRoot.Props) {
     'min',
     'value',
   ]);
-  const format = () => access(local.format);
-  const locale = () => access(local.locale);
-  const max = () => access(local.max) ?? 100;
-  const min = () => access(local.min) ?? 0;
-  const value = () => access(local.value);
+  const max = () => local.max ?? 100;
+  const min = () => local.min ?? 0;
 
   const [labelId, setLabelId] = createSignal<string | undefined>();
+  const [codependentRefs, setCodependentRefs] = createStore<CodependentRefs<['label']>>({});
 
-  let formatOptionsRef = format();
+  let formatOptionsRef = local.format;
   createEffect(() => {
-    formatOptionsRef = format();
+    formatOptionsRef = local.format;
   });
 
   const status = createMemo<ProgressStatus>(() => {
-    if (Number.isFinite(value())) {
-      return value() === max() ? 'complete' : 'progressing';
+    if (Number.isFinite(local.value)) {
+      return local.value === max() ? 'complete' : 'progressing';
     }
 
     return 'indeterminate';
   });
 
-  const formattedValue = () => formatValue(value(), locale(), formatOptionsRef);
+  const formattedValue = () => formatValue(local.value, local.locale, formatOptionsRef);
 
-  const state = createMemo<ProgressRoot.State>(() => ({
-    status: status(),
-  }));
+  const state: ProgressRoot.State = {
+    get status() {
+      return status();
+    },
+  };
 
   const contextValue: ProgressRootContext = {
     formattedValue,
     max,
     min,
-    setLabelId,
     state,
     status,
-    value,
+    value: () => local.value,
+    codependentRefs,
+    setCodependentRefs,
   };
+
+  createEffect(
+    on(
+      () => codependentRefs.label,
+      (label) => {
+        if (label) {
+          setLabelId(label.id() ?? label.explicitId());
+        }
+
+        onCleanup(() => {
+          setLabelId(undefined);
+        });
+      },
+    ),
+  );
 
   const element = useRenderElement('div', componentProps, {
     state,
     customStyleHookMapping: progressStyleHookMapping,
     props: [
-      () => ({
-        'aria-labelledby': labelId(),
-        'aria-valuemax': max(),
-        'aria-valuemin': min(),
-        'aria-valuenow': value() ?? undefined,
-        'aria-valuetext': local.getAriaValueText
-          ? local.getAriaValueText(formattedValue(), value())
-          : (componentProps['aria-valuetext'] ??
-            getDefaultAriaValueText(formattedValue(), value())),
+      {
         role: 'progressbar',
-      }),
+        get 'aria-labelledby'() {
+          return labelId();
+        },
+        get 'aria-valuemax'() {
+          return max();
+        },
+        get 'aria-valuemin'() {
+          return min();
+        },
+        get 'aria-valuenow'() {
+          return local.value ?? undefined;
+        },
+        get 'aria-valuetext'() {
+          return local.getAriaValueText
+            ? local.getAriaValueText(formattedValue(), local.value)
+            : (componentProps['aria-valuetext'] ??
+                getDefaultAriaValueText(formattedValue(), local.value));
+        },
+      },
       elementProps,
     ],
   });
@@ -118,7 +145,7 @@ export namespace ProgressRoot {
     /**
      * Options to format the value.
      */
-    format?: MaybeAccessor<Intl.NumberFormatOptions | undefined>;
+    format?: Intl.NumberFormatOptions;
     /**
      * Accepts a function which returns a string value that provides a human-readable text alternative for the current value of the progress bar.
      * @param {string} formattedValue The component's formatted value.
@@ -130,21 +157,21 @@ export namespace ProgressRoot {
      * The locale used by `Intl.NumberFormat` when formatting the value.
      * Defaults to the user's runtime locale.
      */
-    locale?: MaybeAccessor<Intl.LocalesArgument | undefined>;
+    locale?: Intl.LocalesArgument;
     /**
      * The maximum value.
      * @default 100
      */
-    max?: MaybeAccessor<number | undefined>;
+    max?: number;
     /**
      * The minimum value.
      * @default 0
      */
-    min?: MaybeAccessor<number | undefined>;
+    min?: number;
     /**
      * The current value. The component is indeterminate when value is `null`.
      * @default null
      */
-    value: MaybeAccessor<number | null>;
+    value: number | null;
   }
 }

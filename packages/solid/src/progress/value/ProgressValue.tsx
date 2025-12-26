@@ -2,7 +2,7 @@
 import { type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { ProgressRoot } from '../root/ProgressRoot';
 import { useProgressRootContext } from '../root/ProgressRootContext';
 import { progressStyleHookMapping } from '../root/styleHooks';
@@ -13,7 +13,7 @@ import { progressStyleHookMapping } from '../root/styleHooks';
  * Documentation: [Base UI Progress](https://base-ui.com/react/components/progress)
  */
 export function ProgressValue(componentProps: ProgressValue.Props) {
-  const [, , elementProps] = splitComponentProps(componentProps, []);
+  const [, , elementProps] = splitComponentProps(componentProps, ['children']);
 
   const { value, formattedValue, state } = useProgressRootContext();
 
@@ -24,8 +24,9 @@ export function ProgressValue(componentProps: ProgressValue.Props) {
     state,
     props: [{ 'aria-hidden': true }, elementProps],
     customStyleHookMapping: progressStyleHookMapping,
-    children: () =>
-      componentProps.children?.(formattedValueArg(), value()) ?? formattedValueDisplay(),
+    get children() {
+      return componentProps.children?.(formattedValueArg(), value()) ?? formattedValueDisplay();
+    },
   });
 
   return <>{element()}</>;

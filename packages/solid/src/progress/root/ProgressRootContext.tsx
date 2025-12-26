@@ -1,5 +1,7 @@
 'use client';
-import { createContext, useContext, type Accessor, type Setter } from 'solid-js';
+import { createContext, useContext, type Accessor } from 'solid-js';
+import type { SetStoreFunction, Store } from 'solid-js/store';
+import type { CodependentRefs } from '../../solid-helpers';
 import type { ProgressRoot, ProgressStatus } from './ProgressRoot';
 
 export type ProgressRootContext = {
@@ -19,9 +21,10 @@ export type ProgressRootContext = {
    * Value of the component.
    */
   value: Accessor<number | null>;
-  setLabelId: Setter<string | undefined>;
-  state: Accessor<ProgressRoot.State>;
+  state: ProgressRoot.State;
   status: Accessor<ProgressStatus>;
+  codependentRefs: Store<CodependentRefs<['label']>>;
+  setCodependentRefs: SetStoreFunction<CodependentRefs<['label']>>;
 };
 
 /**

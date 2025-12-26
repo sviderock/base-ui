@@ -16,7 +16,7 @@ describe('<Progress.Indicator />', () => {
       render(() => (
         <Progress.Root value={33}>
           <Progress.Track>
-            <Progress.Indicator data-testid="indicator" render={(p) => <span {...p()} />} />
+            <Progress.Indicator data-testid="indicator" render="span" />
           </Progress.Track>
         </Progress.Root>
       ));

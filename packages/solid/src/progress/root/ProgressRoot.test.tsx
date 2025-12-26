@@ -50,7 +50,7 @@ describe('<Progress.Root />', () => {
 
     it('should update aria-valuenow when value changes', async () => {
       const [value, setValue] = createSignal(50);
-      render(() => <TestProgress value={value} />);
+      render(() => <TestProgress value={value()} />);
       const progressbar = screen.getByRole('progressbar');
       setValue(77);
       expect(progressbar).to.have.attribute('aria-valuenow', '77');
