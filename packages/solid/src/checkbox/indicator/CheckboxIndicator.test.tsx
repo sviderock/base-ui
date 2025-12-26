@@ -30,7 +30,7 @@ describe('<Checkbox.Indicator />', () => {
     refInstanceof: window.HTMLSpanElement,
     render: (node, props) =>
       render(() => (
-        <CheckboxRootContext.Provider value={testContext}>
+        <CheckboxRootContext.Provider value={testContext()}>
           {node(props)}
         </CheckboxRootContext.Provider>
       )),
@@ -108,7 +108,7 @@ describe('<Checkbox.Indicator />', () => {
       return (
         <div>
           <button onClick={() => setChecked(false)}>Close</button>
-          <Checkbox.Root checked={checked}>
+          <Checkbox.Root checked={checked()}>
             <Checkbox.Indicator data-testid="indicator" />
           </Checkbox.Root>
         </div>
@@ -160,7 +160,7 @@ describe('<Checkbox.Indicator />', () => {
           {/* eslint-disable-next-line solid/no-innerhtml */}
           <style innerHTML={style} />
           <button onClick={() => setChecked(false)}>Close</button>
-          <Checkbox.Root checked={checked}>
+          <Checkbox.Root checked={checked()}>
             <Checkbox.Indicator
               class="animation-test-indicator"
               data-testid="indicator"

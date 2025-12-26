@@ -1,10 +1,10 @@
 'use client';
-import { createContext, useContext, type Accessor } from 'solid-js';
+import { createContext, useContext } from 'solid-js';
 import type { CheckboxRoot } from './CheckboxRoot';
 
 export type CheckboxRootContext = CheckboxRoot.State;
 
-export const CheckboxRootContext = createContext<Accessor<CheckboxRootContext>>();
+export const CheckboxRootContext = createContext<CheckboxRootContext>();
 
 export function useCheckboxRootContext() {
   const context = useContext(CheckboxRootContext);

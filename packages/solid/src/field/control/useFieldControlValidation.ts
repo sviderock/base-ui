@@ -2,7 +2,7 @@
 import { reconcile } from 'solid-js/store';
 import { useFormContext } from '../../form/FormContext';
 import { combineProps } from '../../merge-props';
-import type { HTMLProps } from '../../utils/types';
+import type { BaseUIHTMLProps, HTMLProps, WithBaseUIEvent } from '../../utils/types';
 import { useTimeout } from '../../utils/useTimeout';
 import { useFieldRootContext } from '../root/FieldRootContext';
 import { DEFAULT_VALIDITY_STATE } from '../utils/constants';
@@ -276,8 +276,8 @@ export function useFieldControlValidation() {
 
 export namespace useFieldControlValidation {
   export interface ReturnValue {
-    getValidationProps: (props?: HTMLProps) => HTMLProps;
-    getInputValidationProps: (props?: HTMLProps) => HTMLProps;
+    getValidationProps: (props?: HTMLProps | WithBaseUIEvent<HTMLProps>) => BaseUIHTMLProps;
+    getInputValidationProps: (props?: HTMLProps | WithBaseUIEvent<HTMLProps>) => BaseUIHTMLProps;
     refs: {
       inputRef: any;
     };

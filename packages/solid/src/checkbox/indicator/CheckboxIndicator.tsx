@@ -1,12 +1,12 @@
 'use client';
-import { createMemo, Show } from 'solid-js';
+import { mergeProps, Show, splitProps } from 'solid-js';
 import { fieldValidityMapping } from '../../field/utils/constants';
-import { access, MaybeAccessor, splitComponentProps } from '../../solid-helpers';
+import { access, MaybeAccessor } from '../../solid-helpers';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { type TransitionStatus, useTransitionStatus } from '../../utils/useTransitionStatus';
 import type { CheckboxRoot } from '../root/CheckboxRoot';
 import { useCheckboxRootContext } from '../root/CheckboxRootContext';
@@ -19,12 +19,12 @@ import { useCustomStyleHookMapping } from '../utils/useCustomStyleHookMapping';
  * Documentation: [Base UI Checkbox](https://base-ui.com/react/components/checkbox)
  */
 export function CheckboxIndicator(componentProps: CheckboxIndicator.Props) {
-  const [, local, elementProps] = splitComponentProps(componentProps, ['keepMounted']);
+  const [local, elementProps] = splitProps(componentProps, ['keepMounted']);
   const keepMounted = () => access(local.keepMounted) ?? false;
 
   const rootState = useCheckboxRootContext();
 
-  const rendered = () => rootState().checked || rootState().indeterminate;
+  const rendered = () => rootState.checked || rootState.indeterminate;
 
   const { transitionStatus, setMounted } = useTransitionStatus(rendered);
 
@@ -40,22 +40,21 @@ export function CheckboxIndicator(componentProps: CheckboxIndicator.Props) {
     },
   });
 
-  const baseStyleHookMapping = useCustomStyleHookMapping(() => rootState());
+  const baseStyleHookMapping = useCustomStyleHookMapping(rootState);
 
-  const customStyleHookMapping = createMemo<CustomStyleHookMapping<CheckboxIndicator.State>>(
-    () => ({
-      ...baseStyleHookMapping(),
-      ...transitionStatusMapping,
-      ...fieldValidityMapping,
-    }),
-  );
+  const customStyleHookMapping: CustomStyleHookMapping<CheckboxIndicator.State> = {
+    ...baseStyleHookMapping,
+    ...transitionStatusMapping,
+    ...fieldValidityMapping,
+  };
 
   const shouldRender = () => keepMounted() || rendered();
 
-  const indicatorState = createMemo<CheckboxIndicator.State>(() => ({
-    ...rootState(),
-    transitionStatus: transitionStatus(),
-  }));
+  const indicatorState: CheckboxIndicator.State = mergeProps(rootState, {
+    get transitionStatus() {
+      return transitionStatus();
+    },
+  });
 
   const element = useRenderElement('span', componentProps, {
     state: indicatorState,
@@ -67,11 +66,7 @@ export function CheckboxIndicator(componentProps: CheckboxIndicator.Props) {
     enabled: shouldRender,
   });
 
-  return (
-    <Show when={shouldRender()} fallback={null}>
-      {element()}
-    </Show>
-  );
+  return <Show when={shouldRender()}>{element()}</Show>;
 }
 
 export namespace CheckboxIndicator {
