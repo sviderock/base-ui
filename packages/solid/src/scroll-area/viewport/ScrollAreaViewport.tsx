@@ -1,12 +1,12 @@
 'use client';
-import { batch, createEffect, on, onCleanup, onMount } from 'solid-js';
+import { createEffect, on, onCleanup, onMount } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { splitComponentProps } from '../../solid-helpers';
 import { clamp } from '../../utils/clamp';
 import { styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { MIN_THUMB_SIZE } from '../constants';
 import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
@@ -184,19 +184,21 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
 
   const element = useRenderElement('div', componentProps, {
     ref: (el) => {
-      batch(() => {
-        viewportEl = el;
-        context.refs.viewportRef = el;
-      });
+      viewportEl = el;
+      context.refs.viewportRef = el;
     },
     props: [
-      () => ({
+      {
         role: 'presentation',
-        ...(context.rootId() && { 'data-id': `${context.rootId()}-viewport` }),
+        get ['data-id' as string]() {
+          return context.rootId() ? `${context.rootId()}-viewport` : undefined;
+        },
         // https://accessibilityinsights.io/info-examples/web/scrollable-region-focusable/
-        ...((!context.hiddenState.scrollbarXHidden || !context.hiddenState.scrollbarYHidden) && {
-          tabIndex: 0,
-        }),
+        get tabIndex() {
+          return !context.hiddenState.scrollbarXHidden || !context.hiddenState.scrollbarYHidden
+            ? 0
+            : undefined;
+        },
         class: styleDisableScrollbar.class,
         style: {
           overflow: 'scroll',
@@ -231,7 +233,7 @@ export function ScrollAreaViewport(componentProps: ScrollAreaViewport.Props) {
         onPointerMove: handleUserInteraction,
         onPointerEnter: handleUserInteraction,
         onKeyDown: handleUserInteraction,
-      }),
+      },
       elementProps,
     ],
   });

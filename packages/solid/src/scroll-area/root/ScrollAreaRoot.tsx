@@ -1,11 +1,11 @@
 'use client';
-import { createSignal, onCleanup, onMount } from 'solid-js';
+import { createSignal, onCleanup, onMount, type JSX } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { splitComponentProps } from '../../solid-helpers';
 import { STYLE_TAG_ID, styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { SCROLL_TIMEOUT } from '../constants';
 import { ScrollAreaScrollbarDataAttributes } from '../scrollbar/ScrollAreaScrollbarDataAttributes';
@@ -216,7 +216,7 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
 
   const element = useRenderElement('div', componentProps, {
     props: [
-      () => ({
+      {
         role: 'presentation',
         onPointerEnter: handlePointerEnterOrMove,
         onPointerMove: handlePointerEnterOrMove,
@@ -226,12 +226,14 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
         onPointerLeave() {
           setHovering(false);
         },
-        style: {
-          position: 'relative',
-          [ScrollAreaRootCssVars.scrollAreaCornerHeight as string]: `${cornerSize.height}px`,
-          [ScrollAreaRootCssVars.scrollAreaCornerWidth as string]: `${cornerSize.width}px`,
+        get style(): JSX.CSSProperties {
+          return {
+            position: 'relative',
+            [ScrollAreaRootCssVars.scrollAreaCornerHeight as string]: `${cornerSize.height}px`,
+            [ScrollAreaRootCssVars.scrollAreaCornerWidth as string]: `${cornerSize.width}px`,
+          };
         },
-      }),
+      },
       elementProps,
     ],
   });

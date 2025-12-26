@@ -1,8 +1,8 @@
 'use client';
-import { createMemo } from 'solid-js';
+import type { JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
 import { useScrollAreaScrollbarContext } from '../scrollbar/ScrollAreaScrollbarContext';
 import { ScrollAreaScrollbarCssVars } from '../scrollbar/ScrollAreaScrollbarCssVars';
@@ -20,9 +20,11 @@ export function ScrollAreaThumb(componentProps: ScrollAreaThumb.Props) {
 
   const scrollbarContext = useScrollAreaScrollbarContext();
 
-  const state = createMemo<ScrollAreaThumb.State>(() => ({
-    orientation: scrollbarContext.orientation(),
-  }));
+  const state: ScrollAreaThumb.State = {
+    get orientation() {
+      return scrollbarContext.orientation();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
@@ -34,7 +36,7 @@ export function ScrollAreaThumb(componentProps: ScrollAreaThumb.Props) {
       }
     },
     props: [
-      () => ({
+      {
         onPointerDown: rootContext.handlePointerDown,
         onPointerMove: rootContext.handlePointerMove,
         onPointerUp(event) {
@@ -46,15 +48,17 @@ export function ScrollAreaThumb(componentProps: ScrollAreaThumb.Props) {
           }
           rootContext.handlePointerUp(event);
         },
-        style: {
-          ...(scrollbarContext.orientation() === 'vertical' && {
-            height: `var(${ScrollAreaScrollbarCssVars.scrollAreaThumbHeight})`,
-          }),
-          ...(scrollbarContext.orientation() === 'horizontal' && {
-            width: `var(${ScrollAreaScrollbarCssVars.scrollAreaThumbWidth})`,
-          }),
+        get style(): JSX.CSSProperties {
+          return {
+            ...(scrollbarContext.orientation() === 'vertical' && {
+              height: `var(${ScrollAreaScrollbarCssVars.scrollAreaThumbHeight})`,
+            }),
+            ...(scrollbarContext.orientation() === 'horizontal' && {
+              width: `var(${ScrollAreaScrollbarCssVars.scrollAreaThumbWidth})`,
+            }),
+          };
         },
-      }),
+      },
       elementProps,
     ],
   });

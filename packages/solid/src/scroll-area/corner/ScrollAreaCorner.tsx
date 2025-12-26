@@ -1,8 +1,8 @@
 'use client';
-import { Show } from 'solid-js';
+import { Show, type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
 
 /**
@@ -20,15 +20,17 @@ export function ScrollAreaCorner(componentProps: ScrollAreaCorner.Props) {
       context.refs.cornerRef = el;
     },
     props: [
-      () => ({
-        style: {
-          position: 'absolute',
-          bottom: 0,
-          'inset-inline-end': 0,
-          width: `${context.cornerSize.width}px`,
-          height: `${context.cornerSize.height}px`,
+      {
+        get style(): JSX.CSSProperties {
+          return {
+            position: 'absolute',
+            bottom: 0,
+            'inset-inline-end': 0,
+            width: `${context.cornerSize.width}px`,
+            height: `${context.cornerSize.height}px`,
+          };
         },
-      }),
+      },
       elementProps,
     ],
   });

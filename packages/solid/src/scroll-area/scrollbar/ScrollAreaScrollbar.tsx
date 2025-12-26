@@ -1,9 +1,9 @@
 'use client';
-import { createEffect, createMemo, onCleanup, Show } from 'solid-js';
+import { createEffect, onCleanup, Show, type JSX } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useScrollAreaRootContext } from '../root/ScrollAreaRootContext';
 import { ScrollAreaRootCssVars } from '../root/ScrollAreaRootCssVars';
 import { getOffset } from '../utils/getOffset';
@@ -20,16 +20,22 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
     'orientation',
     'keepMounted',
   ]);
-  const orientation = () => access(local.orientation) ?? 'vertical';
-  const keepMounted = () => access(local.keepMounted) ?? false;
+  const orientation = () => local.orientation ?? 'vertical';
+  const keepMounted = () => local.keepMounted ?? false;
 
   const context = useScrollAreaRootContext();
 
-  const state = createMemo<ScrollAreaScrollbar.State>(() => ({
-    hovering: context.hovering(),
-    scrolling: { horizontal: context.scrollingX(), vertical: context.scrollingY() }[orientation()],
-    orientation: orientation(),
-  }));
+  const state: ScrollAreaScrollbar.State = {
+    get hovering() {
+      return context.hovering();
+    },
+    get scrolling() {
+      return { horizontal: context.scrollingX(), vertical: context.scrollingY() }[orientation()];
+    },
+    get orientation() {
+      return orientation();
+    },
+  };
 
   const direction = useDirection();
 
@@ -104,8 +110,10 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
       }
     },
     props: [
-      () => ({
-        ...(context.rootId() && { 'data-id': `${context.rootId()}-scrollbar` }),
+      {
+        get ['data-id' as string]() {
+          return context.rootId() ? `${context.rootId()}-scrollbar` : undefined;
+        },
         onPointerDown(event) {
           // Ignore clicks on thumb
           if (event.currentTarget !== event.target) {
@@ -184,23 +192,25 @@ export function ScrollAreaScrollbar(componentProps: ScrollAreaScrollbar.Props) {
           context.handlePointerDown(event);
         },
         onPointerUp: context.handlePointerUp,
-        style: {
-          position: 'absolute',
-          'touch-action': 'none',
-          ...(orientation() === 'vertical' && {
-            top: 0,
-            bottom: `var(${ScrollAreaRootCssVars.scrollAreaCornerHeight})`,
-            'inset-inline-end': 0,
-            [ScrollAreaScrollbarCssVars.scrollAreaThumbHeight as string]: `${context.thumbSize.height}px`,
-          }),
-          ...(orientation() === 'horizontal' && {
-            'inset-inline-start': 0,
-            'inset-inline-end': `var(${ScrollAreaRootCssVars.scrollAreaCornerWidth})`,
-            bottom: 0,
-            [ScrollAreaScrollbarCssVars.scrollAreaThumbWidth as string]: `${context.thumbSize.width}px`,
-          }),
+        get style(): JSX.CSSProperties {
+          return {
+            position: 'absolute',
+            'touch-action': 'none',
+            ...(orientation() === 'vertical' && {
+              top: 0,
+              bottom: `var(${ScrollAreaRootCssVars.scrollAreaCornerHeight})`,
+              'inset-inline-end': 0,
+              [ScrollAreaScrollbarCssVars.scrollAreaThumbHeight as string]: `${context.thumbSize.height}px`,
+            }),
+            ...(orientation() === 'horizontal' && {
+              'inset-inline-start': 0,
+              'inset-inline-end': `var(${ScrollAreaRootCssVars.scrollAreaCornerWidth})`,
+              bottom: 0,
+              [ScrollAreaScrollbarCssVars.scrollAreaThumbWidth as string]: `${context.thumbSize.width}px`,
+            }),
+          };
         },
-      }),
+      },
       elementProps,
     ],
   });
@@ -226,11 +236,11 @@ export namespace ScrollAreaScrollbar {
      * Whether the scrollbar controls vertical or horizontal scroll.
      * @default 'vertical'
      */
-    orientation?: MaybeAccessor<'vertical' | 'horizontal' | undefined>;
+    orientation?: 'vertical' | 'horizontal';
     /**
      * Whether to keep the HTML element in the DOM when the viewport isn’t scrollable.
      * @default false
      */
-    keepMounted?: MaybeAccessor<boolean | undefined>;
+    keepMounted?: boolean;
   }
 }
