@@ -1,11 +1,11 @@
 'use client';
-import { createEffect, createMemo, onCleanup, Show } from 'solid-js';
+import { createEffect, mergeProps, Show } from 'solid-js';
 import { useCollapsiblePanel } from '../../collapsible/panel/useCollapsiblePanel';
 import { useCollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
 import { access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { warn } from '../../utils/warn';
 import type { AccordionItem } from '../item/AccordionItem';
@@ -31,8 +31,8 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
   const { hiddenUntilFound: contextHiddenUntilFound, keepMounted: contextKeepMounted } =
     useAccordionRootContext();
 
-  const hiddenUntilFound = () => access(local.hiddenUntilFound) ?? contextHiddenUntilFound();
-  const keepMounted = () => access(local.keepMounted) ?? contextKeepMounted();
+  const hiddenUntilFound = () => local.hiddenUntilFound ?? contextHiddenUntilFound();
+  const keepMounted = () => local.keepMounted ?? contextKeepMounted();
 
   const {
     animationType,
@@ -54,7 +54,6 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
     setTransitionDimension,
     visible,
     width,
-    setPanelIdState,
     transitionStatus,
   } = useCollapsibleRootContext();
 
@@ -67,15 +66,6 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
       }
     });
   }
-
-  createEffect(() => {
-    if (local.id) {
-      setPanelIdState(local.id);
-      onCleanup(() => {
-        setPanelIdState(undefined);
-      });
-    }
-  });
 
   createEffect(() => {
     setHiddenUntilFound(hiddenUntilFound());
@@ -121,10 +111,11 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
 
   const { state, triggerId } = useAccordionItemContext();
 
-  const panelState = createMemo<AccordionPanel.State>(() => ({
-    ...state(),
-    transitionStatus: transitionStatus(),
-  }));
+  const panelState = mergeProps(state, {
+    get transitionStatus() {
+      return transitionStatus();
+    },
+  });
 
   const element = useRenderElement('div', componentProps, {
     state: panelState,
@@ -134,16 +125,22 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
     },
     props: [
       panel.props,
-      () => ({
-        'aria-labelledby': triggerId?.(),
-        role: 'region' as const,
-        style: {
-          [AccordionPanelCssVars.accordionPanelHeight as string]:
-            height() === undefined ? 'auto' : `${height()}px`,
-          [AccordionPanelCssVars.accordionPanelWidth as string]:
-            width() === undefined ? 'auto' : `${width()}px`,
+      {
+        get 'aria-labelledby'() {
+          return triggerId?.();
         },
-      }),
+        get role() {
+          return 'region' as const;
+        },
+        get style() {
+          return {
+            [AccordionPanelCssVars.accordionPanelHeight as string]:
+              height() === undefined ? 'auto' : `${height()}px`,
+            [AccordionPanelCssVars.accordionPanelWidth as string]:
+              width() === undefined ? 'auto' : `${width()}px`,
+          };
+        },
+      },
       elementProps,
     ],
     customStyleHookMapping: accordionStyleHookMapping,

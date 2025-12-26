@@ -1,12 +1,15 @@
 'use client';
 import { createContext, useContext, type Accessor } from 'solid-js';
+import type { SetStoreFunction, Store } from 'solid-js/store';
+import type { CodependentRefs } from '../../solid-helpers';
 import type { AccordionItem } from './AccordionItem';
 
 export interface AccordionItemContext {
   open: Accessor<boolean>;
-  state: Accessor<AccordionItem.State>;
-  setTriggerId: (id: string | undefined) => void;
+  state: AccordionItem.State;
   triggerId?: Accessor<string | undefined>;
+  codependentRefs: Store<CodependentRefs<['trigger']>>;
+  setCodependentRefs: SetStoreFunction<CodependentRefs<['trigger']>>;
 }
 
 export const AccordionItemContext = createContext<AccordionItemContext>();

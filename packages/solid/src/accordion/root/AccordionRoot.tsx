@@ -15,7 +15,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../../solid-hel
 import { isElementDisabled } from '../../utils/isElementDisabled';
 import { BaseUIComponentProps, Orientation } from '../../utils/types';
 import { useControlled } from '../../utils/useControlled';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { warn } from '../../utils/warn';
 import { AccordionRootContext } from './AccordionRootContext';
 
@@ -62,19 +62,15 @@ export function AccordionRoot(componentProps: AccordionRoot.Props) {
     'defaultValue',
   ]);
   const disabled = () => access(local.disabled) ?? false;
-  const hiddenUntilFoundProp = () => access(local.hiddenUntilFound);
-  const keepMountedProp = () => access(local.keepMounted);
   const loop = () => access(local.loop) ?? true;
   const openMultiple = () => access(local.openMultiple) ?? true;
   const orientation = () => access(local.orientation) ?? 'vertical';
-  const valueProp = () => access(local.value);
-  const defaultValueProp = () => access(local.defaultValue);
 
   const direction = useDirection();
 
   if (process.env.NODE_ENV !== 'production') {
     createEffect(() => {
-      if (hiddenUntilFoundProp() && keepMountedProp() === false) {
+      if (local.hiddenUntilFound && local.keepMounted === false) {
         warn(
           'The `keepMounted={false}` prop on a Accordion.Root will be ignored when using `hiddenUntilFound` since it requires Panels to remain mounted when closed.',
         );
@@ -85,8 +81,8 @@ export function AccordionRoot(componentProps: AccordionRoot.Props) {
   // memoized to allow omitting both defaultValue and value
   // which would otherwise trigger a warning in useControlled
   const defaultValue = createMemo(() => {
-    if (valueProp() === undefined) {
-      return defaultValueProp() ?? [];
+    if (local.value === undefined) {
+      return local.defaultValue ?? [];
     }
 
     return undefined;
@@ -95,7 +91,7 @@ export function AccordionRoot(componentProps: AccordionRoot.Props) {
   const accordionItemElements: (HTMLElement | null | undefined)[] = [];
 
   const [value, setValue] = useControlled({
-    controlled: valueProp,
+    controlled: local.value,
     default: defaultValue,
     name: 'Accordion',
     state: 'value',
@@ -121,19 +117,25 @@ export function AccordionRoot(componentProps: AccordionRoot.Props) {
   const isRtl = () => direction() === 'rtl';
   const isHorizontal = () => orientation() === 'horizontal';
 
-  const state = createMemo<AccordionRoot.State>(() => ({
-    value: value(),
-    disabled: disabled(),
-    orientation: orientation(),
-  }));
+  const state: AccordionRoot.State = {
+    get value() {
+      return value();
+    },
+    get disabled() {
+      return disabled();
+    },
+    get orientation() {
+      return orientation();
+    },
+  };
 
   const contextValue: AccordionRootContext = {
     accordionItemElements,
     direction,
     disabled,
     handleValueChange,
-    hiddenUntilFound: () => hiddenUntilFoundProp() ?? false,
-    keepMounted: () => keepMountedProp() ?? false,
+    hiddenUntilFound: () => local.hiddenUntilFound ?? false,
+    keepMounted: () => local.keepMounted ?? false,
     orientation,
     state,
     value,
@@ -142,9 +144,13 @@ export function AccordionRoot(componentProps: AccordionRoot.Props) {
   const element = useRenderElement('div', componentProps, {
     state,
     props: [
-      () => ({
-        dir: direction(),
-        role: 'region',
+      {
+        get dir() {
+          return direction();
+        },
+        get role() {
+          return 'region' as const;
+        },
         onKeyDown(event) {
           if (!SUPPORTED_KEYS.has(event.key)) {
             return;
@@ -220,7 +226,7 @@ export function AccordionRoot(componentProps: AccordionRoot.Props) {
             triggers[nextIndex].focus();
           }
         },
-      }),
+      },
       elementProps,
     ],
     customStyleHookMapping: rootStyleHookMapping,
@@ -251,18 +257,18 @@ export namespace AccordionRoot {
      *
      * To render an uncontrolled accordion, use the `defaultValue` prop instead.
      */
-    value?: MaybeAccessor<AccordionValue | undefined>;
+    value?: AccordionValue;
     /**
      * The uncontrolled value of the item(s) that should be initially expanded.
      *
      * To render a controlled accordion, use the `value` prop instead.
      */
-    defaultValue?: MaybeAccessor<AccordionValue | undefined>;
+    defaultValue?: AccordionValue;
     /**
      * Whether the component should ignore user interaction.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
     /**
      * Allows the browser’s built-in page search to find and expand the panel contents.
      *
@@ -270,19 +276,19 @@ export namespace AccordionRoot {
      * to hide the element without removing it from the DOM.
      * @default false
      */
-    hiddenUntilFound?: MaybeAccessor<boolean | undefined>;
+    hiddenUntilFound?: boolean;
     /**
      * Whether to keep the element in the DOM while the panel is closed.
      * This prop is ignored when `hiddenUntilFound` is used.
      * @default false
      */
-    keepMounted?: MaybeAccessor<boolean | undefined>;
+    keepMounted?: boolean;
     /**
      * Whether to loop keyboard focus back to the first item
      * when the end of the list is reached while using the arrow keys.
      * @default true
      */
-    loop?: MaybeAccessor<boolean | undefined>;
+    loop?: boolean;
     /**
      * Event handler called when an accordion item is expanded or collapsed.
      * Provides the new value as an argument.
@@ -292,12 +298,12 @@ export namespace AccordionRoot {
      * Whether multiple items can be open at the same time.
      * @default true
      */
-    openMultiple?: MaybeAccessor<boolean | undefined>;
+    openMultiple?: boolean;
     /**
      * The visual orientation of the accordion.
      * Controls whether roving focus uses left/right or up/down arrow keys.
      * @default 'vertical'
      */
-    orientation?: MaybeAccessor<Orientation | undefined>;
+    orientation?: Orientation;
   }
 }

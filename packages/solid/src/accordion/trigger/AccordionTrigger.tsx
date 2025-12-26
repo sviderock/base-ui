@@ -1,11 +1,11 @@
 'use client';
-import { createEffect, createMemo, onCleanup, type JSX } from 'solid-js';
+import { type JSX } from 'solid-js';
 import { useCollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { AccordionItem } from '../item/AccordionItem';
 import { useAccordionItemContext } from '../item/AccordionItemContext';
 
@@ -22,8 +22,8 @@ export function AccordionTrigger(componentProps: AccordionTrigger.Props) {
     'id',
     'nativeButton',
   ]);
-  const disabledProp = () => access(local.disabled) ?? false;
-  const native = () => access(local.nativeButton) ?? true;
+  const disabledProp = () => local.disabled ?? false;
+  const native = () => local.nativeButton ?? true;
 
   const { panelId, open, handleTrigger, disabled: contextDisabled } = useCollapsibleRootContext();
 
@@ -35,25 +35,24 @@ export function AccordionTrigger(componentProps: AccordionTrigger.Props) {
     native,
   });
 
-  const { state, setTriggerId, triggerId: id } = useAccordionItemContext();
+  const { state, triggerId: id } = useAccordionItemContext();
 
-  createEffect(() => {
-    if (local.id) {
-      setTriggerId(local.id);
-
-      onCleanup(() => {
-        setTriggerId(undefined);
-      });
-    }
-  });
-
-  const props = createMemo<JSX.HTMLAttributes<HTMLButtonElement>>(() => ({
-    'aria-controls': open() ? panelId() : undefined,
-    'aria-expanded': open(),
-    disabled: disabled(),
-    id: id?.(),
+  const props: JSX.HTMLAttributes<HTMLButtonElement> = {
+    get 'aria-controls'() {
+      return open() ? panelId() : undefined;
+    },
+    get 'aria-expanded'() {
+      return open();
+    },
+    // @ts-expect-error - disabled is not a valid attribute for a button
+    get disabled() {
+      return disabled();
+    },
+    get id() {
+      return id?.();
+    },
     onClick: handleTrigger,
-  }));
+  };
 
   const element = useRenderElement('button', componentProps, {
     state,
@@ -73,6 +72,6 @@ export namespace AccordionTrigger {
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default true
      */
-    nativeButton?: MaybeAccessor<boolean | undefined>;
+    nativeButton?: boolean;
   }
 }

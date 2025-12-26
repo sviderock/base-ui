@@ -12,7 +12,7 @@ export interface AccordionRootContext {
   hiddenUntilFound: Accessor<boolean>;
   keepMounted: Accessor<boolean>;
   orientation: Accessor<Orientation>;
-  state: Accessor<AccordionRoot.State>;
+  state: AccordionRoot.State;
   value: Accessor<AccordionValue>;
 }
 
