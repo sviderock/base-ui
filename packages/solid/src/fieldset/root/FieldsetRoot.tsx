@@ -1,8 +1,9 @@
 'use client';
-import { createMemo, createSignal } from 'solid-js';
-import { access, splitComponentProps } from '../../solid-helpers';
+import { createEffect, createSignal, on } from 'solid-js';
+import { createStore } from 'solid-js/store';
+import { splitComponentProps, type CodependentRefs } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { FieldsetRootContext } from './FieldsetRootContext';
 
 /**
@@ -13,26 +14,43 @@ import { FieldsetRootContext } from './FieldsetRootContext';
  */
 export function FieldsetRoot(componentProps: FieldsetRoot.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['disabled']);
-  const disabled = () => access(local.disabled) ?? false;
+  const disabled = () => local.disabled ?? false;
 
-  const [legendId, setLegendId] = createSignal<string>();
+  const [legendId, setLegendId] = createSignal<string | undefined>();
+  const [codependentRefs, setCodependentRefs] = createStore<CodependentRefs<['legend']>>({});
 
-  const state = createMemo<FieldsetRoot.State>(() => ({
-    disabled: disabled(),
-  }));
+  const state: FieldsetRoot.State = {
+    get disabled() {
+      return disabled();
+    },
+  };
 
   const contextValue: FieldsetRootContext = {
     legendId,
-    setLegendId,
+    codependentRefs,
+    setCodependentRefs,
     disabled,
   };
+
+  createEffect(
+    on(
+      () => codependentRefs.legend,
+      (legend) => {
+        if (legend) {
+          setLegendId(legend.id() ?? legend.explicitId());
+        }
+      },
+    ),
+  );
 
   const element = useRenderElement('fieldset', componentProps, {
     state,
     props: [
-      () => ({
-        'aria-labelledby': legendId(),
-      }),
+      {
+        get 'aria-labelledby'() {
+          return legendId();
+        },
+      },
       elementProps,
     ],
   });

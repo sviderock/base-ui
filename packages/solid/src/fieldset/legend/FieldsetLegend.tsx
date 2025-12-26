@@ -1,9 +1,9 @@
 'use client';
-import { createEffect, createMemo, onCleanup } from 'solid-js';
+import { onMount } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useFieldsetRootContext } from '../root/FieldsetRootContext';
 
 /**
@@ -15,24 +15,34 @@ import { useFieldsetRootContext } from '../root/FieldsetRootContext';
 export function FieldsetLegend(componentProps: FieldsetLegend.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['id']);
 
-  const { disabled, setLegendId } = useFieldsetRootContext();
+  const { disabled, setCodependentRefs } = useFieldsetRootContext();
 
   const id = useBaseUiId(() => local.id);
+  let ref!: HTMLElement;
 
-  createEffect(() => {
-    setLegendId(id());
-    onCleanup(() => {
-      setLegendId(undefined);
-    });
+  onMount(() => {
+    setCodependentRefs('legend', { explicitId: id, ref: () => ref, id: () => local.id });
   });
 
-  const state = createMemo<FieldsetLegend.State>(() => ({
-    disabled: disabled() ?? false,
-  }));
+  const state: FieldsetLegend.State = {
+    get disabled() {
+      return disabled() ?? false;
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
-    props: [() => ({ id: id() }), elementProps],
+    ref: (el) => {
+      ref = el;
+    },
+    props: [
+      {
+        get id() {
+          return id();
+        },
+      },
+      elementProps,
+    ],
   });
 
   return <>{element()}</>;
