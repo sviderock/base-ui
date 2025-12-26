@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createMemo, createSignal, type Accessor } from 'solid-js';
+import { createEffect, createSignal, type Accessor } from 'solid-js';
 import type { TextDirection } from '../../direction-provider/DirectionContext';
 import { activeElement } from '../../floating-ui-solid/utils';
 import { access, type MaybeAccessor } from '../../solid-helpers';
@@ -144,202 +144,201 @@ export function useCompositeRoot<Metadata>(
     scrollIntoViewIfNeeded(rootRef(), activeItem, direction(), orientation());
   }
 
-  const props: Accessor<HTMLProps> = createMemo(() => {
-    const orientationValue = orientation();
-    return {
-      'aria-orientation': orientationValue === 'both' ? undefined : orientationValue,
-      // We need to capture the focus event in order to also trigger the focus event on the root element
-      onFocus(event) {
-        if (!rootRef() || !isNativeInput(event.target)) {
+  const props: HTMLProps = {
+    get ['aria-orientation']() {
+      const orientationValue = orientation();
+      return orientationValue === 'both' ? undefined : orientationValue;
+    },
+    // We need to capture the focus event in order to also trigger the focus event on the root element
+    onFocus(event) {
+      if (!rootRef() || !isNativeInput(event.target)) {
+        return;
+      }
+      event.target.setSelectionRange(0, event.target.value.length ?? 0);
+    },
+    onKeyDown(event) {
+      const RELEVANT_KEYS = enableHomeAndEndKeys() ? ALL_KEYS : ARROW_KEYS;
+      if (!RELEVANT_KEYS.has(event.key)) {
+        return;
+      }
+
+      if (isModifierKeySet(event, modifierKeys())) {
+        return;
+      }
+
+      if (!rootRef()) {
+        return;
+      }
+
+      const isRtl = direction() === 'rtl';
+      const orientationValue = orientation();
+
+      const horizontalForwardKey = isRtl ? ARROW_LEFT : ARROW_RIGHT;
+      const forwardKey = {
+        horizontal: horizontalForwardKey,
+        vertical: ARROW_DOWN,
+        both: horizontalForwardKey,
+      }[orientationValue];
+      const horizontalBackwardKey = isRtl ? ARROW_RIGHT : ARROW_LEFT;
+      const backwardKey = {
+        horizontal: horizontalBackwardKey,
+        vertical: ARROW_UP,
+        both: horizontalBackwardKey,
+      }[orientationValue];
+
+      if (isNativeInput(event.target) && !isElementDisabled(event.target)) {
+        const selectionStart = event.target.selectionStart;
+        const selectionEnd = event.target.selectionEnd;
+        const textContent = event.target.value ?? '';
+        // return to native textbox behavior when
+        // 1 - Shift is held to make a text selection, or if there already is a text selection
+        if (selectionStart == null || event.shiftKey || selectionStart !== selectionEnd) {
           return;
         }
-        event.target.setSelectionRange(0, event.target.value.length ?? 0);
-      },
-      onKeyDown(event) {
-        const RELEVANT_KEYS = enableHomeAndEndKeys() ? ALL_KEYS : ARROW_KEYS;
-        if (!RELEVANT_KEYS.has(event.key)) {
+        // 2 - arrow-ing forward and not in the last position of the text
+        if (event.key !== backwardKey && selectionStart < textContent.length) {
           return;
         }
-
-        if (isModifierKeySet(event, modifierKeys())) {
+        // 3 -arrow-ing backward and not in the first position of the text
+        if (event.key !== forwardKey && selectionStart > 0) {
           return;
         }
+      }
 
-        if (!rootRef()) {
-          return;
+      let nextIndex = highlightedIndex();
+      const minIndex = getMinListIndex(refs.elements, disabledIndices());
+      const maxIndex = getMaxListIndex(refs.elements, disabledIndices());
+
+      if (isGrid()) {
+        const sizes =
+          access(params.itemSizes) ||
+          Array.from({ length: refs.elements.length }, () => ({
+            width: 1,
+            height: 1,
+          }));
+        // To calculate movements on the grid, we use hypothetical cell indices
+        // as if every item was 1x1, then convert back to real indices.
+        const cellMap = createGridCellMap(sizes, cols(), dense());
+        const minGridIndex = cellMap.findIndex(
+          (index) => index != null && !isListIndexDisabled(refs.elements, index, disabledIndices()),
+        );
+        // last enabled index
+        const maxGridIndex = cellMap.reduce(
+          (foundIndex: number, index, cellIndex) =>
+            index != null && !isListIndexDisabled(refs.elements, index, disabledIndices())
+              ? cellIndex
+              : foundIndex,
+          -1,
+        );
+        nextIndex = cellMap[
+          getGridNavigatedIndex(
+            cellMap.map((itemIndex) => (itemIndex != null ? refs.elements[itemIndex] : null)),
+            {
+              event,
+              orientation: orientationValue,
+              loop: loop(),
+              cols: cols(),
+              // treat undefined (empty grid spaces) as disabled indices so we
+              // don't end up in them
+              disabledIndices: getGridCellIndices(
+                [
+                  ...(disabledIndices() ||
+                    refs.elements.map((_, index) =>
+                      isListIndexDisabled(refs.elements, index) ? index : undefined,
+                    )),
+                  undefined,
+                ],
+                cellMap,
+              ),
+              minIndex: minGridIndex,
+              maxIndex: maxGridIndex,
+              prevIndex: getGridCellIndexOfCorner(
+                highlightedIndex() > maxIndex ? minIndex : highlightedIndex(),
+                sizes,
+                cellMap,
+                cols(),
+                // use a corner matching the edge closest to the direction we're
+                // moving in so we don't end up in the same item. Prefer
+                // top/left over bottom/right.
+                event.key === ARROW_DOWN ? 'bl' : event.key === ARROW_RIGHT ? 'tr' : 'tl',
+              ),
+              rtl: isRtl,
+            },
+          )
+        ] as number; // navigated cell will never be nullish
+      }
+
+      const forwardKeys = {
+        horizontal: [horizontalForwardKey],
+        vertical: [ARROW_DOWN],
+        both: [horizontalForwardKey, ARROW_DOWN],
+      }[orientationValue];
+
+      const backwardKeys = {
+        horizontal: [horizontalBackwardKey],
+        vertical: [ARROW_UP],
+        both: [horizontalBackwardKey, ARROW_UP],
+      }[orientationValue];
+
+      const preventedKeys = isGrid()
+        ? RELEVANT_KEYS
+        : {
+            horizontal: enableHomeAndEndKeys() ? HORIZONTAL_KEYS_WITH_EXTRA_KEYS : HORIZONTAL_KEYS,
+            vertical: enableHomeAndEndKeys() ? VERTICAL_KEYS_WITH_EXTRA_KEYS : VERTICAL_KEYS,
+            both: RELEVANT_KEYS,
+          }[orientationValue];
+
+      if (enableHomeAndEndKeys()) {
+        if (event.key === HOME) {
+          nextIndex = minIndex;
+        } else if (event.key === END) {
+          nextIndex = maxIndex;
         }
-        const isRtl = direction() === 'rtl';
+      }
 
-        const horizontalForwardKey = isRtl ? ARROW_LEFT : ARROW_RIGHT;
-        const forwardKey = {
-          horizontal: horizontalForwardKey,
-          vertical: ARROW_DOWN,
-          both: horizontalForwardKey,
-        }[orientationValue];
-        const horizontalBackwardKey = isRtl ? ARROW_RIGHT : ARROW_LEFT;
-        const backwardKey = {
-          horizontal: horizontalBackwardKey,
-          vertical: ARROW_UP,
-          both: horizontalBackwardKey,
-        }[orientationValue];
-
-        if (isNativeInput(event.target) && !isElementDisabled(event.target)) {
-          const selectionStart = event.target.selectionStart;
-          const selectionEnd = event.target.selectionEnd;
-          const textContent = event.target.value ?? '';
-          // return to native textbox behavior when
-          // 1 - Shift is held to make a text selection, or if there already is a text selection
-          if (selectionStart == null || event.shiftKey || selectionStart !== selectionEnd) {
-            return;
-          }
-          // 2 - arrow-ing forward and not in the last position of the text
-          if (event.key !== backwardKey && selectionStart < textContent.length) {
-            return;
-          }
-          // 3 -arrow-ing backward and not in the first position of the text
-          if (event.key !== forwardKey && selectionStart > 0) {
-            return;
-          }
-        }
-
-        let nextIndex = highlightedIndex();
-        const minIndex = getMinListIndex(refs.elements, disabledIndices());
-        const maxIndex = getMaxListIndex(refs.elements, disabledIndices());
-
-        if (isGrid()) {
-          const sizes =
-            access(params.itemSizes) ||
-            Array.from({ length: refs.elements.length }, () => ({
-              width: 1,
-              height: 1,
-            }));
-          // To calculate movements on the grid, we use hypothetical cell indices
-          // as if every item was 1x1, then convert back to real indices.
-          const cellMap = createGridCellMap(sizes, cols(), dense());
-          const minGridIndex = cellMap.findIndex(
-            (index) =>
-              index != null && !isListIndexDisabled(refs.elements, index, disabledIndices()),
-          );
-          // last enabled index
-          const maxGridIndex = cellMap.reduce(
-            (foundIndex: number, index, cellIndex) =>
-              index != null && !isListIndexDisabled(refs.elements, index, disabledIndices())
-                ? cellIndex
-                : foundIndex,
-            -1,
-          );
-          nextIndex = cellMap[
-            getGridNavigatedIndex(
-              cellMap.map((itemIndex) => (itemIndex != null ? refs.elements[itemIndex] : null)),
-              {
-                event,
-                orientation: orientationValue,
-                loop: loop(),
-                cols: cols(),
-                // treat undefined (empty grid spaces) as disabled indices so we
-                // don't end up in them
-                disabledIndices: getGridCellIndices(
-                  [
-                    ...(disabledIndices() ||
-                      refs.elements.map((_, index) =>
-                        isListIndexDisabled(refs.elements, index) ? index : undefined,
-                      )),
-                    undefined,
-                  ],
-                  cellMap,
-                ),
-                minIndex: minGridIndex,
-                maxIndex: maxGridIndex,
-                prevIndex: getGridCellIndexOfCorner(
-                  highlightedIndex() > maxIndex ? minIndex : highlightedIndex(),
-                  sizes,
-                  cellMap,
-                  cols(),
-                  // use a corner matching the edge closest to the direction we're
-                  // moving in so we don't end up in the same item. Prefer
-                  // top/left over bottom/right.
-                  event.key === ARROW_DOWN ? 'bl' : event.key === ARROW_RIGHT ? 'tr' : 'tl',
-                ),
-                rtl: isRtl,
-              },
-            )
-          ] as number; // navigated cell will never be nullish
-        }
-
-        const forwardKeys = {
-          horizontal: [horizontalForwardKey],
-          vertical: [ARROW_DOWN],
-          both: [horizontalForwardKey, ARROW_DOWN],
-        }[orientationValue];
-
-        const backwardKeys = {
-          horizontal: [horizontalBackwardKey],
-          vertical: [ARROW_UP],
-          both: [horizontalBackwardKey, ARROW_UP],
-        }[orientationValue];
-
-        const preventedKeys = isGrid()
-          ? RELEVANT_KEYS
-          : {
-              horizontal: enableHomeAndEndKeys()
-                ? HORIZONTAL_KEYS_WITH_EXTRA_KEYS
-                : HORIZONTAL_KEYS,
-              vertical: enableHomeAndEndKeys() ? VERTICAL_KEYS_WITH_EXTRA_KEYS : VERTICAL_KEYS,
-              both: RELEVANT_KEYS,
-            }[orientationValue];
-
-        if (enableHomeAndEndKeys()) {
-          if (event.key === HOME) {
-            nextIndex = minIndex;
-          } else if (event.key === END) {
-            nextIndex = maxIndex;
-          }
-        }
-
-        if (
-          nextIndex === highlightedIndex() &&
-          (forwardKeys.includes(event.key) || backwardKeys.includes(event.key))
-        ) {
-          if (loop() && nextIndex === maxIndex && forwardKeys.includes(event.key)) {
-            nextIndex = minIndex;
-          } else if (loop() && nextIndex === minIndex && backwardKeys.includes(event.key)) {
-            nextIndex = maxIndex;
-          } else {
-            nextIndex = findNonDisabledListIndex(refs.elements, {
-              startingIndex: nextIndex,
-              decrement: backwardKeys.includes(event.key),
-              disabledIndices: disabledIndices(),
-            });
-          }
-        }
-
-        if (nextIndex !== highlightedIndex() && !isIndexOutOfListBounds(refs.elements, nextIndex)) {
-          if (stopEventPropagation()) {
-            event.stopPropagation();
-          }
-
-          if (preventedKeys.has(event.key)) {
-            event.preventDefault();
-          }
-          onHighlightedIndexChange(nextIndex, true);
-
-          // Wait for FocusManager `returnFocus` to execute.
-          queueMicrotask(() => {
-            refs.elements[nextIndex]?.focus();
+      if (
+        nextIndex === highlightedIndex() &&
+        (forwardKeys.includes(event.key) || backwardKeys.includes(event.key))
+      ) {
+        if (loop() && nextIndex === maxIndex && forwardKeys.includes(event.key)) {
+          nextIndex = minIndex;
+        } else if (loop() && nextIndex === minIndex && backwardKeys.includes(event.key)) {
+          nextIndex = maxIndex;
+        } else {
+          nextIndex = findNonDisabledListIndex(refs.elements, {
+            startingIndex: nextIndex,
+            decrement: backwardKeys.includes(event.key),
+            disabledIndices: disabledIndices(),
           });
         }
-      },
-    };
-  });
+      }
+
+      if (nextIndex !== highlightedIndex() && !isIndexOutOfListBounds(refs.elements, nextIndex)) {
+        if (stopEventPropagation()) {
+          event.stopPropagation();
+        }
+
+        if (preventedKeys.has(event.key)) {
+          event.preventDefault();
+        }
+        onHighlightedIndexChange(nextIndex, true);
+
+        // Wait for FocusManager `returnFocus` to execute.
+        queueMicrotask(() => {
+          refs.elements[nextIndex]?.focus();
+        });
+      }
+    },
+  };
 
   return {
     props,
-    highlightedIndex,
-    onHighlightedIndexChange,
     refs,
-    disabledIndices: params.disabledIndices,
-    onMapChange,
+    highlightedIndex,
+    disabledIndices,
     rootRef,
+    onHighlightedIndexChange,
+    onMapChange,
     setRootRef: (el: HTMLElement | null | undefined) => {
       setRootRef(el);
       if (params.refs) {

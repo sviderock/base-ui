@@ -1,7 +1,7 @@
 'use client';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useCompositeItem } from './useCompositeItem';
 
 /**
@@ -9,9 +9,7 @@ import { useCompositeItem } from './useCompositeItem';
  */
 export function CompositeItem<Metadata>(componentProps: CompositeItem.Props<Metadata>) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['refs', 'metadata']);
-  const metadata = () => access(local.metadata);
-
-  const compositeItem = useCompositeItem({ metadata });
+  const compositeItem = useCompositeItem({ metadata: local.metadata });
 
   const element = useRenderElement('div', componentProps, {
     ref: (el) => {

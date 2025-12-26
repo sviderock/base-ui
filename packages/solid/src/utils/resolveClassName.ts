@@ -7,7 +7,7 @@
  */
 export function resolveClassName<State>(
   className: string | ((state: State) => string) | undefined,
-  state: State,
+  state: State | undefined,
 ) {
-  return typeof className === 'function' ? className(state) : className;
+  return typeof className === 'function' ? className(state ?? ({} as State)) : className;
 }

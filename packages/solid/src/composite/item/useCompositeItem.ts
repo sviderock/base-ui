@@ -1,5 +1,5 @@
 'use client';
-import { batch, createMemo, createSignal } from 'solid-js';
+import { createSignal } from 'solid-js';
 import type { HTMLProps } from '../../utils/types';
 import { useCompositeListItem } from '../list/useCompositeListItem';
 import { useCompositeRootContext } from '../root/CompositeRootContext';
@@ -14,8 +14,10 @@ export function useCompositeItem<Metadata>(params: UseCompositeItemParameters<Me
   const isHighlighted = () => context.highlightedIndex() === listItem.index();
   const [itemRef, setItemRef] = createSignal<HTMLElement | null>(null);
 
-  const props = createMemo<HTMLProps>(() => ({
-    tabIndex: isHighlighted() ? 0 : -1,
+  const props: HTMLProps = {
+    get tabIndex() {
+      return isHighlighted() ? 0 : -1;
+    },
     onFocus() {
       context.onHighlightedIndexChange(listItem.index());
     },
@@ -29,17 +31,14 @@ export function useCompositeItem<Metadata>(params: UseCompositeItemParameters<Me
         itemRef()?.focus();
       }
     },
-  }));
+  };
 
   return {
     props,
-    ref: itemRef,
-    setRef: (el: HTMLElement | null) => {
-      batch(() => {
-        setItemRef(el);
-        listItem.setRef(el);
-      });
-    },
     index: listItem.index,
+    setRef: (el: HTMLElement | null) => {
+      setItemRef(el);
+      listItem.setRef(el);
+    },
   };
 }

@@ -3,7 +3,7 @@ import { batch } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { Dimensions, ModifierKey } from '../composite';
 import { CompositeList, type CompositeMetadata } from '../list/CompositeList';
 import { CompositeRootContext } from './CompositeRootContext';
@@ -45,12 +45,12 @@ export function CompositeRoot<Metadata extends {}>(componentProps: CompositeRoot
 
   const contextValue: CompositeRootContext = {
     highlightedIndex: compositeRoot.highlightedIndex,
-    onHighlightedIndexChange: compositeRoot.onHighlightedIndexChange,
     highlightItemOnHover: () => access(local.highlightItemOnHover) ?? false,
+    onHighlightedIndexChange: compositeRoot.onHighlightedIndexChange,
   };
 
   const element = useRenderElement('div', componentProps, {
-    state: () => COMPOSITE_ROOT_STATE,
+    state: COMPOSITE_ROOT_STATE,
     ref: compositeRoot.setRootRef,
     props: [compositeRoot.props, elementProps],
   });

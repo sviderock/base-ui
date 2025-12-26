@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { spy } from 'sinon';
 import { callEventHandler } from '../solid-helpers';
 import type { BaseUIEvent } from '../utils/types';
-import { mergeProps } from './mergeProps';
+import { combineProps as mergeProps } from './combineProps';
 
 describe('mergeProps', () => {
   it('merges event handlers', () => {
@@ -286,9 +286,8 @@ describe('mergeProps', () => {
       expect(observedProps).to.deep.equal({});
     });
 
-    // TODO: this needs to be revisited
-    it.skip('accepts the result of the props getter', () => {
-      const propsGetter = () => ({ className: 'test-class' });
+    it('accepts the result of the props getter', () => {
+      const propsGetter = () => ({ class: 'test-class' });
       const result = mergeProps(
         {
           id: 'two',
@@ -301,7 +300,7 @@ describe('mergeProps', () => {
       );
 
       expect(result).to.deep.equal({
-        className: 'test-class',
+        class: 'test-class',
       });
     });
   });

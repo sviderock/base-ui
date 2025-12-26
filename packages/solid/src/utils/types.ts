@@ -1,25 +1,28 @@
-import type { Accessor, ComponentProps, JSX, ValidComponent } from 'solid-js';
+import type { ComponentProps, JSX, ValidComponent } from 'solid-js';
 import type { DynamicProps } from 'solid-js/web';
 
 export type HTMLProps<T = any> = JSX.HTMLAttributes<T>;
+export type BaseUIHTMLProps<T = any> = WithBaseUIEvent<JSX.HTMLAttributes<T>>;
 
 export type BaseUIEvent<E extends Event> = E & {
   preventBaseUIHandler: () => void;
   readonly baseUIHandlerPrevented?: boolean;
 };
 
-type WithPreventBaseUIHandler<T, K extends keyof T> =
-  T[K] extends JSX.EventHandlerUnion<infer TT, infer E>
-    ? JSX.EventHandlerUnion<TT, BaseUIEvent<E>>
-    : T[K] extends JSX.EventHandlerWithOptionsUnion<infer TT, infer E>
-      ? JSX.EventHandlerWithOptionsUnion<TT, BaseUIEvent<E>>
-      : T[K] extends JSX.EventHandler<infer TT, infer E>
-        ? JSX.EventHandler<TT, BaseUIEvent<E>>
-        : T[K];
+type WithPreventBaseUIHandler<T, K extends keyof T> = T[K] extends
+  | JSX.EventHandlerUnion<infer TT, infer E>
+  | undefined
+  ? JSX.EventHandlerUnion<TT, BaseUIEvent<E>>
+  : T[K] extends JSX.EventHandlerWithOptionsUnion<infer TT, infer E> | undefined
+    ? JSX.EventHandlerWithOptionsUnion<TT, BaseUIEvent<E>>
+    : T[K] extends JSX.EventHandler<infer TT, infer E> | undefined
+      ? JSX.EventHandler<TT, BaseUIEvent<E>>
+      : T[K];
 
 /**
  * Adds a `preventBaseUIHandler` method to all event handlers.
  */
+// export type WithBaseUIEvent<T> = T;
 export type WithBaseUIEvent<T> = {
   [K in keyof T]: WithPreventBaseUIHandler<T, K>;
 };
@@ -30,7 +33,7 @@ export type WithBaseUIEvent<T> = {
  * @template Props Props to be spread on the rendered element.
  * @template State Component's internal state.
  */
-export type ComponentRenderFn<Props, State> = (props: Props, state: Accessor<State>) => JSX.Element;
+export type ComponentRenderFn<Props, State> = (props: Props, state: State) => JSX.Element;
 
 /**
  * Props shared by all Base UI components.
@@ -47,7 +50,7 @@ export type BaseUIComponentProps<
    * CSS class applied to the element, or a function that
    * returns a class based on the component’s state.
    */
-  class?: string | ((state: Accessor<State>) => string);
+  class?: string | ((state: State) => string);
   /**
    * Allows you to replace the component’s HTML element
    * with a different tag, or compose it with another component.
