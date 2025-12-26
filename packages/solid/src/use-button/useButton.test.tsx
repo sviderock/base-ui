@@ -1,6 +1,6 @@
 import { isJSDOM } from '#test-utils';
 import { act } from '@mui/internal-test-utils';
-import { fireEvent, render, waitFor } from '@solidjs/testing-library';
+import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import { userEvent } from '@testing-library/user-event';
 import { expect } from 'chai';
 import { spy } from 'sinon';
@@ -22,8 +22,8 @@ describe('useButton', () => {
 
         return <button {...getButtonProps(otherProps)} />;
       }
-      const { getByRole } = render(() => <TestButton disabled />);
-      const button = getByRole('button');
+      render(() => <TestButton disabled />);
+      const button = screen.getByRole('button');
       await waitFor(() => button.focus());
       expect(button).toHaveFocus();
     });
@@ -38,7 +38,7 @@ describe('useButton', () => {
       function TestButton(props: JSX.ButtonHTMLAttributes<HTMLButtonElement>) {
         const [local, otherProps] = splitProps(props, ['disabled']);
         const { getButtonProps } = useButton({
-          disabled: local.disabled,
+          disabled: () => local.disabled,
           focusableWhenDisabled: true,
           native: false,
         });
@@ -46,7 +46,7 @@ describe('useButton', () => {
         return <span {...getButtonProps(otherProps)} />;
       }
 
-      const { getByRole } = render(() => (
+      render(() => (
         <TestButton
           disabled
           onClick={handleClick}
@@ -57,7 +57,7 @@ describe('useButton', () => {
         />
       ));
 
-      const button = getByRole('button');
+      const button = screen.getByRole('button');
       expect(document.activeElement).to.not.equal(button);
 
       expect(handleFocus.callCount).to.equal(0);
@@ -95,8 +95,8 @@ describe('useButton', () => {
         return <button {...getButtonProps()} />;
       }
 
-      const { getByRole } = render(() => <TestButton />);
-      expect(getByRole('button')).to.have.property('tabIndex', 0);
+      render(() => <TestButton />);
+      expect(screen.getByRole('button')).to.have.property('tabIndex', 0);
     });
 
     it('returns tabIndex in getButtonProps when host component is not BUTTON', async () => {
@@ -108,8 +108,8 @@ describe('useButton', () => {
         return <span {...getButtonProps()} />;
       }
 
-      const { getByRole } = render(() => <TestButton />);
-      expect(getByRole('button')).to.have.property('tabIndex', 0);
+      render(() => <TestButton />);
+      expect(screen.getByRole('button')).to.have.property('tabIndex', 0);
     });
 
     it('returns tabIndex in getButtonProps if it is explicitly provided', async () => {
@@ -119,8 +119,8 @@ describe('useButton', () => {
         return <button {...getButtonProps()} />;
       }
 
-      const { getByRole } = render(() => <TestButton />);
-      expect(getByRole('button')).to.have.property('tabIndex', customTabIndex);
+      render(() => <TestButton />);
+      expect(screen.getByRole('button')).to.have.property('tabIndex', customTabIndex);
     });
   });
 
@@ -132,8 +132,8 @@ describe('useButton', () => {
         return <button {...getButtonProps({ 'data-testid': buttonTestId })} />;
       }
 
-      const { getByRole } = await render(() => <TestButton />);
-      expect(getByRole('button')).to.have.attribute('data-testid', buttonTestId);
+      await render(() => <TestButton />);
+      expect(screen.getByRole('button')).to.have.attribute('data-testid', buttonTestId);
     });
   });
 
@@ -149,11 +149,11 @@ describe('useButton', () => {
         return <span {...getButtonProps(props)} />;
       }
 
-      const { getByRole } = render(() => (
+      render(() => (
         <TestButton onKeyUp={(event) => event.preventDefault()} onClick={handleClick} />
       ));
 
-      const button = getByRole('button');
+      const button = screen.getByRole('button');
 
       await userEvent.keyboard('[Tab]');
       expect(button).toHaveFocus();
@@ -172,11 +172,9 @@ describe('useButton', () => {
         return <span {...getButtonProps(props)} />;
       }
 
-      const { getByRole } = render(() => (
-        <TestButton onKeyDown={handleKeyDown} onClick={handleClick} />
-      ));
+      render(() => <TestButton onKeyDown={handleKeyDown} onClick={handleClick} />);
 
-      const button = getByRole('button');
+      const button = screen.getByRole('button');
 
       await act(() => button.focus());
       expect(button).toHaveFocus();
@@ -192,7 +190,7 @@ describe('useButton', () => {
     it('should server-side render', async () => {
       function TestButton(props: JSX.ButtonHTMLAttributes<HTMLButtonElement>) {
         const [local, otherProps] = splitProps(props, ['disabled']);
-        const { getButtonProps } = useButton({ disabled: local.disabled, native: false });
+        const { getButtonProps } = useButton({ disabled: () => local.disabled, native: false });
 
         return <span {...getButtonProps(otherProps)} />;
       }
@@ -204,7 +202,7 @@ describe('useButton', () => {
     it('adds disabled attribute', async () => {
       function TestButton(props: JSX.ButtonHTMLAttributes<HTMLButtonElement>) {
         const [local, otherProps] = splitProps(props, ['disabled']);
-        const { getButtonProps } = useButton({ disabled: local.disabled });
+        const { getButtonProps } = useButton({ disabled: () => local.disabled });
         return <button {...getButtonProps(otherProps)} />;
       }
 

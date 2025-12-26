@@ -1,7 +1,8 @@
 'use client';
 import { createEffect, splitProps, type ComponentProps, type JSX } from 'solid-js';
 import { useCompositeRootContext } from '../composite/root/CompositeRootContext';
-import { makeEventPreventable, mergeProps } from '../merge-props';
+import { makeEventPreventable } from '../merge-props';
+import { combineProps } from '../merge-props/combineProps';
 import { access, callEventHandler, type MaybeAccessor } from '../solid-helpers';
 import { HTMLProps } from '../utils/types';
 import { useFocusableWhenDisabled } from '../utils/useFocusableWhenDisabled';
@@ -60,7 +61,7 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
 
     const type = isNativeButton() ? 'button' : undefined;
 
-    return mergeProps<'button'>(
+    return combineProps<'button'>(
       {
         type,
         onClick(event) {
@@ -78,7 +79,7 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
         onKeyDown(event) {
           if (!disabled()) {
             // TODO: fix typing
-            makeEventPreventable(event as any);
+            makeEventPreventable(event);
             callEventHandler(local.onKeyDown, event);
           }
 
@@ -131,7 +132,7 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
           callEventHandler(local.onPointerDown, event);
         },
       },
-      !isNativeButton() ? { role: 'button' } : undefined,
+      !isNativeButton() ? { role: 'button' } : {},
       focusableWhenDisabledProps(),
       otherExternalProps,
     );

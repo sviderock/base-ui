@@ -1,9 +1,9 @@
 'use client';
-import { createEffect, createMemo, onCleanup, Show } from 'solid-js';
+import { createEffect, createMemo, Show } from 'solid-js';
 import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { warn } from '../../utils/warn';
 import type { CollapsibleRoot } from '../root/CollapsibleRoot';
 import { useCollapsibleRootContext } from '../root/CollapsibleRootContext';
@@ -36,80 +36,93 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
     });
   }
 
-  const context = useCollapsibleRootContext();
+  const {
+    animationType,
+    setAnimationType,
+    height,
+    setHiddenUntilFound,
+    setKeepMounted,
+    panelId,
+    mounted,
+    onOpenChange,
+    open,
+    refs,
+    runOnceAnimationsFinish,
+    setDimensions,
+    setMounted,
+    setOpen,
+    setVisible,
+    transitionDimension,
+    setTransitionDimension,
+    visible,
+    width,
+    state,
+  } = useCollapsibleRootContext();
 
   createEffect(() => {
-    if (local.id) {
-      context.setPanelIdState(local.id);
-
-      onCleanup(() => {
-        context.setPanelIdState(undefined);
-      });
-    }
+    setHiddenUntilFound(hiddenUntilFound());
   });
 
   createEffect(() => {
-    context.setHiddenUntilFound(hiddenUntilFound());
-  });
-
-  createEffect(() => {
-    context.setKeepMounted(keepMounted());
+    setKeepMounted(keepMounted());
   });
 
   const panel = useCollapsiblePanel({
-    animationType: context.animationType,
-    setAnimationType: context.setAnimationType,
-    height: context.height,
+    animationType,
+    setAnimationType,
+    height,
     hiddenUntilFound,
-    id: context.panelId,
+    id: () => local.id ?? panelId(),
     keepMounted,
-    mounted: context.mounted,
-    onOpenChange: context.onOpenChange,
-    open: context.open,
-    refs: context.refs,
-    runOnceAnimationsFinish: context.runOnceAnimationsFinish,
-    setDimensions: context.setDimensions,
-    setMounted: context.setMounted,
-    setOpen: context.setOpen,
-    setVisible: context.setVisible,
-    transitionDimension: context.transitionDimension,
-    setTransitionDimension: context.setTransitionDimension,
-    visible: context.visible,
-    width: context.width,
+    mounted,
+    onOpenChange,
+    open,
+    refs,
+    runOnceAnimationsFinish,
+    setDimensions,
+    setMounted,
+    setOpen,
+    setVisible,
+    transitionDimension,
+    setTransitionDimension,
+    visible,
+    width,
   });
 
   useOpenChangeComplete({
-    open: context.open,
-    ref: () => context.refs.panelRef,
+    open,
+    ref: () => refs.panelRef,
     onComplete() {
-      if (!context.open()) {
+      if (!open()) {
         return;
       }
 
-      context.setDimensions({ height: undefined, width: undefined });
+      setDimensions({ height: undefined, width: undefined });
     },
   });
 
   const shouldRender = createMemo(
-    () => keepMounted() || hiddenUntilFound() || (!keepMounted() && context.mounted()),
+    () => keepMounted() || hiddenUntilFound() || (!keepMounted() && mounted()),
   );
 
   const element = useRenderElement('div', componentProps, {
-    state: context.state,
+    state,
     ref: (el) => {
-      context.refs.panelRef = el;
+      refs.panelRef = el;
       panel.ref(el);
     },
     props: [
       panel.props,
-      () => ({
-        style: {
-          [CollapsiblePanelCssVars.collapsiblePanelHeight as string]:
-            context.height() === undefined ? 'auto' : `${context.height()}px`,
-          [CollapsiblePanelCssVars.collapsiblePanelWidth as string]:
-            context.width() === undefined ? 'auto' : `${context.width()}px`,
+      {
+        get style() {
+          return {
+            [CollapsiblePanelCssVars.collapsiblePanelHeight as string]:
+              height() === undefined ? 'auto' : `${height()}px`,
+            [CollapsiblePanelCssVars.collapsiblePanelWidth as string]:
+              width() === undefined ? 'auto' : `${width()}px`,
+          };
         },
-      }),
+      },
       elementProps,
     ],
     customStyleHookMapping: collapsibleStyleHookMapping,

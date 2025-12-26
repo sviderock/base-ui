@@ -6,7 +6,7 @@ import type { useCollapsibleRoot } from './useCollapsibleRoot';
 
 export interface CollapsibleRootContext extends useCollapsibleRoot.ReturnValue {
   onOpenChange: (open: boolean) => void;
-  state: Accessor<CollapsibleRoot.State>;
+  state: CollapsibleRoot.State;
   transitionStatus: Accessor<TransitionStatus>;
 }
 

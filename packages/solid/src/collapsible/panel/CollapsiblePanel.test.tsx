@@ -12,8 +12,9 @@ describe('<Collapsible.Panel />', () => {
 
   describeConformance(Collapsible.Panel, () => ({
     refInstanceof: window.HTMLDivElement,
-    render: (node, props) =>
-      render(() => <Collapsible.Root defaultOpen>{node(props)}</Collapsible.Root>),
+    render: (node, props) => {
+      return render(() => <Collapsible.Root defaultOpen>{node(props)}</Collapsible.Root>);
+    },
   }));
 
   describe('prop: keepMounted', () => {
@@ -43,6 +44,7 @@ describe('<Collapsible.Panel />', () => {
       expect(trigger.getAttribute('aria-controls')).to.equal(
         screen.queryByText(PANEL_CONTENT)?.getAttribute('id'),
       );
+
       expect(screen.queryByText(PANEL_CONTENT)).toBeVisible();
       expect(screen.queryByText(PANEL_CONTENT)).to.have.attribute('data-open');
       expect(trigger).to.have.attribute('data-panel-open');

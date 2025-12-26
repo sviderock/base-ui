@@ -1,12 +1,12 @@
 'use client';
-import { createMemo, type JSX } from 'solid-js';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { type JSX } from 'solid-js';
+import { access, splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
-import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { CollapsibleRoot } from '../root/CollapsibleRoot';
 import { useCollapsibleRootContext } from '../root/CollapsibleRootContext';
 
@@ -27,9 +27,15 @@ export function CollapsibleTrigger(componentProps: CollapsibleTrigger.Props): JS
     'id',
     'nativeButton',
   ]);
-  const context = useCollapsibleRootContext();
-  const nativeButton = () => access(local.nativeButton) ?? true;
-  const disabled = () => access(local.disabled) ?? context.disabled();
+  const {
+    panelId,
+    open,
+    handleTrigger,
+    disabled: contextDisabled,
+    state,
+  } = useCollapsibleRootContext();
+  const nativeButton = () => local.nativeButton ?? true;
+  const disabled = () => access(local.disabled) ?? contextDisabled();
 
   const button = useButton({
     disabled,
@@ -37,17 +43,24 @@ export function CollapsibleTrigger(componentProps: CollapsibleTrigger.Props): JS
     native: nativeButton,
   });
 
-  const props = createMemo(() => ({
-    'aria-controls': context.open() ? context.panelId() : undefined,
-    'aria-expanded': context.open(),
-    disabled: disabled(),
-    onClick: context.handleTrigger,
-  }));
+  const props: HTMLProps = {
+    get 'aria-controls'() {
+      return open() ? panelId() : undefined;
+    },
+    get 'aria-expanded'() {
+      return open();
+    },
+    // @ts-expect-error - disabled is not a valid attribute for a button
+    get disabled() {
+      return disabled();
+    },
+    onClick: handleTrigger,
+  };
 
   const element = useRenderElement('button', componentProps, {
-    state: context.state,
+    state,
     ref: button.buttonRef,
-    props: [props, elementProps, () => button.getButtonProps()],
+    props: [props, elementProps, button.getButtonProps],
     customStyleHookMapping: styleHookMapping,
   });
 
@@ -62,6 +75,6 @@ export namespace CollapsibleTrigger {
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default true
      */
-    nativeButton?: MaybeAccessor<boolean | undefined>;
+    nativeButton?: boolean;
   }
 }

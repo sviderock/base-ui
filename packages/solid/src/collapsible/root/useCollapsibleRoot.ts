@@ -4,11 +4,13 @@ import {
   createEffect,
   createSignal,
   on,
+  onCleanup,
   type Accessor,
   type JSX,
   type Setter,
 } from 'solid-js';
-import { access, type MaybeAccessor } from '../../solid-helpers';
+import { createStore, type SetStoreFunction, type Store } from 'solid-js/store';
+import { access, type CodependentRefs, type MaybeAccessor } from '../../solid-helpers';
 import { useAnimationsFinished } from '../../utils/useAnimationsFinished';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
@@ -36,6 +38,7 @@ export function useCollapsibleRoot(
     state: 'open',
   });
 
+  const [codependentRefs, setCodependentRefs] = createStore<CodependentRefs<['panel']>>({});
   const { transitionStatus, setMounted, mounted } = useTransitionStatus(open, true, true);
   const [visible, setVisible] = createSignal(open());
   const [dimensions, setDimensions] = createSignal<Dimensions>({
@@ -99,6 +102,21 @@ export function useCollapsibleRoot(
   }
 
   createEffect(
+    on(
+      () => codependentRefs.panel,
+      (panel) => {
+        if (panel) {
+          setPanelIdState(panel.id() ?? panel.explicitId());
+        }
+
+        onCleanup(() => {
+          setPanelIdState(undefined);
+        });
+      },
+    ),
+  );
+
+  createEffect(
     on([open, keepMounted, openParam, isControlled, animationType], () => {
       /**
        * Unmount immediately when closing in controlled mode and keepMounted={false}
@@ -125,12 +143,13 @@ export function useCollapsibleRoot(
     setKeepMounted,
     setMounted,
     setOpen,
-    setPanelIdState,
     setVisible,
     transitionDimension,
     setTransitionDimension,
     transitionStatus,
     visible,
+    codependentRefs,
+    setCodependentRefs,
     height: () => dimensions().height,
     width: () => dimensions().width,
   };
@@ -182,6 +201,8 @@ export namespace useCollapsibleRoot {
      * Whether the collapsible panel is currently open.
      */
     open: Accessor<boolean>;
+    codependentRefs: Store<CodependentRefs<['panel']>>;
+    setCodependentRefs: SetStoreFunction<CodependentRefs<['panel']>>;
     panelId: Accessor<JSX.HTMLAttributes<Element>['id']>;
     refs: {
       abortControllerRef: AbortController | null;
@@ -193,7 +214,6 @@ export namespace useCollapsibleRoot {
     setKeepMounted: Setter<boolean>;
     setMounted: (open: boolean) => void;
     setOpen: (open: boolean) => void;
-    setPanelIdState: (id: string | undefined) => void;
     setVisible: Setter<boolean>;
     transitionDimension: Accessor<'height' | 'width' | null>;
     setTransitionDimension: Setter<'height' | 'width' | null>;

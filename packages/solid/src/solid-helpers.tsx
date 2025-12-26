@@ -1,3 +1,4 @@
+import type { BaseUIEvent } from '@base-ui-components/solid/utils/types';
 import { children, onMount, splitProps, type Accessor, type JSX, type SplitProps } from 'solid-js';
 
 export function callEventHandler<T, E extends Event>(
@@ -52,14 +53,14 @@ export function splitComponentProps<
   T extends Record<any, any>,
   K extends [readonly (keyof T)[], ...(readonly (keyof T)[])[]],
 >(props: T, ...keys: K) {
-  const [componentProps, ...others] = splitProps(props, ['class', 'render', 'children'], ...keys);
+  const [componentProps, ...others] = splitProps(props, ['class', 'render'], ...keys);
   return [componentProps, ...others] as unknown as SplitProps<
     T,
-    [componentPropsToOmit: ['class', 'render', 'children'], ...K]
+    [componentPropsToOmit: ['class', 'render'], ...K]
   >;
 }
 
-export type CodepenedentRefs<T extends string[]> = {
+export type CodependentRefs<T extends string[]> = {
   [K in T[number]]?: {
     ref: Accessor<HTMLElement | null | undefined>;
     id: Accessor<string | undefined>;

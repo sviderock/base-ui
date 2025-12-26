@@ -1,8 +1,8 @@
 'use client';
-import { createMemo, Show } from 'solid-js';
+import { mergeProps, Show } from 'solid-js';
 import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { CollapsibleRootContext } from './CollapsibleRootContext';
 import { collapsibleStyleHookMapping } from './styleHooks';
@@ -36,17 +36,22 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
     disabled,
   });
 
-  const state = createMemo<CollapsibleRoot.State>(() => ({
-    open: collapsible.open(),
-    disabled: collapsible.disabled(),
-    transitionStatus: collapsible.transitionStatus(),
-  }));
+  const state: CollapsibleRoot.State = {
+    get open() {
+      return collapsible.open();
+    },
+    get disabled() {
+      return collapsible.disabled();
+    },
+    get transitionStatus() {
+      return collapsible.transitionStatus();
+    },
+  };
 
-  const contextValue: CollapsibleRootContext = {
-    ...collapsible,
+  const contextValue: CollapsibleRootContext = mergeProps(collapsible, {
     onOpenChange,
     state,
-  };
+  });
 
   const element = useRenderElement('div', componentProps, {
     state,

@@ -14,6 +14,7 @@ import { access, type MaybeAccessor } from '../../solid-helpers';
 import { HTMLProps } from '../../utils/types';
 import { AnimationFrame } from '../../utils/useAnimationFrame';
 import { warn } from '../../utils/warn';
+import { useCollapsibleRootContext } from '../root/CollapsibleRootContext';
 import type { AnimationType, Dimensions } from '../root/useCollapsibleRoot';
 import { CollapsiblePanelDataAttributes } from './CollapsiblePanelDataAttributes';
 
@@ -28,7 +29,9 @@ export function useCollapsiblePanel<T extends HTMLElement>(
   const open = () => access(parameters.open);
   const visible = () => access(parameters.visible);
   const width = () => access(parameters.width);
+  const { setCodependentRefs } = useCollapsibleRootContext();
 
+  let ref: T | undefined;
   let isBeforeMatchRef = false;
   let latestAnimationNameRef = null as string | null;
   let shouldCancelInitialOpenAnimationRef = open();
@@ -344,18 +347,31 @@ export function useCollapsiblePanel<T extends HTMLElement>(
     });
   });
 
+  onMount(() => {
+    setCodependentRefs('panel', {
+      explicitId: () => undefined,
+      ref: () => ref,
+      id: () => access(parameters.id),
+    });
+  });
+
   return {
     ref: (el) => {
+      ref = el;
       /**
        * TODO: putting it into onMount seems to properly time the measurement.
        * Otherwise the ref is set slightly too early.
        */
       onMount(() => handlePanelRef(el));
     },
-    props: () => ({
-      hidden: hidden(),
-      id: id(),
-    }),
+    props: {
+      get hidden() {
+        return hidden();
+      },
+      get id() {
+        return id();
+      },
+    },
   };
 }
 
@@ -420,6 +436,6 @@ export namespace useCollapsiblePanel {
      * TODO: provide better explanation
      * Ref should be ommited as Solid handles refs differently than React.
      */
-    props: Accessor<HTMLProps>;
+    props: HTMLProps;
   }
 }
