@@ -1,5 +1,5 @@
 'use client';
-import { batch, createEffect, createMemo, createSignal } from 'solid-js';
+import { batch, createEffect, createMemo, createSignal, mergeProps } from 'solid-js';
 import { SHIFT } from '../composite/composite';
 import { CompositeRoot } from '../composite/root/CompositeRoot';
 import { useFieldControlValidation } from '../field/control/useFieldControlValidation';
@@ -9,14 +9,13 @@ import { useField } from '../field/useField';
 import { fieldValidityMapping } from '../field/utils/constants';
 import { contains } from '../floating-ui-solid/utils';
 import { useFormContext } from '../form/FormContext';
-import { mergeProps } from '../merge-props';
-import { access, splitComponentProps, type MaybeAccessor } from '../solid-helpers';
+import { combineProps } from '../merge-props';
+import { splitComponentProps } from '../solid-helpers';
 import type { BaseUIComponentProps } from '../utils/types';
 import { useBaseUiId } from '../utils/useBaseUiId';
 import { useControlled } from '../utils/useControlled';
-import { useRenderElement } from '../utils/useRenderElement';
+import { useRenderElement } from '../utils/useRenderElementV2';
 import { visuallyHidden } from '../utils/visuallyHidden';
-
 import { RadioGroupContext } from './RadioGroupContext';
 
 const MODIFIER_KEYS = [SHIFT];
@@ -39,13 +38,6 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
     'refs',
     'id',
   ]);
-  const disabledProp = () => access(local.disabled);
-  const readOnly = () => access(local.readOnly);
-  const required = () => access(local.required);
-  const externalValue = () => access(local.value);
-  const defaultValue = () => access(local.defaultValue);
-  const nameProp = () => access(local.name);
-  const idProp = () => access(local.id);
 
   const {
     labelId,
@@ -59,13 +51,13 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
   const fieldControlValidation = useFieldControlValidation();
   const { clearErrors } = useFormContext();
 
-  const disabled = () => fieldDisabled() || disabledProp();
-  const name = () => fieldName() ?? nameProp();
-  const id = useBaseUiId(idProp);
+  const disabled = () => fieldDisabled() || (local.disabled ?? false);
+  const name = () => fieldName() ?? local.name;
+  const id = useBaseUiId(() => local.id);
 
   const [checkedValue, setCheckedValue] = useControlled({
-    controlled: externalValue,
-    default: defaultValue,
+    controlled: () => local.value,
+    default: () => local.defaultValue,
     name: 'RadioGroup',
     state: 'value',
   });
@@ -138,21 +130,28 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
     if (typeof checkedValue() === 'string') {
       return checkedValue() as string;
     }
+
     return JSON.stringify(checkedValue());
   });
 
   const inputProps = createMemo(() =>
-    mergeProps<'input'>(
+    combineProps<'input'>(
       {
         value: serializedCheckedValue(),
         id: id(),
         name: name(),
         disabled: disabled(),
-        readOnly: readOnly(),
-        required: required(),
+        readOnly: local.readOnly,
+        required: local.required,
         'aria-hidden': true,
         tabIndex: -1,
         style: visuallyHidden,
+        ref: (el) => {
+          if (local.refs) {
+            local.refs.inputRef = el;
+          }
+          fieldControlValidation.refs.inputRef = el;
+        },
         onFocus() {
           controlRef?.focus();
         },
@@ -161,29 +160,42 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
     ),
   );
 
-  const state = createMemo<RadioGroup.State>(() => ({
-    ...fieldState,
-    disabled: disabled() ?? false,
-    required: required() ?? false,
-    readOnly: readOnly() ?? false,
-  }));
+  const state: RadioGroup.State = mergeProps(fieldState, {
+    get disabled() {
+      return disabled() ?? false;
+    },
+    get required() {
+      return local.required ?? false;
+    },
+    get readOnly() {
+      return local.readOnly ?? false;
+    },
+  });
 
   const element = useRenderElement('div', componentProps, {
     state,
     customStyleHookMapping: fieldValidityMapping,
     props: [
-      () => ({
+      {
         role: 'radiogroup',
-        'aria-required': required() || undefined,
-        'aria-disabled': disabled() || undefined,
-        'aria-readonly': readOnly() || undefined,
-        'aria-labelledby': labelId(),
+        get 'aria-required'() {
+          return local.required || undefined;
+        },
+        get 'aria-disabled'() {
+          return disabled() || undefined;
+        },
+        get 'aria-readonly'() {
+          return local.readOnly || undefined;
+        },
+        get 'aria-labelledby'() {
+          return labelId();
+        },
         onFocus() {
           setFocused(true);
         },
         onBlur,
         onKeyDown: onKeyDownCapture,
-      }),
+      },
       fieldControlValidation.getValidationProps,
       elementProps,
     ],
@@ -192,14 +204,13 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
   return (
     <RadioGroupContext.Provider
       value={{
-        ...fieldState,
         checkedValue,
         disabled,
         name,
         onValueChange: (...args) => local.onValueChange?.(...args),
-        readOnly,
+        readOnly: () => local.readOnly,
+        required: () => local.required,
         registerControlRef,
-        required,
         setCheckedValue,
         setTouched,
         touched,
@@ -211,15 +222,7 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
         stopEventPropagation
         render={element}
       />
-      <input
-        ref={(el) => {
-          if (local.refs) {
-            local.refs.inputRef = el;
-          }
-          fieldControlValidation.refs.inputRef = el;
-        }}
-        {...inputProps()}
-      />
+      <input {...(inputProps() as any)} />
     </RadioGroupContext.Provider>
   );
 }
@@ -237,33 +240,33 @@ export namespace RadioGroup {
      * Whether the component should ignore user interaction.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
     /**
      * Whether the user should be unable to select a different radio button in the group.
      * @default false
      */
-    readOnly?: MaybeAccessor<boolean | undefined>;
+    readOnly?: boolean;
     /**
      * Whether the user must choose a value before submitting a form.
      * @default false
      */
-    required?: MaybeAccessor<boolean | undefined>;
+    required?: boolean;
     /**
      * Identifies the field when a form is submitted.
      */
-    name?: MaybeAccessor<string | undefined>;
+    name?: string;
     /**
      * The controlled value of the radio item that should be currently selected.
      *
      * To render an uncontrolled radio group, use the `defaultValue` prop instead.
      */
-    value?: MaybeAccessor<unknown | undefined>;
+    value?: unknown;
     /**
      * The uncontrolled value of the radio button that should be initially selected.
      *
      * To render a controlled radio group, use the `value` prop instead.
      */
-    defaultValue?: MaybeAccessor<unknown | undefined>;
+    defaultValue?: unknown;
     /**
      * Callback fired when the value changes.
      */

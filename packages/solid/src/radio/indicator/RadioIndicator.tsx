@@ -1,9 +1,9 @@
 'use client';
-import { createMemo, Show } from 'solid-js';
-import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
+import { Show } from 'solid-js';
+import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { type TransitionStatus, useTransitionStatus } from '../../utils/useTransitionStatus';
 import { useRadioRootContext } from '../root/RadioRootContext';
 import { customStyleHookMapping } from '../utils/customStyleHookMapping';
@@ -16,7 +16,7 @@ import { customStyleHookMapping } from '../utils/customStyleHookMapping';
  */
 export function RadioIndicator(componentProps: RadioIndicator.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['keepMounted']);
-  const keepMounted = () => access(local.keepMounted) ?? false;
+  const keepMounted = () => local.keepMounted ?? false;
 
   const rootState = useRadioRootContext();
 
@@ -24,18 +24,39 @@ export function RadioIndicator(componentProps: RadioIndicator.Props) {
 
   const { transitionStatus, setMounted } = useTransitionStatus(rendered);
 
-  const state = createMemo<RadioIndicator.State>(() => ({
-    disabled: rootState.disabled(),
-    touched: rootState.touched(),
-    dirty: rootState.dirty(),
-    valid: rootState.valid(),
-    filled: rootState.filled(),
-    focused: rootState.focused(),
-    readOnly: rootState.readOnly(),
-    checked: rootState.checked(),
-    required: rootState.required(),
-    transitionStatus: transitionStatus(),
-  }));
+  const state: RadioIndicator.State = {
+    // @ts-expect-error - disabled is not a valid property for the state
+    get disabled() {
+      return rootState.disabled();
+    },
+    get touched() {
+      return rootState.touched();
+    },
+    get dirty() {
+      return rootState.dirty();
+    },
+    get valid() {
+      return rootState.valid();
+    },
+    get filled() {
+      return rootState.filled();
+    },
+    get focused() {
+      return rootState.focused();
+    },
+    get readOnly() {
+      return rootState.readOnly();
+    },
+    get checked() {
+      return rootState.checked();
+    },
+    get required() {
+      return rootState.required();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+  };
 
   let indicatorRef = null as HTMLSpanElement | null | undefined;
 
@@ -70,7 +91,7 @@ export namespace RadioIndicator {
      * Whether to keep the HTML element in the DOM when the radio button is inactive.
      * @default false
      */
-    keepMounted?: MaybeAccessor<boolean | undefined>;
+    keepMounted?: boolean;
   }
 
   export interface State {
