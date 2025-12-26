@@ -11,7 +11,7 @@ import {
 } from '../../composite/composite';
 import { CompositeList } from '../../composite/list/CompositeList';
 import { useDirection } from '../../direction-provider/DirectionContext';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { access, splitComponentProps } from '../../solid-helpers';
 import { isElementDisabled } from '../../utils/isElementDisabled';
 import { BaseUIComponentProps, Orientation } from '../../utils/types';
 import { useControlled } from '../../utils/useControlled';

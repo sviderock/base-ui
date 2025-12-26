@@ -1,8 +1,8 @@
 'use client';
-import { batch, createEffect, createMemo } from 'solid-js';
+import { batch, createEffect } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { AvatarRoot } from '../root/AvatarRoot';
 import { useAvatarRootContext } from '../root/AvatarRootContext';
 import { avatarStyleHookMapping } from '../root/styleHooks';
@@ -41,9 +41,11 @@ export function AvatarImage(componentProps: AvatarImage.Props) {
     }
   });
 
-  const state = createMemo<AvatarRoot.State>(() => ({
-    imageLoadingStatus: imageLoadingStatus(),
-  }));
+  const state: AvatarRoot.State = {
+    get imageLoadingStatus() {
+      return imageLoadingStatus();
+    },
+  };
 
   const element = useRenderElement('img', componentProps, {
     state,

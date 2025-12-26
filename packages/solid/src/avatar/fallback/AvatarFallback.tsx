@@ -1,8 +1,8 @@
 'use client';
-import { createEffect, createMemo, createSignal, onCleanup } from 'solid-js';
+import { createEffect, createSignal, onCleanup } from 'solid-js';
 import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import type { AvatarRoot } from '../root/AvatarRoot';
 import { useAvatarRootContext } from '../root/AvatarRootContext';
@@ -31,9 +31,11 @@ export function AvatarFallback(componentProps: AvatarFallback.Props) {
     });
   });
 
-  const state = createMemo<AvatarRoot.State>(() => ({
-    imageLoadingStatus: imageLoadingStatus(),
-  }));
+  const state: AvatarRoot.State = {
+    get imageLoadingStatus() {
+      return imageLoadingStatus();
+    },
+  };
 
   const element = useRenderElement('span', componentProps, {
     state,

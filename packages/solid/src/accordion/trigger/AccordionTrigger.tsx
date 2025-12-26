@@ -1,7 +1,7 @@
 'use client';
 import { type JSX } from 'solid-js';
 import { useCollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping';
 import { BaseUIComponentProps } from '../../utils/types';
