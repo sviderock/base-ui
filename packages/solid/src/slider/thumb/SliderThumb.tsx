@@ -1,5 +1,5 @@
 'use client';
-import { batch, createMemo, type ComponentProps, type JSX } from 'solid-js';
+import { batch, createMemo, type JSX } from 'solid-js';
 import {
   ARROW_DOWN,
   ARROW_LEFT,
@@ -12,14 +12,14 @@ import {
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
-import { mergeProps } from '../../merge-props';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { combineProps } from '../../merge-props';
+import { splitComponentProps } from '../../solid-helpers';
 import { formatNumber } from '../../utils/formatNumber';
 import { getStyleHookProps } from '../../utils/getStyleHookProps';
 import { resolveClassName } from '../../utils/resolveClassName';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import type { SliderRoot } from '../root/SliderRoot';
 import { useSliderRootContext } from '../root/SliderRootContext';
@@ -90,11 +90,9 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
     'onKeyDown',
     'tabIndex',
   ]);
-  const disabledProp = () => access(local.disabled) ?? false;
-  const idProp = () => access(local.id);
-  const tabIndexProp = () => access(local.tabIndex);
+  const disabledProp = () => local.disabled ?? false;
 
-  const id = useBaseUiId(idProp);
+  const id = useBaseUiId(() => local.id);
   const inputId = () => `${id()}-input`;
 
   const {
@@ -119,7 +117,7 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
 
   const disabled = () => disabledProp() || contextDisabled();
 
-  const externalTabIndex = () => tabIndexProp() ?? contextTabIndex();
+  const externalTabIndex = () => local.tabIndex ?? contextTabIndex();
 
   const direction = useDirection();
   const { setTouched, setFocused, validationMode } = useFieldRootContext();
@@ -167,133 +165,142 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
     }),
   );
 
-  const thumbProps = createMemo(() => {
-    return mergeProps(
-      {
-        [SliderThumbDataAttributes.index]: index(),
-        class: resolveClassName(componentProps.class, state),
-        id: id(),
-        onFocus() {
-          batch(() => {
-            setActive(index());
-            setFocused(true);
-          });
-        },
-        onBlur() {
-          if (!thumbRef) {
-            return;
-          }
-          batch(() => {
-            setActive(-1);
-            setTouched(true);
-            setFocused(false);
-
-            if (validationMode() === 'onBlur') {
-              fieldControlValidation.commitValidation(
-                getSliderValue(
-                  thumbValue(),
-                  index(),
-                  min(),
-                  max(),
-                  sliderValues().length > 1,
-                  sliderValues(),
-                ),
-              );
-            }
-          });
-        },
-        onKeyDown(event: KeyboardEvent) {
-          if (!ALL_KEYS.has(event.key)) {
-            return;
-          }
-          if (COMPOSITE_KEYS.has(event.key)) {
-            event.stopPropagation();
-          }
-
-          let newValue = null;
-          const isRange = sliderValues().length > 1;
-          const roundedValue = roundValueToStep(thumbValue(), step(), min());
-          switch (event.key) {
-            case ARROW_UP:
-              newValue = getNewValue(
-                roundedValue,
-                event.shiftKey ? largeStep() : step(),
-                1,
-                min(),
-                max(),
-              );
-              break;
-            case ARROW_RIGHT:
-              newValue = getNewValue(
-                roundedValue,
-                event.shiftKey ? largeStep() : step(),
-                isRtl() ? -1 : 1,
-                min(),
-                max(),
-              );
-              break;
-            case ARROW_DOWN:
-              newValue = getNewValue(
-                roundedValue,
-                event.shiftKey ? largeStep() : step(),
-                -1,
-                min(),
-                max(),
-              );
-              break;
-            case ARROW_LEFT:
-              newValue = getNewValue(
-                roundedValue,
-                event.shiftKey ? largeStep() : step(),
-                isRtl() ? 1 : -1,
-                min(),
-                max(),
-              );
-              break;
-            case PAGE_UP:
-              newValue = getNewValue(roundedValue, largeStep(), 1, min(), max());
-              break;
-            case PAGE_DOWN:
-              newValue = getNewValue(roundedValue, largeStep(), -1, min(), max());
-              break;
-            case END:
-              newValue = max();
-
-              if (isRange) {
-                newValue = Number.isFinite(sliderValues()[index() + 1])
-                  ? sliderValues()[index() + 1] - step() * minStepsBetweenValues()
-                  : max();
-              }
-              break;
-            case HOME:
-              newValue = min();
-
-              if (isRange) {
-                newValue = Number.isFinite(sliderValues()[index() - 1])
-                  ? sliderValues()[index() - 1] + step() * minStepsBetweenValues()
-                  : min();
-              }
-              break;
-            default:
-              break;
-          }
-
-          if (newValue !== null) {
-            handleInputChange(newValue, index(), event);
-            event.preventDefault();
-          }
-        },
-        ref: (el: HTMLElement) => {
-          setListItemRef(el);
-          thumbRef = el;
-        },
-        style: getThumbStyle(),
-        tabIndex: externalTabIndex() ?? (disabled() ? undefined : 0),
+  const thumbProps = combineProps(
+    {
+      get [SliderThumbDataAttributes.index]() {
+        return index();
       },
-      styleHooks(),
-      elementProps,
-    );
-  });
+      get class() {
+        return resolveClassName(componentProps.class, state);
+      },
+      get id() {
+        return id();
+      },
+      onFocus() {
+        batch(() => {
+          setActive(index());
+          setFocused(true);
+        });
+      },
+      onBlur() {
+        if (!thumbRef) {
+          return;
+        }
+        batch(() => {
+          setActive(-1);
+          setTouched(true);
+          setFocused(false);
+
+          if (validationMode() === 'onBlur') {
+            fieldControlValidation.commitValidation(
+              getSliderValue(
+                thumbValue(),
+                index(),
+                min(),
+                max(),
+                sliderValues().length > 1,
+                sliderValues(),
+              ),
+            );
+          }
+        });
+      },
+      onKeyDown(event: KeyboardEvent) {
+        if (!ALL_KEYS.has(event.key)) {
+          return;
+        }
+        if (COMPOSITE_KEYS.has(event.key)) {
+          event.stopPropagation();
+        }
+
+        let newValue = null;
+        const isRange = sliderValues().length > 1;
+        const roundedValue = roundValueToStep(thumbValue(), step(), min());
+        switch (event.key) {
+          case ARROW_UP:
+            newValue = getNewValue(
+              roundedValue,
+              event.shiftKey ? largeStep() : step(),
+              1,
+              min(),
+              max(),
+            );
+            break;
+          case ARROW_RIGHT:
+            newValue = getNewValue(
+              roundedValue,
+              event.shiftKey ? largeStep() : step(),
+              isRtl() ? -1 : 1,
+              min(),
+              max(),
+            );
+            break;
+          case ARROW_DOWN:
+            newValue = getNewValue(
+              roundedValue,
+              event.shiftKey ? largeStep() : step(),
+              -1,
+              min(),
+              max(),
+            );
+            break;
+          case ARROW_LEFT:
+            newValue = getNewValue(
+              roundedValue,
+              event.shiftKey ? largeStep() : step(),
+              isRtl() ? 1 : -1,
+              min(),
+              max(),
+            );
+            break;
+          case PAGE_UP:
+            newValue = getNewValue(roundedValue, largeStep(), 1, min(), max());
+            break;
+          case PAGE_DOWN:
+            newValue = getNewValue(roundedValue, largeStep(), -1, min(), max());
+            break;
+          case END:
+            newValue = max();
+
+            if (isRange) {
+              newValue = Number.isFinite(sliderValues()[index() + 1])
+                ? sliderValues()[index() + 1] - step() * minStepsBetweenValues()
+                : max();
+            }
+            break;
+          case HOME:
+            newValue = min();
+
+            if (isRange) {
+              newValue = Number.isFinite(sliderValues()[index() - 1])
+                ? sliderValues()[index() - 1] + step() * minStepsBetweenValues()
+                : min();
+            }
+            break;
+          default:
+            break;
+        }
+
+        if (newValue !== null) {
+          handleInputChange(newValue, index(), event);
+          event.preventDefault();
+        }
+      },
+      ref: (el: HTMLElement) => {
+        setListItemRef(el);
+        thumbRef = el;
+      },
+      get style() {
+        return getThumbStyle();
+      },
+      get tabIndex() {
+        return externalTabIndex() ?? (disabled() ? undefined : 0);
+      },
+    },
+    // eslint-disable-next-line solid/reactivity
+    (props) => combineProps(props, styleHooks()),
+    elementProps,
+  );
 
   const cssWritingMode = createMemo<JSX.CSSProperties['writing-mode']>(() => {
     if (orientation() === 'vertical') {
@@ -302,63 +309,89 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
     return undefined;
   });
 
-  const inputProps = createMemo(() => {
-    return mergeProps<'input'>(
-      {
-        'aria-label':
-          typeof local.getAriaLabel === 'function'
-            ? local.getAriaLabel(index())
-            : elementProps['aria-label'],
-        'aria-labelledby': labelId(),
-        'aria-orientation': orientation(),
-        'aria-valuemax': max(),
-        'aria-valuemin': min(),
-        'aria-valuenow': thumbValue(),
-        'aria-valuetext':
-          typeof local.getAriaValueText === 'function'
-            ? local.getAriaValueText(
-                formatNumber(thumbValue(), locale(), refs.formatOptionsRef ?? undefined),
-                thumbValue(),
-                index(),
-              )
-            : elementProps['aria-valuetext'] ||
+  const inputProps = combineProps<'input'>(
+    {
+      get 'aria-label'() {
+        return typeof local.getAriaLabel === 'function'
+          ? local.getAriaLabel(index())
+          : elementProps['aria-label'];
+      },
+      get 'aria-labelledby'() {
+        return labelId();
+      },
+      get 'aria-orientation'() {
+        return orientation();
+      },
+      get 'aria-valuemax'() {
+        return max();
+      },
+      get 'aria-valuemin'() {
+        return min();
+      },
+      get 'aria-valuenow'() {
+        return thumbValue();
+      },
+      get 'aria-valuetext'() {
+        return typeof local.getAriaValueText === 'function'
+          ? local.getAriaValueText(
+              formatNumber(thumbValue(), locale(), refs.formatOptionsRef ?? undefined),
+              thumbValue(),
+              index(),
+            )
+          : elementProps['aria-valuetext'] ||
               getDefaultAriaValueText(
                 sliderValues(),
                 index(),
                 refs.formatOptionsRef ?? undefined,
                 locale(),
-              ),
-        [SliderThumbDataAttributes.index as string]: index(),
-        disabled: disabled(),
-        id: inputId(),
-        max: max(),
-        min: min(),
-        onInput(event: InputEvent) {
-          handleInputChange((event.target as HTMLInputElement).valueAsNumber, index(), event);
-        },
-        // Need to bubble the focus event to the thumb
-        onFocus() {
-          thumbRef?.dispatchEvent(new FocusEvent('focus'));
-        },
-        // Need to bubble the blur event to the thumb
-        onBlur() {
-          thumbRef?.dispatchEvent(new FocusEvent('blur'));
-        },
-        step: step(),
-        style: {
+              );
+      },
+      get [SliderThumbDataAttributes.index as string]() {
+        return index();
+      },
+      get disabled() {
+        return disabled();
+      },
+      get id() {
+        return inputId();
+      },
+      get max() {
+        return max();
+      },
+      get min() {
+        return min();
+      },
+      onInput(event: InputEvent) {
+        handleInputChange((event.target as HTMLInputElement).valueAsNumber, index(), event);
+      },
+      // Need to bubble the focus event to the thumb
+      onFocus() {
+        thumbRef?.dispatchEvent(new FocusEvent('focus'));
+      },
+      // Need to bubble the blur event to the thumb
+      onBlur() {
+        thumbRef?.dispatchEvent(new FocusEvent('blur'));
+      },
+      get step() {
+        return step();
+      },
+      get style() {
+        return {
           ...visuallyHidden,
           // So that VoiceOver's focus indicator matches the thumb's dimensions
           width: '100%',
           height: '100%',
           'writing-mode': cssWritingMode(),
-        },
-        tabIndex: -1,
-        type: 'range',
-        value: thumbValue() ?? '',
+        };
       },
-      fieldControlValidation.getValidationProps,
-    );
-  });
+      tabIndex: -1,
+      type: 'range',
+      get value() {
+        return thumbValue() ?? '';
+      },
+    },
+    (props) => combineProps(props, fieldControlValidation.getValidationProps()),
+  );
 
   const element = useRenderElement('div', componentProps, {
     state,
@@ -367,18 +400,18 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
       thumbRef = el;
     },
     props: thumbProps,
-    children: () =>
-      componentProps.render == null ? (
+    get children() {
+      return (
         <>
-          {thumbProps().children ?? componentProps.children}
-          <input
-            {...inputProps()}
-            ref={(el) => {
-              inputProps().ref = el;
-            }}
-          />
+          {componentProps.render == null ? (
+            <>
+              {thumbProps.children ?? componentProps.children}
+              <input {...(inputProps as any)} />
+            </>
+          ) : undefined}
         </>
-      ) : undefined,
+      );
+    },
   });
   return <>{element()}</>;
 }
@@ -395,7 +428,7 @@ export namespace SliderThumb {
      * Whether the thumb should ignore user interaction.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
     /**
      * Accepts a function which returns a string value that provides a user-friendly name for the input associated with the thumb
      * @param {number} index The index of the input
@@ -421,8 +454,8 @@ export namespace SliderThumb {
      */
     render?: Exclude<BaseUIComponentProps<'div', State>['render'], Function> &
       ((
-        props: ComponentProps<'div'>,
-        inputProps: ComponentProps<'input'>,
+        props: JSX.HTMLAttributes<HTMLDivElement>,
+        inputProps: JSX.InputHTMLAttributes<HTMLInputElement>,
         state: State,
       ) => JSX.Element);
   }

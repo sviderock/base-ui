@@ -64,7 +64,7 @@ export interface SliderRootContext {
    * Callback fired when dragging and invokes onValueChange.
    */
   setValue: (newValue: number | number[], activeThumb: number, event: Event) => void;
-  state: Accessor<SliderRoot.State>;
+  state: SliderRoot.State;
   /**
    * The step increment of the slider when incrementing or decrementing. It will snap
    * to multiples of this value. Decimal values are supported.

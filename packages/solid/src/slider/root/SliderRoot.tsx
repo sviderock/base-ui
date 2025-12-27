@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createMemo, createSignal, For, onMount, Show } from 'solid-js';
+import { createEffect, createMemo, createSignal, For, mergeProps, onMount, Show } from 'solid-js';
 import { CompositeList, type CompositeMetadata } from '../../composite/list/CompositeList';
 import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../../field/root/FieldRoot';
@@ -7,14 +7,14 @@ import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { useField } from '../../field/useField';
 import { activeElement } from '../../floating-ui-solid/utils';
 import { useFormContext } from '../../form/FormContext';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { access, splitComponentProps } from '../../solid-helpers';
 import { areArraysEqual } from '../../utils/areArraysEqual';
 import { clamp } from '../../utils/clamp';
 import { ownerDocument } from '../../utils/owner';
 import type { BaseUIComponentProps, Orientation } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import { warn } from '../../utils/warn';
 import type { ThumbMetadata } from '../thumb/SliderThumb';
@@ -66,23 +66,15 @@ export function SliderRoot<Value extends number | readonly number[]>(
     'tabIndex',
     'value',
   ]);
-  const ariaLabelledbyProp = () => access(local['aria-labelledby']);
-  const defaultValue = () => access(local.defaultValue);
   const disabledProp = () => access(local.disabled) ?? false;
-  const idProp = () => access(local.id);
-  const format = () => access(local.format);
   const largeStep = () => access(local.largeStep) ?? 10;
-  const locale = () => access(local.locale);
   const max = () => access(local.max) ?? 100;
   const min = () => access(local.min) ?? 0;
   const minStepsBetweenValues = () => access(local.minStepsBetweenValues) ?? 0;
-  const nameProp = () => access(local.name);
   const orientation = () => access(local.orientation) ?? 'horizontal';
   const step = () => access(local.step) ?? 1;
-  const externalTabIndex = () => access(local.tabIndex);
-  const valueProp = () => access(local.value);
 
-  const id = useBaseUiId(idProp);
+  const id = useBaseUiId(() => local.id);
 
   const { clearErrors } = useFormContext();
   const {
@@ -99,21 +91,21 @@ export function SliderRoot<Value extends number | readonly number[]>(
 
   const fieldControlValidation = useFieldControlValidation();
 
-  const ariaLabelledby = () => ariaLabelledbyProp() ?? labelId();
+  const ariaLabelledby = () => local['aria-labelledby'] ?? labelId();
   const disabled = () => fieldDisabled() || disabledProp();
-  const name = () => fieldName() ?? nameProp() ?? '';
+  const name = () => fieldName() ?? local.name ?? '';
 
   // The internal value is potentially unsorted, e.g. to support frozen arrays
   // https://github.com/mui/material-ui/pull/28472
   const [valueUnwrapped, setValueUnwrapped] = useControlled({
-    controlled: valueProp,
-    default: () => defaultValue() ?? min(),
+    controlled: () => local.value,
+    default: () => local.defaultValue ?? min(),
     name: 'Slider',
   });
 
   const refs: SliderRootContext['refs'] = {
     thumbRefs: [],
-    formatOptionsRef: format(),
+    formatOptionsRef: local.format,
     lastChangedValueRef: null,
   };
 
@@ -209,7 +201,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
   };
 
   createEffect(() => {
-    if (valueProp() === undefined || dragging()) {
+    if (local.value === undefined || dragging()) {
       return;
     }
 
@@ -236,21 +228,38 @@ export function SliderRoot<Value extends number | readonly number[]>(
   });
 
   onMount(() => {
-    setCodependentRefs('control', { explicitId: id, ref: () => sliderRef, id: idProp });
+    setCodependentRefs('control', { explicitId: id, ref: () => sliderRef, id: () => local.id });
   });
 
-  const state = createMemo<SliderRoot.State>(() => ({
-    ...fieldState,
-    activeThumbIndex: active(),
-    disabled: disabled(),
-    dragging: dragging(),
-    orientation: orientation(),
-    max: max(),
-    min: min(),
-    minStepsBetweenValues: minStepsBetweenValues(),
-    step: step(),
-    values: values(),
-  }));
+  const state: SliderRoot.State = mergeProps(fieldState, {
+    get disabled() {
+      return disabled();
+    },
+    get activeThumbIndex() {
+      return active();
+    },
+    get dragging() {
+      return dragging();
+    },
+    get orientation() {
+      return orientation();
+    },
+    get max() {
+      return max();
+    },
+    get min() {
+      return min();
+    },
+    get minStepsBetweenValues() {
+      return minStepsBetweenValues();
+    },
+    get step() {
+      return step();
+    },
+    get values() {
+      return values();
+    },
+  });
 
   const contextValue: SliderRootContext = {
     active,
@@ -261,7 +270,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
     handleInputChange,
     labelId: ariaLabelledby,
     largeStep,
-    locale,
+    locale: () => local.locale,
     max,
     min,
     minStepsBetweenValues,
@@ -274,7 +283,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
     setValue,
     state,
     step,
-    tabIndex: () => externalTabIndex() ?? null,
+    tabIndex: () => local.tabIndex ?? null,
     thumbArray,
     values,
   };
@@ -286,11 +295,15 @@ export function SliderRoot<Value extends number | readonly number[]>(
     },
     customStyleHookMapping: sliderStyleHookMapping,
     props: [
-      () => ({
-        'aria-labelledby': ariaLabelledby(),
-        id: id(),
+      {
         role: 'group',
-      }),
+        get 'aria-labelledby'() {
+          return ariaLabelledby();
+        },
+        get id() {
+          return id();
+        },
+      },
       fieldControlValidation.getValidationProps,
       elementProps,
     ],
@@ -311,7 +324,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
                 }
                 fieldControlValidation.refs.inputRef = el;
               }}
-              {...fieldControlValidation.getInputValidationProps({
+              {...(fieldControlValidation.getInputValidationProps({
                 disabled,
                 name: name(),
                 value: valueUnwrapped,
@@ -319,7 +332,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
                 style: visuallyHidden,
                 tabIndex: -1,
                 'aria-hidden': true,
-              })}
+              }) as any)}
             />
           }
         >
@@ -332,7 +345,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
                   }
                   fieldControlValidation.refs.inputRef = el;
                 }}
-                {...fieldControlValidation.getInputValidationProps({
+                {...(fieldControlValidation.getInputValidationProps({
                   disabled: disabled(),
                   name: name(),
                   value,
@@ -340,7 +353,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
                   style: visuallyHidden,
                   tabIndex: -1,
                   'aria-hidden': true,
-                })}
+                }) as any)}
               />
             )}
           </For>
@@ -349,13 +362,6 @@ export function SliderRoot<Value extends number | readonly number[]>(
     </SliderRootContext.Provider>
   );
 }
-//  as {
-//   <Value extends number | readonly number[]>(
-//     props: SliderRoot.Props<Value> & {
-//       ref?: React.RefObject<HTMLDivElement>;
-//     },
-//   ): React.JSX.Element;
-// };
 
 export namespace SliderRoot {
   export interface State extends FieldRoot.State {
@@ -401,16 +407,16 @@ export namespace SliderRoot {
      *
      * To render a controlled slider, use the `value` prop instead.
      */
-    defaultValue?: MaybeAccessor<Value | undefined>;
+    defaultValue?: Value;
     /**
      * Whether the slider should ignore user interaction.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
     /**
      * Options to format the input value.
      */
-    format?: MaybeAccessor<Intl.NumberFormatOptions | undefined>;
+    format?: Intl.NumberFormatOptions;
     refs?: {
       /**
        * A ref to access the hidden input element.
@@ -421,54 +427,54 @@ export namespace SliderRoot {
      * The locale used by `Intl.NumberFormat` when formatting the value.
      * Defaults to the user's runtime locale.
      */
-    locale?: MaybeAccessor<Intl.LocalesArgument | undefined>;
+    locale?: Intl.LocalesArgument;
     /**
      * The maximum allowed value of the slider.
      * Should not be equal to min.
      * @default 100
      */
-    max?: MaybeAccessor<number | undefined>;
+    max?: number;
     /**
      * The minimum allowed value of the slider.
      * Should not be equal to max.
      * @default 0
      */
-    min?: MaybeAccessor<number | undefined>;
+    min?: number;
     /**
      * The minimum steps between values in a range slider.
      * @default 0
      */
-    minStepsBetweenValues?: MaybeAccessor<number | undefined>;
+    minStepsBetweenValues?: number;
     /**
      * Identifies the field when a form is submitted.
      */
-    name?: MaybeAccessor<string | undefined>;
+    name?: string;
     /**
      * The component orientation.
      * @default 'horizontal'
      */
-    orientation?: MaybeAccessor<Orientation | undefined>;
+    orientation?: Orientation;
     /**
      * The granularity with which the slider can step through values. (A "discrete" slider.)
      * The `min` prop serves as the origin for the valid values.
      * We recommend (max - min) to be evenly divisible by the step.
      * @default 1
      */
-    step?: MaybeAccessor<number | undefined>;
+    step?: number;
     /**
      * The granularity with which the slider can step through values when using Page Up/Page Down or Shift + Arrow Up/Arrow Down.
      * @default 10
      */
-    largeStep?: MaybeAccessor<number | undefined>;
+    largeStep?: number;
     /**
      * Optional tab index attribute for the thumb components.
      */
-    tabIndex?: MaybeAccessor<number | undefined>;
+    tabIndex?: number;
     /**
      * The value of the slider.
      * For ranged sliders, provide an array with two values.
      */
-    value?: MaybeAccessor<Value | undefined>;
+    value?: Value;
     /**
      * Callback function that is fired when the slider's value changed.
      *

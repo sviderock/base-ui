@@ -250,7 +250,9 @@ describe.skipIf(typeof Touch === 'undefined')('<Slider.Root />', () => {
       'should not respond to drag events after becoming disabled',
       async () => {
         const [disabled, setDisabled] = createSignal(false);
-        render(() => <TestSlider defaultValue={0} data-testid="slider-root" disabled={disabled} />);
+        render(() => (
+          <TestSlider defaultValue={0} data-testid="slider-root" disabled={disabled()} />
+        ));
 
         const sliderControl = screen.getByTestId('control');
 
@@ -1681,7 +1683,7 @@ describe.skipIf(typeof Touch === 'undefined')('<Slider.Root />', () => {
         function App() {
           const [val, setVal] = createSignal(5.4698);
           return (
-            <Slider.Root value={val} onValueChange={setVal} min={0} max={10} step={1}>
+            <Slider.Root value={val()} onValueChange={setVal} min={0} max={10} step={1}>
               <Slider.Control>
                 <Slider.Track>
                   <Slider.Indicator />
@@ -1761,6 +1763,7 @@ describe.skipIf(typeof Touch === 'undefined')('<Slider.Root />', () => {
         const [errors, setErrors] = createSignal<Record<string, string | string[]>>({
           test: 'test',
         });
+
         return (
           <Form errors={errors()} onClearErrors={setErrors}>
             <Field.Root name="test" data-testid="field">
@@ -1781,7 +1784,9 @@ describe.skipIf(typeof Touch === 'undefined')('<Slider.Root />', () => {
       await user.keyboard('[Tab]');
       expect(screen.getByTestId('thumb')).toHaveFocus();
 
+      console.log('Keyboarding');
       await user.keyboard(`{Shift>}{ArrowRight}`);
+      console.log('Keyboarded');
 
       expect(slider).not.to.have.attribute('aria-invalid');
       expect(screen.queryByTestId('error')).to.equal(null);
@@ -2029,6 +2034,7 @@ describe.skipIf(typeof Touch === 'undefined')('<Slider.Root />', () => {
       fireEvent.input(input, { target: { value: '1' } });
       fireEvent.blur(screen.getByTestId('thumb'));
       await flushMicrotasks();
+
       expect(input).to.have.attribute('aria-invalid', 'true');
     });
 

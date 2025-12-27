@@ -3,7 +3,7 @@ import { createMemo, type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { formatNumber } from '../../utils/formatNumber';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { SliderRoot } from '../root/SliderRoot';
 import { useSliderRootContext } from '../root/SliderRootContext';
 import { sliderStyleHookMapping } from '../root/styleHooks';
@@ -15,7 +15,7 @@ import { sliderStyleHookMapping } from '../root/styleHooks';
  * Documentation: [Base UI Slider](https://base-ui.com/react/components/slider)
  */
 export function SliderValue(componentProps: SliderValue.Props) {
-  const [, local, elementProps] = splitComponentProps(componentProps, ['aria-live']);
+  const [, local, elementProps] = splitComponentProps(componentProps, ['aria-live', 'children']);
 
   const { thumbArray, state, values, refs, locale } = useSliderRootContext();
 
@@ -51,13 +51,19 @@ export function SliderValue(componentProps: SliderValue.Props) {
     state,
     customStyleHookMapping: sliderStyleHookMapping,
     props: [
-      () => ({
-        'aria-live': local['aria-live'] ?? 'off',
-        for: outputFor(),
-      }),
+      {
+        get 'aria-live'() {
+          return local['aria-live'] ?? 'off';
+        },
+        get for() {
+          return outputFor();
+        },
+      },
       elementProps,
     ],
-    children: () => componentProps.children?.(formattedValues(), values()) ?? defaultDisplayValue(),
+    get children() {
+      return <>{componentProps.children?.(formattedValues(), values()) ?? defaultDisplayValue()}</>;
+    },
   });
 
   return <>{element()}</>;

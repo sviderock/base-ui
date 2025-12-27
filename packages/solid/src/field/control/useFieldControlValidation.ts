@@ -216,8 +216,12 @@ export function useFieldControlValidation() {
   const getValidationProps = (externalProps = {}) => {
     return combineProps<any>(
       {
-        ...(messageIds().length && { 'aria-describedby': messageIds().join(' ') }),
-        ...(state.valid === false && { 'aria-invalid': true }),
+        get 'aria-describedby'() {
+          return messageIds()?.length ? messageIds().join(' ') : undefined;
+        },
+        get 'aria-invalid'() {
+          return state.valid === false ? true : undefined;
+        },
       },
       externalProps,
     );

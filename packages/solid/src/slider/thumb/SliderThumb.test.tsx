@@ -206,7 +206,7 @@ describe('<Slider.Thumb />', () => {
             <>
               <button onClick={() => setVal(55)} />
               <Slider.Root
-                value={val}
+                value={val()}
                 onValueChange={(newVal) => setVal(newVal as number)}
                 style={{
                   width: '100px',
@@ -238,7 +238,7 @@ describe('<Slider.Thumb />', () => {
             <>
               <button onClick={() => setVal([33, 72])} />
               <Slider.Root
-                value={val}
+                value={val()}
                 onValueChange={(newVal) => setVal(newVal as number[])}
                 style={{
                   width: '100px',
@@ -279,7 +279,7 @@ describe('<Slider.Thumb />', () => {
             <button onClick={() => setVal(119.9)}>max</button>
             <button onClick={() => setVal(-7.31)}>min</button>
             <Slider.Root
-              value={val}
+              value={val()}
               onValueChange={setVal}
               min={0}
               max={100}

@@ -1,12 +1,12 @@
 'use client';
-import { batch, createEffect, onCleanup } from 'solid-js';
+import { createEffect, onCleanup } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { activeElement } from '../../floating-ui-solid/utils';
 import { splitComponentProps } from '../../solid-helpers';
 import { clamp } from '../../utils/clamp';
 import { ownerDocument } from '../../utils/owner';
 import type { BaseUIComponentProps, Orientation } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { valueToPercent } from '../../utils/valueToPercent';
 import type { SliderRoot } from '../root/SliderRoot';
 import { useSliderRootContext } from '../root/SliderRootContext';
@@ -346,11 +346,9 @@ export function SliderControl(componentProps: SliderControl.Props) {
   const element = useRenderElement('div', componentProps, {
     state,
     ref: (el) => {
-      batch(() => {
-        registerFieldControlRef(el);
-        controlRef = el;
-        setStylesRef(el);
-      });
+      registerFieldControlRef(el);
+      controlRef = el;
+      setStylesRef(el);
     },
     customStyleHookMapping: sliderStyleHookMapping,
     props: [
