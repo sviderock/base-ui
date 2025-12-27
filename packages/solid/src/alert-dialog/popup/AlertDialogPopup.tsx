@@ -1,8 +1,7 @@
 'use client';
-import { createMemo } from 'solid-js';
 import { useDialogPopup } from '../../dialog/popup/useDialogPopup';
 import { FloatingFocusManager } from '../../floating-ui-solid';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { access, splitComponentProps } from '../../solid-helpers';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { inertValue } from '../../utils/inertValue';
 import { InternalBackdrop } from '../../utils/InternalBackdrop';
@@ -11,7 +10,7 @@ import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { InteractionType } from '../../utils/useEnhancedClickHandler';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
 import { AlertDialogPopupCssVars } from './AlertDialogPopupCssVars';
@@ -36,8 +35,6 @@ export function AlertDialogPopup(componentProps: AlertDialogPopup.Props) {
     'initialFocus',
     'finalFocus',
   ]);
-
-  const finalFocus = () => access(local.finalFocus);
 
   const {
     descriptionElementId,
@@ -80,12 +77,20 @@ export function AlertDialogPopup(componentProps: AlertDialogPopup.Props) {
 
   const nestedDialogOpen = () => nestedOpenDialogCount() > 0;
 
-  const state = createMemo<AlertDialogPopup.State>(() => ({
-    open: open(),
-    nested: nested(),
-    transitionStatus: transitionStatus(),
-    nestedDialogOpen: nestedDialogOpen(),
-  }));
+  const state: AlertDialogPopup.State = {
+    get open() {
+      return open();
+    },
+    get nested() {
+      return nested();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+    get nestedDialogOpen() {
+      return nestedDialogOpen();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
@@ -96,12 +101,14 @@ export function AlertDialogPopup(componentProps: AlertDialogPopup.Props) {
     props: [
       getPopupProps,
       popupProps,
-      () => ({
-        style: {
-          [AlertDialogPopupCssVars.nestedDialogs]: nestedOpenDialogCount(),
+      {
+        get style() {
+          return {
+            [AlertDialogPopupCssVars.nestedDialogs]: nestedOpenDialogCount(),
+          };
         },
         role: 'alertdialog',
-      }),
+      },
       elementProps,
     ],
     customStyleHookMapping,
@@ -122,7 +129,7 @@ export function AlertDialogPopup(componentProps: AlertDialogPopup.Props) {
         context={floatingRootContext}
         disabled={!mounted()}
         initialFocus={resolvedInitialFocus()}
-        returnFocus={finalFocus()}
+        returnFocus={local.finalFocus}
       >
         {element()}
       </FloatingFocusManager>
@@ -137,13 +144,15 @@ export namespace AlertDialogPopup {
      * By default, the first focusable element is focused.
      */
     initialFocus?:
-      | MaybeAccessor<HTMLElement | null | undefined>
+      | HTMLElement
+      | null
+      | undefined
       | ((interactionType: InteractionType) => HTMLElement | null | undefined);
     /**
      * Determines the element to focus when the dialog is closed.
      * By default, focus returns to the trigger.
      */
-    finalFocus?: MaybeAccessor<HTMLElement | null | undefined>;
+    finalFocus?: HTMLElement | null | undefined;
   }
 
   export interface State {

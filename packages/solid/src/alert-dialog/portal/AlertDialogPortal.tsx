@@ -1,7 +1,6 @@
 'use client';
 import { Show, type JSX } from 'solid-js';
 import { FloatingPortal, FloatingPortalProps } from '../../floating-ui-solid';
-import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
 import { AlertDialogPortalContext } from './AlertDialogPortalContext';
 
@@ -12,8 +11,7 @@ import { AlertDialogPortalContext } from './AlertDialogPortalContext';
  * Documentation: [Base UI Alert Dialog](https://base-ui.com/react/components/alert-dialog)
  */
 export function AlertDialogPortal(props: AlertDialogPortal.Props) {
-  const container = () => access(props.container);
-  const keepMounted = () => access(props.keepMounted) ?? false;
+  const keepMounted = () => props.keepMounted ?? false;
 
   const { mounted } = useAlertDialogRootContext();
 
@@ -22,7 +20,7 @@ export function AlertDialogPortal(props: AlertDialogPortal.Props) {
   return (
     <Show when={shouldRender()}>
       <AlertDialogPortalContext.Provider value={keepMounted}>
-        <FloatingPortal root={container()}>{props.children}</FloatingPortal>
+        <FloatingPortal root={props.container}>{props.children}</FloatingPortal>
       </AlertDialogPortalContext.Provider>
     </Show>
   );
@@ -35,10 +33,10 @@ export namespace AlertDialogPortal {
      * Whether to keep the portal mounted in the DOM while the popup is hidden.
      * @default false
      */
-    keepMounted?: MaybeAccessor<boolean | undefined>;
+    keepMounted?: boolean;
     /**
      * A parent element to render the portal element into.
      */
-    container?: MaybeAccessor<FloatingPortalProps['root'] | undefined>;
+    container?: FloatingPortalProps['root'];
   }
 }

@@ -1,11 +1,10 @@
 'use client';
-import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
 
@@ -24,23 +23,29 @@ export function AlertDialogBackdrop(componentProps: AlertDialogBackdrop.Props) {
   const [, , elementProps] = splitComponentProps(componentProps, []);
   const { open, nested, mounted, transitionStatus, refs } = useAlertDialogRootContext();
 
-  const state = createMemo<AlertDialogBackdrop.State>(() => ({
-    open: open(),
-    transitionStatus: transitionStatus(),
-  }));
+  const state: AlertDialogBackdrop.State = {
+    get open() {
+      return open();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
     ref: refs.backdropRef,
     props: [
-      () => ({
+      {
         role: 'presentation',
-        hidden: !mounted(),
+        get hidden() {
+          return !mounted();
+        },
         style: {
           'user-select': 'none',
           '-webkit-user-select': 'none',
         },
-      }),
+      },
       elementProps,
     ],
     customStyleHookMapping,

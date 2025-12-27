@@ -174,7 +174,7 @@ describe('<AlertDialog.Popup />', () => {
               <AlertDialog.Backdrop />
               <AlertDialog.Trigger>Open</AlertDialog.Trigger>
               <AlertDialog.Portal>
-                <AlertDialog.Popup finalFocus={inputRef}>
+                <AlertDialog.Popup finalFocus={inputRef()}>
                   <AlertDialog.Close>Close</AlertDialog.Close>
                 </AlertDialog.Popup>
               </AlertDialog.Portal>

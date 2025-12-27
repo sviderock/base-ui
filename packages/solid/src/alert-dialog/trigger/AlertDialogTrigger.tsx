@@ -1,10 +1,9 @@
 'use client';
-import { createMemo } from 'solid-js';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
 
 /**
@@ -15,15 +14,19 @@ import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
  */
 export function AlertDialogTrigger(componentProps: AlertDialogTrigger.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['disabled', 'nativeButton']);
-  const disabled = () => access(local.disabled) ?? false;
-  const native = () => access(local.nativeButton) ?? true;
+  const disabled = () => local.disabled ?? false;
+  const native = () => local.nativeButton ?? true;
 
   const { open, setTriggerElement, triggerProps } = useAlertDialogRootContext();
 
-  const state = createMemo<AlertDialogTrigger.State>(() => ({
-    disabled: disabled(),
-    open: open(),
-  }));
+  const state: AlertDialogTrigger.State = {
+    get disabled() {
+      return disabled();
+    },
+    get open() {
+      return open();
+    },
+  };
 
   const { getButtonProps, buttonRef } = useButton({
     disabled,
@@ -36,7 +39,7 @@ export function AlertDialogTrigger(componentProps: AlertDialogTrigger.Props) {
       buttonRef(el);
       setTriggerElement(el);
     },
-    props: [() => triggerProps(), elementProps, getButtonProps],
+    props: [triggerProps, elementProps, getButtonProps],
     customStyleHookMapping: triggerOpenStateMapping,
   });
 
@@ -51,7 +54,7 @@ export namespace AlertDialogTrigger {
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default false
      */
-    nativeButton?: MaybeAccessor<boolean | undefined>;
+    nativeButton?: boolean;
   }
 
   export interface State {

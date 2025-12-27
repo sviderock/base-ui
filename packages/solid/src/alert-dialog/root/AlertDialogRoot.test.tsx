@@ -193,7 +193,7 @@ describe('<AlertDialog.Root />', () => {
         return (
           <div>
             <button onClick={() => setOpen(false)}>Close</button>
-            <AlertDialog.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <AlertDialog.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <AlertDialog.Portal>
                 <AlertDialog.Popup data-testid="popup" />
               </AlertDialog.Portal>
@@ -240,7 +240,7 @@ describe('<AlertDialog.Root />', () => {
             {/* eslint-disable-next-line solid/no-innerhtml */}
             <style innerHTML={style} />
             <button onClick={() => setOpen(false)}>Close</button>
-            <AlertDialog.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <AlertDialog.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <AlertDialog.Portal>
                 <AlertDialog.Popup class="animation-test-indicator" data-testid="popup" />
               </AlertDialog.Portal>
@@ -276,7 +276,7 @@ describe('<AlertDialog.Root />', () => {
         return (
           <div>
             <button onClick={() => setOpen(true)}>Open</button>
-            <AlertDialog.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <AlertDialog.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <AlertDialog.Portal>
                 <AlertDialog.Popup data-testid="popup" />
               </AlertDialog.Portal>
@@ -324,7 +324,7 @@ describe('<AlertDialog.Root />', () => {
             <style innerHTML={style} />
             <button onClick={() => setOpen(true)}>Open</button>
             <AlertDialog.Root
-              open={open}
+              open={open()}
               onOpenChange={setOpen}
               onOpenChangeComplete={onOpenChangeComplete}
             >

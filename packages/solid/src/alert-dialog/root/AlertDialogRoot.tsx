@@ -1,8 +1,7 @@
 'use client';
-import { useContext } from 'solid-js';
+import { mergeProps, useContext } from 'solid-js';
 import type { DialogRoot } from '../../dialog/root/DialogRoot';
 import { type DialogOpenChangeReason, useDialogRoot } from '../../dialog/root/useDialogRoot';
-import { access } from '../../solid-helpers';
 import { AlertDialogRootContext } from './AlertDialogRootContext';
 
 /**
@@ -12,18 +11,16 @@ import { AlertDialogRootContext } from './AlertDialogRootContext';
  * Documentation: [Base UI Alert Dialog](https://base-ui.com/react/components/alert-dialog)
  */
 export function AlertDialogRoot(props: AlertDialogRoot.Props) {
-  const defaultOpen = () => access(props.defaultOpen) ?? false;
-  const open = () => access(props.open);
-  const actionsRef = () => access(props.actionsRef);
+  const defaultOpen = () => props.defaultOpen ?? false;
 
   const parentDialogRootContext = useContext(AlertDialogRootContext);
 
   const dialogRoot = useDialogRoot({
-    open,
+    open: () => props.open,
     defaultOpen,
     // eslint-disable-next-line solid/reactivity
     onOpenChange: props.onOpenChange,
-    actionsRef,
+    actionsRef: () => props.actionsRef,
     // eslint-disable-next-line solid/reactivity
     onOpenChangeComplete: props.onOpenChangeComplete,
     modal: true,
@@ -34,12 +31,11 @@ export function AlertDialogRoot(props: AlertDialogRoot.Props) {
 
   const nested = () => Boolean(parentDialogRootContext);
 
-  const contextValue: AlertDialogRootContext = {
-    ...dialogRoot,
+  const contextValue: AlertDialogRootContext = mergeProps(dialogRoot, {
     nested,
     // eslint-disable-next-line solid/reactivity
     onOpenChangeComplete: props.onOpenChangeComplete,
-  };
+  });
 
   return (
     <AlertDialogRootContext.Provider value={contextValue}>
