@@ -156,7 +156,7 @@ describe('<Switch.Root />', () => {
     const [disabled, setDisabled] = createSignal(true);
     const [readOnly, setReadOnly] = createSignal(true);
     render(() => (
-      <Switch.Root defaultChecked disabled={disabled} readOnly={readOnly} required>
+      <Switch.Root defaultChecked disabled={disabled()} readOnly={readOnly()} required>
         <Switch.Thumb data-testid="thumb" />
       </Switch.Root>
     ));

@@ -1,17 +1,17 @@
 'use client';
-import { batch, createMemo, createSignal, onMount, type ComponentProps } from 'solid-js';
+import { batch, createSignal, mergeProps, onMount, type JSX } from 'solid-js';
 import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { useField } from '../../field/useField';
 import { useFormContext } from '../../form/FormContext';
-import { mergeProps } from '../../merge-props';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { combineProps } from '../../merge-props';
+import { access, splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import { styleHookMapping } from '../styleHooks';
 import { SwitchRootContext } from './SwitchRootContext';
@@ -33,14 +33,10 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
     'required',
     'disabled',
   ]);
-  const checkedProp = () => local.checked;
-  const defaultChecked = () => access(local.defaultChecked);
-  const idProp = () => access(local.id);
   const nativeButton = () => access(local.nativeButton) ?? true;
   const readOnly = () => access(local.readOnly) ?? false;
   const required = () => access(local.required) ?? false;
   const disabledProp = () => access(local.disabled) ?? false;
-  const nameProp = () => elementProps.name;
 
   const { clearErrors } = useFormContext();
   const {
@@ -70,10 +66,10 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
   let inputRef = null as HTMLInputElement | null | undefined;
   const [switchRef, setSwitchRef] = createSignal<HTMLButtonElement | undefined>();
 
-  const id = useBaseUiId(idProp);
+  const id = useBaseUiId(() => local.id);
 
   onMount(() => {
-    setChildRefs('control', { explicitId: id, ref: switchRef, id: idProp });
+    setChildRefs('control', { explicitId: id, ref: switchRef, id: () => local.id });
 
     if (inputRef) {
       setFilled(inputRef!.checked);
@@ -81,8 +77,8 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
   });
 
   const [checked, setCheckedState] = useControlled({
-    controlled: checkedProp,
-    default: () => Boolean(defaultChecked()),
+    controlled: () => local.checked,
+    default: () => Boolean(local.defaultChecked),
     name: 'Switch',
     state: 'checked',
   });
@@ -101,13 +97,24 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
     native: nativeButton,
   });
 
-  const rootProps = createMemo<ComponentProps<'button'>>(() => ({
-    id: id(),
+  const rootProps: JSX.HTMLAttributes<HTMLButtonElement> = {
     role: 'switch',
-    disabled: disabled(),
-    'aria-checked': checked(),
-    'aria-readonly': readOnly() || undefined,
-    'aria-labelledby': labelId(),
+    get id() {
+      return id();
+    },
+    // @ts-expect-error - disabled is not a valid attribute for a button
+    get disabled() {
+      return disabled();
+    },
+    get 'aria-checked'() {
+      return checked();
+    },
+    get 'aria-readonly'() {
+      return readOnly() || undefined;
+    },
+    get 'aria-labelledby'() {
+      return labelId();
+    },
     onFocus() {
       setFocused(true);
     },
@@ -132,54 +139,76 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
 
       inputRef?.click();
     },
-  }));
+  };
 
-  const inputProps = createMemo(() =>
-    mergeProps<'input'>(
-      {
-        checked: checked(),
-        disabled: disabled(),
-        id: !name() ? `${id()}-input` : undefined,
-        name: name(),
-        required: required(),
-        style: visuallyHidden,
-        tabIndex: -1,
-        type: 'checkbox',
-        'aria-hidden': true,
-        onInput(event) {
-          // Workaround for https://github.com/facebook/react/issues/9023
-          if (event.defaultPrevented) {
-            return;
-          }
-
-          batch(() => {
-            const nextChecked = event.target.checked;
-
-            setDirty(nextChecked !== validityData.initialValue);
-            setFilled(nextChecked);
-            setCheckedState(nextChecked);
-            local.onCheckedChange?.(nextChecked, event);
-            clearErrors(name());
-
-            if (validationMode() === 'onChange') {
-              commitValidation(nextChecked);
-            } else {
-              commitValidation(nextChecked, true);
-            }
-          });
-        },
+  const inputProps = combineProps<'input'>(
+    {
+      get checked() {
+        return checked();
       },
-      getInputValidationProps,
-    ),
+      get disabled() {
+        return disabled();
+      },
+      get id() {
+        return !name() ? `${id()}-input` : undefined;
+      },
+      get name() {
+        return name();
+      },
+      get required() {
+        return required();
+      },
+      style: visuallyHidden,
+      tabIndex: -1,
+      type: 'checkbox',
+      'aria-hidden': true,
+      ref: (el) => {
+        if (local.refs) {
+          local.refs.inputRef = el;
+        }
+        inputRef = el;
+        validationRefs.inputRef = el;
+      },
+      onInput(event) {
+        // Workaround for https://github.com/facebook/react/issues/9023
+        if (event.defaultPrevented) {
+          return;
+        }
+
+        batch(() => {
+          const nextChecked = event.target.checked;
+
+          setDirty(nextChecked !== validityData.initialValue);
+          setFilled(nextChecked);
+          setCheckedState(nextChecked);
+          local.onCheckedChange?.(nextChecked, event);
+          clearErrors(name());
+
+          if (validationMode() === 'onChange') {
+            commitValidation(nextChecked);
+          } else {
+            commitValidation(nextChecked, true);
+          }
+        });
+      },
+    },
+    getInputValidationProps,
   );
 
-  const state = createMemo<SwitchRoot.State>(() => ({
-    ...fieldState,
-    checked: checked(),
-    disabled: disabled(),
-    readOnly: readOnly(),
-    required: required(),
-  }));
+  const state: SwitchRoot.State = mergeProps(fieldState, {
+    get disabled() {
+      return disabled();
+    },
+    get checked() {
+      return checked();
+    },
+    get readOnly() {
+      return readOnly();
+    },
+    get required() {
+      return required();
+    },
+  });
 
   const context: SwitchRootContext = {
     touched: () => fieldState.touched,
@@ -206,46 +235,30 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
   return (
     <SwitchRootContext.Provider value={context}>
       {element()}
-      {!checked() && nameProp() && <input type="hidden" name={nameProp()} value="off" />}
-      <input
-        ref={(el) => {
-          if (local.refs) {
-            local.refs.inputRef = el;
-          }
-          inputRef = el;
-          validationRefs.inputRef = el;
-        }}
-        {...inputProps()}
-      />
+      {!checked() && elementProps.name && (
+        <input type="hidden" name={elementProps.name} value="off" />
+      )}
+      <input {...(inputProps as any)} />
     </SwitchRootContext.Provider>
   );
 }
 
 export namespace SwitchRoot {
   export interface Props
-    extends Omit<BaseUIComponentProps<'button', SwitchRoot.State>, 'onChange' | 'id' | 'disabled'> {
-    /**
-     * The id of the switch element.
-     */
-    id?: MaybeAccessor<string | undefined>;
+    extends Omit<BaseUIComponentProps<'button', SwitchRoot.State>, 'onChange'> {
     /**
      * Whether the switch is currently active.
      *
      * To render an uncontrolled switch, use the `defaultChecked` prop instead.
      */
-    checked?: boolean | undefined;
+    checked?: boolean;
     /**
      * Whether the switch is initially active.
      *
      * To render a controlled switch, use the `checked` prop instead.
      * @default false
      */
-    defaultChecked?: MaybeAccessor<boolean | undefined>;
-    /**
-     * Whether the component should ignore user interaction.
-     * @default false
-     */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    defaultChecked?: boolean;
     refs?: {
       /**
        * A ref to access the hidden `<input>` element.
@@ -255,14 +268,14 @@ export namespace SwitchRoot {
     /**
      * Identifies the field when a form is submitted.
      */
-    name?: string | undefined;
+    name?: string;
     /**
      * Whether the component renders a native `<button>` element when replacing it
      * via the `render` prop.
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default true
      */
-    nativeButton?: MaybeAccessor<boolean | undefined>;
+    nativeButton?: boolean;
     /**
      * Event handler called when the switch is activated or deactivated.
      *
@@ -274,12 +287,12 @@ export namespace SwitchRoot {
      * Whether the user should be unable to activate or deactivate the switch.
      * @default false
      */
-    readOnly?: MaybeAccessor<boolean | undefined>;
+    readOnly?: boolean;
     /**
      * Whether the user must activate the switch before submitting a form.
      * @default false
      */
-    required?: MaybeAccessor<boolean | undefined>;
+    required?: boolean;
   }
 
   export interface State extends FieldRoot.State {

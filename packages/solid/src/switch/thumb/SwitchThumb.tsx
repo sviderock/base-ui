@@ -1,9 +1,9 @@
 'use client';
-import { createMemo } from 'solid-js';
+import { mergeProps } from 'solid-js';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { SwitchRoot } from '../root/SwitchRoot';
 import { useSwitchRootContext } from '../root/SwitchRootContext';
 import { styleHookMapping } from '../styleHooks';
@@ -20,17 +20,20 @@ export function SwitchThumb(componentProps: SwitchThumb.Props) {
   const { state: fieldState } = useFieldRootContext();
 
   const state = useSwitchRootContext();
-  const extendedState = createMemo<SwitchThumb.State>(() => ({
-    touched: fieldState().touched,
-    dirty: fieldState().dirty,
-    valid: fieldState().valid,
-    filled: fieldState().filled,
-    focused: fieldState().focused,
-    checked: state.checked(),
-    readOnly: state.readOnly(),
-    required: state.required(),
-    disabled: state.disabled() ?? fieldState().disabled,
-  }));
+  const extendedState: SwitchThumb.State = mergeProps(fieldState, {
+    get checked() {
+      return state.checked();
+    },
+    get readOnly() {
+      return state.readOnly();
+    },
+    get required() {
+      return state.required();
+    },
+    get disabled() {
+      return state.disabled() ?? fieldState.disabled;
+    },
+  });
 
   const element = useRenderElement('span', componentProps, {
     state: extendedState,
