@@ -2,10 +2,11 @@
 import { createMemo, type ComponentProps } from 'solid-js';
 import { ARROW_LEFT, ARROW_RIGHT, stopEvent } from '../../composite/composite';
 import { CompositeItem } from '../../composite/item/CompositeItem';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { combineProps } from '../../merge-props/combineProps';
+import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useFocusableWhenDisabled } from '../../utils/useFocusableWhenDisabled';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useToolbarGroupContext } from '../group/ToolbarGroupContext';
 import type { ToolbarRoot } from '../root/ToolbarRoot';
 import { useToolbarRootContext } from '../root/ToolbarRootContext';
@@ -21,8 +22,8 @@ export function ToolbarInput(componentProps: ToolbarInput.Props) {
     'focusableWhenDisabled',
     'disabled',
   ]);
-  const focusableWhenDisabled = () => access(local.focusableWhenDisabled) ?? true;
-  const disabledProp = () => access(local.disabled) ?? false;
+  const focusableWhenDisabled = () => local.focusableWhenDisabled ?? true;
+  const disabledProp = () => local.disabled ?? false;
 
   const { disabled: toolbarDisabled, orientation } = useToolbarRootContext();
 
@@ -39,11 +40,17 @@ export function ToolbarInput(componentProps: ToolbarInput.Props) {
     isNativeButton: false,
   });
 
-  const state = createMemo<ToolbarInput.State>(() => ({
-    disabled: disabled(),
-    orientation: orientation(),
-    focusable: focusableWhenDisabled(),
-  }));
+  const state: ToolbarInput.State = {
+    get disabled() {
+      return disabled();
+    },
+    get orientation() {
+      return orientation();
+    },
+    get focusable() {
+      return focusableWhenDisabled();
+    },
+  };
 
   const element = useRenderElement('input', componentProps, {
     state,
@@ -66,7 +73,7 @@ export function ToolbarInput(componentProps: ToolbarInput.Props) {
         },
       },
       elementProps,
-      focusableWhenDisabledProps,
+      (props) => combineProps(props, focusableWhenDisabledProps()),
     ],
   });
 
@@ -79,18 +86,12 @@ export namespace ToolbarInput {
     focusable: boolean;
   }
 
-  export interface Props
-    extends Omit<BaseUIComponentProps<'input', ToolbarRoot.State>, 'disabled'> {
-    /**
-     * When `true` the item is disabled.
-     * @default false
-     */
-    disabled?: MaybeAccessor<boolean | undefined>;
+  export interface Props extends BaseUIComponentProps<'input', ToolbarRoot.State> {
     /**
      * When `true` the item remains focuseable when disabled.
      * @default true
      */
-    focusableWhenDisabled?: MaybeAccessor<boolean | undefined>;
-    defaultValue?: MaybeAccessor<ComponentProps<'input'>['value'] | undefined>;
+    focusableWhenDisabled?: boolean;
+    defaultValue?: ComponentProps<'input'>['value'];
   }
 }

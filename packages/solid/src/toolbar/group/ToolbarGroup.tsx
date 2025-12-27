@@ -1,8 +1,7 @@
 'use client';
-import { createMemo } from 'solid-js';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { ToolbarRoot } from '../root/ToolbarRoot';
 import { useToolbarRootContext } from '../root/ToolbarRootContext';
 import { ToolbarGroupContext } from './ToolbarGroupContext';
@@ -15,7 +14,7 @@ import { ToolbarGroupContext } from './ToolbarGroupContext';
  */
 export function ToolbarGroup(componentProps: ToolbarGroup.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['disabled']);
-  const disabledProp = () => access(local.disabled) ?? false;
+  const disabledProp = () => local.disabled ?? false;
 
   const { orientation, disabled: toolbarDisabled } = useToolbarRootContext();
 
@@ -25,10 +24,14 @@ export function ToolbarGroup(componentProps: ToolbarGroup.Props) {
     disabled,
   };
 
-  const state = createMemo<ToolbarRoot.State>(() => ({
-    disabled: disabled(),
-    orientation: orientation(),
-  }));
+  const state: ToolbarRoot.State = {
+    get disabled() {
+      return disabled();
+    },
+    get orientation() {
+      return orientation();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
@@ -46,6 +49,6 @@ export namespace ToolbarGroup {
      * When `true` all toolbar items in the group are disabled.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
   }
 }

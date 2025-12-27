@@ -32,7 +32,7 @@ export function useRenderElement<
               typeof componentProps.render === 'object' &&
               'component' in componentProps.render
             ) {
-              return <Dynamic component={componentProps.render.component} {...p} />;
+              return <Dynamic {...p} component={componentProps.render.component} />;
             }
 
             return (
@@ -76,6 +76,7 @@ export function useRenderElement<
             combineProps(params.props),
 
             {
+              component: undefined,
               get class() {
                 return resolveClassName(componentProps.class, params.state);
               },

@@ -89,7 +89,7 @@ export function Toggle(componentProps: Toggle.Props) {
   });
 
   return (
-    <Show when={groupContext} fallback={<>{element()}</>}>
+    <Show when={groupContext} fallback={element()}>
       <CompositeItem render={element} />
     </Show>
   );

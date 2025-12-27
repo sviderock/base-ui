@@ -1,10 +1,10 @@
 'use client';
 import { createMemo } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useToolbarGroupContext } from '../group/ToolbarGroupContext';
 import type { ToolbarRoot } from '../root/ToolbarRoot';
 import { useToolbarRootContext } from '../root/ToolbarRootContext';
@@ -21,9 +21,9 @@ export function ToolbarButton(componentProps: ToolbarButton.Props) {
     'focusableWhenDisabled',
     'nativeButton',
   ]);
-  const disabledProp = () => access(local.disabled) ?? false;
-  const focusableWhenDisabled = () => access(local.focusableWhenDisabled) ?? true;
-  const nativeButton = () => access(local.nativeButton) ?? true;
+  const disabledProp = () => local.disabled ?? false;
+  const focusableWhenDisabled = () => local.focusableWhenDisabled ?? true;
+  const nativeButton = () => local.nativeButton ?? true;
 
   const { disabled: toolbarDisabled, orientation } = useToolbarRootContext();
 
@@ -39,11 +39,17 @@ export function ToolbarButton(componentProps: ToolbarButton.Props) {
     native: nativeButton,
   });
 
-  const state = createMemo<ToolbarButton.State>(() => ({
-    disabled: disabled(),
-    orientation: orientation(),
-    focusable: focusableWhenDisabled(),
-  }));
+  const state: ToolbarButton.State = {
+    get disabled() {
+      return disabled();
+    },
+    get orientation() {
+      return orientation();
+    },
+    get focusable() {
+      return focusableWhenDisabled();
+    },
+  };
 
   const element = useRenderElement('button', componentProps, {
     state,
@@ -53,7 +59,11 @@ export function ToolbarButton(componentProps: ToolbarButton.Props) {
       // for integrating with Menu and Select disabled states, `disabled` is
       // intentionally duplicated even though getButtonProps includes it already
       // TODO: follow up after https://github.com/mui/base-ui/issues/1976#issuecomment-2916905663
-      () => ({ disabled: disabled() }),
+      {
+        get disabled() {
+          return disabled();
+        },
+      },
       getButtonProps,
     ],
   });
@@ -73,18 +83,18 @@ export namespace ToolbarButton {
      * When `true` the item is disabled.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
     /**
      * When `true` the item remains focuseable when disabled.
      * @default true
      */
-    focusableWhenDisabled?: MaybeAccessor<boolean | undefined>;
+    focusableWhenDisabled?: boolean;
     /**
      * Whether the component renders a native `<button>` element when replacing it
      * via the `render` prop.
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default true
      */
-    nativeButton?: MaybeAccessor<boolean | undefined>;
+    nativeButton?: boolean;
   }
 }

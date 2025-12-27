@@ -1,9 +1,8 @@
 'use client';
-import { createMemo } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { ToolbarRoot } from '../root/ToolbarRoot';
 import { useToolbarRootContext } from '../root/ToolbarRootContext';
 
@@ -24,9 +23,11 @@ export function ToolbarLink(componentProps: ToolbarLink.Props) {
 
   const { orientation } = useToolbarRootContext();
 
-  const state = createMemo<ToolbarLink.State>(() => ({
-    orientation: orientation(),
-  }));
+  const state: ToolbarLink.State = {
+    get orientation() {
+      return orientation();
+    },
+  };
 
   const element = useRenderElement('a', componentProps, { state, props: elementProps });
 

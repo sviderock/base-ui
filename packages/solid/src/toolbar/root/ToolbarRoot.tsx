@@ -2,9 +2,9 @@
 import { createMemo, createSignal } from 'solid-js';
 import type { CompositeMetadata } from '../../composite/list/CompositeList';
 import { CompositeRoot } from '../../composite/root/CompositeRoot';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { Orientation as BaseOrientation, BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { ToolbarRootContext } from './ToolbarRootContext';
 
 /**
@@ -20,10 +20,10 @@ export function ToolbarRoot(componentProps: ToolbarRoot.Props) {
     'loop',
     'orientation',
   ]);
-  const cols = () => access(local.cols) ?? 1;
-  const disabled = () => access(local.disabled) ?? false;
-  const loop = () => access(local.loop) ?? true;
-  const orientation = () => access(local.orientation) ?? 'horizontal';
+  const cols = () => local.cols ?? 1;
+  const disabled = () => local.disabled ?? false;
+  const loop = () => local.loop ?? true;
+  const orientation = () => local.orientation ?? 'horizontal';
 
   const [itemArray, setItemArray] = createSignal<
     Array<{ element: Element; metadata: CompositeMetadata<ToolbarRoot.ItemMetadata> | null }>
@@ -46,18 +46,24 @@ export function ToolbarRoot(componentProps: ToolbarRoot.Props) {
     setItemArray,
   };
 
-  const state = createMemo<ToolbarRoot.State>(() => ({
-    disabled: disabled(),
-    orientation: orientation(),
-  }));
+  const state: ToolbarRoot.State = {
+    get disabled() {
+      return disabled();
+    },
+    get orientation() {
+      return orientation();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
     props: [
-      () => ({
-        'aria-orientation': orientation(),
+      {
+        get 'aria-orientation'() {
+          return orientation();
+        },
         role: 'toolbar',
-      }),
+      },
       elementProps,
     ],
   });
@@ -94,19 +100,19 @@ export namespace ToolbarRoot {
      * a grid.
      * @default 1
      */
-    cols?: MaybeAccessor<number | undefined>;
-    disabled?: MaybeAccessor<boolean | undefined>;
+    cols?: number;
+    disabled?: boolean;
     /**
      * The orientation of the toolbar.
      * @type Toolbar.Root.Orientation
      * @default 'horizontal'
      */
-    orientation?: MaybeAccessor<Orientation | undefined>;
+    orientation?: Orientation;
     /**
      * If `true`, using keyboard navigation will wrap focus to the other end of the toolbar once the end is reached.
      *
      * @default true
      */
-    loop?: MaybeAccessor<boolean | undefined>;
+    loop?: boolean;
   }
 }

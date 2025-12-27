@@ -144,6 +144,10 @@ export function combineProps<
   const sources = (restArgs ? args[0] : args) as Args;
   // create a map of event listeners to be chained
   const chainMap = {
+    allListeners: {} as Record<
+      string,
+      Array<{ fn: (...args: any[]) => void; type: 'combine' | 'replace' }> | undefined
+    >,
     listeners: {} as Record<string, ((...args: any[]) => void) | undefined>,
     styles: [] as JSX.HTMLAttributes<any>[],
     refs: [] as Array<Ref<any>>,
@@ -163,7 +167,39 @@ export function combineProps<
     let propsOverride = false;
     if (typeof props === 'function') {
       propsOverride = true;
-      props = props(merge);
+
+      /**
+       * TODO: This hack was created by Opus 4.5 on high reasoning using Cursor.
+       * This is the first time it came up with the solution I didn't even think of.
+       *
+       * Create a proxy that returns chained handlers for event keys.
+       * The function expects camelCase keys (onClick), but chainMap uses lowercase (onclick).
+       * This ensures the function receives the properly chained event handlers
+       * while preserving all other properties and their reactivity.
+       */
+      const savedListeners = { ...chainMap.listeners };
+      const propsWithChainedHandlers = new Proxy(merge, {
+        get(target, key) {
+          if (typeof key === 'string' && key[0] === 'o' && key[1] === 'n' && key[2]) {
+            const lowerName = key.toLowerCase();
+            if (savedListeners[lowerName]) {
+              return savedListeners[lowerName];
+            }
+            return Reflect.get(target, key);
+          }
+          return Reflect.get(target, key);
+        },
+        has(target, key) {
+          return Reflect.has(target, key);
+        },
+        ownKeys(target) {
+          return Reflect.ownKeys(target);
+        },
+        getOwnPropertyDescriptor(target, key) {
+          return Reflect.getOwnPropertyDescriptor(target, key);
+        },
+      });
+      props = props(propsWithChainedHandlers);
       chainMap.listeners = {};
     }
 
@@ -214,6 +250,12 @@ export function combineProps<
 
         if (callback) {
           chainMap.listeners[name] = mergeEventHandlers(chainMap.listeners[name], callback);
+
+          chainMap.allListeners[name] ??= [];
+          chainMap.allListeners[name].push({
+            fn: callback,
+            type: propsOverride ? 'replace' : 'combine',
+          });
         }
       }
     }
