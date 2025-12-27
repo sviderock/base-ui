@@ -5,7 +5,7 @@ import { access, splitComponentProps, type MaybeAccessor } from '../solid-helper
 import { useToolbarRootContext } from '../toolbar/root/ToolbarRootContext';
 import type { BaseUIComponentProps, Orientation } from '../utils/types';
 import { useControlled } from '../utils/useControlled';
-import { useRenderElement } from '../utils/useRenderElement';
+import { useRenderElement } from '../utils/useRenderElementV2';
 import { ToggleGroupContext } from './ToggleGroupContext';
 import { ToggleGroupDataAttributes } from './ToggleGroupDataAttributes';
 
@@ -33,18 +33,16 @@ export function ToggleGroup(componentProps: ToggleGroup.Props) {
     'toggleMultiple',
     'value',
   ]);
-  const defaultValueProp = () => access(local.defaultValue);
-  const disabledProp = () => access(local.disabled) ?? false;
-  const loop = () => access(local.loop) ?? true;
-  const orientation = () => access(local.orientation) ?? 'horizontal';
-  const toggleMultiple = () => access(local.toggleMultiple) ?? false;
-  const valueProp = () => access(local.value);
+  const disabledProp = () => local.disabled ?? false;
+  const loop = () => local.loop ?? true;
+  const orientation = () => local.orientation ?? 'horizontal';
+  const toggleMultiple = () => local.toggleMultiple ?? false;
 
   const toolbarContext = useToolbarRootContext(true);
 
   const defaultValue = createMemo(() => {
-    if (valueProp() === undefined) {
-      return defaultValueProp() ?? [];
+    if (local.value === undefined) {
+      return local.defaultValue ?? [];
     }
 
     return undefined;
@@ -53,7 +51,7 @@ export function ToggleGroup(componentProps: ToggleGroup.Props) {
   const disabled = () => (toolbarContext?.disabled() ?? false) || disabledProp();
 
   const [groupValue, setValueState] = useControlled({
-    controlled: valueProp,
+    controlled: () => local.value,
     default: defaultValue,
     name: 'ToggleGroup',
     state: 'value',
@@ -79,11 +77,17 @@ export function ToggleGroup(componentProps: ToggleGroup.Props) {
     }
   };
 
-  const state = createMemo<ToggleGroup.State>(() => ({
-    disabled: disabled(),
-    multiple: toggleMultiple(),
-    orientation: orientation(),
-  }));
+  const state: ToggleGroup.State = {
+    get disabled() {
+      return disabled();
+    },
+    get multiple() {
+      return toggleMultiple();
+    },
+    get orientation() {
+      return orientation();
+    },
+  };
 
   const contextValue: ToggleGroupContext = {
     disabled,
@@ -117,6 +121,7 @@ export namespace ToggleGroup {
      */
     disabled: boolean;
     multiple: boolean;
+    orientation: Orientation;
   }
 
   export interface Props extends BaseUIComponentProps<'div', State> {
@@ -125,13 +130,13 @@ export namespace ToggleGroup {
      * the values of all pressed toggle buttons.
      * This is the controlled counterpart of `defaultValue`.
      */
-    value?: MaybeAccessor<readonly any[] | undefined>;
+    value?: readonly any[];
     /**
      * The open state of the toggle group represented by an array of
      * the values of all pressed toggle buttons.
      * This is the uncontrolled counterpart of `value`.
      */
-    defaultValue?: MaybeAccessor<readonly any[] | undefined>;
+    defaultValue?: readonly any[];
     /**
      * Callback fired when the pressed states of the toggle group changes.
      *
@@ -143,23 +148,23 @@ export namespace ToggleGroup {
      * Whether the toggle group should ignore user interaction.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
     /**
      * @default 'horizontal'
      */
-    orientation?: MaybeAccessor<Orientation | undefined>;
+    orientation?: Orientation;
     /**
      * Whether to loop keyboard focus back to the first item
      * when the end of the list is reached while using the arrow keys.
      * @default true
      */
-    loop?: MaybeAccessor<boolean | undefined>;
+    loop?: boolean;
     /**
      * When `false` only one item in the group can be pressed. If any item in
      * the group becomes pressed, the others will become unpressed.
      * When `true` multiple items can be pressed.
      * @default false
      */
-    toggleMultiple?: MaybeAccessor<boolean | undefined>;
+    toggleMultiple?: boolean;
   }
 }

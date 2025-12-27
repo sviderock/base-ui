@@ -27,32 +27,32 @@ describe('<Toggle />', () => {
 
       render(() => <App />);
       const checkbox = screen.getByRole('checkbox');
-      const button = screen.getByRole('button');
+      const button = () => screen.getByRole('button');
 
-      expect(button).to.have.attribute('aria-pressed', 'false');
-
-      checkbox.click();
-
-      expect(button).to.have.attribute('aria-pressed', 'true');
+      expect(button()).to.have.attribute('aria-pressed', 'false');
 
       checkbox.click();
 
-      expect(button).to.have.attribute('aria-pressed', 'false');
+      expect(button()).to.have.attribute('aria-pressed', 'true');
+
+      checkbox.click();
+
+      expect(button()).to.have.attribute('aria-pressed', 'false');
     });
 
     it('uncontrolled', async () => {
       render(() => <Toggle defaultPressed={false} />);
 
-      const button = screen.getByRole('button');
+      const button = () => screen.getByRole('button');
 
-      expect(button).to.have.attribute('aria-pressed', 'false');
-      button.click();
+      expect(button()).to.have.attribute('aria-pressed', 'false');
+      button().click();
 
-      expect(button).to.have.attribute('aria-pressed', 'true');
+      expect(button()).to.have.attribute('aria-pressed', 'true');
 
-      button.click();
+      button().click();
 
-      expect(button).to.have.attribute('aria-pressed', 'false');
+      expect(button()).to.have.attribute('aria-pressed', 'false');
     });
   });
 
@@ -75,16 +75,16 @@ describe('<Toggle />', () => {
       const handlePressed = spy();
       render(() => <Toggle disabled onPressedChange={handlePressed} />);
 
-      const button = screen.getByRole('button');
+      const button = () => screen.getByRole('button');
 
-      expect(button).to.have.attribute('disabled');
-      expect(button).to.have.attribute('data-disabled');
-      expect(button).to.have.attribute('aria-pressed', 'false');
+      expect(button()).to.have.attribute('disabled');
+      expect(button()).to.have.attribute('data-disabled');
+      expect(button()).to.have.attribute('aria-pressed', 'false');
 
-      button.click();
+      button().click();
 
       expect(handlePressed.callCount).to.equal(0);
-      expect(button).to.have.attribute('aria-pressed', 'false');
+      expect(button()).to.have.attribute('aria-pressed', 'false');
     });
   });
 });

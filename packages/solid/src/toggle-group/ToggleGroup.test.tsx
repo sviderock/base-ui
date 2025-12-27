@@ -83,7 +83,7 @@ describe('<ToggleGroup />', () => {
     it('pressed state', async () => {
       const [value, setValue] = createSignal(['two']);
       render(() => (
-        <ToggleGroup value={value}>
+        <ToggleGroup value={value()}>
           <Toggle value="one" />
           <Toggle value="two" />
         </ToggleGroup>
@@ -112,7 +112,7 @@ describe('<ToggleGroup />', () => {
     it('prop: value', async () => {
       const [value, setValue] = createSignal(['two']);
       render(() => (
-        <ToggleGroup value={value}>
+        <ToggleGroup value={value()}>
           <Toggle value="one" />
           <Toggle value="two" />
         </ToggleGroup>

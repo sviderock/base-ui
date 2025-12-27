@@ -10,7 +10,7 @@ export default function ExampleToggle() {
         render={(props, state) => {
           return (
             <button type="button" {...props}>
-              {state().pressed ? (
+              {state.pressed ? (
                 <HeartFilledIcon class="size-5" />
               ) : (
                 <HeartOutlineIcon class="size-5" />
