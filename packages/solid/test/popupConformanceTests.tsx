@@ -4,7 +4,7 @@ import type { render as testingLibraryRender } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { createSignal, type Accessor, type Component } from 'solid-js';
+import { createSignal, type Component } from 'solid-js';
 
 export function popupConformanceTests(config: PopupTestConfig) {
   const {
@@ -32,7 +32,15 @@ export function popupConformanceTests(config: PopupTestConfig) {
     describe('controlled mode', () => {
       it('opens the popup with the `open` prop', () => {
         const [open, setOpen] = createSignal(false);
-        render(() => prepareComponent({ root: { open } }));
+        render(() =>
+          prepareComponent({
+            root: {
+              get open() {
+                return open();
+              },
+            },
+          }),
+        );
         if (!alwaysMounted) {
           expect(getPopup()).to.equal(null);
         } else {
@@ -68,7 +76,7 @@ export function popupConformanceTests(config: PopupTestConfig) {
       describe('ARIA attributes', () => {
         if (expectedPopupRole) {
           it(`has the ${expectedPopupRole} role on the popup`, async () => {
-            render(() => prepareComponent({ root: { open: () => true } }));
+            render(() => prepareComponent({ root: { open: true } }));
             const popup = getPopup();
             expect(popup).not.to.equal(null);
             expect(popup).to.have.attribute('role', expectedPopupRole);
@@ -77,7 +85,7 @@ export function popupConformanceTests(config: PopupTestConfig) {
 
         if (triggerMouseAction === 'click') {
           it('has the `aria-controls` attribute on the trigger', async () => {
-            render(() => prepareComponent({ root: { open: () => true } }));
+            render(() => prepareComponent({ root: { open: true } }));
             const trigger = getTrigger();
             const popup = getPopup();
             expect(trigger).to.have.attribute('aria-controls', popup?.id);
@@ -101,14 +109,14 @@ export function popupConformanceTests(config: PopupTestConfig) {
 
           if (expectedAriaHasPopupValue) {
             it('has the `aria-haspopup` attribute on the trigger', async () => {
-              render(() => prepareComponent({ root: { open: () => true } }));
+              render(() => prepareComponent({ root: { open: true } }));
               const trigger = getTrigger();
               expect(trigger).to.have.attribute('aria-haspopup', expectedAriaHasPopupValue);
             });
           }
 
           it('allows a custom `id` prop', async () => {
-            render(() => prepareComponent({ root: { open: () => true }, popup: { id: 'TestId' } }));
+            render(() => prepareComponent({ root: { open: true }, popup: { id: 'TestId' } }));
             const trigger = getTrigger();
             const popup = getPopup();
             expect(trigger.getAttribute('aria-controls')).to.equal(popup?.getAttribute('id'));
@@ -132,7 +140,15 @@ export function popupConformanceTests(config: PopupTestConfig) {
         }
 
         const [open, setOpen] = createSignal(true);
-        render(() => prepareComponent({ root: { open } }));
+        render(() =>
+          prepareComponent({
+            root: {
+              get open() {
+                return open();
+              },
+            },
+          }),
+        );
 
         await waitFor(() => {
           expect(getPopup()).not.to.equal(null);
@@ -182,7 +198,11 @@ export function popupConformanceTests(config: PopupTestConfig) {
               {/* eslint-disable-next-line solid/no-innerhtml */}
               <style innerHTML={style} />
               {prepareComponent({
-                root: { open: () => props.open },
+                root: {
+                  get open() {
+                    return props.open;
+                  },
+                },
                 portal: { keepMounted: true },
                 popup: {
                   className: `animation-test-popup-${animationName}`,
@@ -248,7 +268,7 @@ export interface PopupTestConfig {
 }
 
 interface RootProps {
-  open?: Accessor<boolean>;
+  open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 

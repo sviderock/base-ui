@@ -19,7 +19,7 @@ export function Root(props: Dialog.Root.Props) {
 
   return (
     <MobileNavStateCallback.Provider value={setOpen}>
-      <Dialog.Root open={open} onOpenChange={setOpen} {...props} />
+      <Dialog.Root open={open()} onOpenChange={setOpen} {...props} />
     </MobileNavStateCallback.Provider>
   );
 }

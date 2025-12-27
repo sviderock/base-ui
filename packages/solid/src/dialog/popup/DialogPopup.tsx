@@ -1,7 +1,6 @@
 'use client';
-import { createMemo } from 'solid-js';
 import { FloatingFocusManager } from '../../floating-ui-solid';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { access, splitComponentProps } from '../../solid-helpers';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { inertValue } from '../../utils/inertValue';
 import { InternalBackdrop } from '../../utils/InternalBackdrop';
@@ -10,7 +9,7 @@ import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import { type BaseUIComponentProps } from '../../utils/types';
 import { InteractionType } from '../../utils/useEnhancedClickHandler';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { type TransitionStatus } from '../../utils/useTransitionStatus';
 import { useDialogRootContext } from '../root/DialogRootContext';
 import { DialogPopupCssVars } from './DialogPopupCssVars';
@@ -36,8 +35,6 @@ export function DialogPopup(componentProps: DialogPopup.Props) {
     'finalFocus',
     'initialFocus',
   ]);
-
-  const finalFocus = () => access(local.finalFocus);
 
   const {
     descriptionElementId,
@@ -81,12 +78,20 @@ export function DialogPopup(componentProps: DialogPopup.Props) {
 
   const nestedDialogOpen = () => nestedOpenDialogCount() > 0;
 
-  const state = createMemo<DialogPopup.State>(() => ({
-    open: open(),
-    nested: nested(),
-    transitionStatus: transitionStatus(),
-    nestedDialogOpen: nestedDialogOpen(),
-  }));
+  const state: DialogPopup.State = {
+    get open() {
+      return open();
+    },
+    get nested() {
+      return nested();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+    get nestedDialogOpen() {
+      return nestedDialogOpen();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
@@ -95,13 +100,15 @@ export function DialogPopup(componentProps: DialogPopup.Props) {
       dialogPopupRef(el);
     },
     props: [
-      () => getPopupProps(),
+      getPopupProps,
       popupProps,
-      () => ({
-        style: {
-          [DialogPopupCssVars.nestedDialogs]: nestedOpenDialogCount(),
+      {
+        get style() {
+          return {
+            [DialogPopupCssVars.nestedDialogs]: nestedOpenDialogCount(),
+          };
         },
-      }),
+      },
       elementProps,
     ],
     customStyleHookMapping,
@@ -123,7 +130,7 @@ export function DialogPopup(componentProps: DialogPopup.Props) {
         disabled={!mounted()}
         closeOnFocusOut={dismissible?.()}
         initialFocus={resolvedInitialFocus()}
-        returnFocus={finalFocus()}
+        returnFocus={local.finalFocus}
         modal={modal() !== false}
       >
         {element()}
@@ -139,13 +146,15 @@ export namespace DialogPopup {
      * By default, the first focusable element is focused.
      */
     initialFocus?:
-      | MaybeAccessor<HTMLElement | null | undefined>
+      | HTMLElement
+      | null
+      | undefined
       | ((interactionType: InteractionType) => HTMLElement | null | undefined);
     /**
      * Determines the element to focus when the dialog is closed.
      * By default, focus returns to the trigger.
      */
-    finalFocus?: MaybeAccessor<HTMLElement | null | undefined>;
+    finalFocus?: HTMLElement | null | undefined;
   }
 
   export interface State {

@@ -1,9 +1,8 @@
 'use client';
-import { type JSX } from 'solid-js';
-import { mergeProps } from '../../merge-props';
+import { combineProps } from '../../merge-props';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
-import type { HTMLProps } from '../../utils/types';
+import type { BaseUIHTMLProps, HTMLProps } from '../../utils/types';
 import { DialogOpenChangeReason } from '../root/useDialogRoot';
 
 export function useDialogClose(params: useDialogClose.Parameters): useDialogClose.ReturnValue {
@@ -22,10 +21,10 @@ export function useDialogClose(params: useDialogClose.Parameters): useDialogClos
     native,
   });
 
-  const getRootProps = (externalProps: HTMLProps) => {
+  const getRootProps: useDialogClose.ReturnValue['getRootProps'] = (externalProps) => {
     // Pass getButtonProps as a props-getter so it can wrap the previously merged
     // onClick and correctly suppress it when disabled, matching React behavior.
-    return mergeProps({ onClick: handleClick }, externalProps, getButtonProps);
+    return combineProps({ onClick: handleClick }, externalProps, getButtonProps);
   };
 
   return {
@@ -65,7 +64,7 @@ export namespace useDialogClose {
     /**
      * Resolver for the root element props.
      */
-    getRootProps: (externalProps: JSX.HTMLAttributes<any>) => JSX.HTMLAttributes<any>;
+    getRootProps: (externalProps: HTMLProps | BaseUIHTMLProps) => BaseUIHTMLProps;
     dialogCloseRef: (el: HTMLElement | undefined | null) => void;
   }
 }

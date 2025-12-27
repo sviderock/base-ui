@@ -1,14 +1,5 @@
 'use client';
-import {
-  batch,
-  createEffect,
-  createMemo,
-  createSignal,
-  on,
-  onCleanup,
-  onMount,
-  type Accessor,
-} from 'solid-js';
+import { batch, createEffect, createSignal, on, onCleanup, onMount, type Accessor } from 'solid-js';
 import { createStore, type SetStoreFunction, type Store } from 'solid-js/store';
 import {
   FloatingRootContext,
@@ -20,12 +11,13 @@ import {
   type OpenChangeReason as FloatingUIOpenChangeReason,
 } from '../../floating-ui-solid';
 import { getTarget } from '../../floating-ui-solid/utils';
-import { access, type CodepenedentRefs, type MaybeAccessor } from '../../solid-helpers';
+import { combineProps } from '../../merge-props';
+import { access, type CodependentRefs, type MaybeAccessor } from '../../solid-helpers';
 import {
   translateOpenChangeReason,
   type BaseOpenChangeReason,
 } from '../../utils/translateOpenChangeReason';
-import type { HTMLProps, RequiredExcept } from '../../utils/types';
+import type { BaseUIHTMLProps, HTMLProps, RequiredExcept } from '../../utils/types';
 import { useControlled } from '../../utils/useControlled';
 import { type InteractionType } from '../../utils/useEnhancedClickHandler';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
@@ -172,7 +164,7 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
 
   const { openMethod, triggerProps } = useOpenInteractionType(open);
 
-  const dialogTriggerProps = createMemo(() => getReferenceProps(triggerProps));
+  // const dialogTriggerProps = createMemo(() => getReferenceProps(triggerProps));
 
   const [codependentRefs, setCodependentRefs] = createStore<
     useDialogRoot.ReturnValue['codependentRefs']
@@ -200,16 +192,14 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
     setOpen,
     open,
     titleElementId,
-    setTitleElementId,
     descriptionElementId,
-    setDescriptionElementId,
     onNestedDialogOpen: handleNestedDialogOpen,
     onNestedDialogClose: handleNestedDialogClose,
     nestedOpenDialogCount: ownNestedOpenDialogs,
     openMethod,
     mounted,
     transitionStatus,
-    triggerProps: dialogTriggerProps,
+    triggerProps: (otherProps) => combineProps(otherProps, getReferenceProps(triggerProps)),
     getPopupProps: getFloatingProps,
     setTriggerElement,
     setPopupElement,
@@ -325,14 +315,6 @@ export namespace useDialogRoot {
      */
     openMethod: Accessor<InteractionType | null>;
     /**
-     * Callback to set the id of the description element associated with the dialog.
-     */
-    setDescriptionElementId: (newAccessor: Accessor<string | undefined>) => void;
-    /**
-     * Callback to set the id of the title element.
-     */
-    setTitleElementId: (newAccessor: Accessor<string | undefined>) => void;
-    /**
      * The id of the title element associated with the dialog.
      */
     titleElementId: Accessor<string | undefined>;
@@ -347,11 +329,11 @@ export namespace useDialogRoot {
     /**
      * Resolver for the Trigger element's props.
      */
-    triggerProps: Accessor<HTMLProps>;
+    triggerProps: (externalProps: HTMLProps | BaseUIHTMLProps) => BaseUIHTMLProps;
     /**
      * Resolver for the Popup element's props.
      */
-    getPopupProps: (externalProps?: HTMLProps) => HTMLProps;
+    getPopupProps: (externalProps: HTMLProps | BaseUIHTMLProps) => BaseUIHTMLProps;
     /**
      * Callback to register the Trigger element DOM node.
      */
@@ -384,11 +366,11 @@ export namespace useDialogRoot {
     /**
      * Codependent refs.
      */
-    codependentRefs: Store<CodepenedentRefs<['title', 'description']>>;
+    codependentRefs: Store<CodependentRefs<['title', 'description']>>;
     /**
      * Callback to set the codependent refs.
      */
-    setCodependentRefs: SetStoreFunction<CodepenedentRefs<['title', 'description']>>;
+    setCodependentRefs: SetStoreFunction<CodependentRefs<['title', 'description']>>;
   }
 
   export interface Actions {

@@ -3,7 +3,7 @@ import { onMount } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { type BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useDialogRootContext } from '../root/DialogRootContext';
 
 /**
@@ -27,7 +27,14 @@ export function DialogTitle(componentProps: DialogTitle.Props) {
     ref: (el) => {
       ref = el;
     },
-    props: [() => ({ id: id() }), elementProps],
+    props: [
+      {
+        get id() {
+          return id();
+        },
+      },
+      elementProps,
+    ],
   });
 
   return <>{element()}</>;

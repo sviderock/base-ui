@@ -1,10 +1,9 @@
 'use client';
-import { createMemo } from 'solid-js';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { access, splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useDialogRootContext } from '../root/DialogRootContext';
 
 /**
@@ -25,10 +24,14 @@ export function DialogTrigger(componentProps: DialogTrigger.Props) {
 
   const { open, setTriggerElement, triggerProps } = useDialogRootContext();
 
-  const state = createMemo<DialogTrigger.State>(() => ({
-    disabled: disabled(),
-    open: open(),
-  }));
+  const state: DialogTrigger.State = {
+    get disabled() {
+      return disabled();
+    },
+    get open() {
+      return open();
+    },
+  };
 
   const { getButtonProps, buttonRef } = useButton({
     disabled,
@@ -56,7 +59,7 @@ export namespace DialogTrigger {
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default true
      */
-    nativeButton?: MaybeAccessor<boolean | undefined>;
+    nativeButton?: boolean;
   }
 
   export interface State {

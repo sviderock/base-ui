@@ -1,11 +1,10 @@
 'use client';
-import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import { type BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { type TransitionStatus } from '../../utils/useTransitionStatus';
 import { useDialogRootContext } from '../root/DialogRootContext';
 
@@ -24,10 +23,14 @@ export function DialogBackdrop(componentProps: DialogBackdrop.Props) {
   const [, , elementProps] = splitComponentProps(componentProps, []);
   const { open, nested, mounted, transitionStatus, refs } = useDialogRootContext();
 
-  const state = createMemo<DialogBackdrop.State>(() => ({
-    open: open(),
-    transitionStatus: transitionStatus(),
-  }));
+  const state: DialogBackdrop.State = {
+    get open() {
+      return open();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
@@ -36,14 +39,16 @@ export function DialogBackdrop(componentProps: DialogBackdrop.Props) {
     },
     customStyleHookMapping,
     props: [
-      () => ({
+      {
+        get hidden() {
+          return !mounted();
+        },
         role: 'presentation',
-        hidden: !mounted(),
         style: {
           'user-select': 'none',
           '-webkit-user-select': 'none',
         },
-      }),
+      },
       elementProps,
     ],
     enabled: () => !nested(),

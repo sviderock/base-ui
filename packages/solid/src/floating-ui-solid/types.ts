@@ -2,6 +2,7 @@ import type { VirtualElement } from '@floating-ui/dom';
 import type { Accessor, JSX } from 'solid-js';
 import type { SetStoreFunction, Store } from 'solid-js/store';
 import type { MaybeAccessor } from '../solid-helpers';
+import type { WithBaseUIEvent } from '../utils/types';
 import type {
   UsePositionFloatingReturn,
   UsePositionFloatingSharedReturn,
@@ -176,11 +177,14 @@ export interface FloatingTreeType<RT extends ReferenceType = ReferenceType> {
 }
 
 export interface ElementProps {
-  reference?: JSX.HTMLAttributes<Element>;
-  floating?: JSX.HTMLAttributes<HTMLElement>;
+  reference?: JSX.HTMLAttributes<Element> | WithBaseUIEvent<JSX.HTMLAttributes<Element>>;
+  floating?: JSX.HTMLAttributes<HTMLElement> | WithBaseUIEvent<JSX.HTMLAttributes<HTMLElement>>;
   item?:
     | JSX.HTMLAttributes<HTMLElement>
-    | ((props: ExtendedUserProps) => JSX.HTMLAttributes<HTMLElement>);
+    | WithBaseUIEvent<JSX.HTMLAttributes<HTMLElement>>
+    | ((
+        props: ExtendedUserProps,
+      ) => JSX.HTMLAttributes<HTMLElement> | WithBaseUIEvent<JSX.HTMLAttributes<HTMLElement>>);
 }
 
 export type ReferenceType = Element | VirtualElement;

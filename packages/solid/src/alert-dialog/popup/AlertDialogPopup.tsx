@@ -94,8 +94,8 @@ export function AlertDialogPopup(componentProps: AlertDialogPopup.Props) {
       dialogPopupRef(el);
     },
     props: [
-      () => getPopupProps(),
-      () => popupProps(),
+      getPopupProps,
+      popupProps,
       () => ({
         style: {
           [AlertDialogPopupCssVars.nestedDialogs]: nestedOpenDialogCount(),

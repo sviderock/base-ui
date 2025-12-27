@@ -172,7 +172,7 @@ describe('<Dialog.Popup />', () => {
               <Dialog.Backdrop />
               <Dialog.Trigger>Open</Dialog.Trigger>
               <Dialog.Portal>
-                <Dialog.Popup finalFocus={inputRef}>
+                <Dialog.Popup finalFocus={inputRef()}>
                   <Dialog.Close>Close</Dialog.Close>
                 </Dialog.Popup>
               </Dialog.Portal>
