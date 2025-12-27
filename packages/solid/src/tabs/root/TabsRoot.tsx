@@ -1,12 +1,12 @@
 'use client';
-import { batch, createMemo, createSignal } from 'solid-js';
+import { batch, createSignal } from 'solid-js';
 import type { CompositeMetadata } from '../../composite/list/CompositeList';
 import { CompositeList } from '../../composite/list/CompositeList';
 import { useDirection } from '../../direction-provider/DirectionContext';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import type { Orientation as BaseOrientation, BaseUIComponentProps } from '../../utils/types';
 import { useControlled } from '../../utils/useControlled';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TabsPanel } from '../panel/TabsPanel';
 import type { TabsTab } from '../tab/TabsTab';
 import { TabsRootContext } from './TabsRootContext';
@@ -25,18 +25,15 @@ export function TabsRoot(componentProps: TabsRoot.Props) {
     'orientation',
     'value',
   ]);
-
-  const defaultValue = () => access(local.defaultValue) ?? 0;
-  const orientation = () => access(local.orientation) ?? 'horizontal';
-  const valueProp = () => access(local.value);
+  const orientation = () => local.orientation ?? 'horizontal';
 
   const direction = useDirection();
 
   const tabPanelRefs: (HTMLElement | null | undefined)[] = [];
 
   const [value, setValue] = useControlled({
-    controlled: valueProp,
-    default: defaultValue,
+    controlled: () => local.value,
+    default: () => local.defaultValue ?? 0,
     name: 'Tabs',
     state: 'value',
   });
@@ -142,10 +139,14 @@ export function TabsRoot(componentProps: TabsRoot.Props) {
     value,
   };
 
-  const state = createMemo<TabsRoot.State>(() => ({
-    orientation: orientation(),
-    tabActivationDirection: tabActivationDirection(),
-  }));
+  const state: TabsRoot.State = {
+    get orientation() {
+      return orientation();
+    },
+    get tabActivationDirection() {
+      return tabActivationDirection();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
@@ -185,20 +186,20 @@ export namespace TabsRoot {
      * When the value is `null`, no Tab will be selected.
      * @type Tabs.Tab.Value
      */
-    value?: MaybeAccessor<TabsTab.Value | undefined>;
+    value?: TabsTab.Value;
     /**
      * The default value. Use when the component is not controlled.
      * When the value is `null`, no Tab will be selected.
      * @type Tabs.Tab.Value
      * @default 0
      */
-    defaultValue?: MaybeAccessor<TabsTab.Value | undefined>;
+    defaultValue?: TabsTab.Value;
     /**
      * The component orientation (layout flow direction).
      * @type Tabs.Root.Orientation
      * @default 'horizontal'
      */
-    orientation?: MaybeAccessor<Orientation | undefined>;
+    orientation?: Orientation;
     /**
      * Callback invoked when new value is being set.
      */

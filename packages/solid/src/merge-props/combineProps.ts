@@ -151,6 +151,13 @@ export function combineProps<
     classList: [] as JSX.HTMLAttributes<any>[],
   };
 
+  /*
+   * Track the last property descriptor for each key to handle explicit undefined values.
+   * Solid's mergeProps doesn't overwrite with undefined, but React's mergeProps does.
+   * We need to match React's behavior where explicit undefined should overwrite.
+   */
+  const lastDescriptor = {} as Record<string, PropertyDescriptor | undefined>;
+
   let merge = {} as Record<string, unknown>;
   for (let props of sources) {
     let propsOverride = false;
@@ -161,6 +168,13 @@ export function combineProps<
     }
 
     for (const key in props) {
+      /*
+       * Track all descriptors before any special handling so we can later
+       * check if the final value should be undefined
+       */
+      const desc = Object.getOwnPropertyDescriptor(props, key);
+      lastDescriptor[key] = desc;
+
       if (key === 'style') {
         chainMap.styles.push(props as any);
         continue;
@@ -181,10 +195,6 @@ export function combineProps<
       if (key === 'classList') {
         chainMap.classList.push(props as any);
         continue;
-      }
-
-      if (propsOverride) {
-        break;
       }
 
       // event listeners
@@ -243,6 +253,19 @@ export function combineProps<
         // Merge classList objects, keys in the last object overrides all previous ones.
         if (key === 'classList') {
           return reduce(chainMap.classList, 'classList', (a, b) => ({ ...a, ...b }));
+        }
+
+        /*
+         * Check if the last descriptor for this key resolves to undefined.
+         * This handles the case where explicit undefined should overwrite previous values,
+         * matching React's mergeProps behavior.
+         */
+        const desc = lastDescriptor[key];
+        if (desc) {
+          const value = desc.get ? desc.get() : desc.value;
+          if (value === undefined) {
+            return undefined;
+          }
         }
 
         return Reflect.get(merge, key);

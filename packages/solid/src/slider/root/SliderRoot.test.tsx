@@ -1784,9 +1784,7 @@ describe.skipIf(typeof Touch === 'undefined')('<Slider.Root />', () => {
       await user.keyboard('[Tab]');
       expect(screen.getByTestId('thumb')).toHaveFocus();
 
-      console.log('Keyboarding');
       await user.keyboard(`{Shift>}{ArrowRight}`);
-      console.log('Keyboarded');
 
       expect(slider).not.to.have.attribute('aria-invalid');
       expect(screen.queryByTestId('error')).to.equal(null);

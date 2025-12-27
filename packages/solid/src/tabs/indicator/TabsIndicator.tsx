@@ -9,10 +9,10 @@ import {
   type JSX,
 } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { generateId } from '../../utils/generateId';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTabsListContext } from '../list/TabsListContext';
 import { tabsStyleHookMapping } from '../root/styleHooks';
 import type { TabsRoot } from '../root/TabsRoot';
@@ -35,7 +35,7 @@ const customStyleHookMapping = {
  */
 export function TabsIndicator(componentProps: TabsIndicator.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['renderBeforeHydration']);
-  const renderBeforeHydration = () => access(local.renderBeforeHydration) ?? false;
+  const renderBeforeHydration = () => local.renderBeforeHydration ?? false;
 
   const { getTabElementBySelectedValue, orientation, tabActivationDirection, value } =
     useTabsRootContext();
@@ -135,29 +135,42 @@ export function TabsIndicator(componentProps: TabsIndicator.Props) {
     () => meta().isTabSelected && meta().width > 0 && meta().height > 0,
   );
 
-  const state = createMemo<TabsIndicator.State>(() => ({
-    orientation: orientation(),
-    selectedTabPosition: selectedTabPosition(),
-    selectedTabSize: selectedTabSize(),
-    tabActivationDirection: tabActivationDirection(),
-  }));
+  const state: TabsIndicator.State = {
+    get orientation() {
+      return orientation();
+    },
+    get selectedTabPosition() {
+      return selectedTabPosition();
+    },
+    get selectedTabSize() {
+      return selectedTabSize();
+    },
+    get tabActivationDirection() {
+      return tabActivationDirection();
+    },
+  };
 
   const element = useRenderElement('span', componentProps, {
     state,
     props: [
-      () => ({
+      {
         role: 'presentation',
-        style: style(),
-        hidden: !displayIndicator(), // do not display the indicator before the layout is settled
-      }),
+        get style() {
+          return style();
+        },
+        get hidden() {
+          return !displayIndicator(); // do not display the indicator before the layout is settled
+        },
+      },
       elementProps,
-      () => ({
-        ['data-instance-id' as string]: !(isMounted() && renderBeforeHydration())
-          ? instanceId()
-          : undefined,
+      {
+        get ['data-instance-id' as string]() {
+          return !(isMounted() && renderBeforeHydration()) ? instanceId() : undefined;
+        },
+        // TODO: Fix this?
         // // @ts-expect-error - suppressHydrationWarning is not a valid attribute for Solid
         // suppressHydrationWarning: true,
-      }),
+      },
     ],
     customStyleHookMapping,
   });
@@ -190,6 +203,6 @@ export namespace TabsIndicator {
      * This minimizes the time that the indicator isn’t visible after server-side rendering.
      * @default false
      */
-    renderBeforeHydration?: MaybeAccessor<boolean | undefined>;
+    renderBeforeHydration?: boolean;
   }
 }

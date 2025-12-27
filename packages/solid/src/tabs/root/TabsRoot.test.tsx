@@ -54,7 +54,7 @@ describe('<Tabs.Root />', () => {
     it('puts the selected child in tab order', async () => {
       const [value, setValue] = createSignal(1);
       render(() => (
-        <Tabs.Root value={value}>
+        <Tabs.Root value={value()}>
           <Tabs.List>
             <Tabs.Tab value={0} />
             <Tabs.Tab value={1} />

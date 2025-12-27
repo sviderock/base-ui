@@ -436,7 +436,7 @@ describe('<CheckboxGroup />', () => {
         const [errors, setErrors] = createSignal<MaybeAccessorValue<Form.Props['errors']>>({});
         return (
           <Form
-            errors={errors}
+            errors={errors()}
             onClearErrors={setErrors}
             onSubmit={(event) => {
               event.preventDefault();

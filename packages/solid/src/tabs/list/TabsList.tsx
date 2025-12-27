@@ -1,9 +1,9 @@
 'use client';
-import { createEffect, createMemo, createSignal, type Accessor } from 'solid-js';
+import { createEffect, createSignal, type Accessor } from 'solid-js';
 import { CompositeRoot } from '../../composite/root/CompositeRoot';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { tabsStyleHookMapping } from '../root/styleHooks';
 import type { TabsRoot } from '../root/TabsRoot';
 import { useTabsRootContext } from '../root/TabsRootContext';
@@ -20,8 +20,8 @@ const EMPTY_ARRAY: number[] = [];
  */
 export function TabsList(componentProps: TabsList.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['activateOnFocus', 'loop']);
-  const activateOnFocus = () => access(local.activateOnFocus) ?? true;
-  const loop = () => access(local.loop) ?? true;
+  const activateOnFocus = () => local.activateOnFocus ?? true;
+  const loop = () => local.loop ?? true;
 
   const {
     getTabElementBySelectedValue,
@@ -52,10 +52,14 @@ export function TabsList(componentProps: TabsList.Props) {
     }
   };
 
-  const state = createMemo<TabsList.State>(() => ({
-    orientation: orientation(),
-    tabActivationDirection: tabActivationDirection(),
-  }));
+  const state: TabsList.State = {
+    get orientation() {
+      return orientation();
+    },
+    get tabActivationDirection() {
+      return tabActivationDirection();
+    },
+  };
 
   const tabsListContextValue: TabsListContext = {
     activateOnFocus,
@@ -72,10 +76,12 @@ export function TabsList(componentProps: TabsList.Props) {
       refs.tabsListRef = el;
     },
     props: [
-      () => ({
-        'aria-orientation': orientation() === 'vertical' ? 'vertical' : undefined,
+      {
         role: 'tablist',
-      }),
+        get 'aria-orientation'() {
+          return orientation() === 'vertical' ? 'vertical' : undefined;
+        },
+      },
       elementProps,
     ],
     customStyleHookMapping: tabsStyleHookMapping,
@@ -188,12 +194,12 @@ export namespace TabsList {
      * Otherwise, tabs will be activated using Enter or Spacebar key press.
      * @default true
      */
-    activateOnFocus?: MaybeAccessor<boolean | undefined>;
+    activateOnFocus?: boolean;
     /**
      * Whether to loop keyboard focus back to the first item
      * when the end of the list is reached while using the arrow keys.
      * @default true
      */
-    loop?: MaybeAccessor<boolean | undefined>;
+    loop?: boolean;
   }
 }

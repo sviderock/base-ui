@@ -33,10 +33,10 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
     'required',
     'disabled',
   ]);
-  const nativeButton = () => access(local.nativeButton) ?? true;
-  const readOnly = () => access(local.readOnly) ?? false;
-  const required = () => access(local.required) ?? false;
-  const disabledProp = () => access(local.disabled) ?? false;
+  const nativeButton = () => local.nativeButton ?? true;
+  const readOnly = () => local.readOnly ?? false;
+  const required = () => local.required ?? false;
+  const disabledProp = () => local.disabled ?? false;
 
   const { clearErrors } = useFormContext();
   const {

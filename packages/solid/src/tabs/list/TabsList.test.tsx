@@ -8,11 +8,7 @@ describe('<Tabs.List />', () => {
 
   describeConformance(Tabs.List, () => ({
     render: (node, props) => {
-      return render(() => (
-        <Tabs.Root>
-          {node(props)}
-        </Tabs.Root>
-      ));
+      return render(() => <Tabs.Root>{node(props)}</Tabs.Root>);
     },
     refInstanceof: window.HTMLDivElement,
   }));

@@ -1,10 +1,10 @@
 'use client';
 import { createMemo } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { tabsStyleHookMapping } from '../root/styleHooks';
 import type { TabsRoot } from '../root/TabsRoot';
 import { useTabsRootContext } from '../root/TabsRootContext';
@@ -18,9 +18,12 @@ import { TabsPanelDataAttributes } from './TabsPanelDataAttributes';
  * Documentation: [Base UI Tabs](https://base-ui.com/react/components/tabs)
  */
 export function TabsPanel(componentProps: TabsPanel.Props) {
-  const [, local, elementProps] = splitComponentProps(componentProps, ['value', 'keepMounted']);
-  const valueProp = () => access(local.value);
-  const keepMounted = () => access(local.keepMounted) ?? false;
+  const [, local, elementProps] = splitComponentProps(componentProps, [
+    'value',
+    'keepMounted',
+    'children',
+  ]);
+  const keepMounted = () => local.keepMounted ?? false;
 
   const {
     value: selectedValue,
@@ -33,41 +36,59 @@ export function TabsPanel(componentProps: TabsPanel.Props) {
 
   const metadata = createMemo(() => ({
     id: id(),
-    value: valueProp(),
+    value: local.value,
   }));
 
   const { setRef: setListItemRef, index } = useCompositeListItem({ metadata });
 
-  const tabPanelValue = () => valueProp() ?? index();
+  const tabPanelValue = () => local.value ?? index();
 
   const hidden = () => tabPanelValue() !== selectedValue();
 
   const correspondingTabId = createMemo(() => {
-    return getTabIdByPanelValueOrIndex(valueProp(), index());
+    return getTabIdByPanelValueOrIndex(local.value, index());
   });
 
-  const state = createMemo<TabsPanel.State>(() => ({
-    hidden: hidden(),
-    orientation: orientation(),
-    tabActivationDirection: tabActivationDirection(),
-  }));
+  const state: TabsPanel.State = {
+    get hidden() {
+      return hidden();
+    },
+    get orientation() {
+      return orientation();
+    },
+    get tabActivationDirection() {
+      return tabActivationDirection();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
     ref: setListItemRef,
     props: [
-      () => ({
-        'aria-labelledby': correspondingTabId(),
-        hidden: hidden(),
-        id: id(),
+      {
         role: 'tabpanel',
-        tabIndex: hidden() ? -1 : 0,
-        [TabsPanelDataAttributes.index as string]: index(),
-      }),
+        get 'aria-labelledby'() {
+          return correspondingTabId();
+        },
+        get hidden() {
+          return hidden();
+        },
+        get id() {
+          return id();
+        },
+        get tabIndex() {
+          return hidden() ? -1 : 0;
+        },
+        get [TabsPanelDataAttributes.index as string]() {
+          return index();
+        },
+      },
       elementProps,
     ],
     customStyleHookMapping: tabsStyleHookMapping,
-    children: () => (hidden() && !keepMounted() ? undefined : componentProps.children),
+    get children() {
+      return <>{hidden() && !keepMounted() ? undefined : componentProps.children}</>;
+    },
   });
 
   return <>{element()}</>;
@@ -90,11 +111,11 @@ export namespace TabsPanel {
      * It is recommended to explicitly provide it, as it's required for the tab panel to be rendered on the server.
      * @type Tabs.Tab.Value
      */
-    value?: MaybeAccessor<TabsTab.Value | undefined>;
+    value?: TabsTab.Value;
     /**
      * Whether to keep the HTML element in the DOM while the panel is hidden.
      * @default false
      */
-    keepMounted?: MaybeAccessor<boolean | undefined>;
+    keepMounted?: boolean;
   }
 }
