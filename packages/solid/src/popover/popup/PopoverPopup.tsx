@@ -1,8 +1,8 @@
 'use client';
-import { createEffect, createMemo } from 'solid-js';
+import { createMemo } from 'solid-js';
 import { FloatingFocusManager } from '../../floating-ui-solid';
-import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
-import { DISABLED_TRANSITIONS_STYLE, EMPTY_OBJECT } from '../../utils/constants';
+import { splitComponentProps } from '../../solid-helpers';
+import { DISABLED_TRANSITIONS_STYLE } from '../../utils/constants';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
@@ -10,7 +10,7 @@ import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
 import { InteractionType } from '../../utils/useEnhancedClickHandler';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { usePopoverPositionerContext } from '../positioner/PopoverPositionerContext';
 import { usePopoverRootContext } from '../root/PopoverRootContext';
@@ -31,8 +31,6 @@ export function PopoverPopup(componentProps: PopoverPopup.Props) {
     'initialFocus',
     'finalFocus',
   ]);
-  const finalFocus = () => access(local.finalFocus);
-  const initialFocus = () => access(local.initialFocus);
 
   const {
     open,
@@ -61,28 +59,38 @@ export function PopoverPopup(componentProps: PopoverPopup.Props) {
   });
 
   const resolvedInitialFocus = createMemo(() => {
-    const resolved = initialFocus();
-    if (resolved == null) {
+    if (local.initialFocus == null) {
       if (openMethod() === 'touch') {
         return refs.popupRef;
       }
       return 0;
     }
 
-    if (typeof resolved === 'function') {
-      return resolved(openMethod() ?? '');
+    if (typeof local.initialFocus === 'function') {
+      return local.initialFocus(openMethod() ?? '');
     }
 
-    return resolved;
+    return local.initialFocus;
   });
 
-  const state = createMemo<PopoverPopup.State>(() => ({
-    open: open(),
-    side: positioner.side(),
-    align: positioner.align(),
-    instant: instantType(),
-    transitionStatus: transitionStatus(),
-  }));
+  const state: PopoverPopup.State = {
+    get open() {
+      return open();
+    },
+    get side() {
+      return positioner.side();
+    },
+    get align() {
+      return positioner.align();
+    },
+    // @ts-expect-error - not declared?
+    get instant() {
+      return instantType();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
@@ -92,11 +100,17 @@ export function PopoverPopup(componentProps: PopoverPopup.Props) {
     customStyleHookMapping,
     props: [
       popupProps,
-      () => ({
-        'aria-labelledby': titleId(),
-        'aria-describedby': descriptionId(),
-      }),
-      () => (transitionStatus() === 'starting' ? DISABLED_TRANSITIONS_STYLE : EMPTY_OBJECT),
+      {
+        get 'aria-labelledby'() {
+          return titleId();
+        },
+        get 'aria-describedby'() {
+          return descriptionId();
+        },
+        get style() {
+          return transitionStatus() === 'starting' ? DISABLED_TRANSITIONS_STYLE.style : undefined;
+        },
+      },
       elementProps,
     ],
   });
@@ -107,7 +121,7 @@ export function PopoverPopup(componentProps: PopoverPopup.Props) {
       modal={modal() === 'trap-focus'}
       disabled={!mounted() || openReason() === 'trigger-hover'}
       initialFocus={resolvedInitialFocus()}
-      returnFocus={finalFocus()}
+      returnFocus={local.finalFocus}
     >
       {element()}
     </FloatingFocusManager>
@@ -131,13 +145,15 @@ export namespace PopoverPopup {
      * By default, the first focusable element is focused.
      */
     initialFocus?:
-      | MaybeAccessor<HTMLElement | null | undefined>
+      | HTMLElement
+      | null
+      | undefined
       | ((interactionType: InteractionType) => HTMLElement | null | undefined);
     /**
     /**
      * Determines the element to focus when the popover is closed.
      * By default, focus returns to the trigger.
      */
-    finalFocus?: MaybeAccessor<HTMLElement | null | undefined>;
+    finalFocus?: HTMLElement | null | undefined;
   }
 }

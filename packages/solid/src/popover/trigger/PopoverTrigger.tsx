@@ -8,7 +8,7 @@ import {
   triggerOpenStateMapping,
 } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { usePopoverRootContext } from '../root/PopoverRootContext';
 
 /**
@@ -19,15 +19,19 @@ import { usePopoverRootContext } from '../root/PopoverRootContext';
  */
 export function PopoverTrigger(componentProps: PopoverTrigger.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['disabled', 'nativeButton']);
-  const disabled = () => access(local.disabled) ?? false;
-  const nativeButton = () => access(local.nativeButton) ?? true;
+  const disabled = () => local.disabled ?? false;
+  const nativeButton = () => local.nativeButton ?? true;
 
   const { open, setTriggerElement, triggerProps, openReason } = usePopoverRootContext();
 
-  const state = createMemo<PopoverTrigger.State>(() => ({
-    disabled: disabled(),
-    open: open(),
-  }));
+  const state: PopoverTrigger.State = {
+    get disabled() {
+      return disabled();
+    },
+    get open() {
+      return open();
+    },
+  };
 
   const { getButtonProps, buttonRef } = useButton({
     disabled,
@@ -39,9 +43,7 @@ export function PopoverTrigger(componentProps: PopoverTrigger.Props) {
   // open { value: false, openReason: null }
   // open { value: false, openReason: null }
 
-  const customStyleHookMapping = createMemo<
-    CustomStyleHookMapping<{ open: MaybeAccessor<boolean> }>
-  >(() => ({
+  const customStyleHookMapping: CustomStyleHookMapping<{ open: MaybeAccessor<boolean> }> = {
     open(value) {
       const val = access(value);
       if (val && openReason() === 'trigger-press') {
@@ -50,7 +52,7 @@ export function PopoverTrigger(componentProps: PopoverTrigger.Props) {
 
       return triggerOpenStateMapping.open(val);
     },
-  }));
+  };
 
   const element = useRenderElement('button', componentProps, {
     state,
@@ -86,6 +88,6 @@ export namespace PopoverTrigger {
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default true
      */
-    nativeButton?: MaybeAccessor<boolean | undefined>;
+    nativeButton?: boolean;
   }
 }

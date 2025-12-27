@@ -79,7 +79,7 @@ describe('<Popover.Root />', () => {
 
         return (
           <Root
-            open={open}
+            open={open()}
             onOpenChange={(nextOpen) => {
               handleChange(open());
               setOpen(nextOpen);
@@ -123,7 +123,7 @@ describe('<Popover.Root />', () => {
 
         return (
           <Root
-            open={open}
+            open={open()}
             onOpenChange={(nextOpen) => {
               handleChange(open());
               setOpen(nextOpen);
@@ -513,7 +513,7 @@ describe('<Popover.Root />', () => {
         return (
           <div>
             <button onClick={() => setOpen(false)}>Close</button>
-            <Popover.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <Popover.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <Popover.Portal>
                 <Popover.Positioner>
                   <Popover.Popup data-testid="popup" />
@@ -562,7 +562,7 @@ describe('<Popover.Root />', () => {
             {/* eslint-disable-next-line solid/no-innerhtml */}
             <style innerHTML={style} />
             <button onClick={() => setOpen(false)}>Close</button>
-            <Popover.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <Popover.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <Popover.Portal>
                 <Popover.Positioner>
                   <Popover.Popup class="animation-test-indicator" data-testid="popup" />
@@ -600,7 +600,7 @@ describe('<Popover.Root />', () => {
         return (
           <div>
             <button onClick={() => setOpen(true)}>Open</button>
-            <Popover.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <Popover.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <Popover.Portal>
                 <Popover.Positioner>
                   <Popover.Popup data-testid="popup" />
@@ -650,7 +650,7 @@ describe('<Popover.Root />', () => {
             <style innerHTML={style} />
             <button onClick={() => setOpen(true)}>Open</button>
             <Popover.Root
-              open={open}
+              open={open()}
               onOpenChange={setOpen}
               onOpenChangeComplete={onOpenChangeComplete}
             >

@@ -1,9 +1,9 @@
 'use client';
-import { createEffect, onCleanup } from 'solid-js';
+import { onMount } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { usePopoverRootContext } from '../root/PopoverRootContext';
 
 /**
@@ -15,19 +15,31 @@ import { usePopoverRootContext } from '../root/PopoverRootContext';
 export function PopoverDescription(componentProps: PopoverDescription.Props) {
   const [, , elementProps] = splitComponentProps(componentProps, []);
 
-  const { setDescriptionId } = usePopoverRootContext();
+  const { setCodependentRefs } = usePopoverRootContext();
 
   const id = useBaseUiId(() => elementProps.id);
+  let ref: HTMLElement;
 
-  createEffect(() => {
-    setDescriptionId(id());
-    onCleanup(() => {
-      setDescriptionId(undefined);
+  onMount(() => {
+    setCodependentRefs('description', {
+      explicitId: id,
+      ref: () => ref,
+      id: () => elementProps.id,
     });
   });
 
   const element = useRenderElement('p', componentProps, {
-    props: [() => ({ id: id() }), elementProps],
+    ref: (el) => {
+      ref = el;
+    },
+    props: [
+      {
+        get id() {
+          return id();
+        },
+      },
+      elementProps,
+    ],
   });
 
   return <>{element()}</>;

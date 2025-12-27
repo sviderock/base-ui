@@ -1,8 +1,10 @@
 'use client';
 import { createContext, useContext, type Accessor, type Setter } from 'solid-js';
+import type { SetStoreFunction, Store } from 'solid-js/store';
 import type { FloatingRootContext } from '../../floating-ui-solid';
+import type { CodependentRefs } from '../../solid-helpers';
 import type { BaseOpenChangeReason } from '../../utils/translateOpenChangeReason';
-import type { HTMLProps } from '../../utils/types';
+import type { BaseUIHTMLProps, HTMLProps } from '../../utils/types';
 import type { InteractionType } from '../../utils/useEnhancedClickHandler';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 
@@ -30,16 +32,16 @@ export interface PopoverRootContext {
   setMounted: (mounted: boolean) => void;
   transitionStatus: Accessor<TransitionStatus>;
   titleId: Accessor<string | undefined>;
-  setTitleId: Setter<string | undefined>;
   descriptionId: Accessor<string | undefined>;
-  setDescriptionId: Setter<string | undefined>;
   floatingRootContext: FloatingRootContext;
-  triggerProps: Accessor<HTMLProps>;
-  popupProps: Accessor<HTMLProps>;
+  triggerProps: (externalProps: HTMLProps | BaseUIHTMLProps) => BaseUIHTMLProps;
+  popupProps: (externalProps: HTMLProps | BaseUIHTMLProps) => BaseUIHTMLProps;
   openMethod: Accessor<InteractionType | null>;
   openReason: Accessor<PopoverOpenChangeReason | null>;
   onOpenChangeComplete: ((open: boolean) => void) | undefined;
   modal: Accessor<boolean | 'trap-focus'>;
+  codependentRefs: Store<CodependentRefs<['title', 'description']>>;
+  setCodependentRefs: SetStoreFunction<CodependentRefs<['title', 'description']>>;
 }
 
 export const PopoverRootContext = createContext<PopoverRootContext | undefined>(undefined);

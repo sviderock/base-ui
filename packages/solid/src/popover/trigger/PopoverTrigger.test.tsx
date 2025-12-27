@@ -39,11 +39,7 @@ describe('<Popover.Trigger />', () => {
     it('custom element', async () => {
       const { user } = render(() => (
         <Popover.Root>
-          <Popover.Trigger
-            disabled
-            render={(props) => <span {...props()} />}
-            nativeButton={false}
-          />
+          <Popover.Trigger disabled render="span" nativeButton={false} />
           <Popover.Portal>
             <Popover.Positioner>
               <Popover.Popup>Content</Popover.Popup>
@@ -286,11 +282,7 @@ describe('<Popover.Trigger />', () => {
       const { user } = render(() => (
         <div>
           <Popover.Root>
-            <Popover.Trigger
-              render={(p) => <div {...p()} />}
-              nativeButton={false}
-              data-testid="div-trigger"
-            >
+            <Popover.Trigger render="div" nativeButton={false} data-testid="div-trigger">
               Toggle
             </Popover.Trigger>
             <Popover.Portal>

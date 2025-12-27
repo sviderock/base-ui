@@ -8,7 +8,7 @@ import { InternalBackdrop } from '../../utils/InternalBackdrop';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
 import { useAnchorPositioning, type Align, type Side } from '../../utils/useAnchorPositioning';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { usePopoverPortalContext } from '../portal/PopoverPortalContext';
 import { usePopoverRootContext } from '../root/PopoverRootContext';
 import { PopoverPositionerContext } from './PopoverPositionerContext';
@@ -101,12 +101,20 @@ export function PopoverPositioner(componentProps: PopoverPositioner.Props) {
     ...positioning,
   };
 
-  const state = createMemo<PopoverPositioner.State>(() => ({
-    open: open(),
-    side: positioner.side(),
-    align: positioner.align(),
-    anchorHidden: positioner.anchorHidden(),
-  }));
+  const state: PopoverPositioner.State = {
+    get open() {
+      return open();
+    },
+    get side() {
+      return positioner.side();
+    },
+    get align() {
+      return positioner.align();
+    },
+    get anchorHidden() {
+      return positioner.anchorHidden();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,

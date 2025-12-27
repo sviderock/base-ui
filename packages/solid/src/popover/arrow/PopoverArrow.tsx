@@ -1,10 +1,9 @@
 'use client';
-import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { usePopoverPositionerContext } from '../positioner/PopoverPositionerContext';
 import { usePopoverRootContext } from '../root/PopoverRootContext';
 
@@ -20,18 +19,34 @@ export function PopoverArrow(componentProps: PopoverArrow.Props) {
   const { open } = usePopoverRootContext();
   const { refs, side, align, arrowUncentered, arrowStyles } = usePopoverPositionerContext();
 
-  const state = createMemo<PopoverArrow.State>(() => ({
-    open: open(),
-    side: side(),
-    align: align(),
-    uncentered: arrowUncentered(),
-  }));
+  const state: PopoverArrow.State = {
+    get open() {
+      return open();
+    },
+    get side() {
+      return side();
+    },
+    get align() {
+      return align();
+    },
+    get uncentered() {
+      return arrowUncentered();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
     ref: refs.setArrowRef,
     customStyleHookMapping: popupStateMapping,
-    props: [() => ({ style: arrowStyles(), 'aria-hidden': true }), elementProps],
+    props: [
+      {
+        get style() {
+          return arrowStyles();
+        },
+        'aria-hidden': true,
+      },
+      elementProps,
+    ],
   });
 
   return <>{element()}</>;

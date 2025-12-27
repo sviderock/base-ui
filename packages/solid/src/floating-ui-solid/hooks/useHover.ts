@@ -441,12 +441,11 @@ export function useHover(
     }
 
     return {
-      ref: () => {
-        onCleanup(() => {
-          // @ts-expect-error even though its not in the types this is valid
-          context().refs.setReference(null);
-        });
-      },
+      // ref: () => {
+      //   onCleanup(() => {
+      //     context().refs.setReference(null);
+      //   });
+      // },
       onPointerDown: setPointerRef,
       onPointerEnter: setPointerRef,
       onMouseMove: (event) => {

@@ -12,7 +12,6 @@ import { PopoverPortalContext } from './PopoverPortalContext';
  * Documentation: [Base UI Popover](https://base-ui.com/react/components/popover)
  */
 export function PopoverPortal(props: PopoverPortal.Props) {
-  const container = () => access(props.container);
   const keepMounted = () => access(props.keepMounted) ?? false;
 
   const { mounted } = usePopoverRootContext();
@@ -22,7 +21,7 @@ export function PopoverPortal(props: PopoverPortal.Props) {
   return (
     <Show when={shouldRender()}>
       <PopoverPortalContext.Provider value={keepMounted}>
-        <FloatingPortal root={container()}>{props.children}</FloatingPortal>
+        <FloatingPortal root={props.container}>{props.children}</FloatingPortal>
       </PopoverPortalContext.Provider>
     </Show>
   );

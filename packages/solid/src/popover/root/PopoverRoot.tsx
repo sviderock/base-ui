@@ -1,5 +1,15 @@
 'use client';
-import { batch, createEffect, createSignal, onMount, Show, type JSX } from 'solid-js';
+import {
+  batch,
+  createEffect,
+  createSignal,
+  on,
+  onCleanup,
+  onMount,
+  Show,
+  type JSX,
+} from 'solid-js';
+import { createStore } from 'solid-js/store';
 import {
   FloatingTree,
   safePolygon,
@@ -10,8 +20,8 @@ import {
   useInteractions,
   useRole,
 } from '../../floating-ui-solid';
-import { mergeProps } from '../../merge-props';
-import { access, type MaybeAccessor } from '../../solid-helpers';
+import { combineProps } from '../../merge-props/combineProps';
+import { CodependentRefs } from '../../solid-helpers';
 import { PATIENT_CLICK_THRESHOLD } from '../../utils/constants';
 import { translateOpenChangeReason } from '../../utils/translateOpenChangeReason';
 import { useControlled } from '../../utils/useControlled';
@@ -28,17 +38,18 @@ import {
 } from './PopoverRootContext';
 
 function PopoverRootComponent(props: PopoverRoot.Props) {
-  const externalOpen = () => access(props.open);
-  const defaultOpen = () => access(props.defaultOpen) ?? false;
-  const delay = () => access(props.delay) ?? OPEN_DELAY;
-  const closeDelay = () => access(props.closeDelay) ?? 0;
-  const openOnHover = () => access(props.openOnHover) ?? false;
-  const modal = () => access(props.modal) ?? false;
-  const actionsRef = () => access(props.actionsRef);
+  const defaultOpen = () => props.defaultOpen ?? false;
+  const delay = () => props.delay ?? OPEN_DELAY;
+  const closeDelay = () => props.closeDelay ?? 0;
+  const openOnHover = () => props.openOnHover ?? false;
+  const modal = () => props.modal ?? false;
 
   const [instantType, setInstantType] = createSignal<'dismiss' | 'click'>();
   const [titleId, setTitleId] = createSignal<string>();
   const [descriptionId, setDescriptionId] = createSignal<string>();
+  const [codependentRefs, setCodependentRefs] = createStore<
+    CodependentRefs<['title', 'description']>
+  >({});
   const [triggerElement, setTriggerElement] = createSignal<Element | null | undefined>(null);
   const [positionerElement, setPositionerElement] = createSignal<HTMLElement | null | undefined>(
     null,
@@ -52,7 +63,7 @@ function PopoverRootComponent(props: PopoverRoot.Props) {
   const stickIfOpenTimeout = useTimeout();
 
   const [open, setOpenUnwrapped] = useControlled({
-    controlled: externalOpen,
+    controlled: () => props.open,
     default: defaultOpen,
     name: 'Popover',
     state: 'open',
@@ -77,7 +88,7 @@ function PopoverRootComponent(props: PopoverRoot.Props) {
   };
 
   useOpenChangeComplete({
-    enabled: () => !actionsRef(),
+    enabled: () => !props.actionsRef,
     open,
     ref: () => refs.popupRef,
     onComplete() {
@@ -88,8 +99,8 @@ function PopoverRootComponent(props: PopoverRoot.Props) {
   });
 
   onMount(() => {
-    if (actionsRef()) {
-      actionsRef()!.unmount = handleUnmount;
+    if (props.actionsRef) {
+      props.actionsRef.unmount = handleUnmount;
     }
   });
 
@@ -98,6 +109,24 @@ function PopoverRootComponent(props: PopoverRoot.Props) {
       stickIfOpenTimeout.clear();
     }
   });
+
+  createEffect(
+    on([() => codependentRefs.title, () => codependentRefs.description], ([title, description]) => {
+      batch(() => {
+        if (title) {
+          setTitleId(title.explicitId());
+        }
+        if (description) {
+          setDescriptionId(description.explicitId());
+        }
+      });
+
+      onCleanup(() => {
+        setTitleId(undefined);
+        setDescriptionId(undefined);
+      });
+    }),
+  );
 
   const setOpen = (
     nextOpen: boolean,
@@ -182,11 +211,9 @@ function PopoverRootComponent(props: PopoverRoot.Props) {
     setPositionerElement,
     refs,
     titleId,
-    setTitleId,
     descriptionId,
-    setDescriptionId,
-    triggerProps: () => mergeProps(getReferenceProps(), triggerProps),
-    popupProps: () => getFloatingProps(),
+    triggerProps: (externalProps) => combineProps(externalProps, getReferenceProps(), triggerProps),
+    popupProps: (externalProps) => combineProps(externalProps, getFloatingProps()),
     floatingRootContext: floatingContext,
     instantType,
     openMethod,
@@ -197,6 +224,8 @@ function PopoverRootComponent(props: PopoverRoot.Props) {
     delay,
     closeDelay,
     modal,
+    codependentRefs,
+    setCodependentRefs,
   };
 
   return (
@@ -237,11 +266,11 @@ export namespace PopoverRoot {
      * To render a controlled popover, use the `open` prop instead.
      * @default false
      */
-    defaultOpen?: MaybeAccessor<boolean | undefined>;
+    defaultOpen?: boolean;
     /**
      * Whether the popover is currently open.
      */
-    open?: MaybeAccessor<boolean | undefined>;
+    open?: boolean;
     /**
      * Event handler called when the popover is opened or closed.
      * @type (open: boolean, event?: Event, reason?: Popover.Root.OpenChangeReason) => void
@@ -259,14 +288,14 @@ export namespace PopoverRoot {
      * Whether the popover should also open when the trigger is hovered.
      * @default false
      */
-    openOnHover?: MaybeAccessor<boolean | undefined>;
+    openOnHover?: boolean;
     /**
      * How long to wait before the popover may be opened on hover. Specified in milliseconds.
      *
      * Requires the `openOnHover` prop.
      * @default 300
      */
-    delay?: MaybeAccessor<number | undefined>;
+    delay?: number;
     /**
      * How long to wait before closing the popover that was opened on hover.
      * Specified in milliseconds.
@@ -274,14 +303,14 @@ export namespace PopoverRoot {
      * Requires the `openOnHover` prop.
      * @default 0
      */
-    closeDelay?: MaybeAccessor<number | undefined>;
+    closeDelay?: number;
     /**
      * A ref to imperative actions.
      * - `unmount`: When specified, the popover will not be unmounted when closed.
      * Instead, the `unmount` function must be called to unmount the popover manually.
      * Useful when the popover's animation is controlled by an external library.
      */
-    actionsRef?: MaybeAccessor<Actions | undefined>;
+    actionsRef?: Actions;
     /**
      * Determines if the popover enters a modal state when open.
      * - `true`: user interaction is limited to the popover: document page scroll is locked, and pointer interactions on outside elements are disabled.
@@ -289,7 +318,7 @@ export namespace PopoverRoot {
      * - `'trap-focus'`: focus is trapped inside the popover, but document page scroll is not locked and pointer interactions outside of it remain enabled.
      * @default false
      */
-    modal?: MaybeAccessor<boolean | 'trap-focus' | undefined>;
+    modal?: boolean | 'trap-focus';
   }
 
   export interface Props extends Parameters {
