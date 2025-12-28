@@ -2,7 +2,7 @@
 import { createContext, useContext, type Accessor, type Setter } from 'solid-js';
 import type { FloatingRootContext } from '../../floating-ui-solid';
 import { TransitionStatus } from '../../utils';
-import { HTMLProps } from '../../utils/types';
+import type { BaseUIHTMLProps, HTMLProps } from '../../utils/types';
 import type { MenuParent, MenuRoot } from './MenuRoot';
 
 export type InstantType = 'dismiss' | 'click' | 'group';
@@ -13,9 +13,9 @@ export interface MenuRootContext {
   modal: Accessor<boolean>;
   activeIndex: Accessor<number | null>;
   floatingRootContext: FloatingRootContext;
-  itemProps: Accessor<HTMLProps>;
-  popupProps: Accessor<HTMLProps>;
-  triggerProps: Accessor<HTMLProps>;
+  itemProps: (props: HTMLProps | BaseUIHTMLProps) => BaseUIHTMLProps;
+  popupProps: (props: HTMLProps | BaseUIHTMLProps) => BaseUIHTMLProps;
+  triggerProps: (props: HTMLProps | BaseUIHTMLProps) => BaseUIHTMLProps;
   itemDomElements: (HTMLElement | null | undefined)[];
   itemLabels: (string | null)[];
   mounted: Accessor<boolean>;

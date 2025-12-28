@@ -1,12 +1,12 @@
 'use client';
-import { createMemo } from 'solid-js';
+import type { JSX } from 'solid-js';
 import { useContextMenuRootContext } from '../../context-menu/root/ContextMenuRootContext';
 import { splitComponentProps } from '../../solid-helpers';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useMenuRootContext } from '../root/MenuRootContext';
 
@@ -27,10 +27,14 @@ export function MenuBackdrop(componentProps: MenuBackdrop.Props) {
   const { open, mounted, transitionStatus, lastOpenChangeReason } = useMenuRootContext();
   const contextMenuContext = useContextMenuRootContext();
 
-  const state = createMemo<MenuBackdrop.State>(() => ({
-    open: open(),
-    transitionStatus: transitionStatus(),
-  }));
+  const state: MenuBackdrop.State = {
+    get open() {
+      return open();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
@@ -41,15 +45,19 @@ export function MenuBackdrop(componentProps: MenuBackdrop.Props) {
     },
     customStyleHookMapping,
     props: [
-      () => ({
+      {
         role: 'presentation',
-        hidden: !mounted(),
-        style: {
-          'pointer-events': lastOpenChangeReason() === 'trigger-hover' ? 'none' : undefined,
-          'user-select': 'none',
-          '-webkit-user-select': 'none',
+        get hidden() {
+          return !mounted();
         },
-      }),
+        get style(): JSX.CSSProperties {
+          return {
+            'pointer-events': lastOpenChangeReason() === 'trigger-hover' ? 'none' : undefined,
+            'user-select': 'none',
+            '-webkit-user-select': 'none',
+          };
+        },
+      },
       elementProps,
     ],
   });

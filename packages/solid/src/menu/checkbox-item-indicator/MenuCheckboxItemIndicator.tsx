@@ -1,9 +1,8 @@
 'use client';
-import { createMemo } from 'solid-js';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { TransitionStatus, useTransitionStatus } from '../../utils/useTransitionStatus';
 import { useMenuCheckboxItemContext } from '../checkbox-item/MenuCheckboxItemContext';
 import { itemMapping } from '../utils/styleHookMapping';
@@ -16,7 +15,7 @@ import { itemMapping } from '../utils/styleHookMapping';
  */
 export function MenuCheckboxItemIndicator(componentProps: MenuCheckboxItemIndicator.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['keepMounted']);
-  const keepMounted = () => access(local.keepMounted) ?? false;
+  const keepMounted = () => local.keepMounted ?? false;
 
   const item = useMenuCheckboxItemContext();
 
@@ -34,12 +33,20 @@ export function MenuCheckboxItemIndicator(componentProps: MenuCheckboxItemIndica
     },
   });
 
-  const state = createMemo<MenuCheckboxItemIndicator.State>(() => ({
-    checked: item.checked(),
-    disabled: item.disabled(),
-    highlighted: item.highlighted(),
-    transitionStatus: transitionStatus(),
-  }));
+  const state: MenuCheckboxItemIndicator.State = {
+    get checked() {
+      return item.checked();
+    },
+    get disabled() {
+      return item.disabled();
+    },
+    get highlighted() {
+      return item.highlighted();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+  };
 
   const element = useRenderElement('span', componentProps, {
     state,
@@ -60,7 +67,7 @@ export namespace MenuCheckboxItemIndicator {
      * Whether to keep the HTML element in the DOM when the checkbox item is not checked.
      * @default false
      */
-    keepMounted?: MaybeAccessor<boolean | undefined>;
+    keepMounted?: boolean;
   }
 
   export interface State {

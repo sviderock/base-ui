@@ -1,9 +1,9 @@
 'use client';
-import { batch, createMemo, type JSX } from 'solid-js';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { batch, type JSX } from 'solid-js';
+import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useControlled } from '../../utils/useControlled';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { MenuRadioGroupContext } from './MenuRadioGroupContext';
 
 /**
@@ -19,13 +19,11 @@ export function MenuRadioGroup(componentProps: MenuRadioGroup.Props) {
     'onValueChange',
     'disabled',
   ]);
-  const valueProp = () => access(local.value);
-  const defaultValue = () => access(local.defaultValue);
-  const disabled = () => access(local.disabled) ?? false;
+  const disabled = () => local.disabled ?? false;
 
   const [value, setValueUnwrapped] = useControlled({
-    controlled: valueProp,
-    default: defaultValue,
+    controlled: () => local.value,
+    default: () => local.defaultValue,
     name: 'MenuRadioGroup',
   });
 
@@ -36,9 +34,11 @@ export function MenuRadioGroup(componentProps: MenuRadioGroup.Props) {
     });
   };
 
-  const state = createMemo<MenuRadioGroup.State>(() => ({
-    disabled: disabled(),
-  }));
+  const state: MenuRadioGroup.State = {
+    get disabled() {
+      return disabled();
+    },
+  };
 
   const context: MenuRadioGroupContext = {
     value,
@@ -49,10 +49,12 @@ export function MenuRadioGroup(componentProps: MenuRadioGroup.Props) {
   const element = useRenderElement('div', componentProps, {
     state,
     props: [
-      () => ({
+      {
         role: 'group',
-        'aria-disabled': disabled() || undefined,
-      }),
+        get 'aria-disabled'() {
+          return disabled() || undefined;
+        },
+      },
       elementProps,
     ],
   });
@@ -73,13 +75,13 @@ export namespace MenuRadioGroup {
      *
      * To render an uncontrolled radio group, use the `defaultValue` prop instead.
      */
-    value?: MaybeAccessor<any>;
+    value?: any;
     /**
      * The uncontrolled value of the radio item that should be initially selected.
      *
      * To render a controlled radio group, use the `value` prop instead.
      */
-    defaultValue?: MaybeAccessor<any>;
+    defaultValue?: any;
     /**
      * Function called when the selected value changes.
      *
@@ -91,7 +93,7 @@ export namespace MenuRadioGroup {
      *
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
   }
 
   export type State = {

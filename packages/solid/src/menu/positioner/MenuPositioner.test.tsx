@@ -59,10 +59,11 @@ describe('<Menu.Positioner />', () => {
       const anchorPosition = anchor.getBoundingClientRect();
 
       await flushMicrotasks();
-
-      expect(positioner.style.getPropertyValue('transform')).to.equal(
-        `translate(${anchorPosition.left}px, ${anchorPosition.bottom}px)`,
-      );
+      await waitFor(() => {
+        expect(positioner.style.getPropertyValue('transform')).to.equal(
+          `translate(${anchorPosition.left}px, ${anchorPosition.bottom}px)`,
+        );
+      });
     });
 
     it('should be placed near the specified element when an element is passed', async () => {
@@ -104,9 +105,11 @@ describe('<Menu.Positioner />', () => {
 
       await flushMicrotasks();
 
-      expect(positioner.style.getPropertyValue('transform')).to.equal(
-        `translate(${anchorPosition.left}px, ${anchorPosition.bottom}px)`,
-      );
+      await waitFor(() => {
+        expect(positioner.style.getPropertyValue('transform')).to.equal(
+          `translate(${anchorPosition.left}px, ${anchorPosition.bottom}px)`,
+        );
+      });
     });
 
     it('should be placed near the specified element when a function returning an element is passed', async () => {
@@ -150,9 +153,11 @@ describe('<Menu.Positioner />', () => {
 
       await flushMicrotasks();
 
-      expect(positioner.style.getPropertyValue('transform')).to.equal(
-        `translate(${anchorPosition.left}px, ${anchorPosition.bottom}px)`,
-      );
+      await waitFor(() => {
+        expect(positioner.style.getPropertyValue('transform')).to.equal(
+          `translate(${anchorPosition.left}px, ${anchorPosition.bottom}px)`,
+        );
+      });
     });
 
     it('should be placed at the specified position', async () => {
@@ -190,7 +195,9 @@ describe('<Menu.Positioner />', () => {
       ));
 
       const positioner = screen.getByTestId('positioner');
-      expect(positioner.style.getPropertyValue('transform')).to.equal(`translate(200px, 100px)`);
+      await waitFor(() => {
+        expect(positioner.style.getPropertyValue('transform')).to.equal(`translate(200px, 100px)`);
+      });
     });
 
     it('should accept a non-memoized function as an anchor', async () => {
@@ -222,7 +229,7 @@ describe('<Menu.Positioner />', () => {
 
     it('should react to the anchor changing from a ref to undefined and back', async () => {
       function TestComponent() {
-        let anchorRef = null as HTMLDivElement | null | undefined;
+        let anchorRef = undefined as HTMLDivElement | undefined;
         const [currentAnchor, setCurrentAnchor] = createSignal<HTMLDivElement | null | undefined>(
           anchorRef,
         );
@@ -255,7 +262,7 @@ describe('<Menu.Positioner />', () => {
             <div
               data-testid="anchor"
               style={{ 'margin-top': '100px', width: '10px', height: '10px' }}
-              ref={anchorRef ?? undefined}
+              ref={anchorRef}
             />
           </div>
         );
@@ -272,9 +279,11 @@ describe('<Menu.Positioner />', () => {
 
       let anchorRect = anchorElement.getBoundingClientRect();
       await flushMicrotasks();
-      expect(positioner.style.getPropertyValue('transform')).to.equal(
-        `translate(${anchorRect.left}px, ${anchorRect.bottom}px)`,
-      );
+      await waitFor(() => {
+        expect(positioner.style.getPropertyValue('transform')).to.equal(
+          `translate(${anchorRect.left}px, ${anchorRect.bottom}px)`,
+        );
+      });
 
       await userEvent.click(setUndefinedButton);
       await flushMicrotasks();
@@ -390,9 +399,11 @@ describe('<Menu.Positioner />', () => {
         </Menu.Root>
       ));
 
-      expect(screen.getByTestId('positioner').style.transform).to.equal(
-        `translate(${baselineX}px, ${baselineY + sideOffset}px)`,
-      );
+      await waitFor(() => {
+        expect(screen.getByTestId('positioner').style.transform).to.equal(
+          `translate(${baselineX}px, ${baselineY + sideOffset}px)`,
+        );
+      });
     });
 
     it('offsets the side when a function is specified', async () => {
@@ -410,9 +421,11 @@ describe('<Menu.Positioner />', () => {
         </Menu.Root>
       ));
 
-      expect(screen.getByTestId('positioner').style.transform).to.equal(
-        `translate(${baselineX}px, ${baselineY + popupWidth + anchorWidth}px)`,
-      );
+      await waitFor(() => {
+        expect(screen.getByTestId('positioner').style.transform).to.equal(
+          `translate(${baselineX}px, ${baselineY + popupWidth + anchorWidth}px)`,
+        );
+      });
     });
 
     it('can read the latest side inside sideOffset', async () => {
@@ -436,7 +449,9 @@ describe('<Menu.Positioner />', () => {
       ));
 
       // correctly flips the side in the browser
-      expect(side).to.equal('right');
+      await waitFor(() => {
+        expect(side).to.equal('right');
+      });
     });
 
     it('can read the latest align inside sideOffset', async () => {
@@ -461,7 +476,9 @@ describe('<Menu.Positioner />', () => {
       ));
 
       // correctly flips the align in the browser
-      expect(align).to.equal('end');
+      await waitFor(() => {
+        expect(align).to.equal('end');
+      });
     });
 
     it('reads logical side inside sideOffset', async () => {
@@ -485,7 +502,9 @@ describe('<Menu.Positioner />', () => {
       ));
 
       // correctly flips the side in the browser
-      expect(side).to.equal('inline-end');
+      await waitFor(() => {
+        expect(side).to.equal('inline-end');
+      });
     });
   });
 
@@ -503,9 +522,11 @@ describe('<Menu.Positioner />', () => {
         </Menu.Root>
       ));
 
-      expect(screen.getByTestId('positioner').style.transform).to.equal(
-        `translate(${baselineX + alignOffset}px, ${baselineY}px)`,
-      );
+      await waitFor(() => {
+        expect(screen.getByTestId('positioner').style.transform).to.equal(
+          `translate(${baselineX + alignOffset}px, ${baselineY}px)`,
+        );
+      });
     });
 
     it('offsets the align when a function is specified', async () => {
@@ -520,9 +541,11 @@ describe('<Menu.Positioner />', () => {
         </Menu.Root>
       ));
 
-      expect(screen.getByTestId('positioner').style.transform).to.equal(
-        `translate(${baselineX + popupWidth}px, ${baselineY}px)`,
-      );
+      await waitFor(() => {
+        expect(screen.getByTestId('positioner').style.transform).to.equal(
+          `translate(${baselineX + popupWidth}px, ${baselineY}px)`,
+        );
+      });
     });
 
     it('can read the latest side inside alignOffset', async () => {
@@ -546,7 +569,9 @@ describe('<Menu.Positioner />', () => {
       ));
 
       // correctly flips the side in the browser
-      expect(side).to.equal('right');
+      await waitFor(() => {
+        expect(side).to.equal('right');
+      });
     });
 
     it('can read the latest align inside alignOffset', async () => {
@@ -571,7 +596,9 @@ describe('<Menu.Positioner />', () => {
       ));
 
       // correctly flips the align in the browser
-      expect(align).to.equal('end');
+      await waitFor(() => {
+        expect(align).to.equal('end');
+      });
     });
 
     it('reads logical side inside alignOffset', async () => {
@@ -594,8 +621,10 @@ describe('<Menu.Positioner />', () => {
         </Menu.Root>
       ));
 
-      // correctly flips the side in the browser
-      expect(side).to.equal('inline-end');
+      await waitFor(() => {
+        // correctly flips the side in the browser
+        expect(side).to.equal('inline-end');
+      });
     });
   });
 });

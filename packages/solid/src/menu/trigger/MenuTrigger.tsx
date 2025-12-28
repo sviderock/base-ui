@@ -1,17 +1,17 @@
 'use client';
 import { getParentNode, isHTMLElement, isLastTraversableNode } from '@floating-ui/utils/dom';
-import { batch, createEffect, createMemo, Show, type JSX } from 'solid-js';
+import { createEffect, Show, type JSX } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import { useFloatingTree } from '../../floating-ui-solid/index';
 import { contains } from '../../floating-ui-solid/utils';
-import { mergeProps } from '../../merge-props';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { combineProps } from '../../merge-props';
+import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { getPseudoElementBounds } from '../../utils/getPseudoElementBounds';
 import { ownerDocument } from '../../utils/owner';
 import { pressableTriggerOpenStateMapping } from '../../utils/popupStateMapping';
-import { BaseUIComponentProps, HTMLProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { BaseUIComponentProps, type BaseUIHTMLProps } from '../../utils/types';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { useMenuRootContext } from '../root/MenuRootContext';
 
@@ -25,8 +25,8 @@ const BOUNDARY_OFFSET = 2;
  */
 export function MenuTrigger(componentProps: MenuTrigger.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['disabled', 'nativeButton']);
-  const disabledProp = () => access(local.disabled) ?? false;
-  const nativeButton = () => access(local.nativeButton) ?? true;
+  const disabledProp = () => local.disabled ?? false;
+  const nativeButton = () => local.nativeButton ?? true;
 
   const {
     triggerProps: rootTriggerProps,
@@ -101,10 +101,10 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
     }
   });
 
-  const getTriggerProps = (externalProps?: HTMLProps): HTMLProps => {
-    return mergeProps(
+  const getTriggerProps = (externalProps: BaseUIHTMLProps = {}) => {
+    return combineProps<'button'>(
       {
-        'aria-haspopup': 'menu' as const,
+        'aria-haspopup': 'menu',
         onMouseDown: (event: MouseEvent) => {
           if (open()) {
             return;
@@ -124,19 +124,21 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
     );
   };
 
-  const state = createMemo<MenuTrigger.State>(() => ({
-    disabled: disabled(),
-    open: open(),
-  }));
+  const state: MenuTrigger.State = {
+    get disabled() {
+      return disabled();
+    },
+    get open() {
+      return open();
+    },
+  };
 
   const element = useRenderElement('button', componentProps, {
     state,
     ref: (el) => {
-      batch(() => {
-        triggerRef = el;
-        buttonRef(el);
-        setTriggerElement(el);
-      });
+      triggerRef = el;
+      buttonRef(el);
+      setTriggerElement(el);
     },
     customStyleHookMapping: pressableTriggerOpenStateMapping,
     props: [rootTriggerProps, elementProps, getTriggerProps],
@@ -150,20 +152,15 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
 }
 
 export namespace MenuTrigger {
-  export interface Props extends Omit<BaseUIComponentProps<'button', State>, 'disabled'> {
+  export interface Props extends BaseUIComponentProps<'button', State> {
     children?: JSX.Element;
-    /**
-     * Whether the component should ignore user interaction.
-     * @default false
-     */
-    disabled?: MaybeAccessor<boolean | undefined>;
     /**
      * Whether the component renders a native `<button>` element when replacing it
      * via the `render` prop.
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default true
      */
-    nativeButton?: MaybeAccessor<boolean | undefined>;
+    nativeButton?: boolean;
   }
 
   export type State = {

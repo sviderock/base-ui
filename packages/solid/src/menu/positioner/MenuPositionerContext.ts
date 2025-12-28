@@ -18,7 +18,7 @@ export interface MenuPositionerContext {
   };
   arrowUncentered: Accessor<boolean>;
   arrowStyles: Accessor<JSX.CSSProperties>;
-  floatingContext: Accessor<FloatingContext>;
+  floatingContext: FloatingContext;
 }
 
 export const MenuPositionerContext = createContext<MenuPositionerContext>();

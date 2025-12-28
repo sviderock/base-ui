@@ -1,13 +1,14 @@
 'use client';
 import type { MenuParent } from '@base-ui-components/solid/menu/root/MenuRoot';
-import { batch, createEffect, createMemo, type JSX } from 'solid-js';
+import { combineProps } from '@base-ui-components/solid/merge-props';
+import { batch, createEffect, type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { useFloatingTree } from '../../floating-ui-solid';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useMenuItem } from '../item/useMenuItem';
 import { useMenuRootContext } from '../root/MenuRootContext';
 
@@ -23,10 +24,9 @@ export function MenuSubmenuTrigger(componentProps: MenuSubmenuTrigger.Props) {
     'id',
     'nativeButton',
   ]);
-  const idProp = () => access(local.id);
-  const nativeButton = () => access(local.nativeButton) ?? false;
+  const nativeButton = () => local.nativeButton ?? false;
 
-  const id = useBaseUiId(() => idProp());
+  const id = useBaseUiId(() => local.id);
 
   const {
     triggerProps: rootTriggerProps,
@@ -61,42 +61,50 @@ export function MenuSubmenuTrigger(componentProps: MenuSubmenuTrigger.Props) {
     allowMouseUpTriggerRef,
     typingRef,
     nativeButton,
-    itemMetadata: () => ({
+    itemMetadata: {
       type: 'submenu-trigger',
       setActive: () => parentMenuContext().setActiveIndex(item.index()),
-      allowMouseEnterEnabled: parentMenuContext().allowMouseEnter(),
-    }),
+      get allowMouseEnterEnabled() {
+        return parentMenuContext().allowMouseEnter();
+      },
+    },
   });
 
-  const state = createMemo<MenuSubmenuTrigger.State>(() => ({
-    disabled: disabled(),
-    highlighted: highlighted(),
-    open: open(),
-  }));
+  const state: MenuSubmenuTrigger.State = {
+    get disabled() {
+      return disabled();
+    },
+    get highlighted() {
+      return highlighted();
+    },
+    get open() {
+      return open();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
     ref: (el) => {
-      batch(() => {
-        item.setRef(el);
-        setItemRef(el);
-        setTriggerElement(el);
-      });
+      item.setRef(el);
+      setItemRef(el);
+      setTriggerElement(el);
     },
     customStyleHookMapping: triggerOpenStateMapping,
     props: [
       rootTriggerProps,
-      () => parentMenuContext().itemProps(),
+      (props) => combineProps(props, parentMenuContext().itemProps),
       elementProps,
       getItemProps,
-      () => ({
-        tabIndex: open() || highlighted() ? 0 : -1,
+      {
+        get tabIndex() {
+          return open() || highlighted() ? 0 : -1;
+        },
         onBlur() {
           if (highlighted()) {
             parentMenuContext().setActiveIndex(null);
           }
         },
-      }),
+      },
     ],
   });
 
@@ -109,14 +117,14 @@ export namespace MenuSubmenuTrigger {
     /**
      * Overrides the text label to use when the item is matched during keyboard text navigation.
      */
-    label?: MaybeAccessor<string | undefined>;
+    label?: string;
     /**
      * Whether the component renders a native `<button>` element when replacing it
      * via the `render` prop.
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default false
      */
-    nativeButton?: MaybeAccessor<boolean | undefined>;
+    nativeButton?: boolean;
   }
 
   export interface State {

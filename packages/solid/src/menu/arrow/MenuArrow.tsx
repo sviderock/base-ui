@@ -1,10 +1,9 @@
 'use client';
-import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useMenuPositionerContext } from '../positioner/MenuPositionerContext';
 import { useMenuRootContext } from '../root/MenuRootContext';
 
@@ -20,18 +19,34 @@ export function MenuArrow(componentProps: MenuArrow.Props) {
   const { open } = useMenuRootContext();
   const { refs, side, align, arrowUncentered, arrowStyles } = useMenuPositionerContext();
 
-  const state = createMemo<MenuArrow.State>(() => ({
-    open: open(),
-    side: side(),
-    align: align(),
-    uncentered: arrowUncentered(),
-  }));
+  const state: MenuArrow.State = {
+    get open() {
+      return open();
+    },
+    get side() {
+      return side();
+    },
+    get align() {
+      return align();
+    },
+    get uncentered() {
+      return arrowUncentered();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
     ref: refs.setArrowRef,
     customStyleHookMapping: popupStateMapping,
-    props: [() => ({ style: arrowStyles(), 'aria-hidden': true }), elementProps],
+    props: [
+      {
+        'aria-hidden': true,
+        get style() {
+          return arrowStyles();
+        },
+      },
+      elementProps,
+    ],
   });
 
   return <>{element()}</>;

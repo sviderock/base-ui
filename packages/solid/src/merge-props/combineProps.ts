@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-loop-func */
 /**
  * Based on the original implementation of combineProps from @solid-primitives/props:
  * https://github.com/solidjs-community/solid-primitives/blob/0cbdb59bb42f50de5e08000027789ae3d4c80280/packages/props/src/combineProps.ts
@@ -11,6 +12,8 @@
 
 import { $PROXY, mergeProps, type ComponentProps, type JSX, type Ref } from 'solid-js';
 import type { BaseUIEvent, WithBaseUIEvent } from '../utils/types';
+
+type EventHandler = (...args: any[]) => unknown;
 
 function trueFn() {
   return true;
@@ -140,67 +143,56 @@ export function combineProps<
   Args extends Array<any> = PropsInput<E extends ElementType ? E : any>[],
   R = PropsOf<E extends ElementType ? E : any>,
 >(...args: Args): R {
-  const restArgs = Array.isArray(args[0]);
-  const sources = (restArgs ? args[0] : args) as Args;
-  // create a map of event listeners to be chained
-  const chainMap = {
-    allListeners: {} as Record<
-      string,
-      Array<{ fn: (...args: any[]) => void; type: 'combine' | 'replace' }> | undefined
-    >,
-    listeners: {} as Record<string, ((...args: any[]) => void) | undefined>,
-    styles: [] as JSX.HTMLAttributes<any>[],
-    refs: [] as Array<Ref<any>>,
-    classes: [] as JSX.HTMLAttributes<any>[],
-    classList: [] as JSX.HTMLAttributes<any>[],
-  };
+  const sources = (Array.isArray(args[0]) ? args[0] : args) as Args;
+
+  let cachedListeners = {} as Record<string, EventHandler | undefined>;
+  let cacheStyles = [] as JSX.HTMLAttributes<any>[];
+  let cacheRefs = [] as Array<Ref<any>>;
+  let cacheClasses = [] as JSX.HTMLAttributes<any>[];
+  let cacheClassList = [] as JSX.HTMLAttributes<any>[];
+  const lastDescriptor = {} as Record<string, PropertyDescriptor | undefined>;
 
   /*
    * Track the last property descriptor for each key to handle explicit undefined values.
    * Solid's mergeProps doesn't overwrite with undefined, but React's mergeProps does.
    * We need to match React's behavior where explicit undefined should overwrite.
    */
-  const lastDescriptor = {} as Record<string, PropertyDescriptor | undefined>;
 
   let merge = {} as Record<string, unknown>;
   for (let props of sources) {
     let propsOverride = false;
     if (typeof props === 'function') {
-      propsOverride = true;
+      const mergedListeners = { ...cachedListeners };
+      const mergedStyles = reduce(cacheStyles, 'style', combineStyle);
+      const mergedRefs = reverseChain(cacheRefs);
+      const mergedClasses = reduce(cacheClasses, 'class', (a, b) => `${a} ${b}`);
+      const mergedClassList = reduce(cacheClassList, 'classList', (a, b) => ({ ...a, ...b }));
 
-      /**
-       * TODO: This hack was created by Opus 4.5 on high reasoning using Cursor.
-       * This is the first time it came up with the solution I didn't even think of.
-       *
-       * Create a proxy that returns chained handlers for event keys.
-       * The function expects camelCase keys (onClick), but chainMap uses lowercase (onclick).
-       * This ensures the function receives the properly chained event handlers
-       * while preserving all other properties and their reactivity.
-       */
-      const savedListeners = { ...chainMap.listeners };
-      const propsWithChainedHandlers = new Proxy(merge, {
-        get(target, key) {
-          if (typeof key === 'string' && key[0] === 'o' && key[1] === 'n' && key[2]) {
-            const lowerName = key.toLowerCase();
-            if (savedListeners[lowerName]) {
-              return savedListeners[lowerName];
-            }
-            return Reflect.get(target, key);
+      const mergedForGetter = new Proxy(merge, {
+        get(target, key, receiver) {
+          if (typeof key !== 'string') return Reflect.get(target, key, receiver);
+          if (key === 'style') return mergedStyles;
+          if (key === 'ref') return mergedRefs;
+          if (key === 'class') return mergedClasses;
+          if (key === 'classList') return mergedClassList;
+
+          if (key[0] === 'o' && key[1] === 'n' && key[2]) {
+            const name = key.toLowerCase();
+            if (name in mergedListeners) return mergedListeners[name];
           }
-          return Reflect.get(target, key);
-        },
-        has(target, key) {
-          return Reflect.has(target, key);
-        },
-        ownKeys(target) {
-          return Reflect.ownKeys(target);
-        },
-        getOwnPropertyDescriptor(target, key) {
-          return Reflect.getOwnPropertyDescriptor(target, key);
+
+          return Reflect.get(target, key, receiver);
         },
       });
-      props = props(propsWithChainedHandlers);
-      chainMap.listeners = {};
+
+      propsOverride = true;
+      props = props(mergedForGetter);
+
+      cachedListeners = {};
+      cacheStyles = [];
+      cacheRefs = [];
+      cacheClasses = [];
+      cacheClassList = [];
     }
 
     for (const key in props) {
@@ -208,28 +200,27 @@ export function combineProps<
        * Track all descriptors before any special handling so we can later
        * check if the final value should be undefined
        */
-      const desc = Object.getOwnPropertyDescriptor(props, key);
-      lastDescriptor[key] = desc;
+      lastDescriptor[key] = Object.getOwnPropertyDescriptor(props, key);
 
       if (key === 'style') {
-        chainMap.styles.push(props as any);
+        cacheStyles.push(props as any);
         continue;
       }
 
       if (key === 'ref') {
         if (typeof props[key] === 'function') {
-          chainMap.refs.push(props[key]);
+          cacheRefs.push(props[key]);
         }
         continue;
       }
 
       if (key === 'class' || key === 'className') {
-        chainMap.classes.push(props as any);
+        cacheClasses.push(props as any);
         continue;
       }
 
       if (key === 'classList') {
-        chainMap.classList.push(props as any);
+        cacheClassList.push(props as any);
         continue;
       }
 
@@ -238,7 +229,7 @@ export function combineProps<
         const v = props[key];
         const name = key.toLowerCase();
 
-        const callback: ((...args: any[]) => void) | undefined =
+        const callback: EventHandler | undefined =
           typeof v === 'function'
             ? v
             : // jsx event handlers can be tuples of [callback, arg]
@@ -249,13 +240,7 @@ export function combineProps<
               : void 0;
 
         if (callback) {
-          chainMap.listeners[name] = mergeEventHandlers(chainMap.listeners[name], callback);
-
-          chainMap.allListeners[name] ??= [];
-          chainMap.allListeners[name].push({
-            fn: callback,
-            type: propsOverride ? 'replace' : 'combine',
-          });
+          cachedListeners[name] = mergeEventHandlers(cachedListeners[name], callback);
         }
       }
     }
@@ -264,37 +249,24 @@ export function combineProps<
     merge = propsOverride ? (props ?? {}) : mergeProps(merge, props);
   }
 
+  const mergedListeners = { ...cachedListeners };
+  const mergedStyles = reduce(cacheStyles, 'style', combineStyle);
+  const mergedRefs = reverseChain(cacheRefs);
+  const mergedClasses = reduce(cacheClasses, 'class', (a, b) => `${a} ${b}`);
+  const mergedClassList = reduce(cacheClassList, 'classList', (a, b) => ({ ...a, ...b }));
+
   return new Proxy(
     {
       get(key) {
-        if (typeof key !== 'string') {
-          return Reflect.get(merge, key);
-        }
+        if (typeof key !== 'string') return Reflect.get(merge, key);
+        if (key === 'style') return mergedStyles;
+        if (key === 'ref') return mergedRefs;
+        if (key === 'class') return mergedClasses;
+        if (key === 'classList') return mergedClassList;
 
-        // Combine style prop
-        if (key === 'style') {
-          return reduce(chainMap.styles, 'style', combineStyle);
-        }
-
-        // chain props.ref assignments
-        if (key === 'ref') {
-          return reverseChain(chainMap.refs);
-        }
-
-        // Chain event listeners
         if (key[0] === 'o' && key[1] === 'n' && key[2]) {
           const name = key.toLowerCase();
-          return chainMap.listeners[name] ?? Reflect.get(merge, key);
-        }
-
-        // Merge classes or classNames
-        if (key === 'class') {
-          return reduce(chainMap.classes, 'class', (a, b) => `${a} ${b}`);
-        }
-
-        // Merge classList objects, keys in the last object overrides all previous ones.
-        if (key === 'classList') {
-          return reduce(chainMap.classList, 'classList', (a, b) => ({ ...a, ...b }));
+          if (name in mergedListeners) return mergedListeners[name];
         }
 
         /*
@@ -339,8 +311,8 @@ function reverseChain<Args extends [] | any[]>(
 }
 
 function mergeEventHandlers(
-  ourHandler: ((...args: any[]) => unknown) | undefined,
-  theirHandler: ((...args: any[]) => unknown) | undefined,
+  ourHandler: EventHandler | undefined,
+  theirHandler: EventHandler | undefined,
 ): (...args: any[]) => void {
   if (!theirHandler) {
     return ourHandler as any;

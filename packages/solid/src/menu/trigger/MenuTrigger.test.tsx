@@ -4,7 +4,6 @@ import { Popover } from '@base-ui-components/solid/popover';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
 import { expect } from 'chai';
-import { Dynamic } from 'solid-js/web';
 import { PATIENT_CLICK_THRESHOLD } from '../../utils/constants';
 
 describe('<Menu.Trigger />', () => {

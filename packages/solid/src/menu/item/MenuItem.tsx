@@ -1,60 +1,13 @@
 'use client';
-import { createMemo, splitProps, type JSX } from 'solid-js';
+import { type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
-import { FloatingEvents, useFloatingTree } from '../../floating-ui-solid';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
-import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
+import { useFloatingTree } from '../../floating-ui-solid';
+import { splitComponentProps } from '../../solid-helpers';
+import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useMenuRootContext } from '../root/MenuRootContext';
 import { REGULAR_ITEM, useMenuItem } from './useMenuItem';
-
-function InnerMenuItem(componentProps: InnerMenuItemProps) {
-  const [, local, elementProps] = splitComponentProps(componentProps, [
-    'closeOnClick',
-    'disabled',
-    'highlighted',
-    'id',
-    'menuEvents',
-    'itemProps',
-    'allowMouseUpTriggerRef',
-    'typingRef',
-    'nativeButton',
-  ]);
-  const closeOnClick = () => access(local.closeOnClick) ?? true;
-  const disabled = () => access(local.disabled) ?? false;
-  const highlighted = () => access(local.highlighted);
-  const id = () => access(local.id);
-  const itemProps = () => access(local.itemProps);
-  const allowMouseUpTriggerRef = () => access(local.allowMouseUpTriggerRef);
-  const typingRef = () => access(local.typingRef);
-  const nativeButton = () => access(local.nativeButton);
-
-  const { getItemProps, setItemRef } = useMenuItem({
-    closeOnClick,
-    disabled,
-    highlighted,
-    id,
-    menuEvents: local.menuEvents,
-    allowMouseUpTriggerRef,
-    typingRef,
-    nativeButton,
-    itemMetadata: REGULAR_ITEM,
-  });
-
-  const state = createMemo<MenuItem.State>(() => ({
-    disabled: disabled(),
-    highlighted: highlighted(),
-  }));
-
-  const element = useRenderElement('div', componentProps, {
-    state,
-    ref: setItemRef,
-    props: [itemProps, elementProps, getItemProps],
-  });
-
-  return <>{element()}</>;
-}
 
 /**
  * An individual interactive item in the menu.
@@ -62,52 +15,57 @@ function InnerMenuItem(componentProps: InnerMenuItemProps) {
  *
  * Documentation: [Base UI Menu](https://base-ui.com/react/components/menu)
  */
-export function MenuItem(props: MenuItem.Props) {
-  const [local, elementProps] = splitProps(props, ['id', 'label', 'nativeButton']);
-  const idProp = () => access(local.id);
-  const label = () => access(local.label);
-  const nativeButton = () => access(local.nativeButton) ?? false;
+export function MenuItem(componentProps: MenuItem.Props) {
+  const [, local, elementProps] = splitComponentProps(componentProps, [
+    'closeOnClick',
+    'disabled',
+    'id',
+    'label',
+    'nativeButton',
+  ]);
+  const closeOnClick = () => local.closeOnClick ?? true;
+  const disabled = () => local.disabled ?? false;
+  const nativeButton = () => local.nativeButton ?? false;
 
-  const listItem = useCompositeListItem({ label });
+  const listItem = useCompositeListItem({ label: () => local.label });
 
   const { itemProps, activeIndex, allowMouseUpTriggerRef, typingRef } = useMenuRootContext();
-  const id = useBaseUiId(() => idProp());
+  const id = useBaseUiId(() => local.id);
 
   const highlighted = () => listItem.index() === activeIndex();
   const { events: menuEvents } = useFloatingTree()!;
 
-  // This wrapper component is used as a performance optimization.
-  // MenuItem reads the context and re-renders the actual MenuItem
-  // only when it needs to.
-  return (
-    <InnerMenuItem
-      {...elementProps}
-      id={id()}
-      ref={(el) => {
-        if (typeof props.ref === 'function') {
-          props.ref(el);
-        } else {
-          props.ref = el;
-        }
-        listItem.setRef(el);
-      }}
-      highlighted={highlighted()}
-      menuEvents={menuEvents}
-      itemProps={itemProps()}
-      allowMouseUpTriggerRef={allowMouseUpTriggerRef()}
-      typingRef={typingRef()}
-      nativeButton={nativeButton()}
-    />
-  );
-}
+  const { getItemProps, setItemRef } = useMenuItem({
+    closeOnClick,
+    disabled,
+    highlighted,
+    id,
+    menuEvents,
+    allowMouseUpTriggerRef,
+    typingRef,
+    nativeButton,
+    itemMetadata: REGULAR_ITEM,
+  });
 
-interface InnerMenuItemProps extends MenuItem.Props {
-  highlighted: MaybeAccessor<boolean>;
-  itemProps: MaybeAccessor<HTMLProps>;
-  menuEvents: FloatingEvents;
-  allowMouseUpTriggerRef: MaybeAccessor<boolean>;
-  typingRef: MaybeAccessor<boolean>;
-  nativeButton: MaybeAccessor<boolean>;
+  const state: MenuItem.State = {
+    get disabled() {
+      return disabled();
+    },
+    get highlighted() {
+      return highlighted();
+    },
+  };
+
+  const element = useRenderElement('div', componentProps, {
+    state,
+    ref: (el) => {
+      setItemRef(el);
+      listItem.setRef(el);
+    },
+    props: [itemProps, elementProps, getItemProps],
+  });
+
+  return <>{element()}</>;
 }
 
 export namespace MenuItem {
@@ -122,33 +80,29 @@ export namespace MenuItem {
     highlighted: boolean;
   }
 
-  export interface Props extends Omit<BaseUIComponentProps<'div', State>, 'id'> {
+  export interface Props extends BaseUIComponentProps<'div', State> {
     children?: JSX.Element;
     /**
      * Whether the component should ignore user interaction.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
     /**
      * Overrides the text label to use when the item is matched during keyboard text navigation.
      */
-    label?: MaybeAccessor<string | undefined>;
-    /**
-     * @ignore
-     */
-    id?: MaybeAccessor<string | undefined>;
+    label?: string;
     /**
      * Whether to close the menu when the item is clicked.
      *
      * @default true
      */
-    closeOnClick?: MaybeAccessor<boolean | undefined>;
+    closeOnClick?: boolean;
     /**
      * Whether the component renders a native `<button>` element when replacing it
      * via the `render` prop.
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default false
      */
-    nativeButton?: MaybeAccessor<boolean | undefined>;
+    nativeButton?: boolean;
   }
 }

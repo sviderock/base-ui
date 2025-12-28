@@ -19,8 +19,7 @@ import {
   useTypeahead,
 } from '../../floating-ui-solid';
 import { MenubarContext, useMenubarContext } from '../../menubar/MenubarContext';
-import { mergeProps } from '../../merge-props';
-import { access, type MaybeAccessor } from '../../solid-helpers';
+import { combineProps } from '../../merge-props';
 import { PATIENT_CLICK_THRESHOLD, TYPEAHEAD_RESET_MS } from '../../utils/constants';
 import {
   translateOpenChangeReason,
@@ -46,17 +45,13 @@ const EMPTY_REF = false;
  * Documentation: [Base UI Menu](https://base-ui.com/react/components/menu)
  */
 export function MenuRoot(props: MenuRoot.Props) {
-  const openProp = () => access(props.open);
-  const defaultOpen = () => access(props.defaultOpen) ?? false;
-  const disabled = () => access(props.disabled) ?? false;
-  const modalProp = () => access(props.modal);
-  const loop = () => access(props.loop) ?? true;
-  const orientation = () => access(props.orientation) ?? 'vertical';
-  const actionsRef = () => access(props.actionsRef);
-  const openOnHoverProp = () => access(props.openOnHover);
-  const delay = () => access(props.delay) ?? 100;
-  const closeDelay = () => access(props.closeDelay) ?? 0;
-  const closeParentOnEsc = () => access(props.closeParentOnEsc) ?? true;
+  const defaultOpen = () => props.defaultOpen ?? false;
+  const disabled = () => props.disabled ?? false;
+  const loop = () => props.loop ?? true;
+  const orientation = () => props.orientation ?? 'vertical';
+  const delay = () => props.delay ?? 100;
+  const closeDelay = () => props.closeDelay ?? 0;
+  const closeParentOnEsc = () => props.closeParentOnEsc ?? true;
 
   const [triggerElement, setTriggerElement] = createSignal<HTMLElement | null | undefined>(null);
   const [popupRef, setPopupRef] = createSignal<HTMLElement | null | undefined>(null);
@@ -105,7 +100,7 @@ export function MenuRoot(props: MenuRoot.Props) {
   });
 
   const modal = () =>
-    (parent().type === undefined || parent().type === 'context-menu') && (modalProp() ?? true);
+    (parent().type === undefined || parent().type === 'context-menu') && (props.modal ?? true);
 
   // If this menu is a submenu, it should inherit `allowMouseEnter` from its
   // parent. Otherwise it manages the state on its own.
@@ -114,16 +109,14 @@ export function MenuRoot(props: MenuRoot.Props) {
     return p.type === 'menu' ? p.context.allowMouseEnter() : allowMouseEnterState();
   };
 
-  const setAllowMouseEnter = (allowMouseEnter: boolean) => {
+  const setAllowMouseEnter = (allow: boolean) => {
     const p = parent();
-    return p.type === 'menu'
-      ? p.context.setAllowMouseEnter(allowMouseEnter)
-      : setAllowMouseEnterState(allowMouseEnter);
+    return p.type === 'menu' ? p.context.setAllowMouseEnter(allow) : setAllowMouseEnterState(allow);
   };
 
   createEffect(() => {
     if (process.env.NODE_ENV !== 'production') {
-      if (parent().type !== undefined && modalProp() !== undefined) {
+      if (parent().type !== undefined && props.modal !== undefined) {
         console.warn(
           'Base UI: The `modal` prop is not supported on nested menus. It will be ignored.',
         );
@@ -134,13 +127,13 @@ export function MenuRoot(props: MenuRoot.Props) {
   const openOnHover = () => {
     const p = parent();
     return (
-      openOnHoverProp() ??
+      props.openOnHover ??
       (p.type === 'menu' || (p.type === 'menubar' && p.context.hasSubmenuOpen()))
     );
   };
 
   const [open, setOpenUnwrapped] = useControlled({
-    controlled: openProp,
+    controlled: () => props.open,
     default: defaultOpen,
     name: 'MenuRoot',
     state: 'open',
@@ -198,7 +191,7 @@ export function MenuRoot(props: MenuRoot.Props) {
   };
 
   useOpenChangeComplete({
-    enabled: () => !actionsRef(),
+    enabled: () => !props.actionsRef,
     open,
     ref: popupRef,
     onComplete() {
@@ -295,8 +288,8 @@ export function MenuRoot(props: MenuRoot.Props) {
   });
 
   createEffect(() => {
-    if (actionsRef()) {
-      actionsRef()!.unmount = handleUnmount;
+    if (props.actionsRef) {
+      props.actionsRef!.unmount = handleUnmount;
     }
   });
 
@@ -438,7 +431,7 @@ export function MenuRoot(props: MenuRoot.Props) {
   });
 
   const triggerProps = createMemo(() => {
-    const referenceProps = mergeProps(
+    return combineProps([
       getReferenceProps(),
       {
         onMouseEnter() {
@@ -449,9 +442,8 @@ export function MenuRoot(props: MenuRoot.Props) {
         },
       },
       mixedToggleHandlers(),
-    );
-    delete referenceProps.role;
-    return referenceProps;
+      { role: undefined },
+    ]);
   });
 
   const popupProps = createMemo(() =>
@@ -479,15 +471,13 @@ export function MenuRoot(props: MenuRoot.Props) {
     );
   });
 
-  const itemProps = createMemo(() => getItemProps());
-
   const context: MenuRootContext = {
     activeIndex,
     setActiveIndex,
     floatingRootContext,
-    itemProps,
-    popupProps,
-    triggerProps,
+    itemProps: (externalProps) => combineProps(externalProps, getItemProps()),
+    popupProps: (externalProps) => combineProps(externalProps, popupProps()),
+    triggerProps: (externalProps) => combineProps(externalProps, triggerProps()),
     itemDomElements,
     itemLabels,
     mounted,
@@ -539,20 +529,20 @@ export namespace MenuRoot {
      * To render a controlled menu, use the `open` prop instead.
      * @default false
      */
-    defaultOpen?: MaybeAccessor<boolean | undefined>;
+    defaultOpen?: boolean;
     /**
      * Whether to loop keyboard focus back to the first item
      * when the end of the list is reached while using the arrow keys.
      * @default true
      */
-    loop?: MaybeAccessor<boolean | undefined>;
+    loop?: boolean;
     /**
      * Determines if the menu enters a modal state when open.
      * - `true`: user interaction is limited to the menu: document page scroll is locked and and pointer interactions on outside elements are disabled.
      * - `false`: user interaction with the rest of the document is allowed.
      * @default true
      */
-    modal?: MaybeAccessor<boolean | undefined>;
+    modal?: boolean;
     /**
      * Event handler called when the menu is opened or closed.
      * @type (open: boolean, event?: Event, reason?: Menu.Root.OpenChangeReason) => void
@@ -569,31 +559,31 @@ export namespace MenuRoot {
     /**
      * Whether the menu is currently open.
      */
-    open?: MaybeAccessor<boolean | undefined>;
+    open?: boolean;
     /**
      * The visual orientation of the menu.
      * Controls whether roving focus uses up/down or left/right arrow keys.
      * @default 'vertical'
      */
-    orientation?: MaybeAccessor<Orientation | undefined>;
+    orientation?: Orientation;
     /**
      * Whether the component should ignore user interaction.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
     /**
      * When in a submenu, determines whether pressing the Escape key
      * closes the entire menu, or only the current child menu.
      * @default true
      */
-    closeParentOnEsc?: MaybeAccessor<boolean | undefined>;
+    closeParentOnEsc?: boolean;
     /**
      * How long to wait before the menu may be opened on hover. Specified in milliseconds.
      *
      * Requires the `openOnHover` prop.
      * @default 100
      */
-    delay?: MaybeAccessor<number | undefined>;
+    delay?: number;
     /**
      * How long to wait before closing the menu that was opened on hover.
      * Specified in milliseconds.
@@ -601,18 +591,18 @@ export namespace MenuRoot {
      * Requires the `openOnHover` prop.
      * @default 0
      */
-    closeDelay?: MaybeAccessor<number | undefined>;
+    closeDelay?: number;
     /**
      * Whether the menu should also open when the trigger is hovered.
      */
-    openOnHover?: MaybeAccessor<boolean | undefined>;
+    openOnHover?: boolean;
     /**
      * A ref to imperative actions.
      * - `unmount`: When specified, the menu will not be unmounted when closed.
      * Instead, the `unmount` function must be called to unmount the menu manually.
      * Useful when the menu's animation is controlled by an external library.
      */
-    actionsRef?: MaybeAccessor<Actions | undefined>;
+    actionsRef?: Actions;
   }
 
   export interface Actions {

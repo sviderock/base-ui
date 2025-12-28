@@ -1,10 +1,10 @@
 'use client';
 import type { Accessor } from 'solid-js';
 import { FloatingEvents } from '../../floating-ui-solid';
-import { mergeProps } from '../../merge-props';
+import { combineProps } from '../../merge-props';
 import { access, MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button';
-import { BaseUIEvent, HTMLProps } from '../../utils/types';
+import { BaseUIEvent, type BaseUIHTMLProps, type HTMLProps } from '../../utils/types';
 
 export const REGULAR_ITEM = {
   type: 'regular-item' as const,
@@ -27,12 +27,16 @@ export function useMenuItem(params: useMenuItem.Parameters): useMenuItem.ReturnV
     native: nativeButton,
   });
 
-  const getItemProps = (externalProps?: HTMLProps): HTMLProps => {
-    return mergeProps(
+  const getItemProps = (externalProps: HTMLProps | BaseUIHTMLProps = {}) => {
+    return combineProps([
       {
-        id: id(),
         role: 'menuitem',
-        tabIndex: highlighted() ? 0 : -1,
+        get id() {
+          return id();
+        },
+        get tabIndex() {
+          return highlighted() ? 0 : -1;
+        },
         onMouseEnter() {
           const metadata = params.itemMetadata;
           if (metadata.type !== 'submenu-trigger') {
@@ -68,7 +72,7 @@ export function useMenuItem(params: useMenuItem.Parameters): useMenuItem.ReturnV
       },
       externalProps,
       getButtonProps,
-    );
+    ]);
   };
 
   return {
@@ -137,7 +141,7 @@ export namespace useMenuItem {
      * @param externalProps event handlers for the root slot
      * @returns props that should be spread on the root slot
      */
-    getItemProps: (externalProps?: HTMLProps) => HTMLProps;
+    getItemProps: (externalProps?: BaseUIHTMLProps) => BaseUIHTMLProps;
     /**
      * The ref to the component's root DOM element.
      */

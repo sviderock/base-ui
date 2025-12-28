@@ -3,7 +3,7 @@ import { createRenderEffect, onCleanup } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useMenuGroupRootContext } from '../group/MenuGroupContext';
 
 /**
@@ -27,7 +27,15 @@ export function MenuGroupLabel(componentProps: MenuGroupLabel.Props) {
   });
 
   const element = useRenderElement('div', componentProps, {
-    props: [() => ({ id: id(), role: 'presentation' }), elementProps],
+    props: [
+      {
+        get id() {
+          return id();
+        },
+        role: 'presentation',
+      },
+      elementProps,
+    ],
   });
 
   return <>{element()}</>;

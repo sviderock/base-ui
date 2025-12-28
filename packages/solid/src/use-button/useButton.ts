@@ -51,7 +51,16 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
 
   // TODO: fix typing in the whole function
   function getButtonProps(externalProps: GenericButtonProps = {}) {
-    const [local, otherExternalProps] = splitProps(externalProps, [
+    // Access event handlers directly instead of using splitProps, since externalProps
+    // might be a proxy from combineProps and splitProps may not extract merged
+    // callbacks correctly
+    const externalOnClick = externalProps.onClick;
+    const externalOnMouseDown = externalProps.onMouseDown;
+    const externalOnKeyUp = externalProps.onKeyUp;
+    const externalOnKeyDown = externalProps.onKeyDown;
+    const externalOnPointerDown = externalProps.onPointerDown;
+
+    const [, otherExternalProps] = splitProps(externalProps, [
       'onClick',
       'onMouseDown',
       'onKeyUp',
@@ -59,28 +68,28 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
       'onPointerDown',
     ]);
 
-    const type = isNativeButton() ? 'button' : undefined;
-
     return combineProps<'button'>(
       {
-        type,
+        get type() {
+          return isNativeButton() ? 'button' : undefined;
+        },
         onClick(event) {
           if (disabled()) {
             event.preventDefault();
             return;
           }
-          callEventHandler(local.onClick, event);
+          callEventHandler(externalOnClick, event);
         },
         onMouseDown(event) {
           if (!disabled()) {
-            callEventHandler(local.onMouseDown, event);
+            callEventHandler(externalOnMouseDown, event);
           }
         },
         onKeyDown(event) {
           if (!disabled()) {
             // TODO: fix typing
             makeEventPreventable(event);
-            callEventHandler(local.onKeyDown, event);
+            callEventHandler(externalOnKeyDown, event);
           }
 
           if ((event as any).baseUIHandlerPrevented) {
@@ -95,7 +104,7 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
             (event as any).key === 'Enter' &&
             !disabled()
           ) {
-            callEventHandler(local.onClick, event as any);
+            callEventHandler(externalOnClick, event as any);
             event.preventDefault();
           }
         },
@@ -106,7 +115,7 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
           if (!disabled()) {
             // TODO: fix typing
             makeEventPreventable(event as any);
-            callEventHandler(local.onKeyUp, event);
+            callEventHandler(externalOnKeyUp, event);
           }
 
           // TODO: fix typing
@@ -121,7 +130,7 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
             event.key === ' '
           ) {
             // TODO: fix this
-            callEventHandler(local.onClick, event as any);
+            callEventHandler(externalOnClick, event as any);
           }
         },
         onPointerDown(event) {
@@ -129,12 +138,19 @@ export function useButton(parameters: useButton.Parameters = {}): useButton.Retu
             event.preventDefault();
             return;
           }
-          callEventHandler(local.onPointerDown, event);
+          callEventHandler(externalOnPointerDown, event);
         },
       },
-      !isNativeButton() ? { role: 'button' } : {},
       focusableWhenDisabledProps(),
       otherExternalProps,
+      {
+        get role() {
+          if (otherExternalProps.role) {
+            return otherExternalProps.role;
+          }
+          return !isNativeButton() ? 'button' : undefined;
+        },
+      },
     );
   }
 

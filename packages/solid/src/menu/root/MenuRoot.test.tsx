@@ -881,7 +881,7 @@ describe('<Menu.Root />', () => {
         return (
           <div>
             <button onClick={() => setOpen(false)}>Close</button>
-            <Menu.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <Menu.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <Menu.Portal>
                 <Menu.Positioner>
                   <Menu.Popup data-testid="popup" />
@@ -930,7 +930,7 @@ describe('<Menu.Root />', () => {
             {/* eslint-disable-next-line solid/no-innerhtml */}
             <style innerHTML={style} />
             <button onClick={() => setOpen(false)}>Close</button>
-            <Menu.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <Menu.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <Menu.Portal>
                 <Menu.Positioner>
                   <Menu.Popup class="animation-test-indicator" data-testid="popup" />
@@ -968,7 +968,7 @@ describe('<Menu.Root />', () => {
         return (
           <div>
             <button onClick={() => setOpen(true)}>Open</button>
-            <Menu.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <Menu.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <Menu.Portal>
                 <Menu.Positioner>
                   <Menu.Popup data-testid="popup" />
@@ -1018,7 +1018,7 @@ describe('<Menu.Root />', () => {
             <style innerHTML={style} />
             <button onClick={() => setOpen(true)}>Open</button>
             <Menu.Root
-              open={open}
+              open={open()}
               onOpenChange={setOpen}
               onOpenChangeComplete={onOpenChangeComplete}
             >

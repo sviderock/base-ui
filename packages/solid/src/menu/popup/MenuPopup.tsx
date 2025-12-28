@@ -1,15 +1,15 @@
 'use client';
-import { createMemo, onCleanup, onMount, type JSX } from 'solid-js';
+import { createEffect, createMemo, onCleanup, onMount, type JSX } from 'solid-js';
 import { FloatingFocusManager, useFloatingTree } from '../../floating-ui-solid';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
-import { DISABLED_TRANSITIONS_STYLE, EMPTY_OBJECT } from '../../utils/constants';
+import { splitComponentProps } from '../../solid-helpers';
+import { DISABLED_TRANSITIONS_STYLE } from '../../utils/constants';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Side } from '../../utils/useAnchorPositioning';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useMenuPositionerContext } from '../positioner/MenuPositionerContext';
 import type { MenuRoot } from '../root/MenuRoot';
@@ -28,7 +28,6 @@ const customStyleHookMapping: CustomStyleHookMapping<MenuPopup.State> = {
  */
 export function MenuPopup(componentProps: MenuPopup.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['finalFocus']);
-  const finalFocus = () => access(local.finalFocus);
 
   const {
     open,
@@ -72,14 +71,26 @@ export function MenuPopup(componentProps: MenuPopup.Props) {
     });
   });
 
-  const state = createMemo<MenuPopup.State>(() => ({
-    transitionStatus: transitionStatus(),
-    side: side(),
-    align: align(),
-    open: open(),
-    nested: parent().type === 'menu',
-    instant: instantType(),
-  }));
+  const state: MenuPopup.State = {
+    get transitionStatus() {
+      return transitionStatus();
+    },
+    get side() {
+      return side();
+    },
+    get align() {
+      return align();
+    },
+    get open() {
+      return open();
+    },
+    get nested() {
+      return parent().type === 'menu';
+    },
+    get instant() {
+      return instantType();
+    },
+  };
 
   const returnFocus = createMemo(() => {
     if (parent().type === 'menubar' && lastOpenChangeReason() !== 'outside-press') {
@@ -94,18 +105,26 @@ export function MenuPopup(componentProps: MenuPopup.Props) {
     customStyleHookMapping,
     props: [
       popupProps,
-      () => (transitionStatus() === 'starting' ? DISABLED_TRANSITIONS_STYLE : EMPTY_OBJECT),
+      {
+        get style() {
+          return transitionStatus() === 'starting' ? DISABLED_TRANSITIONS_STYLE.style : undefined;
+        },
+      },
       elementProps,
-      () => ({ 'data-rootownerid': rootId() }) as Record<string, string>,
+      {
+        get ['data-rootownerid' as string]() {
+          return rootId();
+        },
+      },
     ],
   });
 
   return (
     <FloatingFocusManager
-      context={floatingContext()}
+      context={floatingContext}
       modal={false}
       disabled={!mounted()}
-      returnFocus={finalFocus() || returnFocus()}
+      returnFocus={local.finalFocus || returnFocus()}
       initialFocus={parent().type === 'menu' ? -1 : 0}
       restoreFocus
     >
@@ -121,7 +140,7 @@ export namespace MenuPopup {
      * Determines the element to focus when the menu is closed.
      * By default, focus returns to the trigger.
      */
-    finalFocus?: MaybeAccessor<HTMLElement | null | undefined>;
+    finalFocus?: HTMLElement | null | undefined;
   }
 
   export type State = {

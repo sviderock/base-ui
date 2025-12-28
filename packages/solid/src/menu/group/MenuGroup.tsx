@@ -2,7 +2,7 @@
 import { createSignal, type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { MenuGroupContext } from './MenuGroupContext';
 
 /**
@@ -19,7 +19,15 @@ export function MenuGroup(componentProps: MenuGroup.Props) {
   const context = { setLabelId };
 
   const element = useRenderElement('div', componentProps, {
-    props: [() => ({ role: 'group', 'aria-labelledby': labelId() }), elementProps],
+    props: [
+      {
+        role: 'group',
+        get 'aria-labelledby'() {
+          return labelId();
+        },
+      },
+      elementProps,
+    ],
   });
 
   return <MenuGroupContext.Provider value={context}>{element()}</MenuGroupContext.Provider>;
