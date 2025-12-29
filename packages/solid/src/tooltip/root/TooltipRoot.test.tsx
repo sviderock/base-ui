@@ -149,7 +149,7 @@ describe('<Tooltip.Root />', () => {
 
         return (
           <Root
-            open={open}
+            open={open()}
             onOpenChange={(nextOpen) => {
               handleChange(open());
               setOpen(nextOpen);
@@ -196,7 +196,7 @@ describe('<Tooltip.Root />', () => {
 
         return (
           <Root
-            open={open}
+            open={open()}
             onOpenChange={(nextOpen) => {
               handleChange(open());
               setOpen(nextOpen);
@@ -424,7 +424,7 @@ describe('<Tooltip.Root />', () => {
         return (
           <div>
             <button onClick={() => setOpen(false)}>Close</button>
-            <Tooltip.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <Tooltip.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <Tooltip.Portal>
                 <Tooltip.Positioner>
                   <Tooltip.Popup data-testid="popup" />
@@ -473,7 +473,7 @@ describe('<Tooltip.Root />', () => {
             {/* eslint-disable-next-line solid/no-innerhtml */}
             <style innerHTML={style} />
             <button onClick={() => setOpen(false)}>Close</button>
-            <Tooltip.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <Tooltip.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <Tooltip.Portal>
                 <Tooltip.Positioner>
                   <Tooltip.Popup class="animation-test-indicator" data-testid="popup" />
@@ -511,7 +511,7 @@ describe('<Tooltip.Root />', () => {
         return (
           <div>
             <button onClick={() => setOpen(true)}>Open</button>
-            <Tooltip.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <Tooltip.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <Tooltip.Portal>
                 <Tooltip.Positioner>
                   <Tooltip.Popup data-testid="popup" />
@@ -561,7 +561,7 @@ describe('<Tooltip.Root />', () => {
             <style innerHTML={style} />
             <button onClick={() => setOpen(true)}>Open</button>
             <Tooltip.Root
-              open={open}
+              open={open()}
               onOpenChange={setOpen}
               onOpenChangeComplete={onOpenChangeComplete}
             >
@@ -638,7 +638,7 @@ describe('<Tooltip.Root />', () => {
         const [disabled, setDisabled] = createSignal(false);
         return (
           <div>
-            <Root defaultOpen disabled={disabled} delay={0}>
+            <Root defaultOpen disabled={disabled()} delay={0}>
               <Tooltip.Trigger />
               <Tooltip.Portal>
                 <Tooltip.Positioner>

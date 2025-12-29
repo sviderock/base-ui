@@ -1,10 +1,9 @@
 'use client';
-import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTooltipPositionerContext } from '../positioner/TooltipPositionerContext';
 
 /**
@@ -19,17 +18,33 @@ export function TooltipArrow(componentProps: TooltipArrow.Props) {
   const { open, setArrowRef, side, align, arrowUncentered, arrowStyles } =
     useTooltipPositionerContext();
 
-  const state = createMemo<TooltipArrow.State>(() => ({
-    open: open(),
-    side: side(),
-    align: align(),
-    uncentered: arrowUncentered(),
-  }));
+  const state: TooltipArrow.State = {
+    get open() {
+      return open();
+    },
+    get side() {
+      return side();
+    },
+    get align() {
+      return align();
+    },
+    get uncentered() {
+      return arrowUncentered();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
     ref: setArrowRef,
-    props: [() => ({ style: arrowStyles(), 'aria-hidden': true }), elementProps],
+    props: [
+      {
+        get style() {
+          return arrowStyles();
+        },
+        'aria-hidden': true,
+      },
+      elementProps,
+    ],
     customStyleHookMapping: popupStateMapping,
   });
 

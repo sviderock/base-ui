@@ -10,7 +10,8 @@ import {
   useHover,
   useInteractions,
 } from '../../floating-ui-solid';
-import { access, type MaybeAccessor } from '../../solid-helpers';
+import { combineProps } from '../../merge-props/combineProps';
+import { access } from '../../solid-helpers';
 import { translateOpenChangeReason } from '../../utils/translateOpenChangeReason';
 import { useControlled } from '../../utils/useControlled';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
@@ -195,7 +196,7 @@ export function TooltipRoot(props: TooltipRoot.Props) {
     clientPoint,
   ]);
 
-  const tooltipRoot = {
+  const contextValue: TooltipRootContext = {
     open: openState,
     setOpen,
     mounted,
@@ -204,17 +205,13 @@ export function TooltipRoot(props: TooltipRoot.Props) {
     positionerElement,
     setPositionerElement,
     refs,
-    triggerProps: () => getReferenceProps(),
-    popupProps: () => getFloatingProps(),
+    triggerProps: (externalProps) => combineProps(externalProps, getReferenceProps()),
+    popupProps: (externalProps) => combineProps(externalProps, getFloatingProps()),
     floatingRootContext,
     instantType,
     transitionStatus,
     // eslint-disable-next-line solid/reactivity
     onOpenChangeComplete: props.onOpenChangeComplete,
-  };
-
-  const contextValue: TooltipRootContext = {
-    ...tooltipRoot,
     delay: delayWithDefault,
     closeDelay: closeDelayWithDefault,
     trackCursorAxis,
@@ -237,11 +234,11 @@ export namespace TooltipRoot {
      * To render a controlled tooltip, use the `open` prop instead.
      * @default false
      */
-    defaultOpen?: MaybeAccessor<boolean | undefined>;
+    defaultOpen?: boolean;
     /**
      * Whether the tooltip is currently open.
      */
-    open?: MaybeAccessor<boolean | undefined>;
+    open?: boolean;
     /**
      * Event handler called when the tooltip is opened or closed.
      * @type (open: boolean, event?: Event, reason?: Tooltip.Root.OpenChangeReason) => void
@@ -259,34 +256,34 @@ export namespace TooltipRoot {
      * Whether the tooltip contents can be hovered without closing the tooltip.
      * @default true
      */
-    hoverable?: MaybeAccessor<boolean | undefined>;
+    hoverable?: boolean;
     /**
      * Determines which axis the tooltip should track the cursor on.
      * @default 'none'
      */
-    trackCursorAxis?: MaybeAccessor<'none' | 'x' | 'y' | 'both'>;
+    trackCursorAxis?: 'none' | 'x' | 'y' | 'both';
     /**
      * How long to wait before opening the tooltip. Specified in milliseconds.
      * @default 600
      */
-    delay?: MaybeAccessor<number | undefined>;
+    delay?: number;
     /**
      * How long to wait before closing the tooltip. Specified in milliseconds.
      * @default 0
      */
-    closeDelay?: MaybeAccessor<number | undefined>;
+    closeDelay?: number;
     /**
      * A ref to imperative actions.
      * - `unmount`: When specified, the tooltip will not be unmounted when closed.
      * Instead, the `unmount` function must be called to unmount the tooltip manually.
      * Useful when the tooltip's animation is controlled by an external library.
      */
-    actionsRef?: MaybeAccessor<Actions | undefined>;
+    actionsRef?: Actions;
     /**
      * Whether the tooltip is disabled.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
   }
 
   export interface Actions {

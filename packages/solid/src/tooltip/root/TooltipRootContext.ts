@@ -2,7 +2,7 @@
 import { createContext, useContext, type Accessor, type Setter } from 'solid-js';
 import type { FloatingRootContext } from '../../floating-ui-solid';
 import { BaseOpenChangeReason } from '../../utils/translateOpenChangeReason';
-import type { HTMLProps } from '../../utils/types';
+import type { BaseUIHTMLProps, HTMLProps } from '../../utils/types';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 
 export type TooltipOpenChangeReason = BaseOpenChangeReason | 'disabled';
@@ -24,8 +24,8 @@ export interface TooltipRootContext {
   closeDelay: Accessor<number>;
   mounted: Accessor<boolean>;
   setMounted: (mounted: boolean) => void;
-  triggerProps: Accessor<HTMLProps>;
-  popupProps: Accessor<HTMLProps>;
+  triggerProps: (externalProps: HTMLProps | BaseUIHTMLProps) => BaseUIHTMLProps;
+  popupProps: (externalProps: HTMLProps | BaseUIHTMLProps) => BaseUIHTMLProps;
   instantType: Accessor<'delay' | 'dismiss' | 'focus' | undefined>;
   floatingRootContext: FloatingRootContext;
   trackCursorAxis: Accessor<'none' | 'x' | 'y' | 'both'>;

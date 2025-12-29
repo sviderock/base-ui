@@ -1,7 +1,6 @@
 'use client';
 import { createMemo, type JSX } from 'solid-js';
 import { FloatingDelayGroup } from '../../floating-ui-solid';
-import { access, type MaybeAccessor } from '../../solid-helpers';
 import { TooltipProviderContext } from './TooltipProviderContext';
 
 /**
@@ -11,16 +10,14 @@ import { TooltipProviderContext } from './TooltipProviderContext';
  * Documentation: [Base UI Tooltip](https://base-ui.com/react/components/tooltip)
  */
 export function TooltipProvider(props: TooltipProvider.Props) {
-  const delay = () => access(props.delay);
-  const closeDelay = () => access(props.closeDelay);
-  const timeout = () => access(props.timeout) ?? 400;
+  const timeout = () => props.timeout ?? 400;
 
   const contextValue: TooltipProviderContext = {
-    delay,
-    closeDelay,
+    delay: () => props.delay,
+    closeDelay: () => props.closeDelay,
   };
 
-  const delayValue = createMemo(() => ({ open: delay(), close: closeDelay() }));
+  const delayValue = createMemo(() => ({ open: props.delay, close: props.closeDelay }));
 
   return (
     <TooltipProviderContext.Provider value={contextValue}>
@@ -37,16 +34,16 @@ export namespace TooltipProvider {
     /**
      * How long to wait before opening a tooltip. Specified in milliseconds.
      */
-    delay?: MaybeAccessor<number | undefined>;
+    delay?: number;
     /**
      * How long to wait before closing a tooltip. Specified in milliseconds.
      */
-    closeDelay?: MaybeAccessor<number | undefined>;
+    closeDelay?: number;
     /**
      * Another tooltip will open instantly if the previous tooltip
      * is closed within this timeout. Specified in milliseconds.
      * @default 400
      */
-    timeout?: MaybeAccessor<number | undefined>;
+    timeout?: number;
   }
 }
