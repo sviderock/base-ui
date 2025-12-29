@@ -1,4 +1,4 @@
-import { Show, type JSX, type ValidComponent } from 'solid-js';
+import { Show, type JSX, type Ref, type ValidComponent } from 'solid-js';
 import { Dynamic, type DynamicProps } from 'solid-js/web';
 import { combineProps } from '../merge-props/combineProps';
 import { access, type MaybeAccessor } from '../solid-helpers';
@@ -9,15 +9,15 @@ import type { BaseUIComponentProps, ComponentRenderFn, HTMLProps } from './types
 
 export function useRenderElement<
   State extends Record<string, MaybeAccessor<any>>,
-  TagName extends keyof JSX.IntrinsicElements,
-  RenderedElementType extends JSX.IntrinsicElements[TagName],
-  RefType extends RenderedElementType['ref'],
+  RenderedElementType extends Element,
+  TagName extends keyof JSX.IntrinsicElements | undefined,
   Enabled extends boolean | undefined = undefined,
+  RenderFnElement extends ValidComponent = ValidComponent,
 >(
   element: MaybeAccessor<TagName>,
-  componentProps: RenderElement.ComponentProps<State, TagName, RenderedElementType>,
-  params: RenderElement.Parameters<State, TagName, RenderedElementType, RefType, Enabled>,
-) {
+  componentProps: RenderElement.ComponentProps<State, RenderedElementType, RenderFnElement>,
+  params: RenderElement.Parameters<State, RenderedElementType, TagName, Enabled>,
+): (props?: HTMLProps) => Enabled extends false ? null : JSX.Element {
   const Component = (props: HTMLProps) => {
     return (
       <Show when={access(params.enabled) ?? true}>
@@ -89,17 +89,16 @@ export function useRenderElement<
     );
   };
 
-  return (renderFnProps: HTMLProps = {}) => {
+  return ((renderFnProps: HTMLProps = {}) => {
     return <Component {...renderFnProps} />;
-  };
+  }) as (props?: HTMLProps) => Enabled extends false ? null : JSX.Element;
 }
 
 export namespace RenderElement {
   export type Parameters<
     State extends Record<string, MaybeAccessor<any>>,
-    TagName extends keyof JSX.IntrinsicElements,
-    RenderedElementType extends JSX.IntrinsicElements[TagName],
-    RefType extends RenderedElementType['ref'],
+    RenderedElementType extends Element,
+    TagName extends keyof JSX.IntrinsicElements | undefined,
     Enabled extends boolean | undefined,
   > = {
     /**
@@ -115,7 +114,7 @@ export namespace RenderElement {
     /**
      * The ref to apply to the rendered element.
      */
-    ref?: RefType | null | HTMLElement;
+    ref?: Ref<RenderedElementType>;
     /**
      * The state of the component.
      */
@@ -123,9 +122,8 @@ export namespace RenderElement {
     /**
      * Intrinsic props to be spread on the rendered element.
      */
-    children?: JSX.Element | ((...args: any[]) => JSX.Element);
     props?:
-      | MaybeAccessor<BaseUIComponentProps<TagName, State>>
+      | BaseUIComponentProps<TagName, State>
       | Array<
           | BaseUIComponentProps<TagName, State>
           | undefined
@@ -138,6 +136,10 @@ export namespace RenderElement {
      * A mapping of state to style hooks.
      */
     customStyleHookMapping?: CustomStyleHookMapping<State>;
+    /**
+     * The children override to render.
+     */
+    children?: JSX.Element | ((...args: any[]) => JSX.Element);
   } /* This typing ensures `disableStyleHookMapping` is constantly defined or undefined */ & (
     | {
         /**
@@ -155,8 +157,7 @@ export namespace RenderElement {
 
   export interface ComponentProps<
     State extends Record<string, MaybeAccessor<any>>,
-    TagName extends keyof JSX.IntrinsicElements,
-    RenderedElementType extends JSX.IntrinsicElements[TagName],
+    RenderedElementType extends Element,
     RenderFnElement extends ValidComponent = ValidComponent,
   > {
     /**
@@ -171,7 +172,8 @@ export namespace RenderElement {
       | keyof JSX.IntrinsicElements
       | DynamicProps<RenderFnElement>
       | ComponentRenderFn<Record<string, unknown>, State>
-      | null;
+      | null
+      | undefined;
     /**
      * The children to render.
      */
@@ -179,6 +181,6 @@ export namespace RenderElement {
     /**
      * The ref to apply to the rendered element.
      */
-    ref?: RenderedElementType['ref'];
+    ref?: Ref<RenderedElementType>;
   }
 }

@@ -42,10 +42,14 @@ export type ComponentRenderFn<Props, State> = (props: Props, state: State) => JS
  * TODO: Removing usage of Omit sped up tsserver, presumably because it doesn't need to iterate each property of the DOM element
  */
 export type BaseUIComponentProps<
-  ElementType extends keyof JSX.IntrinsicElements,
+  ElementType extends keyof JSX.IntrinsicElements | undefined,
   State,
   RenderFnElement extends ValidComponent = ValidComponent,
-> = WithBaseUIEvent<ComponentProps<ElementType>> & {
+> = WithBaseUIEvent<
+  ElementType extends keyof JSX.IntrinsicElements
+    ? ComponentProps<ElementType>
+    : JSX.HTMLAttributes<any>
+> & {
   /**
    * CSS class applied to the element, or a function that
    * returns a class based on the component’s state.
