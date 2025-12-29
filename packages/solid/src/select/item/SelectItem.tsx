@@ -95,14 +95,8 @@ export function SelectItem(componentProps: SelectItem.Props) {
     },
   };
 
-  createEffect(() => {
-    console.log('highlighted', highlighted());
-    console.log('selected', selected());
-  });
-
   const rootProps = createMemo(() => {
     const props = getItemProps({ active: highlighted(), selected: selected() });
-    console.log('props', props);
     // With our custom `focusItemOnHover` implementation, this interferes with the logic and can
     // cause the index state to be stuck when leaving the select popup.
     delete props.onFocus;

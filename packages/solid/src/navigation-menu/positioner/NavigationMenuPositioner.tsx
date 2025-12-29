@@ -139,7 +139,7 @@ export function NavigationMenuPositioner(componentProps: NavigationMenuPositione
   // When the current trigger element changes, enable transitions on the
   // positioner temporarily
   createEffect(() => {
-    const currentTriggerElement = floatingRootContext?.elements.domReference();
+    const currentTriggerElement = floatingRootContext()?.elements.domReference();
 
     if (currentTriggerElement) {
       prevTriggerElementRef = currentTriggerElement;
@@ -163,7 +163,7 @@ export function NavigationMenuPositioner(componentProps: NavigationMenuPositione
 
   const positioning = useAnchorPositioning({
     anchor: () =>
-      local.anchor ?? floatingRootContext?.elements.domReference() ?? prevTriggerElementRef,
+      local.anchor ?? floatingRootContext()?.elements.domReference() ?? prevTriggerElementRef,
     positionMethod,
     mounted,
     side,
@@ -176,7 +176,9 @@ export function NavigationMenuPositioner(componentProps: NavigationMenuPositione
     sticky,
     trackAnchor,
     keepMounted,
-    floatingRootContext,
+    get floatingRootContext() {
+      return floatingRootContext();
+    },
     collisionAvoidance,
     nodeId,
     // Allows the menu to remain anchored without wobbling while its size

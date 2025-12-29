@@ -1,6 +1,6 @@
 import { type VirtualElement } from '@floating-ui/dom';
 import { isElement } from '@floating-ui/utils/dom';
-import { createEffect, createMemo, createSignal } from 'solid-js';
+import { createEffect, createMemo, createSignal, mergeProps } from 'solid-js';
 import { access } from '../../solid-helpers';
 import { useFloatingTree } from '../components/FloatingTree';
 import type {
@@ -91,17 +91,15 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     }
   };
 
-  const refs = {
-    ...position.refs,
+  const refs = mergeProps(position.refs, {
     setReference,
     setPositionReference,
     domReference,
-  };
+  });
 
-  const elements = {
-    ...position.elements,
+  const elements = mergeProps(position.elements, {
     domReference,
-  };
+  });
 
   const context: UseFloatingReturn<RT>['context'] = {
     // from UsePositionFloatingReturn
@@ -141,7 +139,7 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     const nodeId = access(options.nodeId);
     const nodeIdx = tree.nodesRef.findIndex((n) => n.id === nodeId);
     if (nodeIdx !== -1) {
-      tree?.setNodesRef(nodeIdx, 'context', context as any);
+      tree.nodesRef[nodeIdx].context = context as any;
     }
   });
 

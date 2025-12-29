@@ -350,7 +350,9 @@ export function useAnchorPositioning(
     isPositioned,
     floatingStyles: originalFloatingStyles,
   } = useFloating({
-    rootContext: params.floatingRootContext,
+    get rootContext() {
+      return params.floatingRootContext;
+    },
     placement,
     middleware,
     strategy: positionMethod,

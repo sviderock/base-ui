@@ -6,7 +6,6 @@ import {
   type Accessor,
   type JSX,
 } from 'solid-js';
-import { createStore, produce } from 'solid-js/store';
 import { access } from '../../solid-helpers';
 import { useId } from '../../utils/useId';
 import type { FloatingContext, FloatingNodeType, FloatingTreeType, ReferenceType } from '../types';
@@ -98,14 +97,14 @@ export interface FloatingTreeProps {
  * @internal
  */
 export function FloatingTree(props: FloatingTreeProps): JSX.Element {
-  const [nodesRef, setNodesRef] = createStore<Array<FloatingNodeType>>([]);
+  let nodesRef = [] as FloatingNodeType[];
 
   function addNode(node: FloatingNodeType) {
-    setNodesRef(produce((nodes) => nodes.push(node)));
+    nodesRef.push(node);
   }
 
   function removeNode(node: FloatingNodeType) {
-    setNodesRef((nodes) => nodes.filter((n) => n !== node));
+    nodesRef = nodesRef.filter((n) => n !== node);
   }
 
   const events = createEventEmitter();
@@ -114,7 +113,6 @@ export function FloatingTree(props: FloatingTreeProps): JSX.Element {
     <FloatingTreeContext.Provider
       value={{
         nodesRef,
-        setNodesRef,
         addNode,
         removeNode,
         events,

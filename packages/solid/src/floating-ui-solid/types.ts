@@ -169,8 +169,7 @@ export interface FloatingNodeType<RT extends ReferenceType = ReferenceType> {
 }
 
 export interface FloatingTreeType<RT extends ReferenceType = ReferenceType> {
-  nodesRef: Store<Array<FloatingNodeType<RT>>>;
-  setNodesRef: SetStoreFunction<Array<FloatingNodeType<RT>>>;
+  nodesRef: Array<FloatingNodeType<RT>>;
   events: FloatingEvents;
   addNode(node: FloatingNodeType): void;
   removeNode(node: FloatingNodeType): void;

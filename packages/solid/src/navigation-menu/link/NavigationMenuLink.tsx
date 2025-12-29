@@ -37,7 +37,7 @@ export function NavigationMenuLink(componentProps: NavigationMenuLink.Props) {
                 popupElement: popupElement(),
                 rootRef: refs.rootRef,
                 tree,
-                virtualFloatingTree: floatingRootContext?.dataRef.virtualFloatingTree,
+                virtualFloatingTree: floatingRootContext()?.dataRef.virtualFloatingTree,
                 nodeId: nodeId?.(),
               },
             )
