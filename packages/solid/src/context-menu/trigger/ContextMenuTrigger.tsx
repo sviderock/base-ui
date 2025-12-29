@@ -4,7 +4,7 @@ import { contains, getTarget, stopEvent } from '../../floating-ui-solid/utils';
 import { splitComponentProps } from '../../solid-helpers';
 import { ownerDocument } from '../../utils/owner';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { useContextMenuRootContext } from '../root/ContextMenuRootContext';
 
