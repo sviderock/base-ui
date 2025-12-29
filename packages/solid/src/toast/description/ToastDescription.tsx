@@ -1,9 +1,9 @@
 'use client';
-import { createMemo, onMount } from 'solid-js';
+import { onMount } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useId } from '../../utils/useId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useToastRootContext } from '../root/ToastRootContext';
 
 /**
@@ -27,7 +27,11 @@ export function ToastDescription(componentProps: ToastDescription.Props) {
     setCodependentRefs('description', { explicitId: id, ref: () => ref, id: () => local.id });
   });
 
-  const state = createMemo<ToastDescription.State>(() => ({ type: toast().type }));
+  const state: ToastDescription.State = {
+    get type() {
+      return toast().type;
+    },
+  };
 
   const element = useRenderElement('p', componentProps, {
     enabled: () => Boolean(componentProps.children ?? toast().description),
@@ -35,8 +39,17 @@ export function ToastDescription(componentProps: ToastDescription.Props) {
     ref: (el) => {
       ref = el;
     },
-    props: [() => ({ id: id() }), elementProps],
-    children: () => componentProps.children ?? toast().description,
+    props: [
+      {
+        get id() {
+          return id();
+        },
+      },
+      elementProps,
+    ],
+    get children() {
+      return <>{componentProps.children ?? toast().description}</>;
+    },
   });
 
   return <>{element()}</>;

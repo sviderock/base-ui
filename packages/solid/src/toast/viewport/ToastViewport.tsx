@@ -1,11 +1,11 @@
 'use client';
-import { createEffect, createMemo, onCleanup, type ComponentProps } from 'solid-js';
+import { createEffect, onCleanup, type JSX } from 'solid-js';
 import { activeElement, contains, getTarget } from '../../floating-ui-solid/utils';
 import { splitComponentProps } from '../../solid-helpers';
 import { FocusGuard } from '../../utils/FocusGuard';
 import { ownerDocument, ownerWindow } from '../../utils/owner';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useToastContext } from '../provider/ToastProviderContext';
 import { isFocusVisible } from '../utils/focusVisible';
 import { ToastViewportContext } from './ToastViewportContext';
@@ -176,10 +176,12 @@ export function ToastViewport(componentProps: ToastViewport.Props) {
     resumeTimers();
   }
 
-  const props = createMemo<ComponentProps<'div'>>(() => ({
-    role: 'region' as const,
+  const props: JSX.HTMLAttributes<HTMLDivElement> = {
+    role: 'region',
     tabIndex: -1,
-    'aria-label': `${numToasts()} notification${numToasts() !== 1 ? 's' : ''} (F6)`,
+    get 'aria-label'() {
+      return `${numToasts()} notification${numToasts() !== 1 ? 's' : ''} (F6)`;
+    },
     onMouseEnter: handleMouseEnter,
     onMouseMove: handleMouseEnter,
     onMouseLeave: handleMouseLeave,
@@ -187,21 +189,23 @@ export function ToastViewport(componentProps: ToastViewport.Props) {
     onBlur: handleBlur,
     onKeyDown: handleKeyDown,
     onClick: handleFocus,
-  }));
+  };
 
-  const state = createMemo<ToastViewport.State>(() => ({
-    expanded: hovering() || focused() || hasDifferingHeights(),
-  }));
+  const state: ToastViewport.State = {
+    get expanded() {
+      return hovering() || focused() || hasDifferingHeights();
+    },
+  };
 
   const contextValue = { refs };
 
-  const children = createMemo(() => (
-    <>
-      {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
-      {componentProps.children}
-      {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
-    </>
-  ));
+  // const children = createMemo(() => (
+  //   <>
+  //     {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
+  //     {componentProps.children}
+  //     {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
+  //   </>
+  // ));
 
   const element = useRenderElement('div', componentProps, {
     state,
@@ -209,7 +213,15 @@ export function ToastViewport(componentProps: ToastViewport.Props) {
       refs.viewportRef = el;
     },
     props: [props, elementProps],
-    children,
+    get children() {
+      return (
+        <>
+          {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
+          {componentProps.children}
+          {numToasts() > 0 && prevFocusElement() && <FocusGuard onFocus={handleFocusGuard} />}
+        </>
+      );
+    },
   });
 
   return (

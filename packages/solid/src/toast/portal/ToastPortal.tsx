@@ -1,6 +1,5 @@
 'use client';
 import { type JSX } from 'solid-js';
-import { access, MaybeAccessor } from '../../solid-helpers';
 import { FloatingPortalLite } from '../../utils/FloatingPortalLite';
 
 /**
@@ -10,8 +9,7 @@ import { FloatingPortalLite } from '../../utils/FloatingPortalLite';
  * Documentation: [Base UI Toast](https://base-ui.com/react/components/toast)
  */
 export function ToastPortal(props: ToastPortal.Props) {
-  const container = () => access(props.container);
-  return <FloatingPortalLite root={container()}>{props.children}</FloatingPortalLite>;
+  return <FloatingPortalLite root={props.container}>{props.children}</FloatingPortalLite>;
 }
 
 export namespace ToastPortal {
@@ -20,6 +18,6 @@ export namespace ToastPortal {
     /**
      * A parent element to render the portal element into.
      */
-    container?: MaybeAccessor<HTMLElement | null | undefined>;
+    container?: HTMLElement | null | undefined;
   }
 }

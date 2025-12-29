@@ -1,5 +1,5 @@
 'use client';
-import { useContext, type Accessor, type ComponentProps } from 'solid-js';
+import { useContext, type Accessor, type JSX } from 'solid-js';
 import { ToastContext } from './provider/ToastProviderContext';
 
 /**
@@ -107,7 +107,7 @@ export interface ToastObject<Data extends object> {
   /**
    * The props for the action button.
    */
-  actionProps?: ComponentProps<'button'>;
+  actionProps?: JSX.HTMLAttributes<HTMLButtonElement>;
   /**
    * Custom data for the toast.
    */

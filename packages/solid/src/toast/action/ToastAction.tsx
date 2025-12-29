@@ -1,9 +1,9 @@
 'use client';
-import { ComponentProps, createMemo, splitProps } from 'solid-js';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { combineProps } from '../../merge-props';
+import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useToastRootContext } from '../root/ToastRootContext';
 
 /**
@@ -13,40 +13,30 @@ import { useToastRootContext } from '../root/ToastRootContext';
  * Documentation: [Base UI Toast](https://base-ui.com/react/components/toast)
  */
 export function ToastAction(componentProps: ToastAction.Props) {
-  const [renderProps, local, elementProps] = splitComponentProps(componentProps, [
-    'disabled',
-    'nativeButton',
-  ]);
-  const disabled = () => access(local.disabled);
-  const nativeButton = () => access(local.nativeButton) ?? true;
+  const [, local, elementProps] = splitComponentProps(componentProps, ['disabled', 'nativeButton']);
+  const nativeButton = () => local.nativeButton ?? true;
 
   const { toast } = useToastRootContext();
 
-  const toastActionProps = createMemo<ComponentProps<'button'>>(() => {
-    const actionProps = toast().actionProps;
-    if (!actionProps) {
-      return {};
-    }
-
-    const [, otherProps] = splitProps(actionProps, ['children']);
-    return otherProps;
-  });
-
   const { getButtonProps, buttonRef } = useButton({
-    disabled,
+    disabled: () => local.disabled,
     native: nativeButton,
   });
 
-  const state = createMemo<ToastAction.State>(() => ({
-    type: toast().type,
-  }));
+  const state: ToastAction.State = {
+    get type() {
+      return toast().type;
+    },
+  };
 
   const element = useRenderElement('button', componentProps, {
     enabled: () => Boolean(toast().actionProps?.children ?? componentProps.children),
     state,
     ref: buttonRef,
-    props: [elementProps, toastActionProps, getButtonProps],
-    children: () => toast().actionProps?.children ?? componentProps.children,
+    props: [elementProps, (props) => combineProps(props, toast().actionProps), getButtonProps],
+    get children() {
+      return <>{toast().actionProps?.children ?? componentProps.children}</>;
+    },
   });
 
   return <>{element()}</>;
@@ -60,17 +50,13 @@ export namespace ToastAction {
     type: string | undefined;
   }
 
-  export interface Props extends Omit<BaseUIComponentProps<'button', State>, 'disabled'> {
+  export interface Props extends BaseUIComponentProps<'button', State> {
     /**
      * Whether the component renders a native `<button>` element when replacing it
      * via the `render` prop.
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default true
      */
-    nativeButton?: MaybeAccessor<boolean | undefined>;
-    /**
-     * Whether the button is currently disabled.
-     */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    nativeButton?: boolean;
   }
 }

@@ -1,29 +1,16 @@
 'use client';
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  on,
-  onCleanup,
-  onMount,
-  type ComponentProps,
-} from 'solid-js';
+import { createEffect, createMemo, createSignal, on, onCleanup, onMount, type JSX } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import type { Accessorify } from '../../floating-ui-solid';
 import { activeElement, contains, getTarget } from '../../floating-ui-solid/utils';
-import {
-  access,
-  splitComponentProps,
-  type CodepenedentRefs,
-  type MaybeAccessor,
-} from '../../solid-helpers';
+import { access, splitComponentProps, type CodependentRefs } from '../../solid-helpers';
 import { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { inertValue } from '../../utils/inertValue';
 import { ownerDocument } from '../../utils/owner';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { visuallyHidden } from '../../utils/visuallyHidden';
@@ -98,8 +85,7 @@ function getElementTransform(element: HTMLElement) {
  */
 export function ToastRoot(componentProps: ToastRoot.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['toast', 'swipeDirection']);
-  const toast = () => access(local.toast);
-  const swipeDirection = () => access(local.swipeDirection) ?? ['down', 'right'];
+  const swipeDirection = () => local.swipeDirection ?? ['down', 'right'];
 
   const swipeDirections = () =>
     Array.isArray(swipeDirection()) ? swipeDirection() : [swipeDirection()];
@@ -132,7 +118,7 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
     null,
   );
   const [codependentRefs, setCodependentRefs] = createStore<
-    CodepenedentRefs<['title', 'description']>
+    CodependentRefs<['title', 'description']>
   >({});
 
   const refs: ToastRootContext['refs'] = {
@@ -147,22 +133,22 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
   let swipeCancelBaselineRef = { x: 0, y: 0 };
   let isFirstPointerMoveRef = false;
 
-  const domIndex = createMemo(() => toasts.list.indexOf(toast()));
+  const domIndex = createMemo(() => toasts.list.indexOf(local.toast));
   const visibleIndex = createMemo(() =>
-    toasts.list.filter((t) => t.transitionStatus !== 'ending').indexOf(toast()),
+    toasts.list.filter((t) => t.transitionStatus !== 'ending').indexOf(local.toast),
   );
   const offsetY = createMemo(() => {
     return toasts.list
-      .slice(0, toasts.list.indexOf(toast()))
+      .slice(0, toasts.list.indexOf(local.toast))
       .reduce((acc, t) => acc + (t.height || 0), 0);
   });
 
   useOpenChangeComplete({
-    open: () => toast().transitionStatus !== 'ending',
+    open: () => local.toast.transitionStatus !== 'ending',
     ref: () => refs.rootRef,
     onComplete() {
-      if (toast().transitionStatus === 'ending') {
-        remove(toast().id);
+      if (local.toast.transitionStatus === 'ending') {
+        remove(local.toast.id);
       }
     },
   });
@@ -182,7 +168,7 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
 
   function setHeights() {
     const height = refs.rootRef?.offsetHeight;
-    setToasts('list', (item) => item.id === toast().id, {
+    setToasts('list', (item) => item.id === local.toast.id, {
       ref: refs.rootRef,
       height,
       transitionStatus: undefined,
@@ -445,7 +431,7 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
     if (shouldClose) {
       setCurrentSwipeDirection(dismissDirection);
       setDragDismissed(true);
-      close(toast().id);
+      close(local.toast.id);
     } else {
       setDragOffset({ x: initialTransform().x, y: initialTransform().y });
       setCurrentSwipeDirection(undefined);
@@ -457,7 +443,7 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
       if (!refs.rootRef || !contains(refs.rootRef, activeElement(ownerDocument(refs.rootRef)))) {
         return;
       }
-      close(toast().id);
+      close(local.toast.id);
     }
   }
 
@@ -509,37 +495,45 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
     };
   }
 
-  const props = createMemo<ComponentProps<'div'>>(() => {
-    return {
-      role: toast().priority === 'high' ? 'alertdialog' : 'dialog',
-      tabIndex: 0,
-      'aria-modal': false,
-      'aria-labelledby': titleId(),
-      'aria-describedby': descriptionId(),
-      onPointerDown: handlePointerDown,
-      onPointerMove: handlePointerMove,
-      onPointerUp: handlePointerUp,
-      onKeyDown: handleKeyDown,
-      onMouseEnter: () => {
-        toastRefs.viewportRef?.dispatchEvent(new Event('mouseenter'));
-      },
-      onMouseLeave: () => {
-        toastRefs.viewportRef?.dispatchEvent(new Event('mouseleave'));
-      },
-      inert: inertValue(toast().limited),
-      style: {
+  const props: JSX.HTMLAttributes<HTMLDivElement> = {
+    get role() {
+      return local.toast.priority === 'high' ? 'alertdialog' : 'dialog';
+    },
+    tabIndex: 0,
+    'aria-modal': false,
+    get 'aria-labelledby'() {
+      return titleId();
+    },
+    get 'aria-describedby'() {
+      return descriptionId();
+    },
+    get inert() {
+      return inertValue(local.toast.limited);
+    },
+    get style() {
+      return {
         ...getDragStyles(),
         [ToastRootCssVars.index]:
-          toast().transitionStatus === 'ending' ? domIndex() : visibleIndex(),
+          local.toast.transitionStatus === 'ending' ? domIndex() : visibleIndex(),
         [ToastRootCssVars.offsetY]: `${offsetY()}px`,
-      },
-    };
-  });
+      };
+    },
+    onPointerDown: handlePointerDown,
+    onPointerMove: handlePointerMove,
+    onPointerUp: handlePointerUp,
+    onKeyDown: handleKeyDown,
+    onMouseEnter: () => {
+      toastRefs.viewportRef?.dispatchEvent(new Event('mouseenter'));
+    },
+    onMouseLeave: () => {
+      toastRefs.viewportRef?.dispatchEvent(new Event('mouseleave'));
+    },
+  };
 
   const toastRoot: ToastRootContext = {
     refs,
     renderScreenReaderContent,
-    toast,
+    toast: () => local.toast,
     titleId,
     descriptionId,
     swiping: isSwiping,
@@ -548,14 +542,26 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
     setCodependentRefs,
   };
 
-  const state = createMemo<ToastRoot.State>(() => ({
-    transitionStatus: toast().transitionStatus,
-    expanded: hovering() || focused() || hasDifferingHeights(),
-    limited: toast().limited || false,
-    type: toast().type,
-    swiping: toastRoot.swiping(),
-    swipeDirection: toastRoot.swipeDirection(),
-  }));
+  const state: ToastRoot.State = {
+    get transitionStatus() {
+      return local.toast.transitionStatus;
+    },
+    get expanded() {
+      return hovering() || focused() || hasDifferingHeights();
+    },
+    get limited() {
+      return local.toast.limited || false;
+    },
+    get type() {
+      return local.toast.type;
+    },
+    get swiping() {
+      return toastRoot.swiping();
+    },
+    get swipeDirection() {
+      return toastRoot.swipeDirection();
+    },
+  };
 
   createEffect(
     on(
@@ -583,26 +589,28 @@ export function ToastRoot(componentProps: ToastRoot.Props) {
     },
     props: [props, elementProps],
     customStyleHookMapping,
-    children: () => (
-      <>
-        {componentProps.children}
-        {!focused() && (
-          <div
-            style={visuallyHidden}
-            {...(toast().priority === 'high'
-              ? { role: 'alert', 'aria-atomic': true }
-              : { role: 'status', 'aria-live': 'polite' })}
-          >
-            {toastRoot.renderScreenReaderContent() && (
-              <>
-                {toast().title && <div>{toast().title}</div>}
-                {toast().description && <div>{toast().description}</div>}
-              </>
-            )}
-          </div>
-        )}
-      </>
-    ),
+    get children() {
+      return (
+        <>
+          {componentProps.children}
+          {!focused() && (
+            <div
+              style={visuallyHidden}
+              {...(local.toast.priority === 'high'
+                ? { role: 'alert', 'aria-atomic': true }
+                : { role: 'status', 'aria-live': 'polite' })}
+            >
+              {toastRoot.renderScreenReaderContent() && (
+                <>
+                  {local.toast.title && <div>{local.toast.title}</div>}
+                  {local.toast.description && <div>{local.toast.description}</div>}
+                </>
+              )}
+            </div>
+          )}
+        </>
+      );
+    },
   });
 
   return <ToastRootContext.Provider value={toastRoot}>{element()}</ToastRootContext.Provider>;
@@ -639,13 +647,11 @@ export namespace ToastRoot {
     /**
      * The toast to render.
      */
-    toast: MaybeAccessor<ToastObject<any>>;
+    toast: ToastObject<any>;
     /**
      * Direction(s) in which the toast can be swiped to dismiss.
      * @default ['down', 'right']
      */
-    swipeDirection?: MaybeAccessor<
-      'up' | 'down' | 'left' | 'right' | ('up' | 'down' | 'left' | 'right')[] | undefined
-    >;
+    swipeDirection?: 'up' | 'down' | 'left' | 'right' | ('up' | 'down' | 'left' | 'right')[];
   }
 }

@@ -1,9 +1,8 @@
 'use client';
-import { createMemo } from 'solid-js';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useToastContext } from '../provider/ToastProviderContext';
 import { useToastRootContext } from '../root/ToastRootContext';
 
@@ -15,18 +14,21 @@ import { useToastRootContext } from '../root/ToastRootContext';
  */
 export function ToastClose(componentProps: ToastClose.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['disabled', 'nativeButton']);
-  const disabled = () => access(local.disabled);
-  const nativeButton = () => access(local.nativeButton) ?? true;
+  const nativeButton = () => local.nativeButton ?? true;
 
   const { close } = useToastContext();
   const { toast } = useToastRootContext();
 
   const { getButtonProps, buttonRef } = useButton({
-    disabled,
+    disabled: () => local.disabled,
     native: nativeButton,
   });
 
-  const state = createMemo<ToastClose.State>(() => ({ type: toast().type }));
+  const state: ToastClose.State = {
+    get type() {
+      return toast().type;
+    },
+  };
 
   const element = useRenderElement('button', componentProps, {
     state,
@@ -53,17 +55,13 @@ export namespace ToastClose {
     type: string | undefined;
   }
 
-  export interface Props extends Omit<BaseUIComponentProps<'button', State>, 'disabled'> {
+  export interface Props extends BaseUIComponentProps<'button', State> {
     /**
      * Whether the component renders a native `<button>` element when replacing it
      * via the `render` prop.
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default true
      */
-    nativeButton?: MaybeAccessor<boolean | undefined>;
-    /**
-     * Whether the button is currently disabled.
-     */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    nativeButton?: boolean;
   }
 }

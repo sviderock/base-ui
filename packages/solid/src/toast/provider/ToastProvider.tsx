@@ -2,7 +2,6 @@
 import { batch, createEffect, createMemo, createSignal, onCleanup, type JSX } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { activeElement, contains } from '../../floating-ui-solid/utils';
-import { access, type MaybeAccessor } from '../../solid-helpers';
 import { generateId } from '../../utils/generateId';
 import { ownerDocument } from '../../utils/owner';
 import { useTimeout, type Timeout } from '../../utils/useTimeout';
@@ -26,8 +25,8 @@ interface TimerInfo {
  * Documentation: [Base UI Toast](https://base-ui.com/react/components/toast)
  */
 export function ToastProvider(props: ToastProvider.Props) {
-  const timeout = () => access(props.timeout) ?? 5000;
-  const limit = () => access(props.limit) ?? 3;
+  const timeout = () => props.timeout ?? 5000;
+  const limit = () => props.limit ?? 3;
 
   const [toasts, setToasts] = createStore<ToastContext<any>['toasts']>({ list: [] });
   const [hovering, setHovering] = createSignal(false);
@@ -377,13 +376,13 @@ export namespace ToastProvider {
      * A value of `0` will prevent the toast from being dismissed automatically.
      * @default 5000
      */
-    timeout?: MaybeAccessor<number | undefined>;
+    timeout?: number;
     /**
      * The maximum number of toasts that can be displayed at once.
      * When the limit is reached, the oldest toast will be removed to make room for the new one.
      * @default 3
      */
-    limit?: MaybeAccessor<number | undefined>;
+    limit?: number;
     /**
      * A global manager for toasts to use outside of a React component.
      */
