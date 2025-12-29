@@ -4,7 +4,6 @@ import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { createSignal } from 'solid-js';
-import type { MaybeAccessor } from '../../solid-helpers';
 
 describe('<NumberField.Input />', () => {
   const { render } = createRenderer();

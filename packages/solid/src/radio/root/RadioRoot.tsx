@@ -1,20 +1,11 @@
 'use client';
-import {
-  batch,
-  createEffect,
-  createMemo,
-  createSignal,
-  mergeProps,
-  Show,
-  type ComponentProps,
-  type JSX,
-} from 'solid-js';
+import { batch, createEffect, createSignal, mergeProps, Show, type JSX } from 'solid-js';
 import { ACTIVE_COMPOSITE_ITEM } from '../../composite/constants';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { useRadioGroupContext } from '../../radio-group/RadioGroupContext';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { NOOP } from '../../utils/noop';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -206,10 +197,8 @@ export function RadioRoot(componentProps: RadioRoot.Props) {
   const element = useRenderElement('button', componentProps, {
     state,
     ref: (el) => {
-      batch(() => {
-        registerControlRef(el);
-        buttonRef(el);
-      });
+      registerControlRef(el);
+      buttonRef(el);
     },
     customStyleHookMapping,
     props: [

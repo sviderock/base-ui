@@ -1,6 +1,5 @@
 import type { VirtualElement } from '@floating-ui/dom';
 import type { Accessor, JSX } from 'solid-js';
-import type { SetStoreFunction, Store } from 'solid-js/store';
 import type { MaybeAccessor } from '../solid-helpers';
 import type { WithBaseUIEvent } from '../utils/types';
 import type {

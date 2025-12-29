@@ -1,5 +1,4 @@
 'use client';
-import { batch } from 'solid-js';
 import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
@@ -52,10 +51,8 @@ export function PopoverTrigger(componentProps: PopoverTrigger.Props) {
   const element = useRenderElement('button', componentProps, {
     state,
     ref: (el) => {
-      batch(() => {
-        buttonRef(el);
-        setTriggerElement(el);
-      });
+      buttonRef(el);
+      setTriggerElement(el);
     },
     props: [triggerProps, elementProps, getButtonProps],
     customStyleHookMapping,

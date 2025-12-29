@@ -1,4 +1,3 @@
-import type { BaseUIEvent } from '@base-ui-components/solid/utils/types';
 import { children, onMount, splitProps, type Accessor, type JSX, type SplitProps } from 'solid-js';
 
 export function callEventHandler<T, E extends Event>(

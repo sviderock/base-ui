@@ -48,7 +48,7 @@ export function NumberFieldScrubArea(componentProps: NumberFieldScrubArea.Props)
   let isScrubbingRef = false;
   let virtualCursorCoords = { x: 0, y: 0 };
   // TODO: this is needed to be a react-like ref due to it being mutated in the subscribeToVisualViewportResize
-  let visualScaleRef = { current: 1 };
+  const visualScaleRef = { current: 1 };
 
   const [isTouchInput, setIsTouchInput] = createSignal(false);
   const [isPointerLockDenied, setIsPointerLockDenied] = createSignal(false);

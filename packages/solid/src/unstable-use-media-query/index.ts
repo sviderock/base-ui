@@ -15,9 +15,8 @@ export function useMediaQuery(
 
   const safeQuery = () => access(query).replace(/^@media( ?)/m, '');
   const defaultMatches = () => access(options.defaultMatches) ?? false;
-  const matchMedia = () =>
-    access(options.matchMedia) ?? (supportMatchMedia() ? window.matchMedia : null);
-  const ssrMatchMedia = () => access(options.ssrMatchMedia) ?? null;
+  const matchMedia = () => options.matchMedia ?? (supportMatchMedia() ? window.matchMedia : null);
+  const ssrMatchMedia = () => options.ssrMatchMedia ?? null;
   const noSsr = () => access(options.noSsr) ?? false;
   const [match, setMatch] = createSignal(defaultMatches());
 
@@ -72,7 +71,7 @@ export namespace useMediaQuery {
      * You can provide your own implementation of matchMedia.
      * This can be used for handling an iframe content window.
      */
-    matchMedia?: MaybeAccessor<typeof window.matchMedia>;
+    matchMedia?: typeof window.matchMedia;
     /**
      * To perform the server-side hydration, the hook needs to render twice.
      * A first time with `defaultMatches`, the value of the server, and a second time with the resolved value.

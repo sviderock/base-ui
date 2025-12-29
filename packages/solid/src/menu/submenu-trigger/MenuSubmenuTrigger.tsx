@@ -1,10 +1,10 @@
 'use client';
 import type { MenuParent } from '@base-ui-components/solid/menu/root/MenuRoot';
 import { combineProps } from '@base-ui-components/solid/merge-props';
-import { batch, createEffect, type JSX } from 'solid-js';
+import { createEffect, type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { useFloatingTree } from '../../floating-ui-solid';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
