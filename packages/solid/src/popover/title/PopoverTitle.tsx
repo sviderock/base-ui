@@ -18,6 +18,7 @@ export function PopoverTitle(componentProps: PopoverTitle.Props) {
   const { setCodependentRefs } = usePopoverRootContext();
 
   const id = useBaseUiId(() => elementProps.id);
+
   let ref: HTMLElement;
 
   onMount(() => {

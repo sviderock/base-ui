@@ -5,7 +5,7 @@ import { expect } from 'chai';
 import { createSignal } from 'solid-js';
 
 function Trigger(props: Popover.Trigger.Props) {
-  return <Popover.Trigger {...props} ref={props.ref} render={(p) => <div {...p()} />} />;
+  return <Popover.Trigger {...props} ref={props.ref} render="div" />;
 }
 
 describe('<Popover.Positioner />', () => {

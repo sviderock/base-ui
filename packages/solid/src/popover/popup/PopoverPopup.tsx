@@ -59,18 +59,19 @@ export function PopoverPopup(componentProps: PopoverPopup.Props) {
   });
 
   const resolvedInitialFocus = createMemo(() => {
-    if (local.initialFocus == null) {
+    const resolved = local.initialFocus;
+    if (resolved == null) {
       if (openMethod() === 'touch') {
         return refs.popupRef;
       }
       return 0;
     }
 
-    if (typeof local.initialFocus === 'function') {
-      return local.initialFocus(openMethod() ?? '');
+    if (typeof resolved === 'function') {
+      return resolved(openMethod() ?? '');
     }
 
-    return local.initialFocus;
+    return resolved;
   });
 
   const state: PopoverPopup.State = {
@@ -83,7 +84,7 @@ export function PopoverPopup(componentProps: PopoverPopup.Props) {
     get align() {
       return positioner.align();
     },
-    // @ts-expect-error - not declared?
+    // @ts-expect-error - instant missing from state type?
     get instant() {
       return instantType();
     },

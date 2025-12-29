@@ -1,5 +1,5 @@
 'use client';
-import { batch, createMemo } from 'solid-js';
+import { batch } from 'solid-js';
 import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
@@ -37,11 +37,6 @@ export function PopoverTrigger(componentProps: PopoverTrigger.Props) {
     disabled,
     native: nativeButton,
   });
-
-  //   open { value: false, openReason: 'trigger-press' }
-  // open { value: false, openReason: 'trigger-press' }
-  // open { value: false, openReason: null }
-  // open { value: false, openReason: null }
 
   const customStyleHookMapping: CustomStyleHookMapping<{ open: MaybeAccessor<boolean> }> = {
     open(value) {

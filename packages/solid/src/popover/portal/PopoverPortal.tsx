@@ -1,7 +1,6 @@
 'use client';
 import { Show, type JSX } from 'solid-js';
 import { FloatingPortal, FloatingPortalProps } from '../../floating-ui-solid';
-import { access } from '../../solid-helpers';
 import { usePopoverRootContext } from '../root/PopoverRootContext';
 import { PopoverPortalContext } from './PopoverPortalContext';
 
@@ -12,7 +11,7 @@ import { PopoverPortalContext } from './PopoverPortalContext';
  * Documentation: [Base UI Popover](https://base-ui.com/react/components/popover)
  */
 export function PopoverPortal(props: PopoverPortal.Props) {
-  const keepMounted = () => access(props.keepMounted) ?? false;
+  const keepMounted = () => props.keepMounted ?? false;
 
   const { mounted } = usePopoverRootContext();
 

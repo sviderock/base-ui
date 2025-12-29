@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, type Accessor, type Setter } from 'solid-js';
+import { createContext, useContext, type Accessor } from 'solid-js';
 import type { SetStoreFunction, Store } from 'solid-js/store';
 import type { FloatingRootContext } from '../../floating-ui-solid';
 import type { CodependentRefs } from '../../solid-helpers';

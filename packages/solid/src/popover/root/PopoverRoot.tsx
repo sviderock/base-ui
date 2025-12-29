@@ -21,7 +21,7 @@ import {
   useRole,
 } from '../../floating-ui-solid';
 import { combineProps } from '../../merge-props/combineProps';
-import { CodependentRefs } from '../../solid-helpers';
+import type { CodependentRefs } from '../../solid-helpers';
 import { PATIENT_CLICK_THRESHOLD } from '../../utils/constants';
 import { translateOpenChangeReason } from '../../utils/translateOpenChangeReason';
 import { useControlled } from '../../utils/useControlled';
@@ -110,24 +110,6 @@ function PopoverRootComponent(props: PopoverRoot.Props) {
     }
   });
 
-  createEffect(
-    on([() => codependentRefs.title, () => codependentRefs.description], ([title, description]) => {
-      batch(() => {
-        if (title) {
-          setTitleId(title.explicitId());
-        }
-        if (description) {
-          setDescriptionId(description.explicitId());
-        }
-      });
-
-      onCleanup(() => {
-        setTitleId(undefined);
-        setDescriptionId(undefined);
-      });
-    }),
-  );
-
   const setOpen = (
     nextOpen: boolean,
     event: Event | undefined,
@@ -199,6 +181,22 @@ function PopoverRootComponent(props: PopoverRoot.Props) {
 
   const { getReferenceProps, getFloatingProps } = useInteractions([hover, click, dismiss, role]);
 
+  createEffect(
+    on([() => codependentRefs.title, () => codependentRefs.description], ([title, description]) => {
+      if (title) {
+        setTitleId(title.explicitId());
+      }
+      if (description) {
+        setDescriptionId(description.explicitId());
+      }
+
+      onCleanup(() => {
+        setTitleId(undefined);
+        setDescriptionId(undefined);
+      });
+    }),
+  );
+
   const popoverContext: PopoverRootContext = {
     open,
     setOpen,
@@ -212,7 +210,8 @@ function PopoverRootComponent(props: PopoverRoot.Props) {
     refs,
     titleId,
     descriptionId,
-    triggerProps: (externalProps) => combineProps(externalProps, getReferenceProps(), triggerProps),
+    triggerProps: (externalProps) =>
+      combineProps(externalProps, combineProps(getReferenceProps(), triggerProps)),
     popupProps: (externalProps) => combineProps(externalProps, getFloatingProps()),
     floatingRootContext: floatingContext,
     instantType,
