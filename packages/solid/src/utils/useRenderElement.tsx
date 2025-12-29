@@ -89,7 +89,7 @@ export function useRenderElement<
     );
   };
 
-  return (renderFnProps: HTMLProps) => {
+  return (renderFnProps: HTMLProps = {}) => {
     return <Component {...renderFnProps} />;
   };
 }

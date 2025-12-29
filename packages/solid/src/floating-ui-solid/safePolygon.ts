@@ -81,18 +81,24 @@ export function safePolygon(options: SafePolygonOptions = {}) {
   }
 
   // TODO: fix typing
-  const fn: HandleClose = ({ x, y, placement, elements, onClose, nodeId, tree }) => {
+  const fn: HandleClose = (options) => {
     return function onMouseMove(event: MouseEvent) {
       function close() {
         timeout.clear();
-        onClose();
+        options.onClose();
       }
 
       timeout.clear();
 
-      const domReference = elements.domReference();
-      const floating = elements.floating();
-      if (!domReference || !floating || placement == null || x == null || y == null) {
+      const domReference = options.elements.domReference();
+      const floating = options.elements.floating();
+      if (
+        !domReference ||
+        !floating ||
+        options.placement() == null ||
+        options.x == null ||
+        options.y == null
+      ) {
         return undefined;
       }
 
@@ -104,9 +110,9 @@ export function safePolygon(options: SafePolygonOptions = {}) {
       const isOverReferenceEl = contains(domReference, target);
       const refRect = domReference.getBoundingClientRect();
       const rect = floating.getBoundingClientRect();
-      const side = placement.split('-')[0] as Side;
-      const cursorLeaveFromRight = x > rect.right - rect.width / 2;
-      const cursorLeaveFromBottom = y > rect.bottom - rect.height / 2;
+      const side = options.placement().split('-')[0] as Side;
+      const cursorLeaveFromRight = options.x() > rect.right - rect.width / 2;
+      const cursorLeaveFromBottom = options.y() > rect.bottom - rect.height / 2;
       const isOverReferenceRect = isInside(clientPoint, refRect);
       const isFloatingWider = rect.width > refRect.width;
       const isFloatingTaller = rect.height > refRect.height;
@@ -137,15 +143,17 @@ export function safePolygon(options: SafePolygonOptions = {}) {
       if (
         isLeave &&
         isElement(event.relatedTarget) &&
-        contains(elements.floating(), event.relatedTarget)
+        contains(options.elements.floating(), event.relatedTarget)
       ) {
         return undefined;
       }
 
       // If any nested child is open, abort.
       if (
-        tree &&
-        getNodeChildren(tree.nodesRef, nodeId()).some((node) => access(node.context)?.open())
+        options.tree &&
+        getNodeChildren(options.tree.nodesRef, options.nodeId()).some((node) =>
+          access(node.context)?.open(),
+        )
       ) {
         return undefined;
       }
@@ -155,10 +163,10 @@ export function safePolygon(options: SafePolygonOptions = {}) {
       // ignored.
       // A constant of 1 handles floating point rounding errors.
       if (
-        (side === 'top' && y >= refRect.bottom - 1) ||
-        (side === 'bottom' && y <= refRect.top + 1) ||
-        (side === 'left' && x >= refRect.right - 1) ||
-        (side === 'right' && x <= refRect.left + 1)
+        (side === 'top' && options.y() >= refRect.bottom - 1) ||
+        (side === 'bottom' && options.y() <= refRect.top + 1) ||
+        (side === 'left' && options.x() >= refRect.right - 1) ||
+        (side === 'right' && options.x() <= refRect.left + 1)
       ) {
         return close();
       }
@@ -381,7 +389,7 @@ export function safePolygon(options: SafePolygonOptions = {}) {
         }
       }
 
-      if (!isPointInPolygon([clientX, clientY], getPolygon([x, y]))) {
+      if (!isPointInPolygon([clientX, clientY], getPolygon([options.x(), options.y()]))) {
         close();
       } else if (!hasLanded && requireIntent) {
         timeout.start(40, close);
@@ -391,7 +399,6 @@ export function safePolygon(options: SafePolygonOptions = {}) {
     };
   };
 
-  // eslint-disable-next-line no-underscore-dangle
   fn.__options = {
     blockPointerEvents,
   };

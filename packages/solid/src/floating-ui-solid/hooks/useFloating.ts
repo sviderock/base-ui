@@ -1,11 +1,9 @@
 import { type VirtualElement } from '@floating-ui/dom';
 import { isElement } from '@floating-ui/utils/dom';
-import { createEffect, createMemo, createSignal, type Accessor } from 'solid-js';
-import { access, type MaybeAccessor } from '../../solid-helpers';
+import { createEffect, createMemo, createSignal } from 'solid-js';
+import { access } from '../../solid-helpers';
 import { useFloatingTree } from '../components/FloatingTree';
 import type {
-  FloatingContext,
-  FloatingRootContext,
   NarrowedElement,
   ReferenceType,
   UseFloatingOptions,
@@ -20,19 +18,8 @@ import { useFloatingRootContext } from './useFloatingRootContext';
  */
 
 export function useFloating<RT extends ReferenceType = ReferenceType>(
-  options: UseFloatingOptions<RT> & { rootContext?: FloatingRootContext<RT> },
-): UseFloatingReturn<RT, FloatingContext<RT>>;
-export function useFloating<RT extends ReferenceType = ReferenceType>(
-  options: UseFloatingOptions<RT> & { rootContext: Accessor<FloatingRootContext<RT> | undefined> },
-): UseFloatingReturn<RT, Accessor<FloatingContext<RT>>>;
-export function useFloating<RT extends ReferenceType = ReferenceType>(
-  options: UseFloatingOptions<RT> & { rootContext?: never },
-): UseFloatingReturn<RT, FloatingContext<RT>>;
-export function useFloating<RT extends ReferenceType = ReferenceType>(
-  options: UseFloatingOptions<RT> & {
-    rootContext?: MaybeAccessor<FloatingRootContext<RT> | undefined>;
-  },
-) {
+  options: UseFloatingOptions<RT>,
+): UseFloatingReturn<RT> {
   const defaultRootContext = useFloatingRootContext({
     ...options,
     elements: {
@@ -59,7 +46,7 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
   const tree = useFloatingTree();
 
   const position = usePosition({
-    ...(options as UseFloatingOptions<ReferenceType>),
+    ...(options as unknown as UseFloatingOptions<ReferenceType>),
     elements: {
       floating: () => rootContext().elements.floating(),
       reference: () =>
@@ -116,27 +103,36 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     domReference,
   };
 
-  const context = createMemo<FloatingContext<RT>>(() => ({
+  const context: UseFloatingReturn<RT>['context'] = {
     // from UsePositionFloatingReturn
     update: position.update,
     floatingStyles: position.floatingStyles,
-    storeData: position.storeData,
+    isPositioned: position.isPositioned,
+    placement: position.placement,
+    strategy: position.strategy,
+    middlewareData: position.middlewareData,
+    x: position.x,
+    y: position.y,
 
     // from FloatingRootContext
-    open: rootContext().open,
-    onOpenChange: rootContext().onOpenChange,
-    events: rootContext().events,
-    dataRef: rootContext().dataRef,
-    floatingId: rootContext().floatingId,
+    open: () => rootContext().open(),
+    onOpenChange: (...args) => rootContext().onOpenChange(...args),
+    get events() {
+      return rootContext().events;
+    },
+    get dataRef() {
+      return rootContext().dataRef;
+    },
+    floatingId: () => rootContext().floatingId(),
 
     // additional
     refs,
     elements,
     nodeId: () => access(options.nodeId),
-  }));
+  };
 
   createEffect(() => {
-    rootContext().dataRef.floatingContext = context() as unknown as FloatingContext;
+    rootContext().dataRef.floatingContext = context;
 
     if (!tree) {
       return;
@@ -145,21 +141,20 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     const nodeId = access(options.nodeId);
     const nodeIdx = tree.nodesRef.findIndex((n) => n.id === nodeId);
     if (nodeIdx !== -1) {
-      tree?.setNodesRef(nodeIdx, 'context', context() as unknown as FloatingContext);
+      tree?.setNodesRef(nodeIdx, 'context', context as any);
     }
   });
 
   return {
     update: position.update,
     floatingStyles: position.floatingStyles,
-    isPositioned: () => position.storeData.isPositioned,
-    placement: () => position.storeData.placement,
-    strategy: () => position.storeData.strategy,
-    middlewareData: () => position.storeData.middlewareData,
-    x: () => position.storeData.x,
-    y: () => position.storeData.y,
-    // eslint-disable-next-line solid/reactivity
-    context: typeof options.rootContext === 'function' ? context : context(),
+    isPositioned: position.isPositioned,
+    placement: position.placement,
+    strategy: position.strategy,
+    middlewareData: position.middlewareData,
+    x: position.x,
+    y: position.y,
+    context,
     refs,
     elements,
   };

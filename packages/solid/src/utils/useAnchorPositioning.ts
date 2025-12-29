@@ -108,18 +108,9 @@ export type CollisionAvoidance = SideFlipMode | SideShiftMode;
  * Provides standardized anchor positioning behavior for floating elements. Wraps Floating UI's
  * `useFloating` hook.
  */
+
 export function useAnchorPositioning(
-  params: useAnchorPositioning.Parameters & { floatingRootContext?: FloatingRootContext | never },
-): useAnchorPositioning.ReturnValue;
-export function useAnchorPositioning(
-  params: useAnchorPositioning.Parameters & {
-    floatingRootContext: Accessor<FloatingRootContext | undefined>;
-  },
-): useAnchorPositioning.ReturnValue & { context: Accessor<FloatingContext> };
-export function useAnchorPositioning(
-  params: useAnchorPositioning.Parameters & {
-    floatingRootContext?: MaybeAccessor<FloatingRootContext | undefined>;
-  },
+  params: useAnchorPositioning.Parameters,
 ): useAnchorPositioning.ReturnValue {
   // Public parameters
   const anchor = createMemo(() => access(params.anchor));
@@ -136,7 +127,6 @@ export function useAnchorPositioning(
   // Private parameters
   const keepMounted = () => access(params.keepMounted) ?? false;
   const mounted = () => access(params.mounted);
-  const floatingRootContext = () => access(params.floatingRootContext);
   const collisionAvoidance = () => access(params.collisionAvoidance);
   const shiftCrossAxis = () => access(params.shiftCrossAxis) ?? false;
   const nodeId = () => access(params.nodeId);
@@ -360,7 +350,7 @@ export function useAnchorPositioning(
     isPositioned,
     floatingStyles: originalFloatingStyles,
   } = useFloating({
-    rootContext: floatingRootContext,
+    rootContext: params.floatingRootContext,
     placement,
     middleware,
     strategy: positionMethod,
@@ -449,9 +439,7 @@ export function useAnchorPositioning(
       arrowRef,
       setArrowRef,
     },
-    get context() {
-      return context();
-    },
+    context,
     isPositioned,
     update,
   };
@@ -543,7 +531,7 @@ export namespace useAnchorPositioning {
   export interface Parameters extends SharedParameters {
     keepMounted?: MaybeAccessor<boolean | undefined>;
     trackCursorAxis?: MaybeAccessor<'none' | 'x' | 'y' | 'both' | undefined>;
-    floatingRootContext?: MaybeAccessor<FloatingRootContext | undefined>;
+    floatingRootContext?: FloatingRootContext;
     mounted: MaybeAccessor<boolean>;
     trackAnchor: MaybeAccessor<boolean>;
     nodeId?: MaybeAccessor<string | undefined>;

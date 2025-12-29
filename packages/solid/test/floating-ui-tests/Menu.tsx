@@ -5,7 +5,6 @@ import {
   createSignal,
   on,
   onCleanup,
-  onMount,
   Show,
   splitProps,
   useContext,

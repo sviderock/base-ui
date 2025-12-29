@@ -147,7 +147,9 @@ export function NavigationMenuRoot(componentProps: NavigationMenuRoot.Props) {
     setViewportElement,
     activationDirection,
     setActivationDirection,
-    floatingRootContext,
+    get floatingRootContext() {
+      return floatingRootContext();
+    },
     setFloatingRootContext,
     nested,
     refs,

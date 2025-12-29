@@ -1,5 +1,5 @@
 import { isElement } from '@floating-ui/utils/dom';
-import { createEffect, createMemo, on, onCleanup, type Accessor } from 'solid-js';
+import { createEffect, createMemo, mergeProps, on, onCleanup, type Accessor } from 'solid-js';
 import { useTimeout } from '../../utils/useTimeout';
 import { contains, getDocument, isMouseLikePointerType } from '../utils';
 
@@ -242,18 +242,17 @@ export function useHover(
     restTimeout.clear();
     restTimeoutPendingRef = false;
 
-    if (props.handleClose && context().dataRef.floatingContext) {
+    const ctx = context().dataRef.floatingContext;
+    if (props.handleClose && ctx) {
       // Prevent clearing `onScrollMouseLeave` timeout.
       if (!context().open()) {
         timeout.clear();
       }
 
-      const handler = props.handleClose({
-        ...context().dataRef.floatingContext,
-        ...(context().dataRef.floatingContext?.storeData as any),
+      const mergedProps = mergeProps(ctx, {
         tree,
-        x: event.clientX,
-        y: event.clientY,
+        x: () => event.clientX,
+        y: () => event.clientY,
         onClose() {
           clearPointerEvents();
           cleanupMouseMoveHandler();
@@ -262,6 +261,7 @@ export function useHover(
           }
         },
       });
+      const handler = props.handleClose(mergedProps);
 
       doc.addEventListener('mousemove', handler);
       unbindMouseMoveRef = () => {
@@ -290,16 +290,16 @@ export function useHover(
     if (isClickLikeOpenEvent()) {
       return;
     }
-    if (!context().dataRef.floatingContext) {
+
+    const ctx = context().dataRef.floatingContext;
+    if (!ctx) {
       return;
     }
 
-    props.handleClose?.({
-      ...context().dataRef.floatingContext,
-      ...(context().dataRef.floatingContext?.storeData as any),
+    const mergedProps = mergeProps(ctx, {
       tree,
-      x: event.clientX,
-      y: event.clientY,
+      x: () => event.clientX,
+      y: () => event.clientY,
       onClose() {
         clearPointerEvents();
         cleanupMouseMoveHandler();
@@ -307,7 +307,8 @@ export function useHover(
           closeWithDelay(event);
         }
       },
-    })(event);
+    });
+    props.handleClose?.(mergedProps)(event);
   }
 
   function onFloatingMouseEnter() {
@@ -441,11 +442,6 @@ export function useHover(
     }
 
     return {
-      // ref: () => {
-      //   onCleanup(() => {
-      //     context().refs.setReference(null);
-      //   });
-      // },
       onPointerDown: setPointerRef,
       onPointerEnter: setPointerRef,
       onMouseMove: (event) => {

@@ -20,7 +20,7 @@ import type {
   UseFloatingOptions,
 } from '../types';
 
-type UsePositionData = ComputePositionReturn & { isPositioned: boolean };
+export type UsePositionData = ComputePositionReturn & { isPositioned: boolean };
 
 export type UsePositionOptions<RT extends ReferenceType = ReferenceType> = Prettify<
   Partial<Accessorify<ComputePositionConfig, 'maybeAccessor'>> & {
@@ -57,7 +57,7 @@ export type UsePositionOptions<RT extends ReferenceType = ReferenceType> = Prett
   }
 >;
 
-export interface UsePositionFloatingSharedReturn {
+export interface UsePositionFloatingSharedReturn extends Accessorify<UsePositionData> {
   /**
    * Update the position of the floating element, re-rendering the component
    * if required.
@@ -67,10 +67,6 @@ export interface UsePositionFloatingSharedReturn {
    * Pre-configured positioning styles to apply to the floating element.
    */
   floatingStyles: Accessor<JSX.CSSProperties>;
-  /**
-   * Object containing the computed data.
-   */
-  storeData: UsePositionData;
 }
 
 export type UsePositionFloatingReturn<RT extends ReferenceType = ReferenceType> = Prettify<
@@ -118,7 +114,7 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   const floatingProp = createMemo(() => access(options.elements?.floating));
   const transform = createMemo(() => access(options.transform) ?? true);
   const whileElementsMountedFn = createMemo(() => {
-    const whileElementsMounted = access(options.whileElementsMounted);
+    const whileElementsMounted = options.whileElementsMounted;
 
     if (whileElementsMounted == null) {
       return null;
@@ -134,7 +130,9 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   const [data, setData] = createStore<UsePositionData>({
     x: 0,
     y: 0,
+    // eslint-disable-next-line solid/reactivity
     strategy: access(strategy()),
+    // eslint-disable-next-line solid/reactivity
     placement: access(placement()),
     middlewareData: {},
     isPositioned: false,
@@ -147,7 +145,6 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   const floatingEl = createMemo(() => floatingProp() ?? floating());
 
   let isMountedRef = false;
-  let isFloatingMountedRef = false;
 
   function update() {
     const r = referenceEl();
@@ -254,12 +251,17 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   });
 
   return {
-    storeData: data,
     update,
     refs,
     elements,
     floatingStyles,
-  } satisfies UsePositionFloatingReturn<RT>;
+    isPositioned: () => data.isPositioned,
+    placement: () => data.placement,
+    strategy: () => data.strategy,
+    middlewareData: () => data.middlewareData,
+    x: () => data.x,
+    y: () => data.y,
+  };
 }
 
 /**

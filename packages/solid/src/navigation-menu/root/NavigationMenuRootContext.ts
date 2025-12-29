@@ -17,7 +17,7 @@ export interface NavigationMenuRootContext {
   setViewportElement: Setter<HTMLElement | null | undefined>;
   activationDirection: Accessor<'left' | 'right' | 'up' | 'down' | null>;
   setActivationDirection: Setter<'left' | 'right' | 'up' | 'down' | null>;
-  floatingRootContext: Accessor<FloatingRootContext | undefined>;
+  floatingRootContext: FloatingRootContext | undefined;
   setFloatingRootContext: Setter<FloatingRootContext | undefined>;
   refs: {
     currentContentRef: HTMLDivElement | null | undefined;

@@ -9,12 +9,14 @@ import {
 import { createStore, produce } from 'solid-js/store';
 import { access } from '../../solid-helpers';
 import { useId } from '../../utils/useId';
-import type { Accessorify, FloatingNodeType, FloatingTreeType, ReferenceType } from '../types';
+import type { FloatingContext, FloatingNodeType, FloatingTreeType, ReferenceType } from '../types';
 import { createEventEmitter } from '../utils/createEventEmitter';
 
-type ContextFloatingNodeType = Accessorify<FloatingNodeType, 'maybeAccessor'>;
-
-const FloatingNodeContext = createContext<ContextFloatingNodeType | null>(null);
+const FloatingNodeContext = createContext<{
+  id: Accessor<string | undefined>;
+  parentId: Accessor<string | null>;
+  context?: FloatingContext;
+} | null>(null);
 const FloatingTreeContext = createContext<FloatingTreeType | null>(null);
 
 /**

@@ -127,7 +127,7 @@ export interface FloatingEvents {
 
 export interface ContextData {
   openEvent?: Event;
-  floatingContext?: FloatingContext;
+  floatingContext?: FloatingContext<any>;
   virtualFloatingTree: Array<FloatingNodeType<ReferenceType>>;
   /** @deprecated use `onTypingChange` prop in `useTypeahead` */
   typing?: boolean;
@@ -165,7 +165,7 @@ export interface FloatingContext<RT extends ReferenceType = ReferenceType>
 export interface FloatingNodeType<RT extends ReferenceType = ReferenceType> {
   id: string | undefined;
   parentId: string | null;
-  context?: MaybeAccessor<FloatingContext<RT> | undefined>;
+  context?: FloatingContext<RT>;
 }
 
 export interface FloatingTreeType<RT extends ReferenceType = ReferenceType> {
@@ -189,26 +189,24 @@ export interface ElementProps {
 
 export type ReferenceType = Element | VirtualElement;
 
-export type UseFloatingReturn<
-  RT extends ReferenceType,
-  Context extends MaybeAccessor<FloatingContext<RT>>,
-> = Prettify<
-  Accessorify<Omit<UsePositionFloatingReturn, 'refs' | 'elements' | 'storeData'>> & {
+export type UseFloatingReturn<RT extends ReferenceType> = Prettify<
+  Accessorify<Omit<UsePositionFloatingReturn, 'refs' | 'elements'>> & {
     /**
      * `FloatingContext`
      */
-    context: Context;
+    context: Prettify<FloatingContext<RT>>;
     /**
      * Object containing the reference and floating refs and reactive setters.
      */
     refs: ExtendedRefs<RT>;
     elements: ExtendedElements<RT>;
-  } & Accessorify<UsePositionFloatingReturn['storeData']>
+  }
 >;
 
 // TODO: explain the reasoning for this
 export interface UseFloatingOptions<RT extends ReferenceType = ReferenceType>
   extends Omit<UsePositionOptions<RT>, 'elements'> {
+  rootContext?: FloatingRootContext<RT>;
   /**
    * Object of external elements as an alternative to the `refs` object setters.
    */
