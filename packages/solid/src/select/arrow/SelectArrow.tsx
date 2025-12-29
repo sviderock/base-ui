@@ -1,12 +1,12 @@
 'use client';
-import { createMemo, Show } from 'solid-js';
+import { Show } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useSelectPositionerContext } from '../positioner/SelectPositionerContext';
 import { useSelectRootContext } from '../root/SelectRootContext';
 
@@ -28,17 +28,33 @@ export function SelectArrow(componentProps: SelectArrow.Props) {
   const { side, align, refs, arrowStyles, arrowUncentered, alignItemWithTriggerActive } =
     useSelectPositionerContext();
 
-  const state = createMemo<SelectArrow.State>(() => ({
-    open: store.open,
-    side: side(),
-    align: align(),
-    uncentered: arrowUncentered(),
-  }));
+  const state: SelectArrow.State = {
+    get open() {
+      return store.open;
+    },
+    get side() {
+      return side();
+    },
+    get align() {
+      return align();
+    },
+    get uncentered() {
+      return arrowUncentered();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
     ref: refs.setArrowRef,
-    props: [() => ({ style: arrowStyles(), 'aria-hidden': true }), elementProps],
+    props: [
+      {
+        get style() {
+          return arrowStyles();
+        },
+        'aria-hidden': true,
+      },
+      elementProps,
+    ],
     customStyleHookMapping,
   });
 

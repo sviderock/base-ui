@@ -80,10 +80,7 @@ export function useInteractions(
         list.push(userPropsWitoutActiveAndSelected as ElementProps['item']);
       }
 
-      list = list.map((item) =>
-        // TODO: ExtendedUserProps is enough for the check but probably not the best way to do it
-        typeof item === 'function' ? item(userProps ?? {}) : item,
-      );
+      list = list.map((item) => (typeof item === 'function' ? item(userProps ?? {}) : item));
 
       const combined = combineProps(list);
 

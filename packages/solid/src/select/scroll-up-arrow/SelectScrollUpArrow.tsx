@@ -1,5 +1,4 @@
 'use client';
-import { type MaybeAccessor } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { SelectScrollArrow } from '../scroll-arrow/SelectScrollArrow';
 
@@ -21,6 +20,6 @@ export namespace SelectScrollUpArrow {
      * Whether to keep the HTML element in the DOM while the select menu is not scrollable.
      * @default false
      */
-    keepMounted?: MaybeAccessor<boolean | undefined>;
+    keepMounted?: boolean;
   }
 }

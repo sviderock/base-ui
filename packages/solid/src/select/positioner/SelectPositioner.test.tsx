@@ -4,7 +4,7 @@ import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 
 function Trigger(props: Select.Trigger.Props) {
-  return <Select.Trigger {...props} ref={props.ref} render={(p) => <div {...p()} />} />;
+  return <Select.Trigger {...props} ref={props.ref} render="div" />;
 }
 
 describe('<Select.Positioner />', () => {

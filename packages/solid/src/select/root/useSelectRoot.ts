@@ -55,7 +55,6 @@ export function useSelectRoot<T>(params: useSelectRoot.Parameters<T>): useSelect
   const {
     setDirty,
     validationMode,
-    setControlId,
     setFilled,
     name: fieldName,
     disabled: fieldDisabled,
@@ -69,15 +68,15 @@ export function useSelectRoot<T>(params: useSelectRoot.Parameters<T>): useSelect
   const name = () => fieldName() ?? nameProp();
 
   const [value, setValueUnwrapped] = useControlled({
-    controlled: params.value,
-    default: params.defaultValue,
+    controlled: () => access(params.value),
+    default: () => access(params.defaultValue),
     name: 'Select',
     state: 'value',
   });
 
   const [open, setOpenUnwrapped] = useControlled({
-    controlled: params.open,
-    default: params.defaultOpen,
+    controlled: () => access(params.open),
+    default: () => access(params.defaultOpen),
     name: 'Select',
     state: 'open',
   });
@@ -139,7 +138,6 @@ export function useSelectRoot<T>(params: useSelectRoot.Parameters<T>): useSelect
     }
   });
 
-  // const controlRef = useLatestRef(store.state.triggerElement);
   const commitValidation = fieldControlValidation.commitValidation;
 
   onMount(() => {

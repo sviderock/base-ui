@@ -4,11 +4,12 @@ import {
   IndexGuessBehavior,
   useCompositeListItem,
 } from '../../composite/list/useCompositeListItem';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { combineProps } from '../../merge-props/combineProps';
+import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { isMouseWithinBounds } from '../../utils/isMouseWithinBounds';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useSelectRootContext } from '../root/SelectRootContext';
 import { SelectItemContext } from './SelectItemContext';
 
@@ -25,20 +26,17 @@ export function SelectItem(componentProps: SelectItem.Props) {
     'disabled',
     'nativeButton',
   ]);
-  const value = () => access(local.value) ?? null;
-  const label = () => access(local.label);
-  const disabled = () => access(local.disabled) ?? false;
-  const nativeButton = () => access(local.nativeButton) ?? false;
+  const value = () => local.value ?? null;
+  const disabled = () => local.disabled ?? false;
+  const nativeButton = () => local.nativeButton ?? false;
 
   const refs: SelectItemContext['refs'] = {
     indexRef: 0,
     textRef: null,
   };
 
-  let itemRef = null as HTMLElement | null | undefined;
-
   const listItem = useCompositeListItem({
-    label,
+    label: () => local.label,
     textRef: () => refs.textRef,
     indexGuessBehavior: IndexGuessBehavior.GuessFromOrder,
   });
@@ -85,14 +83,26 @@ export function SelectItem(componentProps: SelectItem.Props) {
     }
   });
 
-  const state = createMemo<SelectItem.State>(() => ({
-    disabled: disabled(),
-    selected: selected(),
-    highlighted: highlighted(),
-  }));
+  const state: SelectItem.State = {
+    get disabled() {
+      return disabled();
+    },
+    get selected() {
+      return selected();
+    },
+    get highlighted() {
+      return highlighted();
+    },
+  };
+
+  createEffect(() => {
+    console.log('highlighted', highlighted());
+    console.log('selected', selected());
+  });
 
   const rootProps = createMemo(() => {
     const props = getItemProps({ active: highlighted(), selected: selected() });
+    console.log('props', props);
     // With our custom `focusItemOnHover` implementation, this interferes with the logic and can
     // cause the index state to be stuck when leaving the select popup.
     delete props.onFocus;
@@ -117,9 +127,13 @@ export function SelectItem(componentProps: SelectItem.Props) {
     });
   }
 
-  const defaultProps = createMemo<HTMLProps>(() => ({
-    'aria-disabled': disabled() || undefined,
-    tabIndex: highlighted() ? 0 : -1,
+  const defaultProps: HTMLProps = {
+    get 'aria-disabled'() {
+      return disabled() || undefined;
+    },
+    get tabIndex() {
+      return highlighted() ? 0 : -1;
+    },
     onFocus() {
       setStore('activeIndex', refs.indexRef);
     },
@@ -210,7 +224,7 @@ export function SelectItem(componentProps: SelectItem.Props) {
 
       rootRefs.selectionRef.allowSelect = true;
     },
-  }));
+  };
 
   const contextValue: SelectItemContext = {
     selected,
@@ -220,13 +234,15 @@ export function SelectItem(componentProps: SelectItem.Props) {
   const element = useRenderElement('div', componentProps, {
     state,
     ref: (el) => {
-      batch(() => {
-        buttonRef(el);
-        listItem.setRef(el);
-        itemRef = el;
-      });
+      buttonRef(el);
+      listItem.setRef(el);
     },
-    props: [rootProps, defaultProps, elementProps, getButtonProps],
+    props: [
+      (props) => combineProps(props, rootProps()),
+      defaultProps,
+      elementProps,
+      getButtonProps,
+    ],
   });
 
   return <SelectItemContext.Provider value={contextValue}>{element()}</SelectItemContext.Provider>;
@@ -254,23 +270,23 @@ export namespace SelectItem {
      * A unique value that identifies this select item.
      * @default null
      */
-    value?: MaybeAccessor<any | undefined>;
+    value?: any;
     /**
      * Whether the component should ignore user interaction.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
     /**
      * Overrides the text label to use on the trigger when this item is selected
      * and when the item is matched during keyboard text navigation.
      */
-    label?: MaybeAccessor<string | undefined>;
+    label?: string;
     /**
      * Whether the component renders a native `<button>` element when replacing it
      * via the `render` prop.
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default false
      */
-    nativeButton?: MaybeAccessor<boolean | undefined>;
+    nativeButton?: boolean;
   }
 }

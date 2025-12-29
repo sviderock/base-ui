@@ -1,10 +1,10 @@
 'use client';
-import { type ComponentProps, createMemo, Show } from 'solid-js';
-import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
+import { type JSX, Show } from 'solid-js';
+import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { Side } from '../../utils/useAnchorPositioning';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { type TransitionStatus, useTransitionStatus } from '../../utils/useTransitionStatus';
 import { useSelectPositionerContext } from '../positioner/SelectPositionerContext';
@@ -14,15 +14,14 @@ import { useSelectRootContext } from '../root/SelectRootContext';
  * @internal
  */
 export function SelectScrollArrow(componentProps: SelectScrollArrow.Props) {
-  const [, , elementProps] = splitComponentProps(componentProps, ['direction', 'keepMounted']);
-  const direction = () => access(componentProps.direction);
-  const keepMounted = () => access(componentProps.keepMounted) ?? false;
+  const [, local, elementProps] = splitComponentProps(componentProps, ['direction', 'keepMounted']);
+  const keepMounted = () => componentProps.keepMounted ?? false;
 
   const { store, refs, setStore } = useSelectRootContext();
   const { side, alignItemWithTriggerActive } = useSelectPositionerContext();
 
   const visible = () =>
-    direction() === 'up' ? store.scrollUpArrowVisible : store.scrollDownArrowVisible;
+    local.direction === 'up' ? store.scrollUpArrowVisible : store.scrollDownArrowVisible;
 
   const timeout = useTimeout();
   let scrollArrowRef = null as HTMLDivElement | null | undefined;
@@ -39,17 +38,29 @@ export function SelectScrollArrow(componentProps: SelectScrollArrow.Props) {
     },
   });
 
-  const state = createMemo<SelectScrollArrow.State>(() => ({
-    direction: direction(),
-    visible: visible(),
-    side: side(),
-    transitionStatus: transitionStatus(),
-  }));
+  const state: SelectScrollArrow.State = {
+    get direction() {
+      return local.direction;
+    },
+    get visible() {
+      return visible();
+    },
+    get side() {
+      return side();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+  };
 
-  const defaultProps = createMemo<ComponentProps<'div'>>(() => ({
-    hidden: !mounted(),
+  const defaultProps: JSX.HTMLAttributes<HTMLDivElement> = {
+    get hidden() {
+      return !mounted();
+    },
     'aria-hidden': true,
-    children: direction() === 'up' ? '▲' : '▼',
+    get children() {
+      return <>{local.direction === 'up' ? '▲' : '▼'}</>;
+    },
     style: {
       position: 'absolute',
     },
@@ -77,15 +88,15 @@ export function SelectScrollArrow(componentProps: SelectScrollArrow.Props) {
           Math.round(popupElement.scrollTop + popupElement.clientHeight) >=
           popupElement.scrollHeight;
 
-        if (direction() === 'up') {
+        if (local.direction === 'up') {
           setStore('scrollUpArrowVisible', !isScrolledToTop);
-        } else if (direction() === 'down') {
+        } else if (local.direction === 'down') {
           setStore('scrollDownArrowVisible', !isScrolledToBottom);
         }
 
         if (
-          (direction() === 'up' && isScrolledToTop) ||
-          (direction() === 'down' && isScrolledToBottom)
+          (local.direction === 'up' && isScrolledToTop) ||
+          (local.direction === 'down' && isScrolledToBottom)
         ) {
           timeout.clear();
           return;
@@ -95,7 +106,7 @@ export function SelectScrollArrow(componentProps: SelectScrollArrow.Props) {
           const items = refs.listRef;
           const scrollArrowHeight = scrollArrowRef?.offsetHeight || 0;
 
-          if (direction() === 'up') {
+          if (local.direction === 'up') {
             let firstVisibleIndex = 0;
             const scrollTop = popupElement.scrollTop + scrollArrowHeight;
 
@@ -153,7 +164,7 @@ export function SelectScrollArrow(componentProps: SelectScrollArrow.Props) {
     onMouseLeave() {
       timeout.clear();
     },
-  }));
+  };
 
   const shouldRender = () => visible() || keepMounted();
 
@@ -177,11 +188,11 @@ export namespace SelectScrollArrow {
   }
 
   export interface Props extends BaseUIComponentProps<'div', State> {
-    direction: MaybeAccessor<'up' | 'down'>;
+    direction: 'up' | 'down';
     /**
      * Whether to keep the HTML element in the DOM while the select menu is not scrollable.
      * @default false
      */
-    keepMounted?: MaybeAccessor<boolean | undefined>;
+    keepMounted?: boolean;
   }
 }

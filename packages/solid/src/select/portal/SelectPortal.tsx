@@ -1,7 +1,6 @@
 'use client';
 import { Show, type JSX } from 'solid-js';
 import { FloatingPortal, FloatingPortalProps } from '../../floating-ui-solid';
-import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useSelectRootContext } from '../root/SelectRootContext';
 import { SelectPortalContext } from './SelectPortalContext';
 
@@ -13,14 +12,13 @@ import { SelectPortalContext } from './SelectPortalContext';
  */
 export function SelectPortal(props: SelectPortal.Props) {
   const { store } = useSelectRootContext();
-  const container = () => access(props.container);
 
   const shouldRender = () => store.mounted || store.forceMount;
 
   return (
     <Show when={shouldRender()}>
       <SelectPortalContext.Provider value>
-        <FloatingPortal root={container()}>{props.children}</FloatingPortal>
+        <FloatingPortal root={props.container}>{props.children}</FloatingPortal>
       </SelectPortalContext.Provider>
     </Show>
   );
@@ -32,6 +30,6 @@ export namespace SelectPortal {
     /**
      * A parent element to render the portal element into.
      */
-    container?: MaybeAccessor<FloatingPortalProps['root'] | undefined>;
+    container?: FloatingPortalProps['root'];
   }
 }

@@ -5,7 +5,7 @@ import { Select } from '@base-ui-components/solid/select';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { createEffect, createSignal, For } from 'solid-js';
+import { createSignal, For } from 'solid-js';
 
 describe('<Select.Root />', () => {
   beforeEach(() => {
@@ -99,7 +99,7 @@ describe('<Select.Root />', () => {
     it('should update the selected item when the value prop changes', async () => {
       const [value, setValue] = createSignal('a');
       render(() => (
-        <Select.Root value={value}>
+        <Select.Root value={value()}>
           <Select.Trigger data-testid="trigger">
             <Select.Value />
           </Select.Trigger>
@@ -168,7 +168,7 @@ describe('<Select.Root />', () => {
     it('updates <Select.Value /> label when the value prop changes before the popup opens', async () => {
       const [value, setValue] = createSignal('b');
       render(() => (
-        <Select.Root value={value}>
+        <Select.Root value={value()}>
           <Select.Trigger data-testid="trigger">
             <Select.Value />
           </Select.Trigger>
@@ -211,7 +211,7 @@ describe('<Select.Root />', () => {
 
         return (
           <Select.Root
-            value={value}
+            value={value()}
             onValueChange={(newValue) => {
               setValue(newValue);
               handleValueChange(newValue);
@@ -475,7 +475,7 @@ describe('<Select.Root />', () => {
         return (
           <div>
             <button onClick={() => setOpen(false)}>Close</button>
-            <Select.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <Select.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <Select.Portal>
                 <Select.Positioner>
                   <Select.Popup data-testid="popup" />
@@ -524,7 +524,7 @@ describe('<Select.Root />', () => {
             {/* eslint-disable-next-line solid/no-innerhtml */}
             <style innerHTML={style} />
             <button onClick={() => setOpen(false)}>Close</button>
-            <Select.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <Select.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <Select.Portal>
                 <Select.Positioner>
                   <Select.Popup class="animation-test-indicator" data-testid="popup" />
@@ -562,7 +562,7 @@ describe('<Select.Root />', () => {
         return (
           <div>
             <button onClick={() => setOpen(true)}>Open</button>
-            <Select.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <Select.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <Select.Portal>
                 <Select.Positioner>
                   <Select.Popup data-testid="popup" />
@@ -612,7 +612,7 @@ describe('<Select.Root />', () => {
             <style innerHTML={style} />
             <button onClick={() => setOpen(true)}>Open</button>
             <Select.Root
-              open={open}
+              open={open()}
               onOpenChange={setOpen}
               onOpenChangeComplete={onOpenChangeComplete}
             >
@@ -694,7 +694,7 @@ describe('<Select.Root />', () => {
         return (
           <>
             <button onClick={() => setDisabled(!disabled())}>toggle</button>
-            <Select.Root defaultValue="b" onOpenChange={handleOpenChange} disabled={disabled}>
+            <Select.Root defaultValue="b" onOpenChange={handleOpenChange} disabled={disabled()}>
               <Select.Trigger>
                 <Select.Value />
               </Select.Trigger>
@@ -817,7 +817,7 @@ describe('<Select.Root />', () => {
           <button onClick={() => setValue('1')}>1</button>
           <button onClick={() => setValue('2')}>2</button>
           <button onClick={() => setValue(null)}>null</button>
-          <Select.Root value={value} onValueChange={setValue}>
+          <Select.Root value={value()} onValueChange={setValue}>
             <Select.Trigger data-testid="trigger">
               <Select.Value data-testid="value">{(val) => val ?? 'initial'}</Select.Value>
             </Select.Trigger>
@@ -1425,7 +1425,7 @@ describe('<Select.Root />', () => {
             </button>
             <div data-testid="value">{selectedItem()}</div>
 
-            <Select.Root value={selectedItem} onValueChange={setSelectedItem}>
+            <Select.Root value={selectedItem()} onValueChange={setSelectedItem}>
               <Select.Trigger>Toggle</Select.Trigger>
               <Select.Portal>
                 <Select.Positioner>

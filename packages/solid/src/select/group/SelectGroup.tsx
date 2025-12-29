@@ -2,7 +2,7 @@
 import { createSignal } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { SelectGroupContext } from './SelectGroupContext';
 
 /**
@@ -19,7 +19,15 @@ export function SelectGroup(componentProps: SelectGroup.Props) {
   const contextValue: SelectGroupContext = { labelId, setLabelId };
 
   const element = useRenderElement('div', componentProps, {
-    props: [() => ({ role: 'group', 'aria-labelledby': labelId() }), elementProps],
+    props: [
+      {
+        role: 'group',
+        get 'aria-labelledby'() {
+          return labelId();
+        },
+      },
+      elementProps,
+    ],
   });
 
   return (

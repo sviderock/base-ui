@@ -1,7 +1,7 @@
 'use client';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 
 /**
  * An icon that indicates that the trigger button opens a select menu.
@@ -14,7 +14,9 @@ export function SelectIcon(componentProps: SelectIcon.Props) {
 
   const element = useRenderElement('span', componentProps, {
     props: [{ 'aria-hidden': true }, elementProps],
-    children: () => componentProps.children ?? '▼',
+    get children() {
+      return <>{componentProps.children ?? '▼'}</>;
+    },
   });
 
   return <>{element()}</>;

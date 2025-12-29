@@ -1,17 +1,18 @@
 'use client';
-import { batch, createEffect, createMemo, onCleanup, type JSX } from 'solid-js';
+import { batch, createEffect, mergeProps, onCleanup, type JSX } from 'solid-js';
 import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { fieldValidityMapping } from '../../field/utils/constants';
 import { contains } from '../../floating-ui-solid/utils';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { combineProps } from '../../merge-props';
+import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { getPseudoElementBounds } from '../../utils/getPseudoElementBounds';
 import { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { ownerDocument } from '../../utils/owner';
 import { pressableTriggerOpenStateMapping } from '../../utils/popupStateMapping';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { useSelectRootContext } from '../root/SelectRootContext';
 
@@ -31,8 +32,8 @@ const customStyleHookMapping: CustomStyleHookMapping<SelectTrigger.State> = {
  */
 export function SelectTrigger(componentProps: SelectTrigger.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['disabled', 'nativeButton']);
-  const disabledProp = () => access(local.disabled) ?? false;
-  const nativeButton = () => access(local.nativeButton) ?? false;
+  const disabledProp = () => local.disabled ?? false;
+  const nativeButton = () => local.nativeButton ?? false;
 
   const { state: fieldState, disabled: fieldDisabled } = useFieldRootContext();
   const {
@@ -88,31 +89,40 @@ export function SelectTrigger(componentProps: SelectTrigger.Props) {
     timeoutMouseDown.clear();
   });
 
-  const state = createMemo<SelectTrigger.State>(() => ({
-    ...fieldState,
-    open: store.open,
-    disabled: disabled(),
-    value: store.value,
-    readOnly: readOnly(),
-  }));
+  const state: SelectTrigger.State = mergeProps(fieldState, {
+    get disabled() {
+      return disabled();
+    },
+    get open() {
+      return store.open;
+    },
+    get value() {
+      return store.value;
+    },
+    get readOnly() {
+      return readOnly();
+    },
+  });
 
   const element = useRenderElement('div', componentProps, {
     state,
     ref: (el) => {
-      batch(() => {
-        triggerRef = el;
-        buttonRef(el);
-        setStore('triggerElement', el);
-      });
+      triggerRef = el;
+      buttonRef(el);
+      setStore('triggerElement', el);
     },
     props: [
-      () => store.triggerProps,
-      () => ({
-        'aria-labelledby': labelId(),
-        'aria-readonly': readOnly() || undefined,
-        tabIndex: disabled() ? -1 : 0,
-      }),
+      (props) => combineProps(props, store.triggerProps),
       {
+        get 'aria-labelledby'() {
+          return labelId();
+        },
+        get 'aria-readonly'() {
+          return readOnly() || undefined;
+        },
+        get tabIndex() {
+          return disabled() ? -1 : 0;
+        },
         onFocus(event) {
           setFocused(true);
           // The popup element shouldn't obscure the focused trigger.
@@ -216,14 +226,14 @@ export namespace SelectTrigger {
      * Whether the component should ignore user interaction.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
     /**
      * Whether the component renders a native `<button>` element when replacing it
      * via the `render` prop.
      * Set to `false` if the rendered element is not a button (e.g. `<div>`).
      * @default false
      */
-    nativeButton?: MaybeAccessor<boolean | undefined>;
+    nativeButton?: boolean;
   }
 
   export interface State extends FieldRoot.State {

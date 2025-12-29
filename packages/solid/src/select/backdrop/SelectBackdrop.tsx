@@ -1,11 +1,10 @@
 'use client';
-import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useSelectRootContext } from '../root/SelectRootContext';
 
@@ -25,23 +24,29 @@ export function SelectBackdrop(componentProps: SelectBackdrop.Props) {
 
   const { store } = useSelectRootContext();
 
-  const state = createMemo<SelectBackdrop.State>(() => ({
-    open: store.open,
-    transitionStatus: store.transitionStatus,
-  }));
+  const state: SelectBackdrop.State = {
+    get open() {
+      return store.open;
+    },
+    get transitionStatus() {
+      return store.transitionStatus;
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
     customStyleHookMapping,
     props: [
-      () => ({
+      {
         role: 'presentation',
-        hidden: !store.mounted,
+        get hidden() {
+          return !store.mounted;
+        },
         style: {
           'user-select': 'none',
           '-webkit-user-select': 'none',
         },
-      }),
+      },
       elementProps,
     ],
   });

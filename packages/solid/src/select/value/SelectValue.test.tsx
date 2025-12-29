@@ -97,7 +97,7 @@ describe('<Select.Value />', () => {
           <div>
             <button onClick={() => setValue('serif')}>serif</button>
             <button onClick={() => setValue('mono')}>mono</button>
-            <Select.Root value={value} onValueChange={setValue} items={items}>
+            <Select.Root value={value()} onValueChange={setValue} items={items}>
               <Select.Trigger>
                 <Select.Value data-testid="value" />
               </Select.Trigger>
@@ -214,7 +214,7 @@ describe('<Select.Value />', () => {
           <div>
             <button onClick={() => setValue('serif')}>serif</button>
             <button onClick={() => setValue('mono')}>mono</button>
-            <Select.Root value={value} onValueChange={setValue} items={items}>
+            <Select.Root value={value()} onValueChange={setValue} items={items}>
               <Select.Trigger>
                 <Select.Value data-testid="value" />
               </Select.Trigger>
@@ -314,7 +314,7 @@ describe('<Select.Value />', () => {
           <button onClick={() => setValue('1')}>1</button>
           <button onClick={() => setValue('2')}>2</button>
           <button onClick={() => setValue(null)}>null</button>
-          <Select.Root value={value} onValueChange={setValue}>
+          <Select.Root value={value()} onValueChange={setValue}>
             <Select.Trigger>
               <Select.Value data-testid="value">{(val) => val ?? 'initial'}</Select.Value>
             </Select.Trigger>

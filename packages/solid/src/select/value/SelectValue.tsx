@@ -3,7 +3,7 @@ import { createMemo, type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useSelectRootContext } from '../root/SelectRootContext';
 
 const customStyleHookMapping: CustomStyleHookMapping<SelectValue.State> = {
@@ -31,21 +31,28 @@ export function SelectValue(componentProps: SelectValue.Props) {
     return null;
   });
 
-  const state = createMemo<SelectValue.State>(() => ({
-    value: store.value,
-  }));
+  const state: SelectValue.State = {
+    get value() {
+      return store.value;
+    },
+  };
 
   const element = useRenderElement('span', componentProps, {
     state,
     ref: (el) => {
       refs.valueRef = el;
     },
-    props: elementProps,
+    props: elementProps as any,
     customStyleHookMapping,
-    children: () =>
-      typeof componentProps.children === 'function'
-        ? componentProps.children?.(store.value)
-        : (componentProps.children ?? labelFromItems() ?? store.value),
+    get children() {
+      return (
+        <>
+          {typeof componentProps.children === 'function'
+            ? componentProps.children?.(store.value)
+            : (componentProps.children ?? labelFromItems() ?? store.value)}
+        </>
+      );
+    },
   });
 
   return <>{element()}</>;

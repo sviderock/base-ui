@@ -1,7 +1,7 @@
 'use client';
-import { createEffect, createMemo, onCleanup, type JSX } from 'solid-js';
+import { createEffect, onCleanup, type JSX } from 'solid-js';
 import { FloatingFocusManager } from '../../floating-ui-solid';
-import { splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { DISABLED_TRANSITIONS_STYLE } from '../../utils/constants';
 import { isWebKit } from '../../utils/detectBrowser';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
@@ -13,7 +13,7 @@ import { styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
 import type { Side } from '../../utils/useAnchorPositioning';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useSelectPositionerContext } from '../positioner/SelectPositionerContext';
 import { useSelectRootContext } from '../root/SelectRootContext';
@@ -48,16 +48,23 @@ export function SelectPopup(componentProps: SelectPopup.Props) {
     },
   });
 
-  const state = createMemo<SelectPopup.State>(() => ({
-    open: store.open,
-    transitionStatus: store.transitionStatus,
-    side: side(),
-    align: align(),
-  }));
+  const state: SelectPopup.State = {
+    get open() {
+      return store.open;
+    },
+    get transitionStatus() {
+      return store.transitionStatus;
+    },
+    get side() {
+      return side();
+    },
+    get align() {
+      return align();
+    },
+  };
 
   let initialHeightRef = 0;
   let reachedMaxHeightRef = false;
-  let maxHeightRef = 0;
   let initialPlacedRef = false;
   let originalPositionerStylesRef: JSX.CSSProperties = {};
 
@@ -104,7 +111,6 @@ export function SelectPopup(componentProps: SelectPopup.Props) {
     initialPlacedRef = false;
     reachedMaxHeightRef = false;
     initialHeightRef = 0;
-    maxHeightRef = 0;
 
     if (store.positionerElement) {
       clearPositionerStyles(store.positionerElement, originalPositionerStylesRef);
@@ -252,7 +258,7 @@ export function SelectPopup(componentProps: SelectPopup.Props) {
     });
   });
 
-  const defaultProps = createMemo<HTMLProps>(() => ({
+  const defaultProps: HTMLProps = {
     onKeyDown() {
       refs.keyboardActiveRef = true;
     },
@@ -331,15 +337,19 @@ export function SelectPopup(componentProps: SelectPopup.Props) {
 
       handleScrollArrowVisibility();
     },
-    ...(alignItemWithTriggerActive() && {
-      style: {
-        position: 'relative',
-        'max-height': '100%',
-        'overflow-x': 'hidden',
-        'overflow-y': 'auto',
-      },
-    }),
-  }));
+    get style(): JSX.CSSProperties | undefined {
+      if (alignItemWithTriggerActive()) {
+        return {
+          position: 'relative',
+          'max-height': '100%',
+          'overflow-x': 'hidden',
+          'overflow-y': 'auto',
+        };
+      }
+
+      return undefined;
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
@@ -350,10 +360,16 @@ export function SelectPopup(componentProps: SelectPopup.Props) {
     props: [
       store.popupProps,
       defaultProps,
-      () => ({
-        style: store.transitionStatus === 'starting' ? DISABLED_TRANSITIONS_STYLE.style : undefined,
-        class: alignItemWithTriggerActive() ? styleDisableScrollbar.class : undefined,
-      }),
+      {
+        get style() {
+          return store.transitionStatus === 'starting'
+            ? DISABLED_TRANSITIONS_STYLE.style
+            : undefined;
+        },
+        get class() {
+          return alignItemWithTriggerActive() ? styleDisableScrollbar.class : undefined;
+        },
+      },
       elementProps,
     ],
   });
@@ -369,13 +385,7 @@ export function SelectPopup(componentProps: SelectPopup.Props) {
 }
 
 export namespace SelectPopup {
-  export interface Props extends Omit<BaseUIComponentProps<'div', State>, 'id'> {
-    children?: JSX.Element;
-    /**
-     * @ignore
-     */
-    id?: MaybeAccessor<string | undefined>;
-  }
+  export interface Props extends BaseUIComponentProps<'div', State> {}
 
   export interface State {
     side: Side | 'none';

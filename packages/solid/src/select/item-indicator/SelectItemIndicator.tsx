@@ -1,10 +1,10 @@
 'use client';
-import { createMemo, type JSX, Show } from 'solid-js';
-import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
+import { type JSX, Show } from 'solid-js';
+import { splitComponentProps } from '../../solid-helpers';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { type TransitionStatus, useTransitionStatus } from '../../utils/useTransitionStatus';
 import { useSelectItemContext } from '../item/SelectItemContext';
 
@@ -16,7 +16,7 @@ import { useSelectItemContext } from '../item/SelectItemContext';
  */
 export function SelectItemIndicator(componentProps: SelectItemIndicator.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['keepMounted']);
-  const keepMounted = () => access(local.keepMounted) ?? false;
+  const keepMounted = () => local.keepMounted ?? false;
 
   const { selected } = useSelectItemContext();
 
@@ -24,10 +24,14 @@ export function SelectItemIndicator(componentProps: SelectItemIndicator.Props) {
 
   const { mounted, transitionStatus, setMounted } = useTransitionStatus(selected);
 
-  const state = createMemo<SelectItemIndicator.State>(() => ({
-    selected: selected(),
-    transitionStatus: transitionStatus(),
-  }));
+  const state: SelectItemIndicator.State = {
+    get selected() {
+      return selected();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+  };
 
   useOpenChangeComplete({
     open: selected,
@@ -48,10 +52,12 @@ export function SelectItemIndicator(componentProps: SelectItemIndicator.Props) {
     },
     customStyleHookMapping: transitionStatusMapping,
     props: [
-      () => ({
-        hidden: !mounted(),
+      {
+        get hidden() {
+          return !mounted();
+        },
         'aria-hidden': true,
-      }),
+      },
       elementProps,
     ],
     children: () => componentProps.children ?? '✔️',
@@ -67,7 +73,7 @@ export namespace SelectItemIndicator {
      * Whether to keep the HTML element in the DOM when the item is not selected.
      * @default false
      */
-    keepMounted?: MaybeAccessor<boolean | undefined>;
+    keepMounted?: boolean;
   }
 
   export interface State {
