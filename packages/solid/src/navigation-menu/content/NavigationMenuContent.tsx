@@ -12,7 +12,7 @@ import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { AnimationFrame } from '../../utils/useAnimationFrame';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useNavigationMenuItemContext } from '../item/NavigationMenuItemContext';
 import {

@@ -5,7 +5,7 @@ import { useFloatingTree } from '../../floating-ui-solid';
 import { access, splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { REGULAR_ITEM, useMenuItem } from '../item/useMenuItem';
 import { useMenuRadioGroupContext } from '../radio-group/MenuRadioGroupContext';
 import { useMenuRootContext } from '../root/MenuRootContext';

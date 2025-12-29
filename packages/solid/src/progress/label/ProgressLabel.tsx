@@ -3,7 +3,7 @@ import { onMount } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import type { ProgressRoot } from '../root/ProgressRoot';
 import { useProgressRootContext } from '../root/ProgressRootContext';
 import { progressStyleHookMapping } from '../root/styleHooks';

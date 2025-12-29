@@ -21,7 +21,7 @@ import {
   type Side,
 } from '../../utils/useAnchorPositioning';
 import { useAnimationsFinished } from '../../utils/useAnimationsFinished';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useNavigationMenuPortalContext } from '../portal/NavigationMenuPortalContext';
 import {
   useNavigationMenuRootContext,

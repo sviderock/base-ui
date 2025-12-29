@@ -13,7 +13,7 @@ import { useScrollLock } from '../utils';
 import { BaseUIComponentProps } from '../utils/types';
 import { AnimationFrame } from '../utils/useAnimationFrame';
 import { useBaseUiId } from '../utils/useBaseUiId';
-import { useRenderElement } from '../utils/useRenderElementV2';
+import { useRenderElement } from '../utils/useRenderElement';
 import { MenubarContext, useMenubarContext } from './MenubarContext';
 
 /**

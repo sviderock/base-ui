@@ -4,7 +4,7 @@ import { createStore } from 'solid-js/store';
 import { access, splitComponentProps, type CodependentRefs } from '../../solid-helpers';
 import { formatNumber } from '../../utils/formatNumber';
 import { BaseUIComponentProps, HTMLProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { valueToPercent } from '../../utils/valueToPercent';
 import { MeterRootContext } from './MeterRootContext';
 

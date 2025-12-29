@@ -21,7 +21,7 @@ export function TooltipProvider(props: TooltipProvider.Props) {
 
   return (
     <TooltipProviderContext.Provider value={contextValue}>
-      <FloatingDelayGroup delay={delayValue} timeoutMs={timeout()}>
+      <FloatingDelayGroup delay={delayValue()} timeoutMs={timeout()}>
         {props.children}
       </FloatingDelayGroup>
     </TooltipProviderContext.Provider>

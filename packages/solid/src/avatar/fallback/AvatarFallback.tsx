@@ -2,7 +2,7 @@
 import { createEffect, createSignal, onCleanup } from 'solid-js';
 import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useTimeout } from '../../utils/useTimeout';
 import type { AvatarRoot } from '../root/AvatarRoot';
 import { useAvatarRootContext } from '../root/AvatarRootContext';

@@ -4,7 +4,7 @@ import { CompositeItem } from '../../composite/item/CompositeItem';
 import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useToolbarGroupContext } from '../group/ToolbarGroupContext';
 import type { ToolbarRoot } from '../root/ToolbarRoot';
 import { useToolbarRootContext } from '../root/ToolbarRootContext';

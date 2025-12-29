@@ -3,7 +3,7 @@ import { mergeProps } from 'solid-js';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import type { SwitchRoot } from '../root/SwitchRoot';
 import { useSwitchRootContext } from '../root/SwitchRootContext';
 import { styleHookMapping } from '../styleHooks';

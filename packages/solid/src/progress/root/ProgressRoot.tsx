@@ -4,7 +4,7 @@ import { createStore } from 'solid-js/store';
 import { splitComponentProps, type CodependentRefs } from '../../solid-helpers';
 import { formatNumber } from '../../utils/formatNumber';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { ProgressRootContext } from './ProgressRootContext';
 import { progressStyleHookMapping } from './styleHooks';
 

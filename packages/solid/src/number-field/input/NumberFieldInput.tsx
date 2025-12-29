@@ -10,7 +10,7 @@ import { combineProps } from '../../merge-props';
 import { splitComponentProps } from '../../solid-helpers';
 import { formatNumber, formatNumberMaxPrecision } from '../../utils/formatNumber';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import type { NumberFieldRoot } from '../root/NumberFieldRoot';
 import { useNumberFieldRootContext } from '../root/NumberFieldRootContext';
 import { DEFAULT_STEP } from '../utils/constants';

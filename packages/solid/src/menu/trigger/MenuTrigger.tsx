@@ -11,7 +11,7 @@ import { getPseudoElementBounds } from '../../utils/getPseudoElementBounds';
 import { ownerDocument } from '../../utils/owner';
 import { pressableTriggerOpenStateMapping } from '../../utils/popupStateMapping';
 import { BaseUIComponentProps, type BaseUIHTMLProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useTimeout } from '../../utils/useTimeout';
 import { useMenuRootContext } from '../root/MenuRootContext';
 

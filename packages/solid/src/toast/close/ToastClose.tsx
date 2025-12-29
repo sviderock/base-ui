@@ -2,7 +2,7 @@
 import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useToastContext } from '../provider/ToastProviderContext';
 import { useToastRootContext } from '../root/ToastRootContext';
 

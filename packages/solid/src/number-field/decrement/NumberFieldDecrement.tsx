@@ -2,7 +2,7 @@
 import { access, splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import type { NumberFieldRoot } from '../root/NumberFieldRoot';
 import { useNumberFieldRootContext } from '../root/NumberFieldRootContext';
 import { useNumberFieldButton } from '../root/useNumberFieldButton';

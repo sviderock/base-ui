@@ -6,7 +6,7 @@ import { useToggleGroupContext } from '../toggle-group/ToggleGroupContext';
 import { useButton } from '../use-button/useButton';
 import type { BaseUIComponentProps } from '../utils/types';
 import { useControlled } from '../utils/useControlled';
-import { useRenderElement } from '../utils/useRenderElementV2';
+import { useRenderElement } from '../utils/useRenderElement';
 
 /**
  * A two-state button that can be on or off.

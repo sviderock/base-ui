@@ -3,7 +3,7 @@ import { createEffect, createMemo, on } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { access, callEventHandler, splitComponentProps } from '../solid-helpers';
 import type { BaseUIComponentProps } from '../utils/types';
-import { useRenderElement } from '../utils/useRenderElementV2';
+import { useRenderElement } from '../utils/useRenderElement';
 import { FormContext } from './FormContext';
 
 const EMPTY = {};

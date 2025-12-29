@@ -14,7 +14,7 @@ import { ownerDocument } from '../../utils/owner';
 import type { BaseUIComponentProps, Orientation } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import { warn } from '../../utils/warn';
 import type { ThumbMetadata } from '../thumb/SliderThumb';

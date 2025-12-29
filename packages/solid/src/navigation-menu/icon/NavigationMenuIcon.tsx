@@ -2,7 +2,7 @@
 import { splitComponentProps } from '../../solid-helpers';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useNavigationMenuItemContext } from '../item/NavigationMenuItemContext';
 import { useNavigationMenuRootContext } from '../root/NavigationMenuRootContext';
 

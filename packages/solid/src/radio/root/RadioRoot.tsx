@@ -19,7 +19,7 @@ import { useButton } from '../../use-button';
 import { NOOP } from '../../utils/noop';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import { customStyleHookMapping } from '../utils/customStyleHookMapping';
 import { RadioRootContext } from './RadioRootContext';

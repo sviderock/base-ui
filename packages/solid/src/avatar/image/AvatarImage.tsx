@@ -2,7 +2,7 @@
 import { batch, createEffect } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import type { AvatarRoot } from '../root/AvatarRoot';
 import { useAvatarRootContext } from '../root/AvatarRootContext';
 import { avatarStyleHookMapping } from '../root/styleHooks';

@@ -3,7 +3,7 @@ import { splitComponentProps } from '../../solid-helpers';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { usePreviewCardPositionerContext } from '../positioner/PreviewCardPositionerContext';
 import { usePreviewCardRootContext } from '../root/PreviewCardContext';
 

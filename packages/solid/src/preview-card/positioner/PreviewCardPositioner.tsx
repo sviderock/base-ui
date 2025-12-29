@@ -13,7 +13,7 @@ import {
   type Side,
   useAnchorPositioning,
 } from '../../utils/useAnchorPositioning';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { usePreviewCardPortalContext } from '../portal/PreviewCardPortalContext';
 import { usePreviewCardRootContext } from '../root/PreviewCardContext';
 import { PreviewCardPositionerContext } from './PreviewCardPositionerContext';

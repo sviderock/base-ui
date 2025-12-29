@@ -3,7 +3,7 @@ import { createEffect, createMemo, Show } from 'solid-js';
 import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { warn } from '../../utils/warn';
 import type { CollapsibleRoot } from '../root/CollapsibleRoot';
 import { useCollapsibleRootContext } from '../root/CollapsibleRootContext';

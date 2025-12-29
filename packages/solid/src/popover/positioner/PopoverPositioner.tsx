@@ -20,7 +20,7 @@ import {
   type OffsetFunction,
   type Side,
 } from '../../utils/useAnchorPositioning';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { usePopoverPortalContext } from '../portal/PopoverPortalContext';
 import { usePopoverRootContext } from '../root/PopoverRootContext';
 import { PopoverPositionerContext } from './PopoverPositionerContext';

@@ -1,14 +1,7 @@
-import {
-  createMemo,
-  Show,
-  splitProps,
-  type Accessor,
-  type JSX,
-  type ValidComponent,
-} from 'solid-js';
+import { Show, type JSX, type ValidComponent } from 'solid-js';
 import { Dynamic, type DynamicProps } from 'solid-js/web';
-import { mergeProps, mergePropsN } from '../merge-props';
-import { access, childrenLazy, type MaybeAccessor } from '../solid-helpers';
+import { combineProps } from '../merge-props/combineProps';
+import { access, type MaybeAccessor } from '../solid-helpers';
 import { EMPTY_OBJECT } from './constants';
 import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
 import { resolveClassName } from './resolveClassName';
@@ -21,110 +14,83 @@ export function useRenderElement<
   RefType extends RenderedElementType['ref'],
   Enabled extends boolean | undefined = undefined,
 >(
-  elementProp: MaybeAccessor<TagName>,
+  element: MaybeAccessor<TagName>,
   componentProps: RenderElement.ComponentProps<State, TagName, RenderedElementType>,
   params: RenderElement.Parameters<State, TagName, RenderedElementType, RefType, Enabled>,
 ) {
-  const element = createMemo(() => access(elementProp));
-  const state = createMemo(() => params.state?.() ?? (EMPTY_OBJECT as State));
-  const enabled = createMemo(() => access(params.enabled) ?? true);
-  const props = createMemo(() => access(params.props));
-  const safeChildren = childrenLazy(
-    () =>
-      access(params.children) ??
-      access(componentProps.children) ??
-      (typeof componentProps.render === 'object'
-        ? access(componentProps.render?.children)
-        : undefined),
-  );
-
-  const styleHooks = createMemo<Record<string, string> | undefined>(() => {
-    if (params.disableStyleHooks !== true) {
-      return enabled()
-        ? getStyleHookProps(state(), access(params.customStyleHookMapping))
-        : EMPTY_OBJECT;
-    }
-    return undefined;
-  });
-
-  const outProps = createMemo(() => {
-    const p = props();
-    const mergedParams = Array.isArray(p) ? mergePropsN(p) : p;
-    if (mergedParams === undefined) {
-      return EMPTY_OBJECT;
-    }
-
-    const [, rest] = splitProps(mergedParams, ['children']);
-    return mergeProps(styleHooks(), rest, {
-      class: resolveClassName(componentProps.class, state),
-    });
-  });
-
-  const renderer = (p: any) => (componentProps.render as Function)(p, state);
-  const Component = createMemo<DynamicProps<ValidComponent>['component']>(() => {
-    if (typeof componentProps.render === 'function') {
-      return renderer;
-    }
-
-    if (typeof componentProps.render === 'string') {
-      return componentProps.render;
-    }
-
-    return element();
-  });
-
-  return (renderFnProps?: HTMLProps) => {
+  const Component = (props: HTMLProps) => {
     return (
-      <Show when={enabled()}>
+      <Show when={access(params.enabled) ?? true}>
         <Dynamic
-          component={Component()}
-          {...(element() === 'button' ? { type: 'button' } : {})}
-          {...(element() === 'img' ? { alt: '' } : {})}
-          {...mergeProps(
-            renderFnProps,
-            typeof componentProps.render === 'object'
-              ? (componentProps.render as object)
-              : undefined,
-            outProps(),
-          )}
-          ref={(el: any) => {
-            if (typeof componentProps.ref === 'function') {
-              componentProps.ref(el);
-            } else {
-              componentProps.ref = el;
+          component={(p: any) => {
+            if (typeof componentProps.render === 'function') {
+              return componentProps.render(p, params.state ?? (EMPTY_OBJECT as State));
             }
 
             if (
               componentProps.render &&
               typeof componentProps.render === 'object' &&
-              'ref' in componentProps.render
+              'component' in componentProps.render
             ) {
-              if (typeof componentProps.render.ref === 'function') {
-                componentProps.render.ref(el);
-              } else {
-                componentProps.render.ref = el;
-              }
+              return <Dynamic {...p} component={componentProps.render.component} />;
             }
 
-            if (typeof params.ref === 'function') {
-              params.ref(el);
-            } else {
-              params.ref = el;
-            }
-
-            if (renderFnProps) {
-              if (typeof renderFnProps.ref === 'function') {
-                renderFnProps.ref(el);
-              } else {
-                renderFnProps.ref = el;
-              }
-            }
+            return (
+              <Dynamic
+                component={
+                  typeof componentProps.render === 'string'
+                    ? componentProps.render
+                    : access(element)
+                }
+                {...(access(element) === 'button' ? { type: 'button' } : {})}
+                {...(access(element) === 'img' ? { alt: '' } : {})}
+                {...p}
+              />
+            );
           }}
+          {...combineProps([
+            props,
+
+            {
+              ref: (el: any) => {
+                if (typeof componentProps.ref === 'function') {
+                  componentProps.ref(el);
+                } else {
+                  componentProps.ref = el;
+                }
+
+                if (typeof params.ref === 'function') {
+                  params.ref(el);
+                } else {
+                  params.ref = el;
+                }
+              },
+            },
+
+            typeof componentProps.render === 'object' ? (componentProps.render as object) : {},
+
+            params.disableStyleHooks !== true
+              ? getStyleHookProps(params.state ?? EMPTY_OBJECT, params.customStyleHookMapping)
+              : undefined,
+
+            combineProps(params.props),
+
+            {
+              component: undefined,
+              get class() {
+                return resolveClassName(componentProps.class, params.state);
+              },
+            },
+          ])}
         >
-          {safeChildren()}
+          {params.children ?? componentProps.children}
         </Dynamic>
       </Show>
     );
+  };
+
+  return (renderFnProps: HTMLProps) => {
+    return <Component {...renderFnProps} />;
   };
 }
 
@@ -153,7 +119,7 @@ export namespace RenderElement {
     /**
      * The state of the component.
      */
-    state?: Accessor<State>;
+    state?: State;
     /**
      * Intrinsic props to be spread on the rendered element.
      */
@@ -171,7 +137,7 @@ export namespace RenderElement {
     /**
      * A mapping of state to style hooks.
      */
-    customStyleHookMapping?: MaybeAccessor<CustomStyleHookMapping<State>>;
+    customStyleHookMapping?: CustomStyleHookMapping<State>;
   } /* This typing ensures `disableStyleHookMapping` is constantly defined or undefined */ & (
     | {
         /**
@@ -197,7 +163,7 @@ export namespace RenderElement {
      * The class name to apply to the rendered element.
      * Can be a string or a function that accepts the state and returns a string.
      */
-    class?: string | ((state: Accessor<State>) => string);
+    class?: string | ((state: State) => string);
     /**
      * The render prop or Solid element to override the default element.
      */

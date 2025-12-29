@@ -20,7 +20,7 @@ import { useButton } from '../../use-button/useButton';
 import type { BaseUIComponentProps, BaseUIHTMLProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useControlled } from '../../utils/useControlled';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import { useCustomStyleHookMapping } from '../utils/useCustomStyleHookMapping';
 import { CheckboxRootContext } from './CheckboxRootContext';

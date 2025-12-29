@@ -2,7 +2,7 @@
 import { useDialogClose } from '../../dialog/close/useDialogClose';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
 
 /**

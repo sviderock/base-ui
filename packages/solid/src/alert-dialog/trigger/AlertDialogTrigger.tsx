@@ -3,7 +3,7 @@ import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useAlertDialogRootContext } from '../root/AlertDialogRootContext';
 
 /**

@@ -4,7 +4,7 @@ import type { CompositeMetadata } from '../../composite/list/CompositeList';
 import { CompositeRoot } from '../../composite/root/CompositeRoot';
 import { splitComponentProps } from '../../solid-helpers';
 import { Orientation as BaseOrientation, BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { ToolbarRootContext } from './ToolbarRootContext';
 
 /**

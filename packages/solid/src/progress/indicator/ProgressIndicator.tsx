@@ -2,7 +2,7 @@
 import { type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { valueToPercent } from '../../utils/valueToPercent';
 import type { ProgressRoot } from '../root/ProgressRoot';
 import { useProgressRootContext } from '../root/ProgressRootContext';

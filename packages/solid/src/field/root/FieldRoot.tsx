@@ -5,7 +5,7 @@ import { useFieldsetRootContext } from '../../fieldset/root/FieldsetRootContext'
 import { useFormContext } from '../../form/FormContext';
 import { splitComponentProps, type Args } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { DEFAULT_VALIDITY_STATE, fieldValidityMapping } from '../utils/constants';
 import { FieldRootContext, type FieldRootChildRefs } from './FieldRootContext';
 

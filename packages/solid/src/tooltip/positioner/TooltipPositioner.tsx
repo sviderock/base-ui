@@ -13,7 +13,7 @@ import {
   type OffsetFunction,
   type Side,
 } from '../../utils/useAnchorPositioning';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useTooltipPortalContext } from '../portal/TooltipPortalContext';
 import { useTooltipRootContext } from '../root/TooltipRootContext';
 import { TooltipPositionerContext } from './TooltipPositionerContext';

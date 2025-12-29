@@ -24,7 +24,7 @@ import {
   type OffsetFunction,
   type Side,
 } from '../../utils/useAnchorPositioning';
-import { useRenderElement } from '../../utils/useRenderElementV2';
+import { useRenderElement } from '../../utils/useRenderElement';
 import { useMenuPortalContext } from '../portal/MenuPortalContext';
 import { useMenuRootContext } from '../root/MenuRootContext';
 import { MenuPositionerContext } from './MenuPositionerContext';

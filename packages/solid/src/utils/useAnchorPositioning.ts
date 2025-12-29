@@ -449,7 +449,9 @@ export function useAnchorPositioning(
       arrowRef,
       setArrowRef,
     },
-    context,
+    get context() {
+      return context();
+    },
     isPositioned,
     update,
   };
@@ -561,7 +563,7 @@ export namespace useAnchorPositioning {
       arrowRef: Accessor<Element | null | undefined>;
       setArrowRef: Setter<Element | null | undefined>;
     };
-    context: MaybeAccessor<FloatingContext>;
+    context: FloatingContext;
     isPositioned: Accessor<boolean>;
     update: () => void;
   }

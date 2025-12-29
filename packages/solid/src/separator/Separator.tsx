@@ -1,7 +1,7 @@
 'use client';
 import { splitComponentProps } from '../solid-helpers';
 import type { BaseUIComponentProps, Orientation } from '../utils/types';
-import { useRenderElement } from '../utils/useRenderElementV2';
+import { useRenderElement } from '../utils/useRenderElement';
 
 /**
  * A separator element accessible to screen readers.

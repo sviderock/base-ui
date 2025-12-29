@@ -1,10 +1,11 @@
 import { expectType } from '#test-utils';
 import type { Component } from 'solid-js';
+import type { HTMLProps } from '../utils/types';
 import { useRenderElement } from './useRenderElement';
 
 const element1 = useRenderElement('div', {}, {});
 
-expectType<Component, typeof element1>(element1);
+expectType<Component<HTMLProps>, typeof element1>(element1);
 
 const element2 = useRenderElement(
   'div',
@@ -14,7 +15,7 @@ const element2 = useRenderElement(
   },
 );
 
-expectType<Component, typeof element2>(element2);
+expectType<Component<HTMLProps>, typeof element2>(element2);
 
 const element3 = useRenderElement(
   'div',
@@ -24,7 +25,7 @@ const element3 = useRenderElement(
   },
 );
 
-expectType<Component, typeof element3>(element3);
+expectType<Component<HTMLProps>, typeof element3>(element3);
 
 const element4 = useRenderElement(
   'div',
@@ -34,4 +35,4 @@ const element4 = useRenderElement(
   },
 );
 
-expectType<Component, typeof element4>(element4);
+expectType<Component<HTMLProps>, typeof element4>(element4);
