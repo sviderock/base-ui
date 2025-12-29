@@ -31,15 +31,15 @@ export namespace useRender {
   > =
     | keyof JSX.IntrinsicElements
     | DynamicProps<ElementType>
-    | ComponentRenderFn<Record<string, unknown>, State>
+    | ComponentRenderFn<JSX.HTMLAttributes<any>, State>
     | null;
 
-  export type ElementProps<ElementType extends Element> = JSX.HTMLAttributes<ElementType>;
+  export type ElementProps<ElementType extends ValidComponent> = SolidComponentProps<ElementType>;
 
   export type ComponentProps<
     ElementType extends ValidComponent,
     State extends Record<string, MaybeAccessor<any>> = {},
-  > = JSX.HTMLAttributes<ElementType> & {
+  > = SolidComponentProps<ElementType> & {
     /**
      * Allows you to replace the component’s HTML element
      * with a different tag, or compose it with another component.
