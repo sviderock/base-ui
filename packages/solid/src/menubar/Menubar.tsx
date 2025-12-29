@@ -1,5 +1,5 @@
 'use client';
-import { createMemo, createSignal, onCleanup, onMount, type ParentProps } from 'solid-js';
+import { createSignal, onCleanup, onMount, type ParentProps } from 'solid-js';
 import { CompositeRoot } from '../composite/root/CompositeRoot';
 import {
   FloatingNode,
@@ -8,12 +8,12 @@ import {
   useFloatingTree,
 } from '../floating-ui-solid';
 import { type MenuRoot } from '../menu/root/MenuRoot';
-import { access, splitComponentProps, type MaybeAccessor } from '../solid-helpers';
+import { splitComponentProps } from '../solid-helpers';
 import { useScrollLock } from '../utils';
 import { BaseUIComponentProps } from '../utils/types';
 import { AnimationFrame } from '../utils/useAnimationFrame';
 import { useBaseUiId } from '../utils/useBaseUiId';
-import { useRenderElement } from '../utils/useRenderElement';
+import { useRenderElement } from '../utils/useRenderElementV2';
 import { MenubarContext, useMenubarContext } from './MenubarContext';
 
 /**
@@ -23,10 +23,9 @@ import { MenubarContext, useMenubarContext } from './MenubarContext';
  */
 export function Menubar(props: Menubar.Props) {
   const [, local, otherProps] = splitComponentProps(props, ['orientation', 'loop', 'modal', 'id']);
-  const orientation = () => access(local.orientation) ?? 'horizontal';
-  const loop = () => access(local.loop) ?? true;
-  const modal = () => access(local.modal) ?? true;
-  const idProp = () => access(local.id);
+  const orientation = () => local.orientation ?? 'horizontal';
+  const loop = () => local.loop ?? true;
+  const modal = () => local.modal ?? true;
 
   const [contentElement, setContentElement] = createSignal<HTMLElement | null | undefined>();
   const [hasSubmenuOpen, setHasSubmenuOpen] = createSignal(false);
@@ -39,12 +38,16 @@ export function Menubar(props: Menubar.Props) {
     referenceElement: contentElement,
   });
 
-  const id = useBaseUiId(idProp);
+  const id = useBaseUiId(() => local.id);
 
-  const state = createMemo<Menubar.State>(() => ({
-    orientation: orientation(),
-    modal: modal(),
-  }));
+  const state: Menubar.State = {
+    get orientation() {
+      return orientation();
+    },
+    get modal() {
+      return modal();
+    },
+  };
 
   const context: MenubarContext = {
     contentElement,
@@ -53,15 +56,23 @@ export function Menubar(props: Menubar.Props) {
     hasSubmenuOpen,
     modal,
     orientation,
+    rootId: id,
     allowMouseUpTriggerRef,
     setAllowMouseUpTriggerRef,
-    rootId: id,
   };
 
   const element = useRenderElement('div', props, {
     state,
     ref: setContentElement,
-    props: [() => ({ role: 'menubar', id: id() }), otherProps],
+    props: [
+      {
+        role: 'menubar',
+        get id() {
+          return id();
+        },
+      },
+      otherProps,
+    ],
   });
 
   return (
@@ -128,22 +139,22 @@ export namespace Menubar {
      * Whether the menubar is modal.
      * @default true
      */
-    modal?: MaybeAccessor<boolean | undefined>;
+    modal?: boolean;
     /**
      * Whether the whole menubar is disabled.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
     /**
      * The orientation of the menubar.
      * @default 'horizontal'
      */
-    orientation?: MaybeAccessor<MenuRoot.Orientation | undefined>;
+    orientation?: MenuRoot.Orientation;
     /**
      * Whether to loop keyboard focus back to the first item
      * when the end of the list is reached while using the arrow keys.
      * @default true
      */
-    loop?: MaybeAccessor<boolean | undefined>;
+    loop?: boolean;
   }
 }
