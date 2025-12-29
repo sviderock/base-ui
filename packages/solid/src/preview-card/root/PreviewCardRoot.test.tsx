@@ -161,7 +161,7 @@ describe('<PreviewCard.Root />', () => {
 
         return (
           <Root
-            open={open}
+            open={open()}
             onOpenChange={(nextOpen) => {
               handleChange(open());
               setOpen(nextOpen);
@@ -210,7 +210,7 @@ describe('<PreviewCard.Root />', () => {
 
         return (
           <Root
-            open={open}
+            open={open()}
             onOpenChange={(nextOpen) => {
               handleChange(open());
               setOpen(nextOpen);
@@ -432,7 +432,7 @@ describe('<PreviewCard.Root />', () => {
         return (
           <div>
             <button onClick={() => setOpen(false)}>Close</button>
-            <PreviewCard.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <PreviewCard.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <PreviewCard.Portal>
                 <PreviewCard.Positioner>
                   <PreviewCard.Popup data-testid="popup" />
@@ -481,7 +481,7 @@ describe('<PreviewCard.Root />', () => {
             {/* eslint-disable-next-line solid/no-innerhtml */}
             <style innerHTML={style} />
             <button onClick={() => setOpen(false)}>Close</button>
-            <PreviewCard.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <PreviewCard.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <PreviewCard.Portal>
                 <PreviewCard.Positioner>
                   <PreviewCard.Popup class="animation-test-indicator" data-testid="popup" />
@@ -516,7 +516,7 @@ describe('<PreviewCard.Root />', () => {
         return (
           <div>
             <button onClick={() => setOpen(false)}>Close</button>
-            <PreviewCard.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <PreviewCard.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <PreviewCard.Portal>
                 <PreviewCard.Positioner>
                   <PreviewCard.Popup data-testid="popup" />
@@ -565,7 +565,7 @@ describe('<PreviewCard.Root />', () => {
             {/* eslint-disable-next-line solid/no-innerhtml */}
             <style innerHTML={style} />
             <button onClick={() => setOpen(false)}>Close</button>
-            <PreviewCard.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <PreviewCard.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <PreviewCard.Portal>
                 <PreviewCard.Positioner>
                   <PreviewCard.Popup class="animation-test-indicator" data-testid="popup" />
@@ -603,7 +603,7 @@ describe('<PreviewCard.Root />', () => {
         return (
           <div>
             <button onClick={() => setOpen(true)}>Open</button>
-            <PreviewCard.Root open={open} onOpenChangeComplete={onOpenChangeComplete}>
+            <PreviewCard.Root open={open()} onOpenChangeComplete={onOpenChangeComplete}>
               <PreviewCard.Portal>
                 <PreviewCard.Positioner>
                   <PreviewCard.Popup data-testid="popup" />
@@ -653,7 +653,7 @@ describe('<PreviewCard.Root />', () => {
             <style innerHTML={style} />
             <button onClick={() => setOpen(true)}>Open</button>
             <PreviewCard.Root
-              open={open}
+              open={open()}
               onOpenChange={setOpen}
               onOpenChangeComplete={onOpenChangeComplete}
             >

@@ -1,14 +1,13 @@
 'use client';
-import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
-import { DISABLED_TRANSITIONS_STYLE, EMPTY_OBJECT } from '../../utils/constants';
+import { DISABLED_TRANSITIONS_STYLE } from '../../utils/constants';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { usePreviewCardPositionerContext } from '../positioner/PreviewCardPositionerContext';
 import { usePreviewCardRootContext } from '../root/PreviewCardContext';
@@ -41,12 +40,20 @@ export function PreviewCardPopup(componentProps: PreviewCardPopup.Props) {
     },
   });
 
-  const state = createMemo<PreviewCardPopup.State>(() => ({
-    open: open(),
-    side: side(),
-    align: align(),
-    transitionStatus: transitionStatus(),
-  }));
+  const state: PreviewCardPopup.State = {
+    get open() {
+      return open();
+    },
+    get side() {
+      return side();
+    },
+    get align() {
+      return align();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
@@ -56,7 +63,11 @@ export function PreviewCardPopup(componentProps: PreviewCardPopup.Props) {
     customStyleHookMapping,
     props: [
       popupProps,
-      () => (transitionStatus() === 'starting' ? DISABLED_TRANSITIONS_STYLE : EMPTY_OBJECT),
+      {
+        get style() {
+          return transitionStatus() === 'starting' ? DISABLED_TRANSITIONS_STYLE.style : undefined;
+        },
+      },
       elementProps,
     ],
   });

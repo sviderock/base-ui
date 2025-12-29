@@ -1,11 +1,10 @@
 'use client';
-import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { usePreviewCardRootContext } from '../root/PreviewCardContext';
 
@@ -25,24 +24,30 @@ export function PreviewCardBackdrop(componentProps: PreviewCardBackdrop.Props) {
 
   const { open, mounted, transitionStatus } = usePreviewCardRootContext();
 
-  const state = createMemo<PreviewCardBackdrop.State>(() => ({
-    open: open(),
-    transitionStatus: transitionStatus(),
-  }));
+  const state: PreviewCardBackdrop.State = {
+    get open() {
+      return open();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
     customStyleHookMapping,
     props: [
-      () => ({
+      {
         role: 'presentation',
-        hidden: !mounted(),
+        get hidden() {
+          return !mounted();
+        },
         style: {
           'pointer-events': 'none',
           'user-select': 'none',
           '-webkit-user-select': 'none',
         },
-      }),
+      },
       elementProps,
     ],
   });

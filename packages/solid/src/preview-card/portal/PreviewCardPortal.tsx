@@ -1,7 +1,6 @@
 'use client';
 import { type JSX, Show } from 'solid-js';
 import type { FloatingPortalProps } from '../../floating-ui-solid';
-import { access, type MaybeAccessor } from '../../solid-helpers';
 import { FloatingPortalLite } from '../../utils/FloatingPortalLite';
 import { usePreviewCardRootContext } from '../root/PreviewCardContext';
 import { PreviewCardPortalContext } from './PreviewCardPortalContext';
@@ -13,8 +12,7 @@ import { PreviewCardPortalContext } from './PreviewCardPortalContext';
  * Documentation: [Base UI Preview Card](https://base-ui.com/react/components/preview-card)
  */
 export function PreviewCardPortal(props: PreviewCardPortal.Props) {
-  const keepMounted = () => access(props.keepMounted) ?? false;
-  const container = () => access(props.container);
+  const keepMounted = () => props.keepMounted ?? false;
 
   const { mounted } = usePreviewCardRootContext();
 
@@ -23,7 +21,7 @@ export function PreviewCardPortal(props: PreviewCardPortal.Props) {
   return (
     <Show when={shouldRender()}>
       <PreviewCardPortalContext.Provider value={keepMounted}>
-        <FloatingPortalLite root={container()}>{props.children}</FloatingPortalLite>
+        <FloatingPortalLite root={props.container}>{props.children}</FloatingPortalLite>
       </PreviewCardPortalContext.Provider>
     </Show>
   );
@@ -36,10 +34,10 @@ export namespace PreviewCardPortal {
      * Whether to keep the portal mounted in the DOM while the popup is hidden.
      * @default false
      */
-    keepMounted?: MaybeAccessor<boolean | undefined>;
+    keepMounted?: boolean;
     /**
      * A parent element to render the portal element into.
      */
-    container?: MaybeAccessor<FloatingPortalProps['root'] | undefined>;
+    container?: FloatingPortalProps['root'];
   }
 }

@@ -2,7 +2,7 @@
 import { createContext, useContext, type Accessor } from 'solid-js';
 import type { FloatingRootContext } from '../../floating-ui-solid';
 import type { BaseOpenChangeReason as OpenChangeReason } from '../../utils/translateOpenChangeReason';
-import type { HTMLProps } from '../../utils/types';
+import type { BaseUIHTMLProps, HTMLProps } from '../../utils/types';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 
 export interface PreviewCardRootContext {
@@ -15,8 +15,8 @@ export interface PreviewCardRootContext {
   closeDelay: Accessor<number>;
   mounted: Accessor<boolean>;
   setMounted: (mounted: boolean) => void;
-  triggerProps: Accessor<HTMLProps>;
-  popupProps: Accessor<HTMLProps>;
+  triggerProps: (externalProps: HTMLProps | BaseUIHTMLProps) => BaseUIHTMLProps;
+  popupProps: (externalProps: HTMLProps | BaseUIHTMLProps) => BaseUIHTMLProps;
   instantType: Accessor<'dismiss' | 'focus' | undefined>;
   floatingRootContext: FloatingRootContext;
   transitionStatus: Accessor<TransitionStatus>;

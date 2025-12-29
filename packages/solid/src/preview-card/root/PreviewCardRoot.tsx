@@ -7,7 +7,7 @@ import {
   useHover,
   useInteractions,
 } from '../../floating-ui-solid';
-import { access, type MaybeAccessor } from '../../solid-helpers';
+import { combineProps } from '../../merge-props';
 import { useFocusWithDelay } from '../../utils/interactions/useFocusWithDelay';
 import {
   translateOpenChangeReason,
@@ -26,11 +26,8 @@ import { PreviewCardRootContext } from './PreviewCardContext';
  * Documentation: [Base UI Preview Card](https://base-ui.com/react/components/preview-card)
  */
 export function PreviewCardRoot(props: PreviewCardRoot.Props) {
-  const externalOpen = () => access(props.open);
-  const defaultOpen = () => access(props.defaultOpen);
-  const delayWithDefault = () => access(props.delay) ?? OPEN_DELAY;
-  const closeDelayWithDefault = () => access(props.closeDelay) ?? CLOSE_DELAY;
-  const actionsRef = () => access(props.actionsRef);
+  const delayWithDefault = () => props.delay ?? OPEN_DELAY;
+  const closeDelayWithDefault = () => props.closeDelay ?? CLOSE_DELAY;
 
   const [triggerElement, setTriggerElement] = createSignal<Element | null | undefined>(null);
   const [positionerElement, setPositionerElement] = createSignal<HTMLElement | null | undefined>(
@@ -43,8 +40,8 @@ export function PreviewCardRoot(props: PreviewCardRoot.Props) {
   };
 
   const [open, setOpenUnwrapped] = useControlled({
-    controlled: externalOpen,
-    default: defaultOpen,
+    controlled: () => props.open,
+    default: () => props.defaultOpen,
     name: 'PreviewCard',
     state: 'open',
   });
@@ -59,7 +56,7 @@ export function PreviewCardRoot(props: PreviewCardRoot.Props) {
   };
 
   useOpenChangeComplete({
-    enabled: () => !actionsRef(),
+    enabled: () => !props.actionsRef,
     open,
     ref: () => refs.popupRef,
     onComplete() {
@@ -70,8 +67,8 @@ export function PreviewCardRoot(props: PreviewCardRoot.Props) {
   });
 
   onMount(() => {
-    if (actionsRef()) {
-      actionsRef()!.unmount = handleUnmount;
+    if (props.actionsRef) {
+      props.actionsRef.unmount = handleUnmount;
     }
   });
 
@@ -143,8 +140,8 @@ export function PreviewCardRoot(props: PreviewCardRoot.Props) {
     positionerElement,
     setPositionerElement,
     refs,
-    triggerProps: () => getReferenceProps(),
-    popupProps: () => getFloatingProps(),
+    triggerProps: (externalProps) => combineProps(externalProps, getReferenceProps()),
+    popupProps: (externalProps) => combineProps(externalProps, getFloatingProps()),
     floatingRootContext: context,
     instantType,
     transitionStatus,
@@ -172,11 +169,11 @@ export namespace PreviewCardRoot {
      * To render a controlled preview card, use the `open` prop instead.
      * @default false
      */
-    defaultOpen?: MaybeAccessor<boolean | undefined>;
+    defaultOpen?: boolean;
     /**
      * Whether the preview card is currently open.
      */
-    open?: MaybeAccessor<boolean | undefined>;
+    open?: boolean;
     /**
      * Event handler called when the preview card is opened or closed.
      * @type (open: boolean, event?: Event, reason?: PreviewCard.Root.OpenChangeReason) => void
@@ -194,19 +191,19 @@ export namespace PreviewCardRoot {
      * How long to wait before the preview card opens. Specified in milliseconds.
      * @default 600
      */
-    delay?: MaybeAccessor<number | undefined>;
+    delay?: number;
     /**
      * How long to wait before closing the preview card. Specified in milliseconds.
      * @default 300
      */
-    closeDelay?: MaybeAccessor<number | undefined>;
+    closeDelay?: number;
     /**
      * A ref to imperative actions.
      * - `unmount`: When specified, the preview card will not be unmounted when closed.
      * Instead, the `unmount` function must be called to unmount the preview card manually.
      * Useful when the preview card's animation is controlled by an external library.
      */
-    actionsRef?: MaybeAccessor<Actions | undefined>;
+    actionsRef?: Actions;
   }
 
   export interface Actions {

@@ -4,7 +4,7 @@ import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 
 function Trigger(props: PreviewCard.Trigger.Props) {
-  return <PreviewCard.Trigger {...props} ref={props.ref} render={(p) => <div {...p()} />} />;
+  return <PreviewCard.Trigger {...props} ref={props.ref} render="div" />;
 }
 
 describe('<PreviewCard.Positioner />', () => {
