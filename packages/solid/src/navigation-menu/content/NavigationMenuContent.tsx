@@ -1,5 +1,5 @@
 'use client';
-import { createMemo, createSignal, Show, type ComponentProps } from 'solid-js';
+import { createSignal, Show, type JSX } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { CompositeRoot } from '../../composite/root/CompositeRoot';
 import { FloatingNode } from '../../floating-ui-solid';
@@ -12,7 +12,7 @@ import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { AnimationFrame } from '../../utils/useAnimationFrame';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useNavigationMenuItemContext } from '../item/NavigationMenuItemContext';
 import {
@@ -64,27 +64,22 @@ export function NavigationMenuContent(componentProps: NavigationMenuContent.Prop
     },
   });
 
-  const state = createMemo<NavigationMenuContent.State>(() => ({
-    open: open(),
-    transitionStatus: transitionStatus(),
-    activationDirection: activationDirection(),
-  }));
+  const state: NavigationMenuContent.State = {
+    get open() {
+      return open();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+    get activationDirection() {
+      return activationDirection();
+    },
+  };
 
   const handleCurrentContentRef = (node: HTMLDivElement | null | undefined) => {
     if (node) {
       refs.currentContentRef = node;
     }
-  };
-
-  const commonProps: ComponentProps<'div'> = {
-    onFocus() {
-      setFocusInside(true);
-    },
-    onBlur(event) {
-      if (!contains(event.currentTarget, event.relatedTarget as Element | null | undefined)) {
-        setFocusInside(false);
-      }
-    },
   };
 
   const shouldRender = () => viewportElement() != null && mounted();
@@ -97,14 +92,28 @@ export function NavigationMenuContent(componentProps: NavigationMenuContent.Prop
       handleCurrentContentRef(el);
     },
     props: [
-      () =>
-        !open() && mounted()
-          ? {
-              style: { position: 'absolute', top: 0, left: 0 },
-              inert: inertValue(!focusInside()),
-              ...commonProps,
-            }
-          : commonProps,
+      {
+        get style(): JSX.CSSProperties | undefined {
+          if (!open() && mounted()) {
+            return { position: 'absolute', top: 0, left: 0 };
+          }
+          return undefined;
+        },
+        get inert() {
+          if (!open() && mounted()) {
+            return inertValue(!focusInside());
+          }
+          return undefined;
+        },
+        onFocus() {
+          setFocusInside(true);
+        },
+        onBlur(event) {
+          if (!contains(event.currentTarget, event.relatedTarget as Element | null | undefined)) {
+            setFocusInside(false);
+          }
+        },
+      },
       elementProps,
     ],
     customStyleHookMapping,

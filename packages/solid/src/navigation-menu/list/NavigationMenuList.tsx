@@ -1,9 +1,8 @@
 'use client';
-import { createMemo } from 'solid-js';
 import { CompositeRoot } from '../../composite/root/CompositeRoot';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useNavigationMenuRootContext } from '../root/NavigationMenuRootContext';
 
 /**
@@ -17,9 +16,11 @@ export function NavigationMenuList(componentProps: NavigationMenuList.Props) {
 
   const { orientation, open } = useNavigationMenuRootContext();
 
-  const state = createMemo<NavigationMenuList.State>(() => ({
-    open: open(),
-  }));
+  const state: NavigationMenuList.State = {
+    get open() {
+      return open();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, { state, props: elementProps });
 

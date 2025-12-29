@@ -1,7 +1,6 @@
 'use client';
 import { Show, type JSX } from 'solid-js';
 import { FloatingPortal } from '../../floating-ui-solid';
-import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useNavigationMenuRootContext } from '../root/NavigationMenuRootContext';
 import { NavigationMenuPortalContext } from './NavigationMenuPortalContext';
 
@@ -12,8 +11,7 @@ import { NavigationMenuPortalContext } from './NavigationMenuPortalContext';
  * Documentation: [Base UI Navigation Menu](https://base-ui.com/react/components/navigation-menu)
  */
 export function NavigationMenuPortal(props: NavigationMenuPortal.Props) {
-  const keepMounted = () => access(props.keepMounted) ?? false;
-  const container = () => access(props.container);
+  const keepMounted = () => props.keepMounted ?? false;
 
   const { mounted } = useNavigationMenuRootContext();
 
@@ -22,7 +20,7 @@ export function NavigationMenuPortal(props: NavigationMenuPortal.Props) {
   return (
     <Show when={shouldRender()}>
       <NavigationMenuPortalContext.Provider value={keepMounted}>
-        <FloatingPortal root={container()}>{props.children}</FloatingPortal>
+        <FloatingPortal root={props.container}>{props.children}</FloatingPortal>
       </NavigationMenuPortalContext.Provider>
     </Show>
   );
@@ -35,10 +33,10 @@ export namespace NavigationMenuPortal {
      * Whether to keep the portal mounted in the DOM while the popup is hidden.
      * @default false
      */
-    keepMounted?: MaybeAccessor<boolean | undefined>;
+    keepMounted?: boolean;
     /**
      * A parent element to render the portal element into.
      */
-    container?: MaybeAccessor<HTMLElement | null | undefined>;
+    container?: HTMLElement | null;
   }
 }

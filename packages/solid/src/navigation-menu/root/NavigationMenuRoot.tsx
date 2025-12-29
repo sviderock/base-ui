@@ -8,13 +8,13 @@ import {
   type FloatingRootContext,
 } from '../../floating-ui-solid';
 import { activeElement, contains } from '../../floating-ui-solid/utils';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { access, splitComponentProps } from '../../solid-helpers';
 import { useControlled, useTransitionStatus } from '../../utils';
 import { ownerDocument } from '../../utils/owner';
 import type { BaseOpenChangeReason } from '../../utils/translateOpenChangeReason';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import {
   NavigationMenuRootContext,
   NavigationMenuTreeContext,
@@ -58,7 +58,6 @@ export function NavigationMenuRoot(componentProps: NavigationMenuRoot.Props) {
   const open = createMemo(() => value() != null);
 
   let closeReasonRef: BaseOpenChangeReason | undefined;
-  let rootRef = null as HTMLDivElement | null | undefined;
 
   const [positionerElement, setPositionerElement] = createSignal<HTMLElement | null | undefined>(
     null,
@@ -102,7 +101,7 @@ export function NavigationMenuRoot(componentProps: NavigationMenuRoot.Props) {
   };
 
   const handleUnmount = () => {
-    const doc = ownerDocument(rootRef);
+    const doc = ownerDocument(refs.rootRef);
     const activeEl = activeElement(doc);
 
     if (
@@ -189,17 +188,28 @@ function TreeContext(componentProps: NavigationMenuRoot.Props) {
 
   const { open } = useNavigationMenuRootContext();
 
-  const state = createMemo<NavigationMenuRoot.State>(() => ({
-    open: open(),
-    nested: nested(),
-  }));
+  const state: NavigationMenuRoot.State = {
+    get open() {
+      return open();
+    },
+    get nested() {
+      return nested();
+    },
+  };
 
   const element = useRenderElement(() => (nested() ? 'div' : 'nav'), componentProps, {
     state,
-    ref: (el) => {
+    ref: (el: any) => {
       refs.rootRef = el;
     },
-    props: [() => ({ 'aria-orientation': orientation() }), elementProps],
+    props: [
+      {
+        get 'aria-orientation'() {
+          return orientation();
+        },
+      },
+      elementProps,
+    ],
   });
 
   return (
@@ -228,7 +238,7 @@ export namespace NavigationMenuRoot {
      * Instead, the `unmount` function must be called to unmount the navigation menu manually.
      * Useful when the navigation menu's animation is controlled by an external library.
      */
-    actionsRef?: MaybeAccessor<{ unmount: () => void } | undefined>;
+    actionsRef?: { unmount: () => void };
     /**
      * Event handler called after any animations complete when the navigation menu is closed.
      */
@@ -240,14 +250,14 @@ export namespace NavigationMenuRoot {
      * To render an uncontrolled navigation menu, use the `defaultValue` prop instead.
      * @default null
      */
-    value?: MaybeAccessor<any | undefined>;
+    value?: any;
     /**
      * The uncontrolled value of the item that should be initially selected.
      *
      * To render a controlled navigation menu, use the `value` prop instead.
      * @default null
      */
-    defaultValue?: MaybeAccessor<any | undefined>;
+    defaultValue?: any;
     /**
      * Callback fired when the value changes.
      */
@@ -260,16 +270,16 @@ export namespace NavigationMenuRoot {
      * How long to wait before opening the navigation menu. Specified in milliseconds.
      * @default 50
      */
-    delay?: MaybeAccessor<number | undefined>;
+    delay?: number;
     /**
      * How long to wait before closing the navigation menu. Specified in milliseconds.
      * @default 50
      */
-    closeDelay?: MaybeAccessor<number | undefined>;
+    closeDelay?: number;
     /**
      * The orientation of the navigation menu.
      * @default 'horizontal'
      */
-    orientation?: MaybeAccessor<'horizontal' | 'vertical' | undefined>;
+    orientation?: 'horizontal' | 'vertical';
   }
 }

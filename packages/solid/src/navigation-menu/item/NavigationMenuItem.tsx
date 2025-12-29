@@ -1,9 +1,9 @@
 'use client';
 import { createMemo } from 'solid-js';
-import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTransitionStatus } from '../../utils/useTransitionStatus';
 import { useNavigationMenuRootContext } from '../root/NavigationMenuRootContext';
 import { NavigationMenuItemContext } from './NavigationMenuItemContext';
@@ -16,10 +16,9 @@ import { NavigationMenuItemContext } from './NavigationMenuItemContext';
  */
 export function NavigationMenuItem(componentProps: NavigationMenuItem.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['value']);
-  const valueProp = () => access(local.value);
 
   const fallbackValue = useBaseUiId();
-  const itemValue = () => valueProp() ?? fallbackValue();
+  const itemValue = () => local.value ?? fallbackValue();
 
   const { mounted: popupMounted, value } = useNavigationMenuRootContext();
   const itemOpen = () => popupMounted() && value() === itemValue();
@@ -55,6 +54,6 @@ export namespace NavigationMenuItem {
      * If no value is provided, a unique ID will be generated automatically.
      * Use when controlling the navigation menu programmatically.
      */
-    value?: MaybeAccessor<any | undefined>;
+    value?: any;
   }
 }

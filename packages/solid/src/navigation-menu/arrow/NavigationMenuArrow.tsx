@@ -1,10 +1,9 @@
 'use client';
-import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useNavigationMenuPositionerContext } from '../positioner/NavigationMenuPositionerContext';
 import { useNavigationMenuRootContext } from '../root/NavigationMenuRootContext';
 
@@ -20,18 +19,34 @@ export function NavigationMenuArrow(componentProps: NavigationMenuArrow.Props) {
   const { open } = useNavigationMenuRootContext();
   const { refs, side, align, arrowUncentered, arrowStyles } = useNavigationMenuPositionerContext();
 
-  const state = createMemo<NavigationMenuArrow.State>(() => ({
-    open: open(),
-    side: side(),
-    align: align(),
-    uncentered: arrowUncentered(),
-  }));
+  const state: NavigationMenuArrow.State = {
+    get open() {
+      return open();
+    },
+    get side() {
+      return side();
+    },
+    get align() {
+      return align();
+    },
+    get uncentered() {
+      return arrowUncentered();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
     ref: refs.setArrowRef,
     customStyleHookMapping: popupStateMapping,
-    props: [() => ({ style: arrowStyles(), 'aria-hidden': true }), elementProps],
+    props: [
+      {
+        get style() {
+          return arrowStyles();
+        },
+        'aria-hidden': true,
+      },
+      elementProps,
+    ],
   });
 
   return <>{element()}</>;

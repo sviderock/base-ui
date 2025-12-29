@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createMemo, onCleanup } from 'solid-js';
+import { createEffect, createMemo, onCleanup, type JSX } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import {
   getNextTabbable,
@@ -14,7 +14,7 @@ import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
 import { useBaseUiId } from '../../utils/useBaseUiId';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useNavigationMenuPositionerContext } from '../positioner/NavigationMenuPositionerContext';
 import { useNavigationMenuRootContext } from '../root/NavigationMenuRootContext';
@@ -40,13 +40,23 @@ export function NavigationMenuPopup(componentProps: NavigationMenuPopup.Props) {
 
   const id = useBaseUiId(() => local.id);
 
-  const state = createMemo<NavigationMenuPopup.State>(() => ({
-    open: open(),
-    transitionStatus: transitionStatus(),
-    side: positioning.side(),
-    align: positioning.align(),
-    anchorHidden: positioning.anchorHidden(),
-  }));
+  const state: NavigationMenuPopup.State = {
+    get open() {
+      return open();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+    get side() {
+      return positioning.side();
+    },
+    get align() {
+      return positioning.align();
+    },
+    get anchorHidden() {
+      return positioning.anchorHidden();
+    },
+  };
 
   // Allow the arrow to transition while the popup's size transitions.
   createEffect(() => {
@@ -85,17 +95,21 @@ export function NavigationMenuPopup(componentProps: NavigationMenuPopup.Props) {
     state,
     ref: setPopupElement,
     props: [
-      () => ({
-        id: id(),
+      {
+        get id() {
+          return id();
+        },
         tabIndex: -1,
-        style: calculatedStyles().isOriginSide
-          ? {
-              position: 'absolute',
-              [calculatedStyles().isOriginSide ? 'bottom' : 'top']: '0',
-              [calculatedStyles().isPhysicalLeft ? 'right' : 'left']: '0',
-            }
-          : {},
-      }),
+        get style(): JSX.CSSProperties | undefined {
+          return calculatedStyles().isOriginSide
+            ? {
+                position: 'absolute',
+                [calculatedStyles().isOriginSide ? 'bottom' : 'top']: '0',
+                [calculatedStyles().isPhysicalLeft ? 'right' : 'left']: '0',
+              }
+            : undefined;
+        },
+      },
       elementProps,
     ],
     customStyleHookMapping,

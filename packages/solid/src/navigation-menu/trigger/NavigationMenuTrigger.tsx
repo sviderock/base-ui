@@ -1,5 +1,5 @@
 'use client';
-import { batch, createEffect, createMemo, createSignal, onCleanup } from 'solid-js';
+import { batch, createEffect, createSignal, onCleanup } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import {
   safePolygon,
@@ -18,6 +18,7 @@ import {
   isOutsideEvent,
   stopEvent,
 } from '../../floating-ui-solid/utils';
+import { combineProps } from '../../merge-props/combineProps';
 import { splitComponentProps } from '../../solid-helpers';
 import { PATIENT_CLICK_THRESHOLD } from '../../utils/constants';
 import { FocusGuard } from '../../utils/FocusGuard';
@@ -29,7 +30,7 @@ import {
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useAnimationFrame } from '../../utils/useAnimationFrame';
 import { useAnimationsFinished } from '../../utils/useAnimationsFinished';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import { useTimeout } from '../../utils/useTimeout';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import { useNavigationMenuItemContext } from '../item/NavigationMenuItemContext';
@@ -343,9 +344,11 @@ export function NavigationMenuTrigger(componentProps: NavigationMenuTrigger.Prop
     handleValueChange(currentWidth, currentHeight);
   };
 
-  const state = createMemo<NavigationMenuTrigger.State>(() => ({
-    open: isActiveItem(),
-  }));
+  const state: NavigationMenuTrigger.State = {
+    get open() {
+      return isActiveItem();
+    },
+  };
 
   function handleSetPointerType(event: PointerEvent) {
     setPointerType(event.pointerType as 'mouse' | 'touch' | 'pen' | '');
@@ -356,7 +359,7 @@ export function NavigationMenuTrigger(componentProps: NavigationMenuTrigger.Prop
     ref: setTriggerElement,
     customStyleHookMapping: pressableTriggerOpenStateMapping,
     props: [
-      getReferenceProps,
+      (props) => combineProps(props, getReferenceProps),
       {
         tabIndex: 0,
         onMouseEnter: handleOpenEvent,
@@ -398,11 +401,13 @@ export function NavigationMenuTrigger(componentProps: NavigationMenuTrigger.Prop
             setValue(null, event, 'focus-out');
           }
         },
+        get 'aria-expanded'() {
+          return isActiveItem();
+        },
+        get 'aria-controls'() {
+          return isActiveItem() ? popupElement()?.id : undefined;
+        },
       },
-      () => ({
-        'aria-expanded': isActiveItem(),
-        'aria-controls': isActiveItem() ? popupElement()?.id : undefined,
-      }),
       elementProps,
     ],
   });

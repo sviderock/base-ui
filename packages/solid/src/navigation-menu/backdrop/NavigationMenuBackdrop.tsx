@@ -1,11 +1,10 @@
 'use client';
-import { createMemo } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
-import { useRenderElement } from '../../utils/useRenderElement';
+import { useRenderElement } from '../../utils/useRenderElementV2';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import { useNavigationMenuRootContext } from '../root/NavigationMenuRootContext';
 
@@ -25,20 +24,26 @@ export function NavigationMenuBackdrop(componentProps: NavigationMenuBackdrop.Pr
 
   const { open, mounted, transitionStatus } = useNavigationMenuRootContext();
 
-  const state = createMemo<NavigationMenuBackdrop.State>(() => ({
-    open: open(),
-    transitionStatus: transitionStatus(),
-  }));
+  const state: NavigationMenuBackdrop.State = {
+    get open() {
+      return open();
+    },
+    get transitionStatus() {
+      return transitionStatus();
+    },
+  };
 
   const element = useRenderElement('div', componentProps, {
     state,
     customStyleHookMapping,
     props: [
-      () => ({
+      {
         role: 'presentation',
-        hidden: !mounted(),
+        get hidden() {
+          return !mounted();
+        },
         style: { 'user-select': 'none', '-webkit-user-select': 'none' },
-      }),
+      },
       elementProps,
     ],
   });
