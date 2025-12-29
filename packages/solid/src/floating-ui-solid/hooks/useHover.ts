@@ -436,12 +436,19 @@ export function useHover(
       });
     }),
   );
-  const reference = createMemo<ElementProps['reference']>(() => {
-    function setPointerRef(event: PointerEvent) {
-      pointerTypeRef = event.pointerType;
-    }
 
+  function setPointerRef(event: PointerEvent) {
+    pointerTypeRef = event.pointerType;
+  }
+
+  const reference = createMemo<ElementProps['reference']>(() => {
     return {
+      ref: () => {
+        onCleanup(() => {
+          // @ts-expect-error TODO: even though its not in the types this is valid
+          context().refs?.setReference?.(null);
+        });
+      },
       onPointerDown: setPointerRef,
       onPointerEnter: setPointerRef,
       onMouseMove: (event) => {
