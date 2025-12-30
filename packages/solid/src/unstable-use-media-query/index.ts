@@ -58,7 +58,6 @@ export function useMediaQuery(
   return match;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace useMediaQuery {
   export interface Options {
     /**

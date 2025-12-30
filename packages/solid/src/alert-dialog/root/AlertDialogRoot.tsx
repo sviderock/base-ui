@@ -1,5 +1,5 @@
 'use client';
-import { mergeProps, useContext } from 'solid-js';
+import { mergeProps as solidMergeProps, useContext } from 'solid-js';
 import type { DialogRoot } from '../../dialog/root/DialogRoot';
 import { type DialogOpenChangeReason, useDialogRoot } from '../../dialog/root/useDialogRoot';
 import { AlertDialogRootContext } from './AlertDialogRootContext';
@@ -31,7 +31,7 @@ export function AlertDialogRoot(props: AlertDialogRoot.Props) {
 
   const nested = () => Boolean(parentDialogRootContext);
 
-  const contextValue: AlertDialogRootContext = mergeProps(dialogRoot, {
+  const contextValue: AlertDialogRootContext = solidMergeProps(dialogRoot, {
     nested,
     // eslint-disable-next-line solid/reactivity
     onOpenChangeComplete: props.onOpenChangeComplete,

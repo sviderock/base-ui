@@ -18,7 +18,7 @@ import {
   isOutsideEvent,
   stopEvent,
 } from '../../floating-ui-solid/utils';
-import { combineProps } from '../../merge-props/combineProps';
+import { mergeProps } from '../../merge-props/mergeProps';
 import { splitComponentProps } from '../../solid-helpers';
 import { PATIENT_CLICK_THRESHOLD } from '../../utils/constants';
 import { FocusGuard } from '../../utils/FocusGuard';
@@ -359,7 +359,7 @@ export function NavigationMenuTrigger(componentProps: NavigationMenuTrigger.Prop
     ref: setTriggerElement,
     customStyleHookMapping: pressableTriggerOpenStateMapping,
     props: [
-      (props) => combineProps(props, getReferenceProps),
+      (props) => mergeProps(props, getReferenceProps),
       {
         tabIndex: 0,
         onMouseEnter: handleOpenEvent,

@@ -1,5 +1,5 @@
 'use client';
-import { mergeProps, Show, splitProps } from 'solid-js';
+import { Show, mergeProps as solidMergeProps, splitProps } from 'solid-js';
 import { fieldValidityMapping } from '../../field/utils/constants';
 import { access, MaybeAccessor } from '../../solid-helpers';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
@@ -50,7 +50,7 @@ export function CheckboxIndicator(componentProps: CheckboxIndicator.Props) {
 
   const shouldRender = () => keepMounted() || rendered();
 
-  const indicatorState: CheckboxIndicator.State = mergeProps(rootState, {
+  const indicatorState: CheckboxIndicator.State = solidMergeProps(rootState, {
     get transitionStatus() {
       return transitionStatus();
     },

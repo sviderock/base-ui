@@ -7,7 +7,7 @@ import {
   useHover,
   useInteractions,
 } from '../../floating-ui-solid';
-import { combineProps } from '../../merge-props';
+import { mergeProps } from '../../merge-props';
 import { useFocusWithDelay } from '../../utils/interactions/useFocusWithDelay';
 import {
   translateOpenChangeReason,
@@ -140,8 +140,8 @@ export function PreviewCardRoot(props: PreviewCardRoot.Props) {
     positionerElement,
     setPositionerElement,
     refs,
-    triggerProps: (externalProps) => combineProps(externalProps, getReferenceProps()),
-    popupProps: (externalProps) => combineProps(externalProps, getFloatingProps()),
+    triggerProps: (externalProps) => mergeProps(externalProps, getReferenceProps()),
+    popupProps: (externalProps) => mergeProps(externalProps, getFloatingProps()),
     floatingRootContext: context,
     instantType,
     transitionStatus,

@@ -11,7 +11,7 @@ import {
   type OpenChangeReason as FloatingUIOpenChangeReason,
 } from '../../floating-ui-solid';
 import { getTarget } from '../../floating-ui-solid/utils';
-import { combineProps } from '../../merge-props';
+import { mergeProps } from '../../merge-props';
 import { access, type CodependentRefs, type MaybeAccessor } from '../../solid-helpers';
 import {
   translateOpenChangeReason,
@@ -199,7 +199,7 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
     openMethod,
     mounted,
     transitionStatus,
-    triggerProps: (otherProps) => combineProps(otherProps, getReferenceProps(triggerProps)),
+    triggerProps: (otherProps) => mergeProps(otherProps, getReferenceProps(triggerProps)),
     getPopupProps: getFloatingProps,
     setTriggerElement,
     setPopupElement,

@@ -2,7 +2,7 @@
 import { createMemo, type ComponentProps } from 'solid-js';
 import { ARROW_LEFT, ARROW_RIGHT, stopEvent } from '../../composite/composite';
 import { CompositeItem } from '../../composite/item/CompositeItem';
-import { combineProps } from '../../merge-props/combineProps';
+import { mergeProps } from '../../merge-props/mergeProps';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useFocusableWhenDisabled } from '../../utils/useFocusableWhenDisabled';
@@ -73,7 +73,7 @@ export function ToolbarInput(componentProps: ToolbarInput.Props) {
         },
       },
       elementProps,
-      (props) => combineProps(props, focusableWhenDisabledProps()),
+      (props) => mergeProps(props, focusableWhenDisabledProps()),
     ],
   });
 

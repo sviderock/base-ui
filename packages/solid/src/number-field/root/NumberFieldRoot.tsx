@@ -3,11 +3,11 @@ import {
   batch,
   createEffect,
   createSignal,
-  mergeProps,
   on,
   onCleanup,
   onMount,
   Show,
+  mergeProps as solidMergeProps,
 } from 'solid-js';
 import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
@@ -349,7 +349,7 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
     });
   });
 
-  const state: NumberFieldRoot.State = mergeProps(fieldState, {
+  const state: NumberFieldRoot.State = solidMergeProps(fieldState, {
     get disabled() {
       return disabled();
     },

@@ -1,5 +1,5 @@
 'use client';
-import { mergeProps, Show, type JSX } from 'solid-js';
+import { Show, mergeProps as solidMergeProps, type JSX } from 'solid-js';
 import {
   FloatingNode,
   useFloatingNodeId,
@@ -109,7 +109,7 @@ export function PopoverPositioner(componentProps: PopoverPositioner.Props) {
     },
   };
 
-  const positioner: PopoverPositionerContext = mergeProps(positioning, {
+  const positioner: PopoverPositionerContext = solidMergeProps(positioning, {
     props: defaultProps,
   });
 

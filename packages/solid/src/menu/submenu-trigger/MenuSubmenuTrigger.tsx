@@ -1,6 +1,6 @@
 'use client';
 import type { MenuParent } from '@base-ui-components/solid/menu/root/MenuRoot';
-import { combineProps } from '@base-ui-components/solid/merge-props';
+import { mergeProps } from '@base-ui-components/solid/merge-props';
 import { createEffect, type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { useFloatingTree } from '../../floating-ui-solid';
@@ -92,7 +92,7 @@ export function MenuSubmenuTrigger(componentProps: MenuSubmenuTrigger.Props) {
     customStyleHookMapping: triggerOpenStateMapping,
     props: [
       rootTriggerProps,
-      (props) => combineProps(props, parentMenuContext().itemProps),
+      (props) => mergeProps(props, parentMenuContext().itemProps),
       elementProps,
       getItemProps,
       {

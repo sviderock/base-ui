@@ -1,10 +1,10 @@
 'use client';
-import { batch, createEffect, mergeProps, onCleanup, type JSX } from 'solid-js';
+import { batch, createEffect, onCleanup, mergeProps as solidMergeProps, type JSX } from 'solid-js';
 import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { fieldValidityMapping } from '../../field/utils/constants';
 import { contains } from '../../floating-ui-solid/utils';
-import { combineProps } from '../../merge-props';
+import { mergeProps } from '../../merge-props';
 import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { getPseudoElementBounds } from '../../utils/getPseudoElementBounds';
@@ -89,7 +89,7 @@ export function SelectTrigger(componentProps: SelectTrigger.Props) {
     timeoutMouseDown.clear();
   });
 
-  const state: SelectTrigger.State = mergeProps(fieldState, {
+  const state: SelectTrigger.State = solidMergeProps(fieldState, {
     get disabled() {
       return disabled();
     },
@@ -112,7 +112,7 @@ export function SelectTrigger(componentProps: SelectTrigger.Props) {
       setStore('triggerElement', el);
     },
     props: [
-      (props) => combineProps(props, store.triggerProps),
+      (props) => mergeProps(props, store.triggerProps),
       {
         get 'aria-labelledby'() {
           return labelId();

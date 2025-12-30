@@ -1,7 +1,7 @@
 import { flushMicrotasks } from '#test-utils';
 import type { Coords } from '@floating-ui/dom';
 import { fireEvent, render, screen } from '@solidjs/testing-library';
-import { createSignal, mergeProps, Show } from 'solid-js';
+import { createSignal, Show, mergeProps as solidMergeProps } from 'solid-js';
 import { test } from 'vitest';
 import { useClientPoint, useFloating, useInteractions } from '../index';
 
@@ -13,7 +13,7 @@ function expectLocation({ x, y }: Coords) {
 }
 
 function App(props: { enabled?: boolean; point?: Coords; axis?: 'both' | 'x' | 'y' }) {
-  const merged = mergeProps({ enabled: true }, props);
+  const merged = solidMergeProps({ enabled: true }, props);
   const [isOpen, setIsOpen] = createSignal(false);
   const { refs, elements, context } = useFloating({
     open: isOpen,

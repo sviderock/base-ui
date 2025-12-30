@@ -1,5 +1,12 @@
 import { isElement } from '@floating-ui/utils/dom';
-import { createEffect, createMemo, mergeProps, on, onCleanup, type Accessor } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  on,
+  onCleanup,
+  mergeProps as solidMergeProps,
+  type Accessor,
+} from 'solid-js';
 import { useTimeout } from '../../utils/useTimeout';
 import { contains, getDocument, isMouseLikePointerType } from '../utils';
 
@@ -249,7 +256,7 @@ export function useHover(
         timeout.clear();
       }
 
-      const mergedProps = mergeProps(ctx, {
+      const mergedProps = solidMergeProps(ctx, {
         tree,
         x: () => event.clientX,
         y: () => event.clientY,
@@ -296,7 +303,7 @@ export function useHover(
       return;
     }
 
-    const mergedProps = mergeProps(ctx, {
+    const mergedProps = solidMergeProps(ctx, {
       tree,
       x: () => event.clientX,
       y: () => event.clientY,

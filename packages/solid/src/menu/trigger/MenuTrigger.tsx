@@ -4,7 +4,7 @@ import { createEffect, Show, type JSX } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import { useFloatingTree } from '../../floating-ui-solid/index';
 import { contains } from '../../floating-ui-solid/utils';
-import { combineProps } from '../../merge-props';
+import { mergeProps } from '../../merge-props';
 import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { getPseudoElementBounds } from '../../utils/getPseudoElementBounds';
@@ -102,7 +102,7 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
   });
 
   const getTriggerProps = (externalProps: BaseUIHTMLProps = {}) => {
-    return combineProps<'button'>(
+    return mergeProps<'button'>(
       {
         'aria-haspopup': 'menu',
         onMouseDown: (event: MouseEvent) => {

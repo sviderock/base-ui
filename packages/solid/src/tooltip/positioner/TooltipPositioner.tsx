@@ -1,5 +1,5 @@
 'use client';
-import { mergeProps, type JSX } from 'solid-js';
+import { mergeProps as solidMergeProps, type JSX } from 'solid-js';
 import type { Padding, VirtualElement } from '../../floating-ui-solid';
 import { splitComponentProps } from '../../solid-helpers';
 import { POPUP_COLLISION_AVOIDANCE } from '../../utils/constants';
@@ -92,7 +92,7 @@ export function TooltipPositioner(componentProps: TooltipPositioner.Props) {
     },
   };
 
-  const positioner = mergeProps(positioning, { props: defaultProps });
+  const positioner = solidMergeProps(positioning, { props: defaultProps });
 
   const state: TooltipPositioner.State = {
     get open() {

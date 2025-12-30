@@ -12,7 +12,7 @@ import {
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
-import { combineProps } from '../../merge-props';
+import { mergeProps } from '../../merge-props';
 import { splitComponentProps } from '../../solid-helpers';
 import { formatNumber } from '../../utils/formatNumber';
 import { getStyleHookProps } from '../../utils/getStyleHookProps';
@@ -165,7 +165,7 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
     }),
   );
 
-  const thumbProps = combineProps(
+  const thumbProps = mergeProps(
     {
       get [SliderThumbDataAttributes.index]() {
         return index();
@@ -298,7 +298,7 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
       },
     },
     // eslint-disable-next-line solid/reactivity
-    (props) => combineProps(props, styleHooks()),
+    (props) => mergeProps(props, styleHooks()),
     elementProps,
   );
 
@@ -309,7 +309,7 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
     return undefined;
   });
 
-  const inputProps = combineProps<'input'>(
+  const inputProps = mergeProps<'input'>(
     {
       get 'aria-label'() {
         return typeof local.getAriaLabel === 'function'
@@ -390,7 +390,7 @@ export function SliderThumb(componentProps: SliderThumb.Props) {
         return thumbValue() ?? '';
       },
     },
-    (props) => combineProps(props, fieldControlValidation.getValidationProps()),
+    (props) => mergeProps(props, fieldControlValidation.getValidationProps()),
   );
 
   const element = useRenderElement('div', componentProps, {

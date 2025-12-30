@@ -20,7 +20,7 @@ import {
   useInteractions,
   useRole,
 } from '../../floating-ui-solid';
-import { combineProps } from '../../merge-props/combineProps';
+import { mergeProps } from '../../merge-props/mergeProps';
 import type { CodependentRefs } from '../../solid-helpers';
 import { PATIENT_CLICK_THRESHOLD } from '../../utils/constants';
 import { translateOpenChangeReason } from '../../utils/translateOpenChangeReason';
@@ -211,8 +211,8 @@ function PopoverRootComponent(props: PopoverRoot.Props) {
     titleId,
     descriptionId,
     triggerProps: (externalProps) =>
-      combineProps(externalProps, combineProps(getReferenceProps(), triggerProps)),
-    popupProps: (externalProps) => combineProps(externalProps, getFloatingProps()),
+      mergeProps(externalProps, mergeProps(getReferenceProps(), triggerProps)),
+    popupProps: (externalProps) => mergeProps(externalProps, getFloatingProps()),
     floatingRootContext: floatingContext,
     instantType,
     openMethod,

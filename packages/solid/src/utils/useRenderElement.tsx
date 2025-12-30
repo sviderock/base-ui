@@ -1,6 +1,6 @@
 import { Show, type JSX, type Ref, type ValidComponent } from 'solid-js';
 import { Dynamic, type DynamicProps } from 'solid-js/web';
-import { combineProps } from '../merge-props/combineProps';
+import { mergeProps } from '../merge-props/mergeProps';
 import { access, type MaybeAccessor } from '../solid-helpers';
 import { EMPTY_OBJECT } from './constants';
 import { CustomStyleHookMapping, getStyleHookProps } from './getStyleHookProps';
@@ -48,7 +48,7 @@ export function useRenderElement<
               />
             );
           }}
-          {...combineProps([
+          {...mergeProps([
             props,
 
             {
@@ -73,7 +73,7 @@ export function useRenderElement<
               ? getStyleHookProps(params.state ?? EMPTY_OBJECT, params.customStyleHookMapping)
               : undefined,
 
-            combineProps(params.props),
+            mergeProps(params.props),
 
             {
               component: undefined,

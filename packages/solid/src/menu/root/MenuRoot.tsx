@@ -19,7 +19,7 @@ import {
   useTypeahead,
 } from '../../floating-ui-solid';
 import { MenubarContext, useMenubarContext } from '../../menubar/MenubarContext';
-import { combineProps } from '../../merge-props';
+import { mergeProps } from '../../merge-props';
 import { PATIENT_CLICK_THRESHOLD, TYPEAHEAD_RESET_MS } from '../../utils/constants';
 import {
   translateOpenChangeReason,
@@ -431,7 +431,7 @@ export function MenuRoot(props: MenuRoot.Props) {
   });
 
   const triggerProps = createMemo(() => {
-    return combineProps([
+    return mergeProps([
       getReferenceProps(),
       {
         onMouseEnter() {
@@ -475,9 +475,9 @@ export function MenuRoot(props: MenuRoot.Props) {
     activeIndex,
     setActiveIndex,
     floatingRootContext,
-    itemProps: (externalProps) => combineProps(externalProps, getItemProps()),
-    popupProps: (externalProps) => combineProps(externalProps, popupProps()),
-    triggerProps: (externalProps) => combineProps(externalProps, triggerProps()),
+    itemProps: (externalProps) => mergeProps(externalProps, getItemProps()),
+    popupProps: (externalProps) => mergeProps(externalProps, popupProps()),
+    triggerProps: (externalProps) => mergeProps(externalProps, triggerProps()),
     itemDomElements,
     itemLabels,
     mounted,

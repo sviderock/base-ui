@@ -1,6 +1,6 @@
 'use client';
-import { createEffect, mergeProps, onMount, type JSX } from 'solid-js';
-import { combineProps } from '../../merge-props';
+import { createEffect, onMount, mergeProps as solidMergeProps, type JSX } from 'solid-js';
+import { mergeProps } from '../../merge-props';
 import { splitComponentProps } from '../../solid-helpers';
 import { useControlled } from '../../utils';
 import { BaseUIComponentProps } from '../../utils/types';
@@ -88,7 +88,7 @@ export function FieldControl(componentProps: FieldControl.Props) {
     controlRef: () => refs.inputRef,
   });
 
-  const controlState: FieldControl.State = mergeProps(fieldState, {
+  const controlState: FieldControl.State = solidMergeProps(fieldState, {
     get disabled() {
       return disabled();
     },
@@ -143,8 +143,8 @@ export function FieldControl(componentProps: FieldControl.Props) {
           }
         },
       },
-      (props) => combineProps(props, getValidationProps()),
-      (props) => combineProps(props, getInputValidationProps()),
+      (props) => mergeProps(props, getValidationProps()),
+      (props) => mergeProps(props, getInputValidationProps()),
       elementProps,
     ],
   });

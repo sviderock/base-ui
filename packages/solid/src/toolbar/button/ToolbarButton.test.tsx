@@ -326,8 +326,7 @@ describe('<Toolbar.Button />', () => {
       });
     });
 
-    // TODO: FIX THIS
-    describe.skip('Select', () => {
+    describe('Select', () => {
       it('renders a select trigger', async () => {
         render(() => (
           <Toolbar.Root>

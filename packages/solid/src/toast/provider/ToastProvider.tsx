@@ -5,7 +5,7 @@ import { activeElement, contains } from '../../floating-ui-solid/utils';
 import { generateId } from '../../utils/generateId';
 import { ownerDocument } from '../../utils/owner';
 import { useTimeout, type Timeout } from '../../utils/useTimeout';
-import { createToastManager } from '../createToastManager';
+import { createToastManager, type ToastManagerEvent } from '../createToastManager';
 import { ToastObject, useToastManager } from '../useToastManager';
 import { isFocusVisible } from '../utils/focusVisible';
 import { resolvePromiseOptions } from '../utils/resolvePromiseOptions';
@@ -243,9 +243,8 @@ export function ToastProvider(props: ToastProvider.Props) {
 
     const duration = toastToAdd.timeout ?? timeout();
     if (toastToAdd.type !== 'loading' && duration > 0) {
-      scheduleTimer(id, duration, () => {
-        close(id);
-      });
+      const cb = () => close(id);
+      scheduleTimer(id, duration, cb);
     }
 
     if (hovering() || focused() || !refs.windowFocusedRef) {
@@ -281,37 +280,40 @@ export function ToastProvider(props: ToastProvider.Props) {
       type: 'loading',
     });
 
-    const handledPromise = promiseValue
-      .then((result: Value) => {
-        batch(() => {
-          update(id, {
-            ...resolvePromiseOptions(options.success, result),
-            type: 'success',
-          });
+    const cb = () => close(id);
 
-          scheduleTimer(id, timeout(), () => close(id));
-
-          if (hovering() || focused() || !refs.windowFocusedRef) {
-            pauseTimers();
-          }
+    const onSuccess = (result: Value) => {
+      batch(() => {
+        update(id, {
+          ...resolvePromiseOptions(options.success, result),
+          type: 'success',
         });
-        return result;
-      })
-      .catch((error) => {
-        batch(() => {
-          update(id, {
-            ...resolvePromiseOptions(options.error, error),
-            type: 'error',
-          });
 
-          scheduleTimer(id, timeout(), () => close(id));
+        scheduleTimer(id, timeout(), cb);
 
-          if (hovering() || focused() || !refs.windowFocusedRef) {
-            pauseTimers();
-          }
-        });
-        return Promise.reject(error);
+        if (hovering() || focused() || !refs.windowFocusedRef) {
+          pauseTimers();
+        }
       });
+      return result;
+    };
+    const onError = (error: any) => {
+      batch(() => {
+        update(id, {
+          ...resolvePromiseOptions(options.error, error),
+          type: 'error',
+        });
+
+        scheduleTimer(id, timeout(), cb);
+
+        if (hovering() || focused() || !refs.windowFocusedRef) {
+          pauseTimers();
+        }
+      });
+      return Promise.reject(error);
+    };
+
+    const handledPromise = promiseValue.then(onSuccess).catch(onError);
 
     // Private API used exclusively by `Manager` to handoff the promise
     // back to the manager after it's handled here.
@@ -322,25 +324,26 @@ export function ToastProvider(props: ToastProvider.Props) {
     return handledPromise;
   };
 
+  const onUnsubscribe = ({ action, options }: ToastManagerEvent) => {
+    const id = options.id;
+
+    if (action === 'promise' && options.promise) {
+      promise(options.promise, options);
+    } else if (action === 'update' && id) {
+      update(id, options);
+    } else if (action === 'close' && id) {
+      close(id);
+    } else {
+      add(options);
+    }
+  };
+
   createEffect(function subscribeToToastManager() {
     if (!props.toastManager) {
       return;
     }
 
-    const unsubscribe = props.toastManager[' subscribe'](({ action, options }) => {
-      const id = options.id;
-
-      if (action === 'promise' && options.promise) {
-        promise(options.promise, options);
-      } else if (action === 'update' && id) {
-        update(id, options);
-      } else if (action === 'close' && id) {
-        close(id);
-      } else {
-        add(options);
-      }
-    });
-
+    const unsubscribe = props.toastManager[' subscribe'](onUnsubscribe);
     onCleanup(unsubscribe);
   });
 

@@ -1,5 +1,11 @@
 'use client';
-import { batch, createEffect, createMemo, createSignal, mergeProps } from 'solid-js';
+import {
+  batch,
+  createEffect,
+  createMemo,
+  createSignal,
+  mergeProps as solidMergeProps,
+} from 'solid-js';
 import { SHIFT } from '../composite/composite';
 import { CompositeRoot } from '../composite/root/CompositeRoot';
 import { useFieldControlValidation } from '../field/control/useFieldControlValidation';
@@ -9,7 +15,7 @@ import { useField } from '../field/useField';
 import { fieldValidityMapping } from '../field/utils/constants';
 import { contains } from '../floating-ui-solid/utils';
 import { useFormContext } from '../form/FormContext';
-import { combineProps } from '../merge-props';
+import { mergeProps } from '../merge-props';
 import { splitComponentProps } from '../solid-helpers';
 import type { BaseUIComponentProps } from '../utils/types';
 import { useBaseUiId } from '../utils/useBaseUiId';
@@ -135,7 +141,7 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
   });
 
   const inputProps = createMemo(() =>
-    combineProps<'input'>(
+    mergeProps<'input'>(
       {
         value: serializedCheckedValue(),
         id: id(),
@@ -160,7 +166,7 @@ export function RadioGroup(componentProps: RadioGroup.Props) {
     ),
   );
 
-  const state: RadioGroup.State = mergeProps(fieldState, {
+  const state: RadioGroup.State = solidMergeProps(fieldState, {
     get disabled() {
       return disabled() ?? false;
     },

@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, createSignal, mergeProps, type JSX } from 'solid-js';
+import { createEffect, createSignal, mergeProps as solidMergeProps, type JSX } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { CompositeList } from '../../composite/list/CompositeList';
 import type { Padding, VirtualElement } from '../../floating-ui-solid';
@@ -183,7 +183,7 @@ export function SelectPositioner(componentProps: SelectPositioner.Props) {
     }
   };
 
-  const contextValue: SelectPositionerContext = mergeProps(positioning, {
+  const contextValue: SelectPositionerContext = solidMergeProps(positioning, {
     side: renderedSide,
     alignItemWithTriggerActive,
     setControlledAlignItemWithTrigger,

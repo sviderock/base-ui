@@ -1,5 +1,5 @@
 'use client';
-import { combineProps } from '../../merge-props';
+import { mergeProps } from '../../merge-props';
 import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -33,7 +33,7 @@ export function ToastAction(componentProps: ToastAction.Props) {
     enabled: () => Boolean(toast().actionProps?.children ?? componentProps.children),
     state,
     ref: buttonRef,
-    props: [elementProps, (props) => combineProps(props, toast().actionProps), getButtonProps],
+    props: [elementProps, (props) => mergeProps(props, toast().actionProps), getButtonProps],
     get children() {
       return <>{toast().actionProps?.children ?? componentProps.children}</>;
     },

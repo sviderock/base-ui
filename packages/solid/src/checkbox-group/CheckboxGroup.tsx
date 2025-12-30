@@ -1,5 +1,5 @@
 'use client';
-import { batch, mergeProps } from 'solid-js';
+import { batch, mergeProps as solidMergeProps } from 'solid-js';
 import { PARENT_CHECKBOX } from '../checkbox/root/CheckboxRoot';
 import { useFieldControlValidation } from '../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../field/root/FieldRoot';
@@ -93,7 +93,7 @@ export function CheckboxGroup(componentProps: CheckboxGroup.Props) {
     registerControlRef,
   };
 
-  const state: CheckboxGroup.State = mergeProps(fieldState, {
+  const state: CheckboxGroup.State = solidMergeProps(fieldState, {
     get disabled() {
       return disabled();
     },

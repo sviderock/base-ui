@@ -1,7 +1,7 @@
 'use client';
 import type { Accessor } from 'solid-js';
 import { FloatingEvents } from '../../floating-ui-solid';
-import { combineProps } from '../../merge-props';
+import { mergeProps } from '../../merge-props';
 import { access, MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { BaseUIEvent, type BaseUIHTMLProps, type HTMLProps } from '../../utils/types';
@@ -28,7 +28,7 @@ export function useMenuItem(params: useMenuItem.Parameters): useMenuItem.ReturnV
   });
 
   const getItemProps = (externalProps: HTMLProps | BaseUIHTMLProps = {}) => {
-    return combineProps([
+    return mergeProps([
       {
         role: 'menuitem',
         get id() {

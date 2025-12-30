@@ -10,7 +10,7 @@ import {
   useHover,
   useInteractions,
 } from '../../floating-ui-solid';
-import { combineProps } from '../../merge-props/combineProps';
+import { mergeProps } from '../../merge-props/mergeProps';
 import { access } from '../../solid-helpers';
 import { translateOpenChangeReason } from '../../utils/translateOpenChangeReason';
 import { useControlled } from '../../utils/useControlled';
@@ -205,8 +205,8 @@ export function TooltipRoot(props: TooltipRoot.Props) {
     positionerElement,
     setPositionerElement,
     refs,
-    triggerProps: (externalProps) => combineProps(externalProps, getReferenceProps()),
-    popupProps: (externalProps) => combineProps(externalProps, getFloatingProps()),
+    triggerProps: (externalProps) => mergeProps(externalProps, getReferenceProps()),
+    popupProps: (externalProps) => mergeProps(externalProps, getFloatingProps()),
     floatingRootContext,
     instantType,
     transitionStatus,

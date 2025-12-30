@@ -1,5 +1,5 @@
 'use client';
-import { createEffect, mergeProps, Show } from 'solid-js';
+import { createEffect, Show, mergeProps as solidMergeProps } from 'solid-js';
 import { useCollapsiblePanel } from '../../collapsible/panel/useCollapsiblePanel';
 import { useCollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
 import { splitComponentProps } from '../../solid-helpers';
@@ -111,7 +111,7 @@ export function AccordionPanel(componentProps: AccordionPanel.Props) {
 
   const { state, triggerId } = useAccordionItemContext();
 
-  const panelState = mergeProps(state, {
+  const panelState = solidMergeProps(state, {
     get transitionStatus() {
       return transitionStatus();
     },

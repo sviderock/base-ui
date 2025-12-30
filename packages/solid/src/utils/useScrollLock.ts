@@ -1,4 +1,4 @@
-import { createEffect, on, onCleanup } from 'solid-js';
+import { createEffect, onCleanup } from 'solid-js';
 import { access, type MaybeAccessor } from '../solid-helpers';
 import { isIOS, isWebKit } from './detectBrowser';
 import { NOOP } from './noop';

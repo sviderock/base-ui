@@ -1,5 +1,5 @@
 'use client';
-import { mergeProps } from 'solid-js';
+import { mergeProps as solidMergeProps } from 'solid-js';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -20,7 +20,7 @@ export function SwitchThumb(componentProps: SwitchThumb.Props) {
   const { state: fieldState } = useFieldRootContext();
 
   const state = useSwitchRootContext();
-  const extendedState: SwitchThumb.State = mergeProps(fieldState, {
+  const extendedState: SwitchThumb.State = solidMergeProps(fieldState, {
     get checked() {
       return state.checked();
     },

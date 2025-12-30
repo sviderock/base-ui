@@ -1,7 +1,6 @@
 import { combineProps } from '@solid-primitives/props';
 import { type Accessor, type JSX } from 'solid-js';
 import { access } from '../../solid-helpers';
-import type { WithBaseUIEvent } from '../../utils/types';
 import type { ElementProps } from '../types';
 import { ACTIVE_KEY, FOCUSABLE_ATTRIBUTE, SELECTED_KEY } from '../utils/constants';
 
@@ -12,15 +11,13 @@ export type ExtendedUserProps = {
 
 export interface UseInteractionsReturn {
   getReferenceProps: <T extends Element>(
-    userProps?: JSX.HTMLAttributes<T> | WithBaseUIEvent<JSX.HTMLAttributes<T>>,
+    userProps?: JSX.HTMLAttributes<T>,
   ) => Record<string, unknown>;
   getFloatingProps: <T extends HTMLElement>(
-    userProps?: JSX.HTMLAttributes<T> | WithBaseUIEvent<JSX.HTMLAttributes<T>>,
+    userProps?: JSX.HTMLAttributes<T>,
   ) => Record<string, unknown>;
   getItemProps: <T extends HTMLElement>(
-    userProps?: Omit<JSX.HTMLAttributes<T>, 'selected' | 'active'> &
-      ExtendedUserProps &
-      WithBaseUIEvent<Omit<JSX.HTMLAttributes<T>, 'selected' | 'active'>>,
+    userProps?: Omit<JSX.HTMLAttributes<T>, 'selected' | 'active'> & ExtendedUserProps,
   ) => Record<string, unknown>;
 }
 
@@ -39,9 +36,7 @@ export function useInteractions(
     getReferenceProps(userProps) {
       const referenceList = propsList
         .map((item) => (item ? access(item)?.reference : undefined))
-        .filter(
-          (i): i is JSX.HTMLAttributes<any> | WithBaseUIEvent<JSX.HTMLAttributes<any>> => !!i,
-        );
+        .filter((i): i is JSX.HTMLAttributes<any> => !!i);
 
       if (userProps) {
         referenceList.push(userProps);
@@ -54,9 +49,7 @@ export function useInteractions(
     getFloatingProps(userProps) {
       const list = propsList
         .map((item) => (item ? access(item)?.floating : undefined))
-        .filter(
-          (i): i is JSX.HTMLAttributes<any> | WithBaseUIEvent<JSX.HTMLAttributes<any>> => !!i,
-        );
+        .filter((i): i is JSX.HTMLAttributes<any> => !!i);
 
       list.unshift({ tabIndex: -1, [FOCUSABLE_ATTRIBUTE as any]: '' });
 

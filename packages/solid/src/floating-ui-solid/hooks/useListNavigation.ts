@@ -327,7 +327,8 @@ export function useListNavigation(
   createEffect(
     on(
       () => context().elements.floating(),
-      () => {
+      (AA) => {
+        console.log(123, AA);
         onCleanup(() => {
           previousMountedRef = false;
           previousOpenRef = false;

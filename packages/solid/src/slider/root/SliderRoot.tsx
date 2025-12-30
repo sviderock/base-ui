@@ -1,5 +1,13 @@
 'use client';
-import { createEffect, createMemo, createSignal, For, mergeProps, onMount, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  onMount,
+  Show,
+  mergeProps as solidMergeProps,
+} from 'solid-js';
 import { CompositeList, type CompositeMetadata } from '../../composite/list/CompositeList';
 import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../../field/root/FieldRoot';
@@ -231,7 +239,7 @@ export function SliderRoot<Value extends number | readonly number[]>(
     setCodependentRefs('control', { explicitId: id, ref: () => sliderRef, id: () => local.id });
   });
 
-  const state: SliderRoot.State = mergeProps(fieldState, {
+  const state: SliderRoot.State = solidMergeProps(fieldState, {
     get disabled() {
       return disabled();
     },

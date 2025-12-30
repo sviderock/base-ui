@@ -1,6 +1,6 @@
 import { type VirtualElement } from '@floating-ui/dom';
 import { isElement } from '@floating-ui/utils/dom';
-import { createEffect, createMemo, createSignal, mergeProps } from 'solid-js';
+import { createEffect, createMemo, createSignal, mergeProps as solidMergeProps } from 'solid-js';
 import { access } from '../../solid-helpers';
 import { useFloatingTree } from '../components/FloatingTree';
 import type {
@@ -91,13 +91,13 @@ export function useFloating<RT extends ReferenceType = ReferenceType>(
     }
   };
 
-  const refs = mergeProps(position.refs, {
+  const refs = solidMergeProps(position.refs, {
     setReference,
     setPositionReference,
     domReference,
   });
 
-  const elements = mergeProps(position.elements, {
+  const elements = solidMergeProps(position.elements, {
     domReference,
   });
 

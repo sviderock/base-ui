@@ -1,11 +1,11 @@
 'use client';
-import { batch, createSignal, mergeProps, onMount, type JSX } from 'solid-js';
+import { batch, createSignal, onMount, mergeProps as solidMergeProps, type JSX } from 'solid-js';
 import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { useField } from '../../field/useField';
 import { useFormContext } from '../../form/FormContext';
-import { combineProps } from '../../merge-props';
+import { mergeProps } from '../../merge-props';
 import { access, splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -141,7 +141,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
     },
   };
 
-  const inputProps = combineProps<'input'>(
+  const inputProps = mergeProps<'input'>(
     {
       get checked() {
         return checked();
@@ -195,7 +195,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
     getInputValidationProps,
   );
 
-  const state: SwitchRoot.State = mergeProps(fieldState, {
+  const state: SwitchRoot.State = solidMergeProps(fieldState, {
     get disabled() {
       return disabled();
     },

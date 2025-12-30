@@ -95,15 +95,15 @@ export function useFocus(
     });
   });
 
+  function onOpenChangeLocal({ reason }: { reason: OpenChangeReason }) {
+    if (reason === 'reference-press' || reason === 'escape-key') {
+      blockFocusRef = true;
+    }
+  }
+
   createEffect(() => {
     if (!enabled()) {
       return;
-    }
-
-    function onOpenChangeLocal({ reason }: { reason: OpenChangeReason }) {
-      if (reason === 'reference-press' || reason === 'escape-key') {
-        blockFocusRef = true;
-      }
     }
 
     context().events.on('openchange', onOpenChangeLocal);

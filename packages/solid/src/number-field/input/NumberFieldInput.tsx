@@ -6,7 +6,7 @@ import { useField } from '../../field/useField';
 import { fieldValidityMapping } from '../../field/utils/constants';
 import { stopEvent } from '../../floating-ui-solid/utils';
 import { useFormContext } from '../../form/FormContext';
-import { combineProps } from '../../merge-props';
+import { mergeProps } from '../../merge-props';
 import { splitComponentProps } from '../../solid-helpers';
 import { formatNumber, formatNumberMaxPrecision } from '../../utils/formatNumber';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -360,8 +360,8 @@ export function NumberFieldInput(componentProps: NumberFieldInput.Props) {
     },
     props: [
       inputProps,
-      (props) => combineProps(props, getInputValidationProps()),
-      (props) => combineProps(props, getValidationProps()),
+      (props) => mergeProps(props, getInputValidationProps()),
+      (props) => mergeProps(props, getValidationProps()),
       elementProps,
     ],
     customStyleHookMapping,

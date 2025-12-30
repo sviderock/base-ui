@@ -1,5 +1,12 @@
 'use client';
-import { batch, createEffect, createSignal, mergeProps, Show, type JSX } from 'solid-js';
+import {
+  batch,
+  createEffect,
+  createSignal,
+  Show,
+  mergeProps as solidMergeProps,
+  type JSX,
+} from 'solid-js';
 import { ACTIVE_COMPOSITE_ITEM } from '../../composite/constants';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import type { FieldRoot } from '../../field/root/FieldRoot';
@@ -167,7 +174,7 @@ export function RadioRoot(componentProps: RadioRoot.Props) {
     },
   };
 
-  const state: RadioRoot.State = mergeProps(fieldState, {
+  const state: RadioRoot.State = solidMergeProps(fieldState, {
     get disabled() {
       return disabled();
     },

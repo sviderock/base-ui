@@ -114,17 +114,15 @@ export function useFloatingOriginal<RT extends ReferenceType = ReferenceType>(
   const floatingProp = createMemo(() => access(options.elements?.floating));
   const transform = createMemo(() => access(options.transform) ?? true);
   const whileElementsMountedFn = createMemo(() => {
-    const whileElementsMounted = options.whileElementsMounted;
-
-    if (whileElementsMounted == null) {
+    if (options.whileElementsMounted == null) {
       return null;
     }
 
-    if (typeof whileElementsMounted === 'function') {
-      return whileElementsMounted;
+    if (typeof options.whileElementsMounted === 'function') {
+      return options.whileElementsMounted;
     }
 
-    return access(whileElementsMounted.enabled) ? whileElementsMounted.fn : null;
+    return access(options.whileElementsMounted.enabled) ? options.whileElementsMounted.fn : null;
   });
 
   const [data, setData] = createStore<UsePositionData>({

@@ -1,7 +1,7 @@
 'use client';
 import { reconcile } from 'solid-js/store';
 import { useFormContext } from '../../form/FormContext';
-import { combineProps } from '../../merge-props';
+import { mergeProps } from '../../merge-props';
 import type { BaseUIHTMLProps, HTMLProps } from '../../utils/types';
 import { useTimeout } from '../../utils/useTimeout';
 import { useFieldRootContext } from '../root/FieldRootContext';
@@ -214,7 +214,7 @@ export function useFieldControlValidation() {
   };
 
   const getValidationProps = (externalProps = {}) => {
-    return combineProps<any>(
+    return mergeProps<any>(
       {
         get 'aria-describedby'() {
           return messageIds()?.length ? messageIds().join(' ') : undefined;
@@ -228,7 +228,7 @@ export function useFieldControlValidation() {
   };
 
   const getInputValidationProps = (externalProps = {}) => {
-    return combineProps<'input'>(
+    return mergeProps<'input'>(
       {
         onInput(event) {
           // Workaround for https://github.com/facebook/react/issues/9023

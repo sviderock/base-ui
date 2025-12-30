@@ -1,217 +1,338 @@
-/* eslint-disable solid/reactivity, id-denylist */
-import type { Accessor, Component, ComponentProps, JSX, ValidComponent } from 'solid-js';
-import { mergeObjects } from '../utils/mergeObjects';
+/* eslint-disable @typescript-eslint/no-loop-func */
+/**
+ * Based on the original implementation of combineProps from @solid-primitives/props:
+ * https://github.com/solidjs-community/solid-primitives/blob/0cbdb59bb42f50de5e08000027789ae3d4c80280/packages/props/src/combineProps.ts
+ */
+
+/* eslint-disable no-plusplus */
+/* eslint-disable no-nested-ternary */
+/* eslint-disable no-cond-assign */
+/* eslint-disable curly */
+/* eslint-disable guard-for-in */
+
+import {
+  $PROXY,
+  mergeProps as solidMergeProps,
+  type ComponentProps,
+  type JSX,
+  type Ref,
+} from 'solid-js';
 import type { BaseUIEvent, WithBaseUIEvent } from '../utils/types';
 
-type ElementType = keyof JSX.IntrinsicElements | ValidComponent;
+type EventHandler = (...args: any[]) => unknown;
+
+function trueFn() {
+  return true;
+}
+
+const propTraps: ProxyHandler<{
+  get: (k: string | number | symbol) => any;
+  has: (k: string | number | symbol) => boolean;
+  keys: () => string[];
+}> = {
+  get(_, property, receiver) {
+    if (property === $PROXY) return receiver;
+    return _.get(property);
+  },
+  has(_, property) {
+    return _.has(property);
+  },
+  set: trueFn,
+  deleteProperty: trueFn,
+  getOwnPropertyDescriptor(_, property) {
+    return {
+      configurable: true,
+      enumerable: true,
+      get() {
+        return _.get(property);
+      },
+      set: trueFn,
+      deleteProperty: trueFn,
+    };
+  },
+  ownKeys(_) {
+    return _.keys();
+  },
+};
+
+const extractCSSregex = /((?:--)?(?:\w+-?)+)\s*:\s*([^;]*)/g;
+
+/**
+ * converts inline string styles to object form
+ * @example
+ * const styles = stringStyleToObject("margin: 24px; border: 1px solid #121212");
+ * styles; // { margin: "24px", border: "1px solid #121212" }
+ * */
+export function stringStyleToObject(style: string): JSX.CSSProperties {
+  const object: Record<string, string> = {};
+  let match: RegExpExecArray | null;
+  while ((match = extractCSSregex.exec(style))) {
+    object[match[1]!] = match[2]!;
+  }
+  return object;
+}
+
+/**
+ * Combines two set of styles together. Accepts both string and object styles.\
+ * @example
+ * const styles = combineStyle("margin: 24px; border: 1px solid #121212", {
+ *   margin: "2rem",
+ *   padding: "16px"
+ * });
+ * styles; // { margin: "2rem", border: "1px solid #121212", padding: "16px" }
+ */
+export function combineStyle(a: string, b: string): string;
+export function combineStyle(
+  a: JSX.CSSProperties | undefined,
+  b: JSX.CSSProperties | undefined,
+): JSX.CSSProperties;
+export function combineStyle(
+  a: JSX.CSSProperties | string | undefined,
+  b: JSX.CSSProperties | string | undefined,
+): JSX.CSSProperties;
+export function combineStyle(
+  a: JSX.CSSProperties | string | undefined,
+  b: JSX.CSSProperties | string | undefined,
+): JSX.CSSProperties | string {
+  if (typeof a === 'string') {
+    if (typeof b === 'string') return `${a};${b}`;
+
+    a = stringStyleToObject(a);
+  } else if (typeof b === 'string') {
+    b = stringStyleToObject(b);
+  }
+
+  return { ...a, ...b };
+}
+
+type ElementType = keyof JSX.IntrinsicElements;
 type PropsOf<T extends ElementType> = WithBaseUIEvent<ComponentProps<T>>;
-type InputProps<T extends ElementType> =
-  | PropsOf<T>
-  | ((otherProps: PropsOf<T>) => PropsOf<T>)
-  | undefined;
+export type MergablePropsCallback<T extends ElementType> = (otherProps: PropsOf<T>) => PropsOf<T>;
 
-const EMPTY_PROPS = {};
+type PropsInput<T extends ElementType> = PropsOf<T> | MergablePropsCallback<T> | undefined;
+
+const reduce = <T, K extends keyof T>(
+  sources: Iterable<T>,
+  key: K,
+  calc: (a: NonNullable<T[K]>, b: NonNullable<T[K]>) => T[K],
+) => {
+  let v: T[K] | undefined;
+  for (const value of sources) {
+    if (!v) v = value[key];
+    else if (value[key]) v = calc(v, value[key]);
+  }
+  return v;
+};
 
 /**
- * Merges multiple sets of Solid props. It follows the Object.assign pattern where the rightmost object's fields overwrite
- * the conflicting ones from others. This doesn't apply to event handlers, `class` and `style` props.
- * Event handlers are merged such that they are called in sequence (the rightmost one being called first),
- * and allows the user to prevent the subsequent event handlers from being
- * executed by attaching a `preventBaseUIHandler` method.
- * It also merges the `class` and `style` props, whereby the classes are concatenated
- * and the rightmost styles overwrite the subsequent ones.
+ * A helper that reactively merges multiple props objects together while smartly combining some of Solid's JSX/DOM attributes.
  *
- * Props can either be provided as objects or as functions that take the previous props as an argument.
- * The function will receive the merged props up to that point (going from left to right):
- * so in the case of `(obj1, obj2, fn, obj3)`, `fn` will receive the merged props of `obj1` and `obj2`.
- * The function is responsible for chaining event handlers if needed (i.e. we don't run the merge logic).
- *
- * Event handlers returned by the functions are not automatically prevented when `preventBaseUIHandler` is called.
- * They must check `event.baseUIHandlerPrevented` themselves and bail out if it's true.
- *
- * @important **`ref` is not merged.**
- * @param props props to merge.
- * @returns the merged props.
+ * Event handlers and refs are chained, class, classNames and styles are combined.
+ * For all other props, the last prop object overrides all previous ones. Similarly to {@link mergeProps}
+ * @param sources - Multiple sets of props to combine together.
+ * @example
+ * ```tsx
+ * const MyButton: Component<ButtonProps> = props => {
+ *    const { buttonProps } = createButton();
+ *    const combined = combineProps(props, buttonProps);
+ *    return <button {...combined} />
+ * }
+ * // component consumer can provide button props
+ * // they will be combined with those provided by createButton() primitive
+ * <MyButton style={{ margin: "24px" }} />
+ * ```
  */
+export function mergeProps<
+  E extends ElementType | undefined = undefined,
+  Args extends Array<any> = PropsInput<E extends ElementType ? E : any>[],
+  R = PropsOf<E extends ElementType ? E : any>,
+>(sources: Args): R;
+export function mergeProps<
+  E extends ElementType | undefined = undefined,
+  Args extends Array<any> = PropsInput<E extends ElementType ? E : any>[],
+  R = PropsOf<E extends ElementType ? E : any>,
+>(...sources: Args): R;
+export function mergeProps<
+  E extends ElementType | undefined = undefined,
+  Args extends Array<any> = PropsInput<E extends ElementType ? E : any>[],
+  R = PropsOf<E extends ElementType ? E : any>,
+>(...args: Args): R {
+  const sources = (Array.isArray(args[0]) ? args[0] : args) as Args;
 
-export function mergeProps<T extends ElementType>(a: InputProps<T>, b: InputProps<T>): PropsOf<T>;
-export function mergeProps<T extends ElementType>(a: InputProps<T>, b: InputProps<T>): PropsOf<T>;
-export function mergeProps<T extends ElementType>(
-  a: InputProps<T>,
-  b: InputProps<T>,
-  c: InputProps<T>,
-): PropsOf<T>;
-export function mergeProps<T extends ElementType>(
-  a: InputProps<T>,
-  b: InputProps<T>,
-  c: InputProps<T>,
-  d: InputProps<T>,
-): PropsOf<T>;
-export function mergeProps<T extends ElementType>(
-  a: InputProps<T>,
-  b: InputProps<T>,
-  c: InputProps<T>,
-  d: InputProps<T>,
-  e: InputProps<T>,
-): PropsOf<T>;
-export function mergeProps<T extends ElementType>(
-  a: InputProps<T>,
-  b: InputProps<T>,
-  c: InputProps<T>,
-  d: InputProps<T>,
-  e: InputProps<T>,
-  f: InputProps<T>,
-): PropsOf<T>;
-export function mergeProps(a: any, b: any, c?: any, d?: any, e?: any, f?: any) {
-  // We need to mutably own `merged`
-  let merged = { ...resolvePropsGetter(a, EMPTY_PROPS) };
+  let cachedListeners = {} as Record<string, EventHandler | undefined>;
+  let cacheStyles = [] as JSX.HTMLAttributes<any>[];
+  let cacheRefs = [] as Array<Ref<any>>;
+  let cacheClasses = [] as JSX.HTMLAttributes<any>[];
+  let cacheClassList = [] as JSX.HTMLAttributes<any>[];
+  const lastDescriptor = {} as Record<string, PropertyDescriptor | undefined>;
 
-  if (b) {
-    merged = mergeOne(merged, b);
-  }
-  if (c) {
-    merged = mergeOne(merged, c);
-  }
-  if (d) {
-    merged = mergeOne(merged, d);
-  }
-  if (e) {
-    merged = mergeOne(merged, e);
-  }
-  if (f) {
-    merged = mergeOne(merged, f);
-  }
+  /*
+   * Track the last property descriptor for each key to handle explicit undefined values.
+   * Solid's mergeProps doesn't overwrite with undefined, but React's mergeProps does.
+   * We need to match React's behavior where explicit undefined should overwrite.
+   */
 
-  return merged;
-}
+  let merge = {} as Record<string, unknown>;
+  for (let props of sources) {
+    let propsOverride = false;
+    if (typeof props === 'function') {
+      const mergedListeners = { ...cachedListeners };
+      const mergedStyles = reduce(cacheStyles, 'style', combineStyle);
+      const mergedRefs = reverseChain(cacheRefs);
+      const mergedClasses = reduce(cacheClasses, 'class', (a, b) => `${a} ${b}`);
+      const mergedClassList = reduce(cacheClassList, 'classList', (a, b) => ({ ...a, ...b }));
 
-export function mergePropsN<T extends ElementType>(props: InputProps<T>[]): PropsOf<T> {
-  if (props.length === 0) {
-    return EMPTY_PROPS as PropsOf<T>;
-  }
-  if (props.length === 1) {
-    return resolvePropsGetter(props[0], EMPTY_PROPS) as PropsOf<T>;
-  }
+      const mergedForGetter = new Proxy(merge, {
+        get(target, key, receiver) {
+          if (typeof key !== 'string') return Reflect.get(target, key, receiver);
+          if (key === 'style') return mergedStyles;
+          if (key === 'ref') return mergedRefs;
+          if (key === 'class') return mergedClasses;
+          if (key === 'classList') return mergedClassList;
 
-  // We need to mutably own `merged`
-  let merged = { ...resolvePropsGetter(props[0], EMPTY_PROPS) };
+          if (key[0] === 'o' && key[1] === 'n' && key[2]) {
+            const name = key.toLowerCase();
+            if (name in mergedListeners) return mergedListeners[name];
+          }
 
-  for (let i = 1; i < props.length; i += 1) {
-    merged = mergeOne(merged, props[i]);
-  }
+          return Reflect.get(target, key, receiver);
+        },
+      });
 
-  return merged as PropsOf<T>;
-}
+      propsOverride = true;
+      props = props(mergedForGetter);
 
-function mergeOne<T extends ElementType>(merged: Record<string, any>, inputProps: InputProps<T>) {
-  if (isPropsGetter(inputProps)) {
-    const data = isAccessor(inputProps)
-      ? mutablyMergeInto(merged, inputProps())
-      : inputProps(merged);
-    return data != null ? data : merged;
-  }
-  return mutablyMergeInto(merged, inputProps);
-}
-
-/**
- * Merges two sets of props. In case of conflicts, the external props take precedence.
- */
-function mutablyMergeInto<T extends ElementType>(
-  mergedProps: Record<string, any>,
-  externalProps: ComponentProps<T> | undefined,
-) {
-  if (!externalProps) {
-    return mergedProps;
-  }
-
-  for (const propName in externalProps) {
-    /**
-     * TODO: in Solid children are resolved once the value is accessed for the first time
-     * So we need to skip accessing the children property here to avoid resolving it prematurely.
-     */
-    if (propName === 'children') {
-      continue;
+      cachedListeners = {};
+      cacheStyles = [];
+      cacheRefs = [];
+      cacheClasses = [];
+      cacheClassList = [];
     }
-    const externalPropValue = externalProps[propName];
-    switch (propName) {
-      case 'style': {
-        mergedProps[propName] = mergeObjects(
-          mergedProps.style as JSX.CSSProperties | undefined,
-          externalPropValue as JSX.CSSProperties | undefined,
-        );
-        break;
+
+    for (const key in props) {
+      /*
+       * Track all descriptors before any special handling so we can later
+       * check if the final value should be undefined
+       */
+      lastDescriptor[key] = Object.getOwnPropertyDescriptor(props, key);
+
+      if (key === 'style') {
+        cacheStyles.push(props as any);
+        continue;
       }
-      case 'class': {
-        mergedProps[propName] = mergeClasses(mergedProps.class, externalPropValue as string);
-        break;
+
+      if (key === 'ref') {
+        if (typeof props[key] === 'function') {
+          cacheRefs.push(props[key]);
+        }
+        continue;
       }
-      default: {
-        if (isEventHandler(propName, externalPropValue)) {
-          mergedProps[propName] = mergeEventHandlers(mergedProps[propName], externalPropValue);
-        } else {
-          mergedProps[propName] = externalPropValue;
+
+      if (key === 'class' || key === 'className') {
+        cacheClasses.push(props as any);
+        continue;
+      }
+
+      if (key === 'classList') {
+        cacheClassList.push(props as any);
+        continue;
+      }
+
+      // event listeners
+      if (key[0] === 'o' && key[1] === 'n' && key[2]) {
+        const v = props[key];
+        const name = key.toLowerCase();
+
+        const callback: EventHandler | undefined =
+          typeof v === 'function'
+            ? v
+            : // jsx event handlers can be tuples of [callback, arg]
+              Array.isArray(v)
+              ? v.length === 1
+                ? v[0]
+                : v[0].bind(void 0, v[1])
+              : void 0;
+
+        if (callback) {
+          cachedListeners[name] = mergeEventHandlers(cachedListeners[name], callback);
         }
       }
     }
+
+    // eslint-disable-next-line solid/reactivity
+    merge = propsOverride ? (props ?? {}) : solidMergeProps(merge, props);
   }
 
-  return mergedProps;
-}
+  const mergedListeners = { ...cachedListeners };
+  const mergedStyles = reduce(cacheStyles, 'style', combineStyle);
+  const mergedRefs = reverseChain(cacheRefs);
+  const mergedClasses = reduce(cacheClasses, 'class', (a, b) => `${a} ${b}`);
+  const mergedClassList = reduce(cacheClassList, 'classList', (a, b) => ({ ...a, ...b }));
 
-function isEventHandler(key: string, value: unknown) {
-  // This approach is more efficient than using a regex.
-  const code0 = key.charCodeAt(0);
-  const code1 = key.charCodeAt(1);
-  const code2 = key.charCodeAt(2);
-  const code3 = key.charCodeAt(3);
-  return (
-    code0 === 111 /* o */ &&
-    code1 === 110 /* n */ &&
-    ((code2 >= 65 /* A */ && code2 <= 90) /* Z */ ||
-      (code2 === 58 /* : */ && code3 >= 97 /* a */ && code3 <= 122)) /* z */ &&
-    (typeof value === 'function' || typeof value === 'undefined')
-  );
-}
+  return new Proxy(
+    {
+      get(key) {
+        if (typeof key !== 'string') return Reflect.get(merge, key);
+        if (key === 'style') return mergedStyles;
+        if (key === 'ref') return mergedRefs;
+        if (key === 'class') return mergedClasses;
+        if (key === 'classList') return mergedClassList;
 
-function isPropsGetter<T extends Component>(
-  inputProps: InputProps<T>,
-): inputProps is (props: PropsOf<T>) => PropsOf<T> {
-  return typeof inputProps === 'function';
+        if (key[0] === 'o' && key[1] === 'n' && key[2]) {
+          const name = key.toLowerCase();
+          if (name in mergedListeners) return mergedListeners[name];
+        }
+
+        /*
+         * Check if the last descriptor for this key resolves to undefined.
+         * This handles the case where explicit undefined should overwrite previous values,
+         * matching React's mergeProps behavior.
+         */
+        const desc = lastDescriptor[key];
+        if (desc) {
+          const value = desc.get ? desc.get() : desc.value;
+          if (value === undefined) {
+            return undefined;
+          }
+        }
+
+        return Reflect.get(merge, key);
+      },
+      has(key) {
+        return Reflect.has(merge, key);
+      },
+      keys() {
+        return Object.keys(merge);
+      },
+    },
+    propTraps,
+  ) as any;
 }
 
 /**
- * TODO: this is a temporary solution to check if a function is an accessor.
- * `func.length` check provides no precision if the function has default arguments.
+ * https://github.com/solidjs-community/solid-primitives/blob/0cbdb59bb42f50de5e08000027789ae3d4c80280/packages/utils/src/index.ts#L82-L94
+ * Returns a function that will call all functions in the reversed order with the same arguments.
  */
-function isAccessor<T>(func: Function): func is Accessor<T> {
-  const funcStr = func.toString();
-  const openParenIndex = funcStr.indexOf('(');
-  const closeParenIndex = funcStr.indexOf(')');
-
-  if (openParenIndex === -1 || closeParenIndex === -1) {
-    return false;
-  }
-
-  return closeParenIndex === openParenIndex + 1;
+function reverseChain<Args extends [] | any[]>(
+  callbacks: (((...args: Args) => any) | undefined)[],
+): (...args: Args) => void {
+  return (...args: Args) => {
+    for (let i = callbacks.length - 1; i >= 0; i--) {
+      const callback = callbacks[i];
+      callback?.(...args);
+    }
+  };
 }
 
-function resolvePropsGetter<T extends ElementType>(
-  inputProps: InputProps<ElementType>,
-  previousProps: PropsOf<T>,
-) {
-  if (isPropsGetter(inputProps)) {
-    return inputProps(previousProps) ?? (EMPTY_PROPS as PropsOf<T>);
-  }
-
-  return inputProps ?? (EMPTY_PROPS as PropsOf<T>);
-}
-
-function mergeEventHandlers(ourHandler: Function | undefined, theirHandler: Function | undefined) {
+function mergeEventHandlers(
+  ourHandler: EventHandler | undefined,
+  theirHandler: EventHandler | undefined,
+): (...args: any[]) => void {
   if (!theirHandler) {
-    return ourHandler;
+    return ourHandler as any;
   }
   if (!ourHandler) {
-    return theirHandler;
+    return theirHandler as any;
   }
 
   return (event: unknown) => {
@@ -241,17 +362,4 @@ export function makeEventPreventable<T extends Event>(event: BaseUIEvent<T>) {
   };
 
   return event;
-}
-
-export function mergeClasses(ourClass: string | undefined, theirClass: string | undefined) {
-  if (theirClass) {
-    if (ourClass) {
-      // eslint-disable-next-line prefer-template
-      return theirClass + ' ' + ourClass;
-    }
-
-    return theirClass;
-  }
-
-  return ourClass;
 }

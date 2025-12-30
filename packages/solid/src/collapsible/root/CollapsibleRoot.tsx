@@ -1,5 +1,5 @@
 'use client';
-import { mergeProps, Show } from 'solid-js';
+import { Show, mergeProps as solidMergeProps } from 'solid-js';
 import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useRenderElement } from '../../utils/useRenderElement';
@@ -48,7 +48,7 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
     },
   };
 
-  const contextValue: CollapsibleRootContext = mergeProps(collapsible, {
+  const contextValue: CollapsibleRootContext = solidMergeProps(collapsible, {
     onOpenChange,
     state,
   });

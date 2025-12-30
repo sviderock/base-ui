@@ -4,7 +4,7 @@ import {
   IndexGuessBehavior,
   useCompositeListItem,
 } from '../../composite/list/useCompositeListItem';
-import { combineProps } from '../../merge-props/combineProps';
+import { mergeProps } from '../../merge-props/mergeProps';
 import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { isMouseWithinBounds } from '../../utils/isMouseWithinBounds';
@@ -231,12 +231,7 @@ export function SelectItem(componentProps: SelectItem.Props) {
       buttonRef(el);
       listItem.setRef(el);
     },
-    props: [
-      (props) => combineProps(props, rootProps()),
-      defaultProps,
-      elementProps,
-      getButtonProps,
-    ],
+    props: [(props) => mergeProps(props, rootProps()), defaultProps, elementProps, getButtonProps],
   });
 
   return <SelectItemContext.Provider value={contextValue}>{element()}</SelectItemContext.Provider>;

@@ -4,8 +4,8 @@ import {
   createEffect,
   createMemo,
   createSignal,
-  mergeProps,
   onMount,
+  mergeProps as solidMergeProps,
   splitProps,
 } from 'solid-js';
 import { useCheckboxGroupContext } from '../../checkbox-group/CheckboxGroupContext';
@@ -14,7 +14,7 @@ import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { useField } from '../../field/useField';
 import { useFormContext } from '../../form/FormContext';
-import { combineProps } from '../../merge-props';
+import { mergeProps } from '../../merge-props';
 import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import type { BaseUIComponentProps, BaseUIHTMLProps } from '../../utils/types';
@@ -196,7 +196,7 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
   };
 
   const inputProps = createMemo<BaseUIHTMLProps<HTMLInputElement>>(() => {
-    return combineProps<'input'>(
+    return mergeProps<'input'>(
       {
         get checked() {
           return checked();
@@ -291,7 +291,7 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
     }
   });
 
-  const state: CheckboxRoot.State = mergeProps(fieldState, {
+  const state: CheckboxRoot.State = solidMergeProps(fieldState, {
     get disabled() {
       return disabled();
     },
@@ -349,7 +349,7 @@ export function CheckboxRoot(componentProps: CheckboxRoot.Props) {
       },
       (props) => fieldControlValidation().getValidationProps(props),
       elementProps,
-      (props) => combineProps(props, groupProps().other),
+      (props) => mergeProps(props, groupProps().other),
       getButtonProps,
     ],
   });

@@ -18,9 +18,9 @@ export interface DemoProps extends ComponentProps<typeof BaseDemo.Root> {
   compact?: boolean;
 }
 
-export const Demo = clientOnly(async () => ({ default: _Demo }), { lazy: true });
+// export const Demo = clientOnly(async () => ({ default: _Demo }), { lazy: true });
 
-function _Demo(componentProps: DemoProps) {
+export function Demo(componentProps: DemoProps) {
   const [local, props] = splitProps(componentProps, ['defaultOpen', 'compact', 'class', 'title']);
   const defaultOpen = () => local.defaultOpen ?? false;
   const compact = () => local.compact ?? false;

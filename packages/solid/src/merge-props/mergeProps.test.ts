@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { spy } from 'sinon';
 import { callEventHandler } from '../solid-helpers';
 import type { BaseUIEvent } from '../utils/types';
-import { combineProps as mergeProps } from './combineProps';
+import { mergeProps } from './mergeProps';
 
 describe('mergeProps', () => {
   it('merges event handlers', () => {

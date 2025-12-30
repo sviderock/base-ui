@@ -214,6 +214,10 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
     },
   };
 
+  onCleanup(() => {
+    setPositionerElement(null);
+  });
+
   const element = useRenderElement('div', componentProps, {
     state,
     ref: setPositionerElement,

@@ -1,5 +1,5 @@
 'use client';
-import { combineProps } from '../../merge-props';
+import { mergeProps } from '../../merge-props';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import type { BaseUIHTMLProps, HTMLProps } from '../../utils/types';
@@ -24,7 +24,7 @@ export function useDialogClose(params: useDialogClose.Parameters): useDialogClos
   const getRootProps: useDialogClose.ReturnValue['getRootProps'] = (externalProps) => {
     // Pass getButtonProps as a props-getter so it can wrap the previously merged
     // onClick and correctly suppress it when disabled, matching React behavior.
-    return combineProps({ onClick: handleClick }, externalProps, getButtonProps);
+    return mergeProps({ onClick: handleClick }, externalProps, getButtonProps);
   };
 
   return {

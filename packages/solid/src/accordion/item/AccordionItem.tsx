@@ -1,5 +1,12 @@
 'use client';
-import { batch, createEffect, createMemo, createSignal, mergeProps, on } from 'solid-js';
+import {
+  batch,
+  createEffect,
+  createMemo,
+  createSignal,
+  on,
+  mergeProps as solidMergeProps,
+} from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { CollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
 import { useCollapsibleRoot } from '../../collapsible/root/useCollapsibleRoot';
@@ -82,13 +89,13 @@ export function AccordionItem(componentProps: AccordionItem.Props) {
     },
   };
 
-  const collapsibleContext: CollapsibleRootContext = mergeProps(collapsible, {
+  const collapsibleContext: CollapsibleRootContext = solidMergeProps(collapsible, {
     onOpenChange,
     state: collapsibleState,
     transitionStatus: collapsible.transitionStatus,
   });
 
-  const state: AccordionItem.State = mergeProps(rootState, {
+  const state: AccordionItem.State = solidMergeProps(rootState, {
     get index() {
       return index();
     },
