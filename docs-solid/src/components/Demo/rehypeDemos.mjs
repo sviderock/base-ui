@@ -1,7 +1,8 @@
 import camelCase from 'lodash/camelCase.js';
 import upperFirst from 'lodash/upperFirst.js';
-import { dirname, join, relative } from 'path';
+import { dirname, join } from 'path';
 import { visit } from 'unist-util-visit';
+import { loadDemo } from './loadDemo';
 
 /**
  * Enhances `<Demo>` components in MDX:
@@ -21,7 +22,7 @@ import { visit } from 'unist-util-visit';
  * ```
  */
 export function rehypeDemos() {
-  return (tree, file) => {
+  return async (tree, file) => {
     const paths = [];
 
     visit(tree, (node) => {
@@ -32,11 +33,9 @@ export function rehypeDemos() {
           return;
         }
 
-        paths.push(path.value);
-        const oldValue = path.value;
         const importName = upperFirst(camelCase(path.value));
-        const fullPath = relative(process.cwd(), join(dirname(file.path), path.value));
-        path.value = fullPath;
+        const fullPath = join(dirname(file.path), path.value);
+        paths.push({ value: path.value, fullPath, importName, node });
 
         // Add `scope` prop
         node.attributes.push({
@@ -67,8 +66,15 @@ export function rehypeDemos() {
     });
 
     // For each path we saw, insert import statements at the start of the file
-    for (const value of paths) {
-      const importName = upperFirst(camelCase(value));
+    for (const { value, fullPath, importName, node } of paths) {
+      const metadata = await loadDemo(fullPath);
+
+      node.attributes.push({
+        type: 'mdxJsxAttribute',
+        name: 'metadata',
+        value: JSON.stringify(metadata),
+      });
+
       tree.children.unshift({
         type: 'mdxjsEsm',
         value: `import * as ${importName} from '${value}';`,

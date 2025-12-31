@@ -1,6 +1,6 @@
 'use server';
-import camelCase from 'lodash/camelCase';
-import upperFirst from 'lodash/upperFirst';
+import camelCase from 'lodash/camelCase.js';
+import upperFirst from 'lodash/upperFirst.js';
 import { existsSync, statSync } from 'node:fs';
 import { readFile, readdir } from 'node:fs/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';

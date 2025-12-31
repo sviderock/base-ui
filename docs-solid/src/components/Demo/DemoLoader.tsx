@@ -1,44 +1,35 @@
-import { createAsync, query } from '@solidjs/router';
-import { createMemo, Show, splitProps, Suspense, type ComponentProps } from 'solid-js';
+import { createMemo, Show, splitProps, type ComponentProps } from 'solid-js';
+import type { DemoVariant } from '../../blocks/Demo';
 import { Demo } from './Demo';
-import { loadDemo } from './loadDemo';
-
-const getVariants = query(async (path: string) => {
-  'use server';
-  const variants = await loadDemo(path);
-
-  if (!variants.length) {
-    throw new Error(`\nCould not load demo: no demos found in "${path}".`);
-  }
-
-  return variants;
-}, 'components-metadata');
 
 export interface DemoLoaderProps extends Omit<ComponentProps<typeof Demo>, 'variants'> {
   /** Absolute path to a folder with demos or to a .tsx file with the main demo */
   path: string;
   /** Modules that are imported into the current scope in order to render the demo */
   scope: Record<string, any>;
+  /** Metadata for the demo */
+  metadata: string;
 }
 
 export function DemoLoader(componentProps: DemoLoaderProps) {
-  const [local, props] = splitProps(componentProps, ['path', 'scope']);
-  const variants = createAsync(() => getVariants(local.path));
-
-  const variantsWithComponents = createMemo(() => {
-    return variants()?.map((variant) => {
-      return {
-        ...variant,
-        component: local.scope[variant.component],
-      };
-    });
+  const [local, props] = splitProps(componentProps, ['scope', 'metadata']);
+  const variantsWithComponents = createMemo((): DemoVariant[] | undefined => {
+    try {
+      const scope = 'default' in local.scope ? local.scope.default : local.scope;
+      const metadata = JSON.parse(local.metadata) as DemoVariant[];
+      for (const variant of metadata) {
+        variant.component = scope[variant.component];
+      }
+      return metadata;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
   });
 
   return (
-    <Suspense>
-      <Show when={variantsWithComponents()?.length}>
-        <Demo variants={variantsWithComponents()!} {...props} />
-      </Show>
-    </Suspense>
+    <Show when={variantsWithComponents()?.length}>
+      <Demo variants={variantsWithComponents()!} {...props} />
+    </Show>
   );
 }
