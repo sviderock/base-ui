@@ -40,6 +40,7 @@
     "solid-jsx": "^1.1.4",
     "solid-mdx": "^0.0.7",
     "to-vfile": "^8.0.0",
+    "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0",
     "unist-util-visit-parents": "^6.0.1",
     "vfile-matter": "^5.0.1",
