@@ -17,6 +17,7 @@
     "@types/mdx": "^2.0.13",
     "@vinxi/plugin-mdx": "^3.7.1",
     "clipboard-copy": "^4.0.1",
+    "clsx": "^2.1.1",
     "estree-util-value-to-estree": "^3.4.0",
     "fast-glob": "^3.3.3",
     "hast": "^1.0.0",

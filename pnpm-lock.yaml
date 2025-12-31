@@ -530,6 +530,9 @@ importers:
       clipboard-copy:
         specifier: ^4.0.1
         version: 4.0.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
       estree-util-value-to-estree:
         specifier: ^3.4.0
         version: 3.4.0
