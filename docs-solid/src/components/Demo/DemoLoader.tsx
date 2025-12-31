@@ -13,7 +13,7 @@ export interface DemoLoaderProps extends Omit<ComponentProps<typeof Demo>, 'vari
 export function DemoLoader(componentProps: DemoLoaderProps) {
   const [local, props] = splitProps(componentProps, ['path', 'scope']);
   const variants = createAsync(async () => {
-    console.log({ url: import.meta.url, cwd: process.cwd() });
+    console.log({ url: import.meta.url });
     console.log('loadDemo', local.path);
     const variants = await loadDemo(local.path);
     console.log('variants', variants);
