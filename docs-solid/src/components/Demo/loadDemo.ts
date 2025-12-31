@@ -2,9 +2,8 @@
 import camelCase from 'lodash/camelCase';
 import upperFirst from 'lodash/upperFirst';
 import { existsSync, statSync } from 'node:fs';
-import { readdir, readFile } from 'node:fs/promises';
-import { basename, dirname, extname, join, relative, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFile, readdir } from 'node:fs/promises';
+import { basename, dirname, extname, join, resolve } from 'node:path';
 import type { DemoFile, DemoVariant } from '../../blocks/Demo';
 import { highlighter } from '../../syntax-highlighting';
 
@@ -13,7 +12,7 @@ export async function loadDemo(path: string): Promise<DemoVariant[]> {
     // Is the entry point a single file?
     if (statSync(path).isFile()) {
       // For simple demos, we call the variant "default".
-      return getDemoFromFile(path, 'default');
+      return getDemoFromFile(path, 'default', 'default');
     }
 
     const subdirectories = (await readdir(path)).filter((entry) => {
@@ -70,7 +69,7 @@ async function getThemeFile(): Promise<DemoFile> {
 async function getDemoFromFile(
   path: string,
   variantName: string,
-  DemoComponentName?: string,
+  DemoComponent: string,
 ): Promise<DemoVariant[]> {
   if (/\.(t|j)sx?$/.test(path) === false) {
     throw new Error(
@@ -86,16 +85,12 @@ async function getDemoFromFile(
   });
 
   const localImports = getLocalImports(mainContent, dirname(path));
-  const relativePath = relative(
-    dirname(fileURLToPath(import.meta.url)).replace(process.cwd(), ''),
-    path.replace(process.cwd(), ''),
-  );
 
   const languageVariants: DemoVariant[] = [
     {
       name: variantName,
       language: mainFileLanguage,
-      componentPath: relativePath,
+      component: DemoComponent,
       files: [
         {
           name: basename(path),
@@ -122,7 +117,7 @@ async function getDemoFromFile(
     languageVariants.push({
       name: variantName,
       language: 'js',
-      componentPath: relativePath,
+      component: DemoComponent,
       files: [
         {
           name: basename(jsFilePath),

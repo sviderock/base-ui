@@ -7,7 +7,6 @@ import path from 'path';
 import remarkGfm from 'remark-gfm';
 import remarkTypography from 'remark-typography';
 import { fileURLToPath } from 'url';
-import solid from 'vite-plugin-solid';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { rehypeDemos } from './src/components/Demo/rehypeDemos.mjs';
 import { rehypeKbd } from './src/components/Kbd/rehypeKbd.mjs';

@@ -31,9 +31,9 @@ export interface DemoVariant {
    */
   language: 'ts' | 'js';
   /**
-   * Relative path to the runnable demo component.
+   * Reference to the runnable demo component.
    */
-  componentPath: string;
+  component: any;
   /**
    * Files the demo consists of.
    */
