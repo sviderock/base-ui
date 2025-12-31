@@ -1,4 +1,3 @@
-'use client';
 
 import type { JSX } from 'solid-js';
 import { createContext, createSignal, onMount, useContext, type Accessor } from 'solid-js';

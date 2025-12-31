@@ -1,4 +1,3 @@
-'use client';
 import { Popover } from '@base-ui-components/solid/popover';
 import { useMediaQuery } from '@base-ui-components/solid/unstable-use-media-query';
 import type { ParentProps } from 'solid-js';

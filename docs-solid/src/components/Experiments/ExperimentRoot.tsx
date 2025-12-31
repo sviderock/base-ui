@@ -1,4 +1,3 @@
-'use client';
 import clsx from 'clsx';
 import { type Accessor, createContext, createSignal, type JSX, type Setter } from 'solid-js';
 import classes from './ExperimentRoot.module.css';

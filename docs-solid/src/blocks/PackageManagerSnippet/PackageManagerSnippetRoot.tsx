@@ -1,4 +1,3 @@
-'use client';
 import { Tabs } from '@base-ui-components/solid/tabs';
 import { createSignal, For, onMount, type JSX } from 'solid-js';
 import { usePackageManagerSnippetContext } from './PackageManagerSnippetProvider';

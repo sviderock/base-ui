@@ -1,4 +1,3 @@
-'use client';
 import { useContext } from 'solid-js';
 import { ExperimentRootContext } from './ExperimentRoot';
 import classes from './ShowSidebar.module.css';

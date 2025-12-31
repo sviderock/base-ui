@@ -1,4 +1,3 @@
-'use client';
 import { useContext, type JSX } from 'solid-js';
 import { Button } from './Button';
 import { ExperimentRootContext } from './ExperimentRoot';

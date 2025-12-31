@@ -1,4 +1,3 @@
-'use client';
 import { Tabs } from '@base-ui-components/solid/tabs';
 import type { JSX } from 'solid-js';
 

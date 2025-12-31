@@ -1,4 +1,3 @@
-'use client';
 import { createCodeSandbox } from 'docs-solid/src/blocks/createCodeSandbox/createCodeSandbox';
 import { DemoFile } from 'docs-solid/src/blocks/Demo';
 import { splitProps, type JSX } from 'solid-js';

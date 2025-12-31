@@ -1,4 +1,3 @@
-'use client';
 import { Field } from '@base-ui-components/solid/field';
 import { Popover } from '@base-ui-components/solid/popover';
 import clsx from 'clsx';

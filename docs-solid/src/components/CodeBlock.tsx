@@ -1,4 +1,3 @@
-'use client';
 import { useId } from '@base-ui-components/solid/utils';
 import copy from 'clipboard-copy';
 import clsx from 'clsx';

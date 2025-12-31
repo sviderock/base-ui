@@ -1,4 +1,3 @@
-'use client';
 import { clientOnly } from '@solidjs/start';
 
 export default {

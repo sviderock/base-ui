@@ -1,4 +1,3 @@
-'use client';
 import { Field } from '@base-ui-components/solid/field';
 import { Switch as BaseSwitch } from '@base-ui-components/solid/switch';
 import { splitProps, type JSX } from 'solid-js';

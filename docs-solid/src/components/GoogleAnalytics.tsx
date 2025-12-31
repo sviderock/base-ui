@@ -1,4 +1,3 @@
-'use client';
 import { useLocation } from '@solidjs/router';
 import { createMemo } from 'solid-js';
 import { GoogleAnalytics as BaseGoogleAnalytics } from '../blocks/GoogleAnalytics';

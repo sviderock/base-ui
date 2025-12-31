@@ -1,4 +1,3 @@
-'use client';
 import { mergeProps } from '@base-ui-components/solid/merge-props';
 import { useRender } from '@base-ui-components/solid/use-render';
 import { splitProps } from 'solid-js';

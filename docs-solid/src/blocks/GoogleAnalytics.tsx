@@ -1,4 +1,3 @@
-'use client';
 import { useMediaQuery } from '@base-ui-components/solid/unstable-use-media-query';
 import { createEffect, on, onCleanup, onMount } from 'solid-js';
 

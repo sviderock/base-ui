@@ -1,4 +1,3 @@
-'use client';
 import clsx from 'clsx';
 import { onCleanup, onMount, splitProps, type ComponentProps } from 'solid-js';
 
