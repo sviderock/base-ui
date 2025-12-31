@@ -1,4 +1,3 @@
-'use client';
 import { onCleanup } from 'solid-js';
 
 type AnimationFrameId = number;

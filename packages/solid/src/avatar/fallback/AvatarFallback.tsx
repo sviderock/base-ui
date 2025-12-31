@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createSignal, onCleanup } from 'solid-js';
 import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';

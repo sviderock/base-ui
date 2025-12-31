@@ -1,4 +1,3 @@
-'use client';
 import { Field } from '../field';
 import type { BaseUIComponentProps } from '../utils/types';
 

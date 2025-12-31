@@ -1,4 +1,3 @@
-'use client';
 import { splitComponentProps } from '../../solid-helpers';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { popupStateMapping as baseMapping } from '../../utils/popupStateMapping';

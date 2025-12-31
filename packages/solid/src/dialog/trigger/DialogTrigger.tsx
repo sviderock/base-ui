@@ -1,4 +1,3 @@
-'use client';
 import { access, splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';

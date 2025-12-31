@@ -1,4 +1,3 @@
-'use client';
 import { splitComponentProps } from '../../solid-helpers';
 import { DISABLED_TRANSITIONS_STYLE } from '../../utils/constants';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';

@@ -1,4 +1,3 @@
-'use client';
 import { createContext, useContext, type Accessor } from 'solid-js';
 import type { TextDirection } from '../../direction-provider';
 import type { Orientation } from '../../utils/types';

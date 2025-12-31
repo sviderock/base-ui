@@ -1,4 +1,3 @@
-'use client';
 import { splitComponentProps } from '../../solid-helpers';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';

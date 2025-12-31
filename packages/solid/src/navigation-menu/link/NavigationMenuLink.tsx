@@ -1,4 +1,3 @@
-'use client';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import { useFloatingTree } from '../../floating-ui-solid';
 import { splitComponentProps } from '../../solid-helpers';

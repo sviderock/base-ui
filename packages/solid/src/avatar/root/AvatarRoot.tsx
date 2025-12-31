@@ -1,4 +1,3 @@
-'use client';
 import { createSignal } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';

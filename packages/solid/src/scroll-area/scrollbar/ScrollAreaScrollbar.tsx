@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, onCleanup, Show, type JSX } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { splitComponentProps } from '../../solid-helpers';

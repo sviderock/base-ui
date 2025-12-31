@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createSignal, type Accessor } from 'solid-js';
 import { CompositeRoot } from '../../composite/root/CompositeRoot';
 import { splitComponentProps } from '../../solid-helpers';

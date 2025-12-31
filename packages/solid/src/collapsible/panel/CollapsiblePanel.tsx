@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createMemo, Show } from 'solid-js';
 import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';

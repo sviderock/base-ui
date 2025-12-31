@@ -1,4 +1,3 @@
-'use client';
 import { onMount } from 'solid-js';
 import { getTarget } from '../../floating-ui-solid/utils';
 import { splitComponentProps } from '../../solid-helpers';

@@ -1,4 +1,3 @@
-'use client';
 import type { MenuParent } from '@base-ui-components/solid/menu/root/MenuRoot';
 import { mergeProps } from '@base-ui-components/solid/merge-props';
 import { createEffect, type JSX } from 'solid-js';

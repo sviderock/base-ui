@@ -1,4 +1,3 @@
-'use client';
 import { createSignal, onCleanup, onMount, type ParentProps } from 'solid-js';
 import { CompositeRoot } from '../composite/root/CompositeRoot';
 import {

@@ -1,4 +1,3 @@
-'use client';
 import { FloatingFocusManager } from '../../floating-ui-solid';
 import { access, splitComponentProps } from '../../solid-helpers';
 import { type CustomStyleHookMapping } from '../../utils/getStyleHookProps';

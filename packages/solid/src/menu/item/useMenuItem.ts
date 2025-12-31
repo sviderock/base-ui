@@ -1,4 +1,3 @@
-'use client';
 import type { Accessor } from 'solid-js';
 import { FloatingEvents } from '../../floating-ui-solid';
 import { mergeProps } from '../../merge-props';

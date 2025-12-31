@@ -1,4 +1,3 @@
-'use client';
 import { mergeProps } from '../../merge-props';
 import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';

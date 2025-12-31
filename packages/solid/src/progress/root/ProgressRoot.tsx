@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createMemo, createSignal, on, onCleanup } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { splitComponentProps, type CodependentRefs } from '../../solid-helpers';

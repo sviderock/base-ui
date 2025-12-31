@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, onCleanup } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { activeElement } from '../../floating-ui-solid/utils';

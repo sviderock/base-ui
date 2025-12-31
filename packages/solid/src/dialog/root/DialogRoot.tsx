@@ -1,4 +1,3 @@
-'use client';
 import { mergeProps as solidMergeProps, type JSX } from 'solid-js';
 import { DialogContext } from '../utils/DialogContext';
 import { DialogRootContext, useOptionalDialogRootContext } from './DialogRootContext';

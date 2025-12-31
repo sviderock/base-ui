@@ -1,4 +1,3 @@
-'use client';
 import { access, type MaybeAccessor } from '../solid-helpers';
 import { useAnimationFrame } from './useAnimationFrame';
 import { useTimeout } from './useTimeout';

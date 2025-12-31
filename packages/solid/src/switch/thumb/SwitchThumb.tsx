@@ -1,4 +1,3 @@
-'use client';
 import { mergeProps as solidMergeProps } from 'solid-js';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { splitComponentProps } from '../../solid-helpers';

@@ -1,4 +1,3 @@
-'use client';
 
 import { createEffect, on } from 'solid-js';
 import { access, type MaybeAccessor } from '../solid-helpers';

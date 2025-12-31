@@ -1,4 +1,3 @@
-'use client';
 import { Show, mergeProps as solidMergeProps, type JSX } from 'solid-js';
 import {
   FloatingNode,

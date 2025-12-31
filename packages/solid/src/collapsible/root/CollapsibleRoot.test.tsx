@@ -1,4 +1,3 @@
-'use client';
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { Collapsible } from '@base-ui-components/solid/collapsible';
 import { screen } from '@solidjs/testing-library';

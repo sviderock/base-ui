@@ -1,4 +1,3 @@
-'use client';
 import { type JSX } from 'solid-js';
 import { DirectionContext, type TextDirection } from './DirectionContext';
 

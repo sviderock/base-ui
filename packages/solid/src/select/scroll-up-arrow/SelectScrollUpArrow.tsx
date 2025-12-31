@@ -1,4 +1,3 @@
-'use client';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { SelectScrollArrow } from '../scroll-arrow/SelectScrollArrow';
 

@@ -1,4 +1,3 @@
-'use client';
 import { batch, createMemo, type JSX } from 'solid-js';
 import {
   ARROW_DOWN,

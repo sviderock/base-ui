@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createSignal, mergeProps as solidMergeProps, type JSX } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { CompositeList } from '../../composite/list/CompositeList';

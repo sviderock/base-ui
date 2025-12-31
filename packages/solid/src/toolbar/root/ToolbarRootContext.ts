@@ -1,4 +1,3 @@
-'use client';
 import { createContext, useContext, type Accessor, type Setter } from 'solid-js';
 import type { CompositeMetadata } from '../../composite/list/CompositeList';
 import type { Orientation } from '../../utils/types';

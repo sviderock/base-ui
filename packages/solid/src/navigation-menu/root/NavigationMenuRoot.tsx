@@ -1,4 +1,3 @@
-'use client';
 import { isHTMLElement } from '@floating-ui/utils/dom';
 import { batch, createMemo, createSignal, Show, splitProps } from 'solid-js';
 import {

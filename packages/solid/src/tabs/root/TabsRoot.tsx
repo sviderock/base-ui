@@ -1,4 +1,3 @@
-'use client';
 import { batch, createSignal } from 'solid-js';
 import type { CompositeMetadata } from '../../composite/list/CompositeList';
 import { CompositeList } from '../../composite/list/CompositeList';

@@ -1,4 +1,3 @@
-'use client';
 import { type JSX, Show } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';

@@ -1,4 +1,3 @@
-'use client';
 import { batch, createEffect, createSignal, onMount, type JSX } from 'solid-js';
 import {
   safePolygon,

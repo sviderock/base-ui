@@ -1,4 +1,3 @@
-'use client';
 import { createMemo } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { splitComponentProps } from '../../solid-helpers';

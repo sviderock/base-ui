@@ -1,4 +1,3 @@
-'use client';
 import { Show, mergeProps as solidMergeProps } from 'solid-js';
 import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';

@@ -1,4 +1,3 @@
-'use client';
 import { batch, createEffect, createSignal, on, onCleanup } from 'solid-js';
 import { access, type MaybeAccessor } from '../solid-helpers';
 import { AnimationFrame } from './useAnimationFrame';

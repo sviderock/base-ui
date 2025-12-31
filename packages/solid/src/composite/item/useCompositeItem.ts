@@ -1,4 +1,3 @@
-'use client';
 import { createSignal } from 'solid-js';
 import type { HTMLProps } from '../../utils/types';
 import { useCompositeListItem } from '../list/useCompositeListItem';

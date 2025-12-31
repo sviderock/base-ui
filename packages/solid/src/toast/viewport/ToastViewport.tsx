@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, onCleanup, type JSX } from 'solid-js';
 import { activeElement, contains, getTarget } from '../../floating-ui-solid/utils';
 import { splitComponentProps } from '../../solid-helpers';

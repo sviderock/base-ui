@@ -1,4 +1,3 @@
-'use client';
 import { createMemo, type JSX } from 'solid-js';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { visuallyHidden } from '../../utils/visuallyHidden';

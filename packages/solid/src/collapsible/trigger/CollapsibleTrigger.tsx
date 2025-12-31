@@ -1,4 +1,3 @@
-'use client';
 import { type JSX } from 'solid-js';
 import { access, splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';

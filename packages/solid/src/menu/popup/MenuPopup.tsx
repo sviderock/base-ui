@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createMemo, onCleanup, onMount, type JSX } from 'solid-js';
 import { FloatingFocusManager, useFloatingTree } from '../../floating-ui-solid';
 import { splitComponentProps } from '../../solid-helpers';

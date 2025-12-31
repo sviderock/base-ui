@@ -1,4 +1,3 @@
-'use client';
 
 import { type Accessor, createMemo } from 'solid-js';
 import { access, type MaybeAccessor } from '../solid-helpers';

@@ -1,4 +1,3 @@
-'use client';
 import { createMemo } from 'solid-js';
 import { Separator } from '../../separator';
 import type { BaseUIComponentProps } from '../../utils/types';

@@ -1,4 +1,3 @@
-'use client';
 import { Show, mergeProps as solidMergeProps, splitProps } from 'solid-js';
 import { fieldValidityMapping } from '../../field/utils/constants';
 import { access, MaybeAccessor } from '../../solid-helpers';

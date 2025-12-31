@@ -1,4 +1,3 @@
-'use client';
 import { Menu } from '../../menu';
 import { MenuRootContext } from '../../menu/root/MenuRootContext';
 import { useId } from '../../utils/useId';

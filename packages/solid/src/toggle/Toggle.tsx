@@ -1,4 +1,3 @@
-'use client';
 import { batch, Show } from 'solid-js';
 import { CompositeItem } from '../composite/item/CompositeItem';
 import { splitComponentProps } from '../solid-helpers';

@@ -1,4 +1,3 @@
-'use client';
 import { createMemo, type JSX } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { FieldValidityData } from '../root/FieldRoot';

@@ -1,4 +1,3 @@
-'use client';
 import { batch, createEffect, createSignal, on, onCleanup, onMount, type Accessor } from 'solid-js';
 import { createStore, type SetStoreFunction, type Store } from 'solid-js/store';
 import {

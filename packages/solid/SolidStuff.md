@@ -5,7 +5,6 @@
 - hooks should return accessor instead of object with destructable accessors
 - props.children will get resolved eagerly using `children()` helper so when rendered conditionally – always repeat the same condition in the `children()` helper
 - flushMicrotasks (act() wrapped) is not needed for Solidjs as it's synchronious
-- need to `await waitFor` for various events like `fireEvent.focus()`
 - a lot of type duplication (e.g. `DisabledIndecies` in `floating-ui-react`)
 - need to use `@solid-primitives/autofocus` for the native autofocus to work
 - there is a need to re-arrange effects and cleanup functions' order due to Solid having cleanups executing bottom-to-top while in React it's top-to-bottom which sometimes executes a wrong order of actions. This would probably require some changes in logic to make it more framework-agnostic.

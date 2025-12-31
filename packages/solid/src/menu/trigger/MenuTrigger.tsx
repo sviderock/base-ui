@@ -1,4 +1,3 @@
-'use client';
 import { getParentNode, isHTMLElement, isLastTraversableNode } from '@floating-ui/utils/dom';
 import { createEffect, Show, type JSX } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';

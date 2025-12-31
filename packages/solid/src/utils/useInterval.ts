@@ -1,4 +1,3 @@
-'use client';
 import { createSignal, onCleanup } from 'solid-js';
 
 type IntervalId = number;

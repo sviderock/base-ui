@@ -1,4 +1,3 @@
-'use client';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import type { CheckboxRoot } from '../root/CheckboxRoot';
 import { CheckboxRootDataAttributes } from '../root/CheckboxRootDataAttributes';

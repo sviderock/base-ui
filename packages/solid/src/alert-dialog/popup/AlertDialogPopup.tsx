@@ -1,4 +1,3 @@
-'use client';
 import { useDialogPopup } from '../../dialog/popup/useDialogPopup';
 import { FloatingFocusManager } from '../../floating-ui-solid';
 import { access, splitComponentProps } from '../../solid-helpers';

@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createMemo } from 'solid-js';
 import { ACTIVE_COMPOSITE_ITEM } from '../../composite/constants';
 import { useCompositeItem } from '../../composite/item/useCompositeItem';

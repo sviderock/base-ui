@@ -1,4 +1,3 @@
-'use client';
 import { type JSX, Show } from 'solid-js';
 import type { FloatingPortalProps } from '../../floating-ui-solid';
 import { FloatingPortalLite } from '../../utils/FloatingPortalLite';

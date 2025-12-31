@@ -1,4 +1,3 @@
-'use client';
 import { createSignal, onCleanup, onMount, type JSX } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { splitComponentProps } from '../../solid-helpers';

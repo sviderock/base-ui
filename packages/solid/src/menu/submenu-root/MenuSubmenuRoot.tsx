@@ -1,4 +1,3 @@
-'use client';
 import { MenuRoot } from '../root/MenuRoot';
 import { MenuSubmenuRootContext } from './MenuSubmenuRootContext';
 

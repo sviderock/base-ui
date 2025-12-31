@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createMemo, onCleanup, type JSX } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import {

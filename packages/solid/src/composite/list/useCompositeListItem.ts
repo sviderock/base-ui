@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createSignal, onCleanup, type Accessor } from 'solid-js';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import type { CompositeMetadata } from './CompositeList';

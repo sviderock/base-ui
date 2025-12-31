@@ -1,4 +1,3 @@
-'use client';
 import { createContext, useContext, type Accessor, type Setter } from 'solid-js';
 import type { FloatingRootContext } from '../../floating-ui-solid';
 import { TransitionStatus } from '../../utils';

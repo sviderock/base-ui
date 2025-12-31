@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createSignal, onCleanup, type Accessor, type JSX } from 'solid-js';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 

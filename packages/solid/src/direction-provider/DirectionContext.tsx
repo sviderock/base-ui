@@ -1,4 +1,3 @@
-'use client';
 import { type Accessor, createContext, useContext } from 'solid-js';
 
 export type TextDirection = 'ltr' | 'rtl';

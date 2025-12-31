@@ -1,4 +1,3 @@
-'use client';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useRenderElement } from '../../utils/useRenderElement';

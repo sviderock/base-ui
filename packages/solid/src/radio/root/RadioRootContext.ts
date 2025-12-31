@@ -1,4 +1,3 @@
-'use client';
 import { createContext, useContext, type Accessor } from 'solid-js';
 import type { FieldRoot } from '../../field/root/FieldRoot';
 import type { Accessorify } from '../../floating-ui-solid';

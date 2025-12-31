@@ -1,4 +1,3 @@
-'use client';
 import { batch, createEffect, createMemo, createSignal, onCleanup, type JSX } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { activeElement, contains } from '../../floating-ui-solid/utils';

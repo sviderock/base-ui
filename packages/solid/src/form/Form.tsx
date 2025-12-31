@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createMemo, on } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { access, callEventHandler, splitComponentProps } from '../solid-helpers';

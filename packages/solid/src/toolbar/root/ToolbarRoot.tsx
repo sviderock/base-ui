@@ -1,4 +1,3 @@
-'use client';
 import { createMemo, createSignal } from 'solid-js';
 import type { CompositeMetadata } from '../../composite/list/CompositeList';
 import { CompositeRoot } from '../../composite/root/CompositeRoot';

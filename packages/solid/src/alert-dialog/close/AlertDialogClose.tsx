@@ -1,4 +1,3 @@
-'use client';
 import { useDialogClose } from '../../dialog/close/useDialogClose';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';

@@ -1,4 +1,3 @@
-'use client';
 import { createContext, useContext, type Accessor } from 'solid-js';
 import type { MaybeAccessor } from '../../solid-helpers';
 import type { CompositeMetadata } from './CompositeList';

@@ -1,4 +1,3 @@
-'use client';
 import { type JSX } from 'solid-js';
 import { useCollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';
 import { splitComponentProps } from '../../solid-helpers';

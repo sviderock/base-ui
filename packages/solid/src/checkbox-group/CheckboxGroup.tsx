@@ -1,4 +1,3 @@
-'use client';
 import { batch, mergeProps as solidMergeProps } from 'solid-js';
 import { PARENT_CHECKBOX } from '../checkbox/root/CheckboxRoot';
 import { useFieldControlValidation } from '../field/control/useFieldControlValidation';

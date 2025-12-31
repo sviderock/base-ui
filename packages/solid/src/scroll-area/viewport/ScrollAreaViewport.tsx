@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, on, onCleanup, onMount } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { useDirection } from '../../direction-provider/DirectionContext';

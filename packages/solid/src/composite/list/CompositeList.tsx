@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createMemo, createSignal, createUniqueId, on, type JSX } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { access, type MaybeAccessor } from '../../solid-helpers';

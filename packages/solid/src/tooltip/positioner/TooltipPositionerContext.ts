@@ -1,4 +1,3 @@
-'use client';
 import { createContext, useContext, type Accessor, type JSX, type Setter } from 'solid-js';
 import type { Align, Side } from '../../utils/useAnchorPositioning';
 

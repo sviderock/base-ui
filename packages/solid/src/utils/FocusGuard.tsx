@@ -1,4 +1,3 @@
-'use client';
 
 import { createSignal, onMount, type ComponentProps } from 'solid-js';
 import { isSafari } from './detectBrowser';

@@ -1,4 +1,3 @@
-'use client';
 import { createContext, useContext, type Accessor, type Setter } from 'solid-js';
 import { Timeout } from '../../utils/useTimeout';
 import { EventWithOptionalKeyState } from '../utils/types';

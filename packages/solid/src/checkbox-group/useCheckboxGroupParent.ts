@@ -1,4 +1,3 @@
-'use client';
 import { batch, createSignal, type Accessor } from 'solid-js';
 import { useBaseUiId } from '../utils/useBaseUiId';
 

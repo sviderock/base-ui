@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, Show, mergeProps as solidMergeProps } from 'solid-js';
 import { useCollapsiblePanel } from '../../collapsible/panel/useCollapsiblePanel';
 import { useCollapsibleRootContext } from '../../collapsible/root/CollapsibleRootContext';

@@ -1,4 +1,3 @@
-'use client';
 import { createContext, useContext, type Accessor, type JSX, type Setter } from 'solid-js';
 import type { FloatingContext } from '../../floating-ui-solid';
 import type { Side } from '../../utils/useAnchorPositioning';

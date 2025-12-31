@@ -1,4 +1,3 @@
-'use client';
 import { mergeProps as solidMergeProps, useContext } from 'solid-js';
 import type { DialogRoot } from '../../dialog/root/DialogRoot';
 import { type DialogOpenChangeReason, useDialogRoot } from '../../dialog/root/useDialogRoot';

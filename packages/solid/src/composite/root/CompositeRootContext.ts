@@ -1,4 +1,3 @@
-'use client';
 import { createContext, useContext, type Accessor } from 'solid-js';
 
 export interface CompositeRootContext {

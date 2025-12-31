@@ -1,4 +1,3 @@
-'use client';
 import { batch, createEffect, createMemo, createSignal, Show, type JSX } from 'solid-js';
 import {
   ContextMenuRootContext,

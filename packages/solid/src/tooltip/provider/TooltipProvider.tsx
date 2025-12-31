@@ -1,4 +1,3 @@
-'use client';
 import { createMemo, type JSX } from 'solid-js';
 import { FloatingDelayGroup } from '../../floating-ui-solid';
 import { TooltipProviderContext } from './TooltipProviderContext';

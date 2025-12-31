@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, splitProps, type ComponentProps, type JSX } from 'solid-js';
 import { useCompositeRootContext } from '../composite/root/CompositeRootContext';
 import { makeEventPreventable } from '../merge-props';

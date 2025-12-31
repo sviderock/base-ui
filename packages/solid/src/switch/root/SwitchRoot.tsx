@@ -1,4 +1,3 @@
-'use client';
 import { batch, createSignal, onMount, mergeProps as solidMergeProps, type JSX } from 'solid-js';
 import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
 import type { FieldRoot } from '../../field/root/FieldRoot';

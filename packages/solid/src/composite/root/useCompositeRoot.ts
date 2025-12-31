@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createSignal, type Accessor } from 'solid-js';
 import type { TextDirection } from '../../direction-provider/DirectionContext';
 import { activeElement } from '../../floating-ui-solid/utils';

@@ -1,4 +1,3 @@
-'use client';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';

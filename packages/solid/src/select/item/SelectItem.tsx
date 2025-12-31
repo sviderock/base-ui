@@ -1,4 +1,3 @@
-'use client';
 import { batch, createEffect, createMemo, onCleanup, type JSX } from 'solid-js';
 import {
   IndexGuessBehavior,

@@ -1,4 +1,3 @@
-'use client';
 import { batch, createMemo, Show } from 'solid-js';
 import { CompositeRoot } from '../composite/root/CompositeRoot';
 import { access, splitComponentProps, type MaybeAccessor } from '../solid-helpers';

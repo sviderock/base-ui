@@ -1,4 +1,3 @@
-'use client';
 import { batch, type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { useFloatingTree } from '../../floating-ui-solid';

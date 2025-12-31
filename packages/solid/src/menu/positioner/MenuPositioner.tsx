@@ -1,4 +1,3 @@
-'use client';
 import { batch, createEffect, createMemo, onCleanup, onMount, type JSX } from 'solid-js';
 import { CompositeList } from '../../composite/list/CompositeList';
 import { useContextMenuRootContext } from '../../context-menu/root/ContextMenuRootContext';

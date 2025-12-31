@@ -1,4 +1,3 @@
-'use client';
 import { createMemo, type JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps, Orientation } from '../../utils/types';

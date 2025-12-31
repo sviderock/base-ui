@@ -1,4 +1,3 @@
-'use client';
 import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { CustomStyleHookMapping } from '../../utils/getStyleHookProps';

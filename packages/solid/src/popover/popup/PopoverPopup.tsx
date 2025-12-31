@@ -1,4 +1,3 @@
-'use client';
 import { createMemo } from 'solid-js';
 import { FloatingFocusManager } from '../../floating-ui-solid';
 import { splitComponentProps } from '../../solid-helpers';

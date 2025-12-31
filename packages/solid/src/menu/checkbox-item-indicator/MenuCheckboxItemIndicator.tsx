@@ -1,4 +1,3 @@
-'use client';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';

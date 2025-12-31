@@ -1,4 +1,3 @@
-'use client';
 import { createContext, useContext, type Accessor } from 'solid-js';
 import type { SetStoreFunction, Store } from 'solid-js/store';
 import type { CodependentRefs } from '../../solid-helpers';

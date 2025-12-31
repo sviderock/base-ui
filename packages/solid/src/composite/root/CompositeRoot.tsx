@@ -1,4 +1,3 @@
-'use client';
 import { batch } from 'solid-js';
 import { useDirection } from '../../direction-provider/DirectionContext';
 import { access, splitComponentProps, type MaybeAccessor } from '../../solid-helpers';

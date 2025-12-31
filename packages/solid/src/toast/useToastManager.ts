@@ -1,4 +1,3 @@
-'use client';
 import { useContext, type Accessor, type JSX } from 'solid-js';
 import { ToastContext } from './provider/ToastProviderContext';
 

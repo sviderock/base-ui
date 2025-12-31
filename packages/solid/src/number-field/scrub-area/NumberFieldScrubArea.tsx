@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createSignal, onCleanup } from 'solid-js';
 import { access, splitComponentProps } from '../../solid-helpers';
 import { isWebKit } from '../../utils/detectBrowser';

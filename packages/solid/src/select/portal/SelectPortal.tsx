@@ -1,4 +1,3 @@
-'use client';
 import { Show, type JSX } from 'solid-js';
 import { FloatingPortal, FloatingPortalProps } from '../../floating-ui-solid';
 import { useSelectRootContext } from '../root/SelectRootContext';

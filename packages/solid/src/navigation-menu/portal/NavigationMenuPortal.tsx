@@ -1,4 +1,3 @@
-'use client';
 import { Show, type JSX } from 'solid-js';
 import { FloatingPortal } from '../../floating-ui-solid';
 import { useNavigationMenuRootContext } from '../root/NavigationMenuRootContext';

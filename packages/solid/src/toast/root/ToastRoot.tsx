@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createMemo, createSignal, on, onCleanup, onMount, type JSX } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import type { Accessorify } from '../../floating-ui-solid';

@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createMemo } from 'solid-js';
 import {
   ARROW_DOWN,

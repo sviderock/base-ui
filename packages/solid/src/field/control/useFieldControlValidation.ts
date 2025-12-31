@@ -1,4 +1,3 @@
-'use client';
 import { reconcile } from 'solid-js/store';
 import { useFormContext } from '../../form/FormContext';
 import { mergeProps } from '../../merge-props';

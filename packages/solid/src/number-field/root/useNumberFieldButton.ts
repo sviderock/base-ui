@@ -1,4 +1,3 @@
-'use client';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import type { HTMLProps } from '../../utils/types';
 import type { Timeout } from '../../utils/useTimeout';

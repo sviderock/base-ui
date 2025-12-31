@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, createMemo, For, onCleanup, splitProps } from 'solid-js';
 import { useFormContext } from '../../form/FormContext';
 import type { BaseUIComponentProps } from '../../utils/types';

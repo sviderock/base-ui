@@ -1,4 +1,3 @@
-'use client';
 import { createRenderEffect, onCleanup } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';

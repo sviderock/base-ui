@@ -1,4 +1,3 @@
-'use client';
 import { batch, createEffect, createSignal, on, onCleanup } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { useFieldsetRootContext } from '../../fieldset/root/FieldsetRootContext';

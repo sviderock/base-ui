@@ -1,4 +1,3 @@
-'use client';
 import { createContext, useContext, type Accessor } from 'solid-js';
 import { useFieldControlValidation } from '../field/control/useFieldControlValidation';
 import { NOOP } from '../utils/noop';

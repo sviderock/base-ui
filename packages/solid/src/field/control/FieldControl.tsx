@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, onMount, mergeProps as solidMergeProps, type JSX } from 'solid-js';
 import { mergeProps } from '../../merge-props';
 import { splitComponentProps } from '../../solid-helpers';

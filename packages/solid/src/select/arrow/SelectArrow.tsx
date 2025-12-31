@@ -1,4 +1,3 @@
-'use client';
 import { Show } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';

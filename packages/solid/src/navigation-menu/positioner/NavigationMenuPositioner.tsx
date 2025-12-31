@@ -1,4 +1,3 @@
-'use client';
 import { getSide } from '@floating-ui/utils';
 import { createEffect, createSignal, onCleanup, type JSX } from 'solid-js';
 import type { Middleware, Padding, VirtualElement } from '../../floating-ui-solid';

@@ -1,4 +1,3 @@
-'use client';
 import { batch, createEffect, type JSX } from 'solid-js';
 import { useFieldControlValidation } from '../../field/control/useFieldControlValidation';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';

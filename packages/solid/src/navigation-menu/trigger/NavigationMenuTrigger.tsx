@@ -1,4 +1,3 @@
-'use client';
 import { batch, createEffect, createSignal, onCleanup } from 'solid-js';
 import { CompositeItem } from '../../composite/item/CompositeItem';
 import {

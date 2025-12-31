@@ -1,4 +1,3 @@
-'use client';
 import { createSignal } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { splitComponentProps } from '../../solid-helpers';

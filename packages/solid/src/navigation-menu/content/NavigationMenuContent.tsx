@@ -1,4 +1,3 @@
-'use client';
 import { createSignal, Show, type JSX } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { CompositeRoot } from '../../composite/root/CompositeRoot';

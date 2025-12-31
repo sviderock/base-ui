@@ -1,4 +1,3 @@
-'use client';
 import { createContext, useContext, type Accessor } from 'solid-js';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
 import type { CollapsibleRoot } from './CollapsibleRoot';

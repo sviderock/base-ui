@@ -1,4 +1,3 @@
-'use client';
 import { createMemo, type ComponentProps } from 'solid-js';
 import { ARROW_LEFT, ARROW_RIGHT, stopEvent } from '../../composite/composite';
 import { CompositeItem } from '../../composite/item/CompositeItem';

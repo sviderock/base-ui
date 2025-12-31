@@ -1,4 +1,3 @@
-'use client';
 import type { JSX } from 'solid-js';
 import { useContextMenuRootContext } from '../../context-menu/root/ContextMenuRootContext';
 import { splitComponentProps } from '../../solid-helpers';

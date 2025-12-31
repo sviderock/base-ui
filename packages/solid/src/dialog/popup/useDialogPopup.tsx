@@ -1,4 +1,3 @@
-'use client';
 import { createMemo, onCleanup, type Accessor } from 'solid-js';
 import { COMPOSITE_KEYS } from '../../composite/composite';
 import { access, type MaybeAccessor } from '../../solid-helpers';

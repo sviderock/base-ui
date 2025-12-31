@@ -1,4 +1,3 @@
-'use client';
 import { createContext, useContext } from 'solid-js';
 import { useAnchorPositioning } from '../../utils/useAnchorPositioning';
 

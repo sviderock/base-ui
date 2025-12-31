@@ -1,4 +1,3 @@
-'use client';
 
 import { getWindow, isHTMLElement } from '@floating-ui/utils/dom';
 import { createEffect, createMemo, onCleanup, type Accessor } from 'solid-js';

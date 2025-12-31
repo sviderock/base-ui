@@ -1,4 +1,3 @@
-'use client';
 import { createEffect, on } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';

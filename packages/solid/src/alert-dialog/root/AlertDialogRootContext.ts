@@ -1,4 +1,3 @@
-'use client';
 import { useContext } from 'solid-js';
 import { DialogContext } from '../../dialog/utils/DialogContext';
 

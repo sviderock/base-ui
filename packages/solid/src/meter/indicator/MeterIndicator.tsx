@@ -1,4 +1,3 @@
-'use client';
 import type { JSX } from 'solid-js';
 import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';

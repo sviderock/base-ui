@@ -1,4 +1,3 @@
-'use client';
 import { batch, createEffect, onCleanup, mergeProps as solidMergeProps, type JSX } from 'solid-js';
 import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
