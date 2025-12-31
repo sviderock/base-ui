@@ -30,6 +30,7 @@ const config = defineConfig({
   },
   extensions: ['mdx', 'md', 'tsx'],
   server: {
+    sourceMap: false,
     esbuild: {
       options: {
         supported: {
