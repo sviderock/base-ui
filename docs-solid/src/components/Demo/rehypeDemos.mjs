@@ -34,7 +34,9 @@ export function rehypeDemos() {
 
         paths.push(path.value);
         const importName = upperFirst(camelCase(path.value));
-        path.value = join(dirname(file.path), path.value);
+        const fullPath = join(dirname(file.path), path.value);
+        console.log({ path: path.value, importName, fullPath });
+        path.value = fullPath;
 
         // Add `scope` prop
         node.attributes.push({

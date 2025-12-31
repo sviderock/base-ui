@@ -13,10 +13,13 @@ export interface DemoLoaderProps extends Omit<ComponentProps<typeof Demo>, 'vari
 export function DemoLoader(componentProps: DemoLoaderProps) {
   const [local, props] = splitProps(componentProps, ['path', 'scope']);
   const variants = createAsync(async () => {
+    console.log('loadDemo', local.path);
     const variants = await loadDemo(local.path);
+    console.log('variants', variants);
     for (const variant of variants) {
       variant.component = local.scope[variant.component];
     }
+    console.log('variants', variants);
 
     if (!variants.length) {
       throw new Error(`\nCould not load demo: no demos found in "${local.path}".`);

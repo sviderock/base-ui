@@ -30,7 +30,6 @@ const config = defineConfig({
   },
   extensions: ['mdx', 'md', 'tsx'],
   server: {
-    preset: 'vercel',
     esbuild: {
       options: {
         supported: {
