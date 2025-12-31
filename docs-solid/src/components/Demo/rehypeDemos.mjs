@@ -1,6 +1,6 @@
 import camelCase from 'lodash/camelCase.js';
 import upperFirst from 'lodash/upperFirst.js';
-import { dirname, join } from 'path';
+import { dirname, join, relative } from 'path';
 import { visit } from 'unist-util-visit';
 
 /**
@@ -33,9 +33,9 @@ export function rehypeDemos() {
         }
 
         paths.push(path.value);
+        const oldValue = path.value;
         const importName = upperFirst(camelCase(path.value));
-        const fullPath = join(dirname(file.path), path.value);
-        console.log({ path: path.value, importName, fullPath, cwd: process.cwd() });
+        const fullPath = relative(process.cwd(), join(dirname(file.path), path.value));
         path.value = fullPath;
 
         // Add `scope` prop
