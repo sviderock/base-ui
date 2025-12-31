@@ -45,7 +45,8 @@
     "unist-util-visit-parents": "^6.0.1",
     "vfile-matter": "^5.0.1",
     "vinxi": "^0.5.7",
-    "vite-plugin-solid": "^2.11.8"
+    "vite-plugin-solid": "^2.11.8",
+    "zod": "^3.25.76"
   },
   "engines": {
     "node": ">=22"

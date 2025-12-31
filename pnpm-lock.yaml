@@ -617,6 +617,9 @@ importers:
       vite-plugin-solid:
         specifier: ^2.11.8
         version: 2.11.8(@testing-library/jest-dom@6.8.0)(solid-js@1.9.9)(vite@7.1.6(@types/node@18.19.127)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.44.0)(tsx@4.20.5)(yaml@2.8.1))
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
     devDependencies:
       '@tailwindcss/postcss':
         specifier: 4.1.11
@@ -13182,9 +13185,6 @@ packages:
     engines: {node: '>=18.0.0'}
     peerDependencies:
       zod: ^3.25.0
-
-  zod@3.24.3:
-    resolution: {integrity: sha512-HhY1oqzWCQWuUqvBFnsyrtZRhyPeR7SUGv+C4+MsisMuVfSPx8HpwWqH8tRahSlt6M3PiFAcoeFhZAqIXTxoSg==}
 
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
@@ -27474,7 +27474,7 @@ snapshots:
       unenv: 1.10.0
       unstorage: 1.16.1(@netlify/blobs@9.1.2)(db0@0.3.2)(ioredis@5.6.1)
       vite: 6.3.5(@types/node@18.19.127)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.44.0)(tsx@4.20.5)(yaml@2.8.1)
-      zod: 3.24.3
+      zod: 3.25.76
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -28107,8 +28107,6 @@ snapshots:
   zod-validation-error@3.5.2(zod@3.25.76):
     dependencies:
       zod: 3.25.76
-
-  zod@3.24.3: {}
 
   zod@3.25.76: {}
 
