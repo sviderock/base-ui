@@ -1,6 +1,6 @@
 import { Header } from 'docs-solid/src/components/Header';
-import QuickNav from 'docs-solid/src/components/QuickNav';
-import SideNav from 'docs-solid/src/components/SideNav';
+import * as QuickNav from 'docs-solid/src/components/QuickNav/QuickNav';
+import * as SideNav from 'docs-solid/src/components/SideNav';
 import { MAIN_CONTENT_ID } from 'docs-solid/src/components/SkipNav';
 import { nav } from 'docs-solid/src/nav';
 import { For, type ParentProps } from 'solid-js';

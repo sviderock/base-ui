@@ -10,7 +10,7 @@ import {
   type ComponentProps,
   type ParentProps,
 } from 'solid-js';
-import { HEADER_HEIGHT } from '../Header';
+import { HEADER_HEIGHT } from './Header';
 
 const MobileNavStateCallback = createContext<(open: boolean) => void>(() => undefined);
 

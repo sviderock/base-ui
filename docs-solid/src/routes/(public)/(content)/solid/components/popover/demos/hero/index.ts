@@ -1,10 +1,2 @@
-import { clientOnly } from '@solidjs/start';
-
-export default {
-  CssModules: clientOnly(async () => ({ default: (await import('./css-modules')).default }), {
-    lazy: true,
-  }),
-  Tailwind: clientOnly(async () => ({ default: (await import('./tailwind')).default }), {
-    lazy: true,
-  }),
-};
+export { default as CssModules } from './css-modules';
+export { default as Tailwind } from './tailwind';

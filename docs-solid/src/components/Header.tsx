@@ -4,7 +4,7 @@ import { nav } from 'docs-solid/src/nav';
 import { For } from 'solid-js';
 import { NpmIcon } from '../icons/NpmIcon';
 import { Logo } from './Logo';
-import MobileNav from './MobileNav';
+import * as MobileNav from './MobileNav';
 import { SkipNav } from './SkipNav';
 
 const VERSION = process.env.LIB_VERSION;

@@ -5,12 +5,12 @@ import { DemoLoader } from './components/Demo/DemoLoader';
 import { HeadingLink } from './components/HeadingLink';
 import { Kbd } from './components/Kbd/Kbd';
 import { Link } from './components/Link';
-import QuickNav from './components/QuickNav';
+import * as QuickNav from './components/QuickNav/QuickNav';
 import { AttributesReferenceTable } from './components/ReferenceTable/AttributesReferenceTable';
 import { CssVariablesReferenceTable } from './components/ReferenceTable/CssVariablesReferenceTable';
 import { PropsReferenceTable } from './components/ReferenceTable/PropsReferenceTable';
 import { Subtitle } from './components/Subtitle/Subtitle';
-import Table from './components/Table';
+import * as Table from './components/Table';
 import { getChildrenText } from './utils/getChildrenText';
 
 interface MDXComponents {

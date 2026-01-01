@@ -3,16 +3,12 @@ import copy from 'clipboard-copy';
 import clsx from 'clsx';
 import {
   createContext,
-  createEffect,
   createSignal,
-  onCleanup,
-  onMount,
   splitProps,
   useContext,
   type Accessor,
   type ComponentProps,
 } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
 import { CheckIcon } from '../icons/CheckIcon';
 import { CopyIcon } from '../icons/CopyIcon';
 import { GhostButton } from './GhostButton';

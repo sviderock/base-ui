@@ -4,7 +4,7 @@ import { createMdxComponent } from 'docs-solid/src/mdx/createMdxComponent';
 import { rehypeSyntaxHighlighting } from 'docs-solid/src/syntax-highlighting';
 import type { MDXContent } from 'mdx/types';
 import { For, splitProps, type ComponentProps } from 'solid-js';
-import Table from '../Table';
+import * as Table from '../Table';
 import { TableCode } from '../TableCode';
 import { ReferenceTablePopover } from './ReferenceTablePopover';
 import type { CssVariableDef } from './types';

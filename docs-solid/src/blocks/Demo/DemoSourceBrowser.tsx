@@ -1,14 +1,9 @@
 import { combineStyle } from '@solid-primitives/props';
-import { clientOnly } from '@solidjs/start';
 import clsx from 'clsx';
 import { createMemo, Show, useContext, type ComponentProps } from 'solid-js';
 import { DemoContext } from './DemoContext';
 
-export const DemoSourceBrowser = clientOnly(async () => ({ default: _DemoSourceBrowser }), {
-  lazy: true,
-});
-
-function _DemoSourceBrowser(props: ComponentProps<'pre'>) {
+export function DemoSourceBrowser(props: ComponentProps<'pre'>) {
   const demoContext = useContext(DemoContext);
   if (!demoContext) {
     throw new Error('Demo.Playground must be used within a Demo.Root');

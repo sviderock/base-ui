@@ -1,13 +1,8 @@
-import { clientOnly } from '@solidjs/start';
 import { Suspense, useContext, type JSX } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { DemoContext } from './DemoContext';
 
-export const DemoPlayground = clientOnly(async () => ({ default: _DemoPlayground }), {
-  lazy: true,
-});
-
-function _DemoPlayground(props: DemoPlayground.Props) {
+export function DemoPlayground(props: DemoPlayground.Props) {
   const demoContext = useContext(DemoContext);
   if (!demoContext) {
     throw new Error('Demo.Playground must be used within a Demo.Root');

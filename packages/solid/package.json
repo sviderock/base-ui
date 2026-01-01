@@ -1,5 +1,5 @@
 {
-  "name": "@base-ui-components/solid",
+  "name": "@msviderok/base-ui-solid",
   "version": "1.0.0-beta.1",
   "private": false,
   "author": "MUI Team",
@@ -122,5 +122,9 @@
   },
   "engines": {
     "node": ">=14.0.0"
+  },
+  "main": "index.js",
+  "directories": {
+    "test": "test"
   }
 }

@@ -1,4 +1,3 @@
-import { clientOnly } from '@solidjs/start';
 import { type DemoVariant } from 'docs-solid/src/blocks/Demo';
 import { useDemoContext } from 'docs-solid/src/blocks/Demo/DemoContext';
 import * as Select from 'docs-solid/src/components/Select';
@@ -23,12 +22,7 @@ export interface DemoVariantSelectorProps extends JSX.HTMLAttributes<HTMLDivElem
   onVariantChange?: () => void;
   showLanguageSelector?: boolean;
 }
-
-export const DemoVariantSelector = clientOnly(async () => ({ default: _DemoVariantSelector }), {
-  lazy: true,
-});
-
-function _DemoVariantSelector(componentProps: DemoVariantSelectorProps) {
+export function DemoVariantSelector(componentProps: DemoVariantSelectorProps) {
   const [local, props] = splitProps(componentProps, [
     'class',
     'onVariantChange',

@@ -3,7 +3,7 @@ import { A, useLocation } from '@solidjs/router';
 import clsx from 'clsx';
 import scrollIntoView from 'scroll-into-view-if-needed';
 import { createEffect, onMount, splitProps, type ComponentProps } from 'solid-js';
-import { HEADER_HEIGHT } from '../Header';
+import { HEADER_HEIGHT } from './Header';
 
 export function Root(props: ComponentProps<'nav'>) {
   return (

@@ -11,7 +11,7 @@ export function ReferenceTablePopover(props: ParentProps) {
     <Popover.Root openOnHover delay={100} modal>
       <Popover.Trigger
         render={(p) => (
-          <GhostButton {...p()} aria-label="Info" layout="icon">
+          <GhostButton {...p} aria-label="Info" layout="icon">
             <svg
               width="14"
               height="14"
@@ -32,7 +32,7 @@ export function ReferenceTablePopover(props: ParentProps) {
           sideOffset={9}
           collisionPadding={16}
         >
-          <Popover.Popup render={(p) => <Popup {...p()} class="px-4 py-3 text-md" />}>
+          <Popover.Popup render={(p) => <Popup {...p} class="px-4 py-3 text-md" />}>
             <div class="flex max-w-72 flex-col gap-3 text-pretty">{props.children}</div>
           </Popover.Popup>
         </Popover.Positioner>
