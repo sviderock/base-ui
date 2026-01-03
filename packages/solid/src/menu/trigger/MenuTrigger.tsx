@@ -152,7 +152,6 @@ export function MenuTrigger(componentProps: MenuTrigger.Props) {
 
 export namespace MenuTrigger {
   export interface Props extends BaseUIComponentProps<'button', State> {
-    children?: JSX.Element;
     /**
      * Whether the component renders a native `<button>` element when replacing it
      * via the `render` prop.

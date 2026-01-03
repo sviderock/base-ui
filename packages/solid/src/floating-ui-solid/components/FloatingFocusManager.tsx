@@ -1,7 +1,6 @@
 import { getNodeName, isHTMLElement } from '@floating-ui/utils/dom';
 import { createEffect, createMemo, createSignal, on, onCleanup, Show, type JSX } from 'solid-js';
 import { focusable, isTabbable, tabbable, type FocusableElement } from 'tabbable';
-import { access } from '../../solid-helpers';
 import { FocusGuard } from '../../utils/FocusGuard';
 import { visuallyHidden } from '../../utils/visuallyHidden';
 import {
@@ -362,6 +361,7 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
         relatedTarget !== previouslyFocusedElement
       ) {
         preventReturnFocusRef = true;
+
         props.context.onOpenChange(false, event, 'focus-out');
       }
     });

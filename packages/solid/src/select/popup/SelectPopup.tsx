@@ -132,7 +132,7 @@ export function SelectPopup(componentProps: SelectPopup.Props) {
       return;
     }
 
-    // Wait for `selectedItemTextRef.current` to be set.
+    // Wait for `refs.selectedItemTextRef` to be set.
     queueMicrotask(() => {
       const positionerStyles = getComputedStyle(positionerElement);
       const popupStyles = getComputedStyle(popupElement);

@@ -157,11 +157,8 @@ export function useDismiss(
     }
 
     const nodeId = context().dataRef.floatingContext?.nodeId();
-    const floatingId = context().dataRef.floatingContext?.floatingId();
 
-    const children = tree
-      ? getNodeChildren(tree.nodesRef, nodeId)
-      : getNodeChildren(context().dataRef.virtualFloatingTree, floatingId);
+    const children = tree ? getNodeChildren(tree.nodesRef, nodeId) : [];
 
     let shouldDismiss = true;
     if (children.length > 0) {

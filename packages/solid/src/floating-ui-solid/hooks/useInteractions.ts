@@ -1,6 +1,5 @@
 import { combineProps } from '@solid-primitives/props';
 import { type Accessor, type JSX } from 'solid-js';
-import { access } from '../../solid-helpers';
 import type { ElementProps } from '../types';
 import { ACTIVE_KEY, FOCUSABLE_ATTRIBUTE, SELECTED_KEY } from '../utils/constants';
 
@@ -35,7 +34,7 @@ export function useInteractions(
   return {
     getReferenceProps(userProps) {
       const referenceList = propsList
-        .map((item) => (item ? access(item)?.reference : undefined))
+        .map((item) => item?.()?.reference)
         .filter((i): i is JSX.HTMLAttributes<any> => !!i);
 
       if (userProps) {
@@ -48,7 +47,7 @@ export function useInteractions(
     },
     getFloatingProps(userProps) {
       const list = propsList
-        .map((item) => (item ? access(item)?.floating : undefined))
+        .map((item) => item?.()?.floating)
         .filter((i): i is JSX.HTMLAttributes<any> => !!i);
 
       list.unshift({ tabIndex: -1, [FOCUSABLE_ATTRIBUTE as any]: '' });
@@ -62,9 +61,7 @@ export function useInteractions(
       return Object.assign({}, combined);
     },
     getItemProps(userProps) {
-      let list: ElementProps['item'][] = propsList
-        .map((item) => (item ? access(item)?.item : undefined))
-        .filter((i) => !!i);
+      let list: ElementProps['item'][] = propsList.map((item) => item?.()?.item).filter((i) => !!i);
 
       if (userProps) {
         const userPropsWitoutActiveAndSelected = { ...userProps };

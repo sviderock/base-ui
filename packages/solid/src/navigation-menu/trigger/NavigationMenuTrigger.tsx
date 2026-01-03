@@ -392,7 +392,6 @@ export function NavigationMenuTrigger(componentProps: NavigationMenuTrigger.Prop
                 popupElement: popupElement(),
                 rootRef: refs.rootRef,
                 tree,
-                virtualFloatingTree: context.dataRef.virtualFloatingTree,
                 nodeId: nodeId?.(),
               },
             )

@@ -1,8 +1,4 @@
-import {
-  FloatingTreeType,
-  type FloatingNodeType,
-  type ReferenceType,
-} from '../../floating-ui-solid';
+import { FloatingTreeType } from '../../floating-ui-solid';
 import { contains, getNodeChildren } from '../../floating-ui-solid/utils';
 
 interface Targets {
@@ -14,19 +10,17 @@ interface Params {
   popupElement: HTMLElement | null | undefined;
   rootRef: HTMLDivElement | null | undefined;
   tree: FloatingTreeType | null;
-  virtualFloatingTree: Array<FloatingNodeType<ReferenceType>> | undefined;
   nodeId: string | undefined;
 }
 
 export function isOutsideMenuEvent({ currentTarget, relatedTarget }: Targets, params: Params) {
-  const { popupElement, rootRef, tree, virtualFloatingTree, nodeId } = params;
+  const { popupElement, rootRef, tree, nodeId } = params;
 
-  const nodeChildrenContains =
-    tree || virtualFloatingTree
-      ? getNodeChildren(tree?.nodesRef || virtualFloatingTree || [], nodeId).some((node) =>
-          contains(node.context?.elements.floating(), relatedTarget),
-        )
-      : [];
+  const nodeChildrenContains = tree
+    ? getNodeChildren(tree.nodesRef, nodeId).some((node) =>
+        contains(node.context?.elements.floating(), relatedTarget),
+      )
+    : [];
 
   return (
     !contains(popupElement, currentTarget) &&

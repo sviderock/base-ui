@@ -1,5 +1,5 @@
-import { Toast } from '@msviderok/base-ui-solid/toast';
 import { For } from 'solid-js';
+import { Toast } from '../index';
 
 /**
  * @internal

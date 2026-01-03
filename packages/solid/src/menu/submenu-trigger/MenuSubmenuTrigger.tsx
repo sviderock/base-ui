@@ -1,14 +1,14 @@
-import type { MenuParent } from '@msviderok/base-ui-solid/menu/root/MenuRoot';
-import { mergeProps } from '@msviderok/base-ui-solid/merge-props';
 import { createEffect, type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { useFloatingTree } from '../../floating-ui-solid';
+import { mergeProps } from '../../merge-props';
 import { splitComponentProps } from '../../solid-helpers';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useRenderElement } from '../../utils/useRenderElement';
 import { useMenuItem } from '../item/useMenuItem';
+import type { MenuParent } from '../root/MenuRoot';
 import { useMenuRootContext } from '../root/MenuRootContext';
 
 /**

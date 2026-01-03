@@ -177,9 +177,7 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
   });
 
   createEffect(() => {
-    // queueMicrotask(() => {
     menuEvents.emit('openchange', { open: open(), nodeId: nodeId(), parentNodeId });
-    // });
   });
 
   const state: MenuPositioner.State = {

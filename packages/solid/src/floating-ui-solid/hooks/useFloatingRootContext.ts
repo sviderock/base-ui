@@ -1,17 +1,14 @@
 import { isElement } from '@floating-ui/utils/dom';
-import { createEffect, createSignal, onCleanup } from 'solid-js';
+import { createSignal } from 'solid-js';
 import { access, type MaybeAccessor } from '../../solid-helpers';
 import { useId } from '../../utils/useId';
 import { useFloatingParentNodeId } from '../components/FloatingTree';
 import type {
   ContextData,
-  FloatingNodeType,
   FloatingRootContext,
   OpenChangeReason,
   ReferenceElement,
-  ReferenceType,
 } from '../types';
-import { FOCUSABLE_ATTRIBUTE } from '../utils/constants';
 import { createEventEmitter } from '../utils/createEventEmitter';
 
 export interface UseFloatingRootContextOptions {
@@ -23,8 +20,6 @@ export interface UseFloatingRootContextOptions {
   };
 }
 
-const virtualFloatingTree: Array<FloatingNodeType<ReferenceType>> = [];
-
 export function useFloatingRootContext(
   options: UseFloatingRootContextOptions,
 ): FloatingRootContext {
@@ -33,7 +28,7 @@ export function useFloatingRootContext(
   const events = createEventEmitter();
   const parentId = useFloatingParentNodeId();
   const nested = parentId != null;
-  const dataRef: ContextData = { virtualFloatingTree };
+  const dataRef: ContextData = {};
 
   if (process.env.NODE_ENV !== 'production') {
     const optionDomReference = access(options.elements.reference);
@@ -65,34 +60,6 @@ export function useFloatingRootContext(
     floating: () => access(options.elements.floating),
     domReference: () => access(options.elements.reference),
   };
-
-  createEffect(() => {
-    const id = floatingId();
-    if (!id) {
-      return;
-    }
-
-    const reference = elements.reference();
-    if (!reference) {
-      return;
-    }
-
-    const parentFloating = (reference as Element)?.closest?.(`[${FOCUSABLE_ATTRIBUTE}]`);
-    const parentIdx = dataRef.virtualFloatingTree?.findIndex(
-      (item) => access(item.context)?.elements.floating() === parentFloating,
-    );
-
-    dataRef.virtualFloatingTree.push({
-      id,
-      parentId: parentIdx !== -1 ? (dataRef.virtualFloatingTree[parentIdx].id ?? null) : null,
-    });
-  });
-
-  onCleanup(() => {
-    dataRef.virtualFloatingTree = dataRef.virtualFloatingTree.filter(
-      (item) => item.id !== floatingId(),
-    );
-  });
 
   return {
     dataRef,
