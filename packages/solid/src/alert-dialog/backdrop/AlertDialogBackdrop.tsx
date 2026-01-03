@@ -33,7 +33,9 @@ export function AlertDialogBackdrop(componentProps: AlertDialogBackdrop.Props) {
 
   const element = useRenderElement('div', componentProps, {
     state,
-    ref: refs.backdropRef,
+    ref: (el) => {
+      refs.backdropRef = el;
+    },
     props: [
       {
         role: 'presentation',
