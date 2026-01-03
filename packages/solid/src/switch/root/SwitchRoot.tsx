@@ -5,7 +5,7 @@ import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { useField } from '../../field/useField';
 import { useFormContext } from '../../form/FormContext';
 import { mergeProps } from '../../merge-props';
-import { access, splitComponentProps } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
@@ -53,7 +53,7 @@ export function SwitchRoot(componentProps: SwitchRoot.Props) {
   } = useFieldRootContext();
 
   const disabled = () => fieldDisabled() || disabledProp();
-  const name = () => fieldName() ?? access(elementProps.name);
+  const name = () => fieldName() ?? elementProps.name;
 
   const {
     getValidationProps,

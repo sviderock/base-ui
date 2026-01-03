@@ -14,7 +14,7 @@ import { useFieldRootContext } from '../../field/root/FieldRootContext';
 import { useField } from '../../field/useField';
 import { activeElement } from '../../floating-ui-solid/utils';
 import { useFormContext } from '../../form/FormContext';
-import { access, splitComponentProps } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { areArraysEqual } from '../../utils/areArraysEqual';
 import { clamp } from '../../utils/clamp';
 import { ownerDocument } from '../../utils/owner';
@@ -73,13 +73,13 @@ export function SliderRoot<Value extends number | readonly number[]>(
     'tabIndex',
     'value',
   ]);
-  const disabledProp = () => access(local.disabled) ?? false;
-  const largeStep = () => access(local.largeStep) ?? 10;
-  const max = () => access(local.max) ?? 100;
-  const min = () => access(local.min) ?? 0;
-  const minStepsBetweenValues = () => access(local.minStepsBetweenValues) ?? 0;
-  const orientation = () => access(local.orientation) ?? 'horizontal';
-  const step = () => access(local.step) ?? 1;
+  const disabledProp = () => local.disabled ?? false;
+  const largeStep = () => local.largeStep ?? 10;
+  const max = () => local.max ?? 100;
+  const min = () => local.min ?? 0;
+  const minStepsBetweenValues = () => local.minStepsBetweenValues ?? 0;
+  const orientation = () => local.orientation ?? 'horizontal';
+  const step = () => local.step ?? 1;
 
   const id = useBaseUiId(() => local.id);
 

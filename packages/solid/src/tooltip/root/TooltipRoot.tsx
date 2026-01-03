@@ -10,7 +10,6 @@ import {
   useInteractions,
 } from '../../floating-ui-solid';
 import { mergeProps } from '../../merge-props/mergeProps';
-import { access } from '../../solid-helpers';
 import { translateOpenChangeReason } from '../../utils/translateOpenChangeReason';
 import { useControlled } from '../../utils/useControlled';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
@@ -26,17 +25,12 @@ import { TooltipOpenChangeReason, TooltipRootContext } from './TooltipRootContex
  * Documentation: [Base UI Tooltip](https://base-ui.com/react/components/tooltip)
  */
 export function TooltipRoot(props: TooltipRoot.Props) {
-  const disabled = () => access(props.disabled) ?? false;
-  const defaultOpen = () => access(props.defaultOpen) ?? false;
-  const open = () => access(props.open);
-  const delay = () => access(props.delay);
-  const closeDelay = () => access(props.closeDelay);
-  const hoverable = () => access(props.hoverable) ?? true;
-  const trackCursorAxis = () => access(props.trackCursorAxis) ?? 'none';
-  const actionsRef = () => access(props.actionsRef);
-
-  const delayWithDefault = () => delay() ?? OPEN_DELAY;
-  const closeDelayWithDefault = () => closeDelay() ?? 0;
+  const disabled = () => props.disabled ?? false;
+  const defaultOpen = () => props.defaultOpen ?? false;
+  const hoverable = () => props.hoverable ?? true;
+  const trackCursorAxis = () => props.trackCursorAxis ?? 'none';
+  const delayWithDefault = () => props.delay ?? OPEN_DELAY;
+  const closeDelayWithDefault = () => props.closeDelay ?? 0;
 
   const [triggerElement, setTriggerElement] = createSignal<Element | null | undefined>(null);
   const [positionerElement, setPositionerElement] = createSignal<HTMLElement | null | undefined>(
@@ -49,7 +43,7 @@ export function TooltipRoot(props: TooltipRoot.Props) {
   };
 
   const [openState, setOpenUnwrapped] = useControlled({
-    controlled: open,
+    controlled: () => props.open,
     default: defaultOpen,
     name: 'Tooltip',
     state: 'open',
@@ -102,7 +96,7 @@ export function TooltipRoot(props: TooltipRoot.Props) {
   };
 
   useOpenChangeComplete({
-    enabled: () => !actionsRef(),
+    enabled: () => !props.actionsRef,
     open: openState,
     ref: () => refs.popupRef,
     onComplete() {
@@ -113,8 +107,8 @@ export function TooltipRoot(props: TooltipRoot.Props) {
   });
 
   onMount(() => {
-    if (actionsRef()) {
-      actionsRef()!.unmount = handleUnmount;
+    if (props.actionsRef) {
+      props.actionsRef.unmount = handleUnmount;
     }
   });
 
@@ -152,7 +146,7 @@ export function TooltipRoot(props: TooltipRoot.Props) {
       let computedRestMs = delayWithDefault();
       if (hasProvider()) {
         if (groupOpenValue !== 0) {
-          computedRestMs = delay() ?? providerDelay ?? delayWithDefault();
+          computedRestMs = props.delay ?? providerDelay ?? delayWithDefault();
         } else {
           computedRestMs = 0;
         }
@@ -165,7 +159,7 @@ export function TooltipRoot(props: TooltipRoot.Props) {
       const closeValue = typeof delayRefValue === 'object' ? delayRefValue.close : undefined;
 
       let computedCloseDelay: number | undefined = closeDelayWithDefault();
-      if (closeDelay() == null && hasProvider()) {
+      if (props.closeDelay == null && hasProvider()) {
         computedCloseDelay = closeValue;
       }
 

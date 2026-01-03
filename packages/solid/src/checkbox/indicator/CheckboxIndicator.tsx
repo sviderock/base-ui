@@ -1,6 +1,5 @@
 import { Show, mergeProps as solidMergeProps, splitProps } from 'solid-js';
 import { fieldValidityMapping } from '../../field/utils/constants';
-import { access, MaybeAccessor } from '../../solid-helpers';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -19,7 +18,7 @@ import { useCustomStyleHookMapping } from '../utils/useCustomStyleHookMapping';
  */
 export function CheckboxIndicator(componentProps: CheckboxIndicator.Props) {
   const [local, elementProps] = splitProps(componentProps, ['keepMounted']);
-  const keepMounted = () => access(local.keepMounted) ?? false;
+  const keepMounted = () => local.keepMounted ?? false;
 
   const rootState = useCheckboxRootContext();
 
@@ -78,6 +77,6 @@ export namespace CheckboxIndicator {
      * Whether to keep the element in the DOM when the checkbox is not checked.
      * @default false
      */
-    keepMounted?: MaybeAccessor<boolean | undefined>;
+    keepMounted?: boolean;
   }
 }

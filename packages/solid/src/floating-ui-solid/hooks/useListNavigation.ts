@@ -363,7 +363,8 @@ export function useListNavigation(
       }
     }
 
-    const initialItem = listRef()[indexRef];
+    const initialItem = listRef()?.[indexRef];
+    const forceScrollIntoView = forceScrollIntoViewRef;
     if (initialItem) {
       runFocus(initialItem);
     }
@@ -384,7 +385,7 @@ export function useListNavigation(
       const scrollIntoViewOptions = scrollItemIntoView();
       const shouldScrollIntoView =
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        scrollIntoViewOptions && item() && (forceScrollIntoViewRef || !isPointerModalityRef);
+        scrollIntoViewOptions && item() && (forceScrollIntoView || !isPointerModalityRef);
 
       if (shouldScrollIntoView) {
         // JSDOM doesn't support `.scrollIntoView()` but it's widely supported
@@ -864,7 +865,7 @@ export function useListNavigation(
           const parentNode =
             tree && parentId != null ? tree?.nodesRef.find((node) => node.id === parentId) : null;
           if (parentNode) {
-            access(parentNode.context)?.elements.floating()?.dispatchEvent(eventObject);
+            parentNode.context?.elements.floating()?.dispatchEvent(eventObject);
           }
         }
       },

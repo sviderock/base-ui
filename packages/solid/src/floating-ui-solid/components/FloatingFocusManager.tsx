@@ -302,16 +302,15 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
       (tree &&
         (getNodeChildren(tree.nodesRef, nodeId).find(
           (node) =>
-            contains(access(node.context)?.elements.floating(), relatedTarget) ||
-            contains(access(node.context)?.elements.domReference(), relatedTarget),
+            contains(node.context?.elements.floating(), relatedTarget) ||
+            contains(node.context?.elements.domReference(), relatedTarget),
         ) ||
           getNodeAncestors(tree.nodesRef, nodeId).find(
             (node) =>
               [
-                access(node.context)?.elements.floating(),
-                getFloatingFocusElement(access(node.context)?.elements.floating() ?? null),
-              ].includes(relatedTarget) ||
-              access(node.context)?.elements.domReference() === relatedTarget,
+                node.context?.elements.floating(),
+                getFloatingFocusElement(node.context?.elements.floating() ?? null),
+              ].includes(relatedTarget) || node.context?.elements.domReference() === relatedTarget,
           )))
     );
 
@@ -531,12 +530,12 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
     );
     const ancestors = tree ? getNodeAncestors(tree.nodesRef, getNodeId()) : [];
     const ancestorFloatingNodes =
-      tree && !modal() ? ancestors.map((node) => access(node.context)?.elements.floating()) : [];
+      tree && !modal() ? ancestors.map((node) => node.context?.elements.floating()) : [];
     const rootAncestorCombobox = ancestors.find((node) =>
-      isTypeableCombobox(access(node.context)?.elements.domReference() ?? null),
+      isTypeableCombobox(node.context?.elements.domReference() ?? null),
     );
     const rootAncestorComboboxDomReference = rootAncestorCombobox
-      ? access(rootAncestorCombobox.context)?.elements.domReference()
+      ? rootAncestorCombobox.context?.elements.domReference()
       : null;
 
     return [
@@ -620,7 +619,7 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
         contains(floating, activeEl) ||
         (tree &&
           getNodeChildren(tree.nodesRef, getNodeId(), false).some((node) =>
-            contains(access(node.context)?.elements.floating(), activeEl),
+            contains(node.context?.elements.floating(), activeEl),
           ));
 
       const returnElement = getReturnElement();

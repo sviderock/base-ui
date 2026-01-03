@@ -1,7 +1,7 @@
 import { flushMicrotasks } from '#test-utils';
 import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import { createSignal, For, Index } from 'solid-js';
+import { createEffect, createSignal, For, Index } from 'solid-js';
 import { describe, it, vi } from 'vitest';
 
 import { Main as ComplexGrid } from '../../../test/floating-ui-tests/ComplexGrid';

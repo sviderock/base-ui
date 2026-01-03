@@ -1,5 +1,5 @@
 import { createEffect, createSignal, onCleanup } from 'solid-js';
-import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useRenderElement } from '../../utils/useRenderElement';
 import { useTimeout } from '../../utils/useTimeout';
@@ -15,15 +15,14 @@ import { avatarStyleHookMapping } from '../root/styleHooks';
  */
 export function AvatarFallback(componentProps: AvatarFallback.Props) {
   const [, local, elementProps] = splitComponentProps(componentProps, ['delay']);
-  const delay = () => access(local.delay);
 
   const { imageLoadingStatus } = useAvatarRootContext();
-  const [delayPassed, setDelayPassed] = createSignal(delay() === undefined);
+  const [delayPassed, setDelayPassed] = createSignal(local.delay === undefined);
   const timeout = useTimeout();
 
   createEffect(() => {
-    if (delay() !== undefined) {
-      timeout.start(delay()!, () => setDelayPassed(true));
+    if (local.delay !== undefined) {
+      timeout.start(local.delay, () => setDelayPassed(true));
     }
     onCleanup(() => {
       timeout.clear();
@@ -51,6 +50,6 @@ export namespace AvatarFallback {
     /**
      * How long to wait before showing the fallback. Specified in milliseconds.
      */
-    delay?: MaybeAccessor<number | undefined>;
+    delay?: number;
   }
 }

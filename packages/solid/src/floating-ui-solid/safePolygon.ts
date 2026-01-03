@@ -1,5 +1,4 @@
 import { isElement } from '@floating-ui/utils/dom';
-import { access } from '../solid-helpers';
 import { useTimeout } from '../utils/useTimeout';
 import type { HandleClose } from './hooks/useHover';
 import type { Rect, Side } from './types';
@@ -152,7 +151,7 @@ export function safePolygon(options: SafePolygonOptions = {}) {
       if (
         options.tree &&
         getNodeChildren(options.tree.nodesRef, options.nodeId()).some((node) =>
-          access(node.context)?.open(),
+          node.context?.open(),
         )
       ) {
         return undefined;

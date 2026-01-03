@@ -60,10 +60,10 @@ export function AccordionRoot(componentProps: AccordionRoot.Props) {
     'value',
     'defaultValue',
   ]);
-  const disabled = () => access(local.disabled) ?? false;
-  const loop = () => access(local.loop) ?? true;
-  const openMultiple = () => access(local.openMultiple) ?? true;
-  const orientation = () => access(local.orientation) ?? 'vertical';
+  const disabled = () => local.disabled ?? false;
+  const loop = () => local.loop ?? true;
+  const openMultiple = () => local.openMultiple ?? true;
+  const orientation = () => local.orientation ?? 'vertical';
 
   const direction = useDirection();
 

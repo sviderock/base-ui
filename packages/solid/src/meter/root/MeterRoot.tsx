@@ -1,6 +1,6 @@
 import { createEffect, createMemo, createSignal, on, onCleanup } from 'solid-js';
 import { createStore } from 'solid-js/store';
-import { access, splitComponentProps, type CodependentRefs } from '../../solid-helpers';
+import { splitComponentProps, type CodependentRefs } from '../../solid-helpers';
 import { formatNumber } from '../../utils/formatNumber';
 import { BaseUIComponentProps, HTMLProps } from '../../utils/types';
 import { useRenderElement } from '../../utils/useRenderElement';
@@ -34,8 +34,8 @@ export function MeterRoot(componentProps: MeterRoot.Props) {
     'min',
     'value',
   ]);
-  const max = () => access(local.max) ?? 100;
-  const min = () => access(local.min) ?? 0;
+  const max = () => local.max ?? 100;
+  const min = () => local.min ?? 0;
 
   const [labelId, setLabelId] = createSignal<string>();
   const [codependentRefs, setCodependentRefs] = createStore<CodependentRefs<['label']>>({});

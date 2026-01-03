@@ -9,6 +9,7 @@ export * from './dialog';
 export * from './direction-provider';
 export * from './field';
 export * from './fieldset';
+export { type Accessorify } from './floating-ui-solid/types';
 export * from './form';
 export * from './input';
 export * from './menu';
@@ -33,6 +34,5 @@ export * from './toggle';
 export * from './toggle-group';
 export * from './toolbar';
 export * from './tooltip';
-// TODO: add use-render
-// export * from './use-render';
+export * from './use-render';
 export * as utils from './utils';
