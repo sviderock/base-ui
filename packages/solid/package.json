@@ -1,6 +1,6 @@
 {
   "name": "@msviderok/base-ui-solid",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "private": false,
   "author": "MUI Team",
   "description": "Base UI is a library of headless ('unstyled') Solid components and low-level hooks. You gain complete control over your app's CSS and accessibility features.",
@@ -13,12 +13,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mui/base-ui.git",
+    "url": "git+https://github.com/sviderock/base-ui.git",
     "directory": "packages/solid"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mui/base-ui/issues"
+    "url": "https://github.com/sviderock/base-ui/issues"
   },
   "homepage": "https://base-ui.com",
   "funding": {
@@ -73,8 +73,8 @@
   "scripts": {
     "prebuild": "rimraf --glob build build-tests \"*.tsbuildinfo\"",
     "build": "pnpm build:node && pnpm build:stable && pnpm build:types && pnpm build:copy-files && pnpm build:manifest",
-    "build:node": "node ../../scripts/build.mjs node --cjsDir ./cjs",
-    "build:stable": "node ../../scripts/build.mjs stable --cjsDir ./cjs",
+    "build:node": "node ./scripts/build.mjs node --cjsDir ./cjs",
+    "build:stable": "node ./scripts/build.mjs stable --cjsDir ./cjs",
     "build:types": "tsx ../../scripts/buildTypes.mts --copy build/cjs",
     "build:copy-files": "node ../../scripts/copyFiles.mjs ./.npmignore:./.npmignore",
     "build:manifest": "tsx ./scripts/createPackageManifest.mts",
@@ -88,6 +88,7 @@
     "@floating-ui/dom": "^1.7.2",
     "@floating-ui/utils": "^0.2.10",
     "@solidjs/router": "^0.15.3",
+    "babel-preset-solid": "^1.9.10",
     "tabbable": "^6.2.0"
   },
   "devDependencies": {
