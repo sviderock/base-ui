@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Dialog } from '@base-ui-components/solid/dialog';
+import { Dialog } from '@msviderok/base-ui-solid/dialog';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 

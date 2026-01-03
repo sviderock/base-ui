@@ -1,4 +1,4 @@
-import type { Accessorify } from '@base-ui-components/solid/floating-ui-solid';
+import type { Accessorify } from '@msviderok/base-ui-solid/floating-ui-solid';
 import { access } from '../../solid-helpers';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
 import type { ProgressRoot } from './ProgressRoot';

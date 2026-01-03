@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Progress } from '@base-ui-components/solid/progress';
+import { Progress } from '@msviderok/base-ui-solid/progress';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';

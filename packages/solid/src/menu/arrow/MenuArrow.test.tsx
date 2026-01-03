@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Menu } from '@base-ui-components/solid/menu';
+import { Menu } from '@msviderok/base-ui-solid/menu';
 
 describe('<Menu.Arrow />', () => {
   const { render } = createRenderer();

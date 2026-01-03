@@ -1,5 +1,5 @@
 import { createRenderer } from '#test-utils';
-import { useId } from '@base-ui-components/solid/utils';
+import { useId } from '@msviderok/base-ui-solid/utils';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';

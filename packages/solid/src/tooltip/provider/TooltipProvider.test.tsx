@@ -1,5 +1,5 @@
 import { createRenderer, flushMicrotasks } from '#test-utils';
-import { Tooltip } from '@base-ui-components/solid/tooltip';
+import { Tooltip } from '@msviderok/base-ui-solid/tooltip';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { OPEN_DELAY } from '../utils/constants';

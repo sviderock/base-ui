@@ -1,5 +1,5 @@
-import type { MenuParent } from '@base-ui-components/solid/menu/root/MenuRoot';
-import { mergeProps } from '@base-ui-components/solid/merge-props';
+import type { MenuParent } from '@msviderok/base-ui-solid/menu/root/MenuRoot';
+import { mergeProps } from '@msviderok/base-ui-solid/merge-props';
 import { createEffect, type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { useFloatingTree } from '../../floating-ui-solid';

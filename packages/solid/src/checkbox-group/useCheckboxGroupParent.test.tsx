@@ -1,6 +1,6 @@
 import { createRenderer } from '#test-utils';
-import { Checkbox } from '@base-ui-components/solid/checkbox';
-import { CheckboxGroup } from '@base-ui-components/solid/checkbox-group';
+import { Checkbox } from '@msviderok/base-ui-solid/checkbox';
+import { CheckboxGroup } from '@msviderok/base-ui-solid/checkbox-group';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';

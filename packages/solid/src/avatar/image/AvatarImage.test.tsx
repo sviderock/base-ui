@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Avatar } from '@base-ui-components/solid/avatar';
+import { Avatar } from '@msviderok/base-ui-solid/avatar';
 
 describe('<Avatar.Image />', () => {
   const { render } = createRenderer();

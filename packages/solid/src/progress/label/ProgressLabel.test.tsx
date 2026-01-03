@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Progress } from '@base-ui-components/solid/progress';
+import { Progress } from '@msviderok/base-ui-solid/progress';
 
 describe('<Progress.Label />', () => {
   const { render } = createRenderer();

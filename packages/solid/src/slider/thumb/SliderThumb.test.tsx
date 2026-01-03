@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Slider } from '@base-ui-components/solid/slider';
+import { Slider } from '@msviderok/base-ui-solid/slider';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { stub } from 'sinon';

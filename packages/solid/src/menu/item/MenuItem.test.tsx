@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Menu } from '@base-ui-components/solid/menu';
+import { Menu } from '@msviderok/base-ui-solid/menu';
 import { A, Route, Router, useLocation } from '@solidjs/router';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';

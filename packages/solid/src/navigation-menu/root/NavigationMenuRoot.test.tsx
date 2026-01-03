@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance, flushMicrotasks } from '#test-utils';
-import { NavigationMenu } from '@base-ui-components/solid/navigation-menu';
+import { NavigationMenu } from '@msviderok/base-ui-solid/navigation-menu';
 import { fireEvent, screen, waitFor, within } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';

@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Avatar } from '@base-ui-components/solid/avatar';
+import { Avatar } from '@msviderok/base-ui-solid/avatar';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { Mock } from 'vitest';
 import { useImageLoadingStatus } from '../image/useImageLoadingStatus';

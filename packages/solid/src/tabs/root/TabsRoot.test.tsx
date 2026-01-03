@@ -1,11 +1,8 @@
 import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#test-utils';
-import { Dialog } from '@base-ui-components/solid/dialog';
-import {
-  DirectionProvider,
-  type TextDirection,
-} from '@base-ui-components/solid/direction-provider';
-import { Popover } from '@base-ui-components/solid/popover';
-import { Tabs } from '@base-ui-components/solid/tabs';
+import { Dialog } from '@msviderok/base-ui-solid/dialog';
+import { DirectionProvider, type TextDirection } from '@msviderok/base-ui-solid/direction-provider';
+import { Popover } from '@msviderok/base-ui-solid/popover';
+import { Tabs } from '@msviderok/base-ui-solid/tabs';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';

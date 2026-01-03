@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Meter } from '@base-ui-components/solid/meter';
+import { Meter } from '@msviderok/base-ui-solid/meter';
 
 describe('<Meter.Label />', () => {
   const { render } = createRenderer();

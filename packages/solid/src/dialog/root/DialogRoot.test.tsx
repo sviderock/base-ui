@@ -1,7 +1,7 @@
 import { createRenderer, isJSDOM, popupConformanceTests } from '#test-utils';
-import { Dialog } from '@base-ui-components/solid/dialog';
-import { Menu } from '@base-ui-components/solid/menu';
-import { Select } from '@base-ui-components/solid/select';
+import { Dialog } from '@msviderok/base-ui-solid/dialog';
+import { Menu } from '@msviderok/base-ui-solid/menu';
+import { Select } from '@msviderok/base-ui-solid/select';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';

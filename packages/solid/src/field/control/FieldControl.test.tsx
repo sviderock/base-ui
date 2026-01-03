@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Field } from '@base-ui-components/solid/field';
+import { Field } from '@msviderok/base-ui-solid/field';
 
 describe('<Field.Control />', () => {
   const { render } = createRenderer();

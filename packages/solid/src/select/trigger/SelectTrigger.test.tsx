@@ -1,6 +1,6 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Select } from '@base-ui-components/solid/select';
-import { act, fireEvent, screen, waitFor } from '@mui/internal-test-utils';
+import { Select } from '@msviderok/base-ui-solid/select';
+import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 
@@ -79,9 +79,7 @@ describe('<Select.Trigger />', () => {
 
       const trigger = screen.getByRole('combobox');
 
-      await act(async () => {
-        trigger.click();
-      });
+      trigger.click();
 
       expect(trigger).to.have.attribute('data-popup-open');
       expect(trigger).to.have.attribute('data-pressed');

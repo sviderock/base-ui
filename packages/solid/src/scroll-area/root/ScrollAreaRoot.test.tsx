@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { ScrollArea } from '@base-ui-components/solid/scroll-area';
+import { ScrollArea } from '@msviderok/base-ui-solid/scroll-area';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 

@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Toast } from '@base-ui-components/solid/toast';
+import { Toast } from '@msviderok/base-ui-solid/toast';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { For } from 'solid-js';

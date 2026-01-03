@@ -1,6 +1,6 @@
 import { createRenderer, flushMicrotasks, isJSDOM, popupConformanceTests } from '#test-utils';
-import { DirectionProvider } from '@base-ui-components/solid/direction-provider';
-import { Menu } from '@base-ui-components/solid/menu';
+import { DirectionProvider } from '@msviderok/base-ui-solid/direction-provider';
+import { Menu } from '@msviderok/base-ui-solid/menu';
 import { cleanup, fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
 import { expect } from 'chai';

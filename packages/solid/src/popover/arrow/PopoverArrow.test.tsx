@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Popover } from '@base-ui-components/solid/popover';
+import { Popover } from '@msviderok/base-ui-solid/popover';
 
 describe('<Popover.Arrow />', () => {
   const { render } = createRenderer();

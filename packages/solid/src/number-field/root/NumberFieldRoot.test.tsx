@@ -1,7 +1,7 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Field } from '@base-ui-components/solid/field';
-import { Form } from '@base-ui-components/solid/form';
-import { NumberField as NumberFieldBase } from '@base-ui-components/solid/number-field';
+import { Field } from '@msviderok/base-ui-solid/field';
+import { Form } from '@msviderok/base-ui-solid/form';
+import { NumberField as NumberFieldBase } from '@msviderok/base-ui-solid/number-field';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';

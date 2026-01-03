@@ -1,5 +1,5 @@
 import { expectType } from '#test-utils';
-import { Slider } from '@base-ui-components/solid/slider';
+import { Slider } from '@msviderok/base-ui-solid/slider';
 
 const value: number = 25;
 const array = [25];

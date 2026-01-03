@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { NavigationMenu } from '@base-ui-components/solid/navigation-menu';
+import { NavigationMenu } from '@msviderok/base-ui-solid/navigation-menu';
 
 describe('<NavigationMenu.Arrow />', () => {
   const { render } = createRenderer();

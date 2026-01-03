@@ -1,4 +1,4 @@
-import { PreviewCard } from '@base-ui-components/solid/preview-card';
+import { PreviewCard } from '@msviderok/base-ui-solid/preview-card';
 
 // @ts-expect-error - `keepMounted` should not be available
 <PreviewCard.Positioner keepMounted />;

@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Tooltip } from '@base-ui-components/solid/tooltip';
+import { Tooltip } from '@msviderok/base-ui-solid/tooltip';
 
 describe('<Tooltip.Arrow />', () => {
   const { render } = createRenderer();

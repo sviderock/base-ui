@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Accordion } from '@base-ui-components/solid/accordion';
+import { Accordion } from '@msviderok/base-ui-solid/accordion';
 import { NOOP } from '../../utils/noop';
 import { AccordionRootContext } from '../root/AccordionRootContext';
 

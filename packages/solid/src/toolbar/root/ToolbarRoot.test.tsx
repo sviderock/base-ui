@@ -1,9 +1,6 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import {
-  DirectionProvider,
-  type TextDirection,
-} from '@base-ui-components/solid/direction-provider';
-import { Toolbar } from '@base-ui-components/solid/toolbar';
+import { DirectionProvider, type TextDirection } from '@msviderok/base-ui-solid/direction-provider';
+import { Toolbar } from '@msviderok/base-ui-solid/toolbar';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import type { JSX } from 'solid-js';

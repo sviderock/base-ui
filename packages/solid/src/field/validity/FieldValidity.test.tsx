@@ -1,5 +1,5 @@
 import { createRenderer } from '#test-utils';
-import { Field } from '@base-ui-components/solid/field';
+import { Field } from '@msviderok/base-ui-solid/field';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';

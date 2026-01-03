@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Separator } from '@base-ui-components/solid/separator';
+import { Separator } from '@msviderok/base-ui-solid/separator';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 

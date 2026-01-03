@@ -1,7 +1,7 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Field } from '@base-ui-components/solid/field';
-import { Form } from '@base-ui-components/solid/form';
-import { Switch } from '@base-ui-components/solid/switch';
+import { Field } from '@msviderok/base-ui-solid/field';
+import { Form } from '@msviderok/base-ui-solid/form';
+import { Switch } from '@msviderok/base-ui-solid/switch';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { userEvent } from '@testing-library/user-event';
 import { expect } from 'chai';

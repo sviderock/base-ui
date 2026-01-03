@@ -1,6 +1,6 @@
 import { createRenderer, describeConformance, flushMicrotasks } from '#test-utils';
-import { Menu } from '@base-ui-components/solid/menu';
-import { Popover } from '@base-ui-components/solid/popover';
+import { Menu } from '@msviderok/base-ui-solid/menu';
+import { Popover } from '@msviderok/base-ui-solid/popover';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
 import { expect } from 'chai';

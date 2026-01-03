@@ -1,11 +1,8 @@
 import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#test-utils';
-import {
-  DirectionProvider,
-  type TextDirection,
-} from '@base-ui-components/solid/direction-provider';
-import { Field } from '@base-ui-components/solid/field';
-import { Form } from '@base-ui-components/solid/form';
-import { Slider } from '@base-ui-components/solid/slider';
+import { DirectionProvider, type TextDirection } from '@msviderok/base-ui-solid/direction-provider';
+import { Field } from '@msviderok/base-ui-solid/field';
+import { Form } from '@msviderok/base-ui-solid/form';
+import { Slider } from '@msviderok/base-ui-solid/slider';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy, stub } from 'sinon';

@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Switch } from '@base-ui-components/solid/switch';
+import { Switch } from '@msviderok/base-ui-solid/switch';
 import { SwitchRootContext } from '../root/SwitchRootContext';
 
 const testContext: SwitchRootContext = {

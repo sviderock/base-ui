@@ -1,6 +1,5 @@
-import { createAsync, query } from '@solidjs/router';
 import { inlineMdxComponents } from 'docs-solid/src/mdx-components';
-import { createMdxComponent } from 'docs-solid/src/mdx/createMdxComponent';
+import { AsyncMDXComponent } from 'docs-solid/src/mdx/createMdxComponent';
 import { rehypeSyntaxHighlighting } from 'docs-solid/src/syntax-highlighting';
 import type { MDXContent } from 'mdx/types';
 import { For, splitProps, type ComponentProps } from 'solid-js';
@@ -25,7 +24,6 @@ interface PropsReferenceTableProps extends ComponentProps<typeof Table.Root> {
 export function PropsReferenceTable(props: PropsReferenceTableProps) {
   const [local, rest] = splitProps(props, ['data', 'type']);
   const type = () => local.type ?? 'props';
-  const items = createAsync(() => getItems(local.data), { initialValue: [] });
 
   return (
     <Table.Root {...rest}>
@@ -48,36 +46,70 @@ export function PropsReferenceTable(props: PropsReferenceTableProps) {
         </Table.Row>
       </Table.Head>
       <Table.Body>
-        <For each={items()}>
-          {(Item) => (
+        <For each={Object.keys(local.data)}>
+          {(name) => (
             <Table.Row>
               <Table.RowHeader>
                 <TableCode class="text-navy">
-                  {Item.name}
-                  {Item.prop.required ? <sup class="top-[-0.3em] text-xs text-red-800">*</sup> : ''}
+                  {name}
+                  {local.data[name].required ? (
+                    <sup class="top-[-0.3em] text-xs text-red-800">*</sup>
+                  ) : (
+                    ''
+                  )}
                 </TableCode>
               </Table.RowHeader>
               <Table.Cell class="max-xs:hidden">
-                <Item.PropType />
+                <AsyncMDXComponent
+                  markdown={`\`${local.data[name].type}\``}
+                  options={{
+                    rehypePlugins: rehypeSyntaxHighlighting,
+                    useMDXComponents: () => ({ code: TableCode }),
+                  }}
+                />
               </Table.Cell>
               {type() === 'props' && (
                 <Table.Cell class="max-md:hidden">
-                  <Item.PropDefault />
+                  <AsyncMDXComponent
+                    markdown={`\`${local.data[name].required ? '—' : local.data[name].default}\``}
+                    options={{
+                      rehypePlugins: rehypeSyntaxHighlighting,
+                      useMDXComponents: () => ({ code: TableCode }),
+                    }}
+                  />
                 </Table.Cell>
               )}
               <Table.Cell>
-                {Item.prop.description && (
+                {local.data[name].description && (
                   <ReferenceTablePopover>
-                    <Item.PropDescription />
+                    <AsyncMDXComponent
+                      markdown={local.data[name].description}
+                      options={{
+                        rehypePlugins: rehypeSyntaxHighlighting,
+                        useMDXComponents: () => inlineMdxComponents,
+                      }}
+                    />
                     <div class="flex flex-col gap-2 text-md md:hidden">
                       <div class="border-t border-gray-200 pt-2 xs:hidden">
                         <div class="mb-1 font-bold">Type</div>
-                        <Item.PropType />
+                        <AsyncMDXComponent
+                          markdown={`\`${local.data[name].type}\``}
+                          options={{
+                            rehypePlugins: rehypeSyntaxHighlighting,
+                            useMDXComponents: () => ({ code: TableCode }),
+                          }}
+                        />
                       </div>
                       {type() === 'props' && (
                         <div class="border-t border-gray-200 pt-2">
                           <div class="mb-1 font-bold">Default</div>
-                          <Item.PropDefault />
+                          <AsyncMDXComponent
+                            markdown={`\`${local.data[name].required ? '—' : local.data[name].default}\``}
+                            options={{
+                              rehypePlugins: rehypeSyntaxHighlighting,
+                              useMDXComponents: () => ({ code: TableCode }),
+                            }}
+                          />
                         </div>
                       )}
                     </div>
@@ -91,28 +123,3 @@ export function PropsReferenceTable(props: PropsReferenceTableProps) {
     </Table.Root>
   );
 }
-
-const getItems = query(async (data: Record<string, PropDef>) => {
-  const newItems: Item[] = [];
-  for (const name of Object.keys(data)) {
-    const prop = data[name];
-    const PropType = await createMdxComponent(`\`${prop.type}\``, {
-      rehypePlugins: rehypeSyntaxHighlighting,
-      useMDXComponents: () => ({ code: TableCode }),
-    });
-
-    const PropDefault = await createMdxComponent(`\`${prop.required ? '—' : prop.default}\``, {
-      rehypePlugins: rehypeSyntaxHighlighting,
-      useMDXComponents: () => ({ code: TableCode }),
-    });
-
-    const PropDescription = await createMdxComponent(prop.description, {
-      rehypePlugins: rehypeSyntaxHighlighting,
-      useMDXComponents: () => inlineMdxComponents,
-    });
-
-    newItems.push({ name, prop, PropType, PropDefault, PropDescription });
-  }
-
-  return newItems;
-}, 'reference-table-props');

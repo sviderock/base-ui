@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Toolbar } from '@base-ui-components/solid/toolbar';
+import { Toolbar } from '@msviderok/base-ui-solid/toolbar';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { CompositeRootContext } from '../../composite/root/CompositeRootContext';

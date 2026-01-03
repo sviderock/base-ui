@@ -1,6 +1,6 @@
 import { isJSDOM } from '#test-utils';
-import { randomStringValue, screen, waitFor } from '@mui/internal-test-utils';
-import type { render as testingLibraryRender } from '@solidjs/testing-library';
+import { randomStringValue } from '@mui/internal-test-utils';
+import { screen, waitFor, type render as testingLibraryRender } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
 import { expect } from 'chai';
 import { spy } from 'sinon';

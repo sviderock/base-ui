@@ -1,7 +1,7 @@
 import { createRenderer, flushMicrotasks, isJSDOM, popupConformanceTests } from '#test-utils';
-import { Field } from '@base-ui-components/solid/field';
-import { Form } from '@base-ui-components/solid/form';
-import { Select } from '@base-ui-components/solid/select';
+import { Field } from '@msviderok/base-ui-solid/field';
+import { Form } from '@msviderok/base-ui-solid/form';
+import { Select } from '@msviderok/base-ui-solid/select';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';

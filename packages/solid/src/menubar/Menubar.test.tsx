@@ -1,6 +1,6 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Menu } from '@base-ui-components/solid/menu';
-import { Menubar } from '@base-ui-components/solid/menubar';
+import { Menu } from '@msviderok/base-ui-solid/menu';
+import { Menubar } from '@msviderok/base-ui-solid/menubar';
 import { cleanup, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { afterEach } from 'vitest';

@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#test-utils';
-import { Menu } from '@base-ui-components/solid/menu';
+import { Menu } from '@msviderok/base-ui-solid/menu';
 import { cleanup, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
 import { expect } from 'chai';

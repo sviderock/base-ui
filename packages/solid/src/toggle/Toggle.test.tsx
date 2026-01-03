@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Toggle } from '@base-ui-components/solid/toggle';
+import { Toggle } from '@msviderok/base-ui-solid/toggle';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';

@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Tabs } from '@base-ui-components/solid/tabs';
+import { Tabs } from '@msviderok/base-ui-solid/tabs';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';

@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { ScrollArea } from '@base-ui-components/solid/scroll-area';
+import { ScrollArea } from '@msviderok/base-ui-solid/scroll-area';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { SCROLL_TIMEOUT } from '../constants';
 

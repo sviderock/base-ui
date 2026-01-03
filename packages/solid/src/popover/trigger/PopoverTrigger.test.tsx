@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance, flushMicrotasks, isJSDOM } from '#test-utils';
-import { Popover } from '@base-ui-components/solid/popover';
+import { Popover } from '@msviderok/base-ui-solid/popover';
 import { fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { PATIENT_CLICK_THRESHOLD } from '../../utils/constants';

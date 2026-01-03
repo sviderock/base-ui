@@ -1,6 +1,6 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Radio } from '@base-ui-components/solid/radio';
-import { RadioGroup } from '@base-ui-components/solid/radio-group';
+import { Radio } from '@msviderok/base-ui-solid/radio';
+import { RadioGroup } from '@msviderok/base-ui-solid/radio-group';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 

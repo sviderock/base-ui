@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { PreviewCard } from '@base-ui-components/solid/preview-card';
+import { PreviewCard } from '@msviderok/base-ui-solid/preview-card';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 

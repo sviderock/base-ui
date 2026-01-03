@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Collapsible } from '@base-ui-components/solid/collapsible';
+import { Collapsible } from '@msviderok/base-ui-solid/collapsible';
 
 describe('<Collapsible.Trigger />', () => {
   const { render } = createRenderer();

@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Toast } from '@base-ui-components/solid/toast';
+import { Toast } from '@msviderok/base-ui-solid/toast';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { Button, List } from '../utils/test-utils';
@@ -10,11 +10,7 @@ describe('<Toast.Viewport />', () => {
   describeConformance(Toast.Viewport, () => ({
     refInstanceof: window.HTMLDivElement,
     render(node, props) {
-      return render(() => (
-        <Toast.Provider>
-          {node(props)}
-        </Toast.Provider>
-      ));
+      return render(() => <Toast.Provider>{node(props)}</Toast.Provider>);
     },
   }));
 

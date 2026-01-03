@@ -1,6 +1,6 @@
-import { Dialog } from '@base-ui-components/solid/dialog';
+import { Dialog } from '@msviderok/base-ui-solid/dialog';
 import { expect } from 'chai';
-// import { AlertDialog } from '@base-ui-components/solid/alert-dialog';
+// import { AlertDialog } from '@msviderok/base-ui-solid/alert-dialog';
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';

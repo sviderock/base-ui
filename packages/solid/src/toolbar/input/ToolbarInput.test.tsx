@@ -1,6 +1,6 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { NumberField } from '@base-ui-components/solid/number-field';
-import { Toolbar } from '@base-ui-components/solid/toolbar';
+import { NumberField } from '@msviderok/base-ui-solid/number-field';
+import { Toolbar } from '@msviderok/base-ui-solid/toolbar';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';

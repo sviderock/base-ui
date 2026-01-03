@@ -1,5 +1,5 @@
 import { createRenderer, flushMicrotasks } from '#test-utils';
-import { Toast } from '@base-ui-components/solid/toast';
+import { Toast } from '@msviderok/base-ui-solid/toast';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { List } from './utils/test-utils';

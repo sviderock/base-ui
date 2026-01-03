@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Select } from '@base-ui-components/solid/select';
+import { Select } from '@msviderok/base-ui-solid/select';
 
 describe('<Select.Icon />', () => {
   const { render } = createRenderer();

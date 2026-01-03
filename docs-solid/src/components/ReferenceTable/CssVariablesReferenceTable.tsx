@@ -1,6 +1,5 @@
-import { createAsync, query } from '@solidjs/router';
 import { inlineMdxComponents } from 'docs-solid/src/mdx-components';
-import { createMdxComponent } from 'docs-solid/src/mdx/createMdxComponent';
+import { AsyncMDXComponent } from 'docs-solid/src/mdx/createMdxComponent';
 import { rehypeSyntaxHighlighting } from 'docs-solid/src/syntax-highlighting';
 import type { MDXContent } from 'mdx/types';
 import { For, splitProps, type ComponentProps } from 'solid-js';
@@ -21,7 +20,6 @@ interface CssVariablesReferenceTableProps extends ComponentProps<typeof Table.Ro
 
 export function CssVariablesReferenceTable(props: CssVariablesReferenceTableProps) {
   const [local, rest] = splitProps(props, ['data']);
-  const items = createAsync(() => getItems(local.data), { initialValue: [] });
 
   return (
     <Table.Root {...rest}>
@@ -38,19 +36,31 @@ export function CssVariablesReferenceTable(props: CssVariablesReferenceTableProp
         </Table.Row>
       </Table.Head>
       <Table.Body>
-        <For each={items()}>
-          {(Item) => (
+        <For each={Object.keys(local.data)}>
+          {(name) => (
             <Table.Row>
               <Table.RowHeader>
-                <TableCode class="text-navy">{Item.name}</TableCode>
+                <TableCode class="text-navy">{name}</TableCode>
               </Table.RowHeader>
               <Table.Cell colSpan={2}>
                 <div class="hidden xs:contents">
-                  <Item.CssVaribleDescription />
+                  <AsyncMDXComponent
+                    markdown={local.data[name].description}
+                    options={{
+                      rehypePlugins: rehypeSyntaxHighlighting,
+                      useMDXComponents: () => inlineMdxComponents,
+                    }}
+                  />
                 </div>
                 <div class="contents xs:hidden">
                   <ReferenceTablePopover>
-                    <Item.CssVaribleDescription />
+                    <AsyncMDXComponent
+                      markdown={local.data[name].description}
+                      options={{
+                        rehypePlugins: rehypeSyntaxHighlighting,
+                        useMDXComponents: () => inlineMdxComponents,
+                      }}
+                    />
                   </ReferenceTablePopover>
                 </div>
               </Table.Cell>
@@ -61,17 +71,3 @@ export function CssVariablesReferenceTable(props: CssVariablesReferenceTableProp
     </Table.Root>
   );
 }
-
-const getItems = query(async (data: Record<string, CssVariableDef>) => {
-  const newItems: Item[] = [];
-  for (const name of Object.keys(data)) {
-    const cssVariable = data[name];
-    const CssVaribleDescription = await createMdxComponent(cssVariable.description, {
-      rehypePlugins: rehypeSyntaxHighlighting,
-      useMDXComponents: () => inlineMdxComponents,
-    });
-
-    newItems.push({ name, cssVariable, CssVaribleDescription });
-  }
-  return newItems;
-}, 'reference-table-css-variables');

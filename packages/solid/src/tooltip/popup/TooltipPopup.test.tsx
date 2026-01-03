@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Tooltip } from '@base-ui-components/solid/tooltip';
+import { Tooltip } from '@msviderok/base-ui-solid/tooltip';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 
@@ -12,9 +12,7 @@ describe('<Tooltip.Popup />', () => {
       return render(() => (
         <Tooltip.Root open>
           <Tooltip.Portal>
-            <Tooltip.Positioner>
-              {node(props)}
-            </Tooltip.Positioner>
+            <Tooltip.Positioner>{node(props)}</Tooltip.Positioner>
           </Tooltip.Portal>
         </Tooltip.Root>
       ));

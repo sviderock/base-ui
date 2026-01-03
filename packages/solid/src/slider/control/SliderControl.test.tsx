@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Slider } from '@base-ui-components/solid/slider';
+import { Slider } from '@msviderok/base-ui-solid/slider';
 
 describe('<Slider.Control />', () => {
   const { render } = createRenderer();

@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Fieldset } from '@base-ui-components/solid/fieldset';
+import { Fieldset } from '@msviderok/base-ui-solid/fieldset';
 
 describe('<Fieldset.Root />', () => {
   const { render } = createRenderer();

@@ -1,5 +1,4 @@
 import { isJSDOM } from '#test-utils';
-import { act } from '@mui/internal-test-utils';
 import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import { userEvent } from '@testing-library/user-event';
 import { expect } from 'chai';
@@ -176,7 +175,7 @@ describe('useButton', () => {
 
       const button = screen.getByRole('button');
 
-      await act(() => button.focus());
+      button.focus();
       expect(button).toHaveFocus();
 
       expect(handleKeyDown.callCount).to.equal(0);

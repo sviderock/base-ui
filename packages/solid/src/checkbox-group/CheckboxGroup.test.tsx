@@ -1,8 +1,8 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Checkbox } from '@base-ui-components/solid/checkbox';
-import { CheckboxGroup } from '@base-ui-components/solid/checkbox-group';
-import { Field } from '@base-ui-components/solid/field';
-import { Form } from '@base-ui-components/solid/form';
+import { Checkbox } from '@msviderok/base-ui-solid/checkbox';
+import { CheckboxGroup } from '@msviderok/base-ui-solid/checkbox-group';
+import { Field } from '@msviderok/base-ui-solid/field';
+import { Form } from '@msviderok/base-ui-solid/form';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';

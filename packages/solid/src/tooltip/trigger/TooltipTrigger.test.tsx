@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Tooltip } from '@base-ui-components/solid/tooltip';
+import { Tooltip } from '@msviderok/base-ui-solid/tooltip';
 
 describe('<Tooltip.Trigger />', () => {
   const { render } = createRenderer();
@@ -7,11 +7,7 @@ describe('<Tooltip.Trigger />', () => {
   describeConformance(Tooltip.Trigger, () => ({
     refInstanceof: window.HTMLButtonElement,
     render(node, props) {
-      return render(() => (
-        <Tooltip.Root>
-          {node(props)}
-        </Tooltip.Root>
-      ));
+      return render(() => <Tooltip.Root>{node(props)}</Tooltip.Root>);
     },
   }));
 });

@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { ScrollArea } from '@base-ui-components/solid/scroll-area';
+import { ScrollArea } from '@msviderok/base-ui-solid/scroll-area';
 
 describe('<ScrollArea.Thumb />', () => {
   const { render } = createRenderer();

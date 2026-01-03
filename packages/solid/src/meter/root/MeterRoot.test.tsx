@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Meter } from '@base-ui-components/solid/meter';
+import { Meter } from '@msviderok/base-ui-solid/meter';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';

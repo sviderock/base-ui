@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { Menu } from '@base-ui-components/solid/menu';
+import { Menu } from '@msviderok/base-ui-solid/menu';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { MenuGroupContext } from '../group/MenuGroupContext';

@@ -1,6 +1,6 @@
 /* eslint-disable testing-library/no-container */
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Checkbox } from '@base-ui-components/solid/checkbox';
+import { Checkbox } from '@msviderok/base-ui-solid/checkbox';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { createSignal } from 'solid-js';

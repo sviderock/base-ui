@@ -1,5 +1,5 @@
 import { createRenderer, isJSDOM, popupConformanceTests } from '#test-utils';
-import { AlertDialog } from '@base-ui-components/solid/alert-dialog';
+import { AlertDialog } from '@msviderok/base-ui-solid/alert-dialog';
 import { screen, waitFor } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';

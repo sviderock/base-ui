@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Collapsible } from '@base-ui-components/solid/collapsible';
+import { Collapsible } from '@msviderok/base-ui-solid/collapsible';
 import { screen } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
 import { expect } from 'chai';

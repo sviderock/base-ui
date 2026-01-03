@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance } from '#test-utils';
-import { AlertDialog } from '@base-ui-components/solid/alert-dialog';
+import { AlertDialog } from '@msviderok/base-ui-solid/alert-dialog';
 
 describe('<AlertDialog.Description />', () => {
   const { render } = createRenderer();

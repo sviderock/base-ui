@@ -1,10 +1,7 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import {
-  DirectionProvider,
-  type TextDirection,
-} from '@base-ui-components/solid/direction-provider';
-import { Toggle } from '@base-ui-components/solid/toggle';
-import { ToggleGroup } from '@base-ui-components/solid/toggle-group';
+import { DirectionProvider, type TextDirection } from '@msviderok/base-ui-solid/direction-provider';
+import { Toggle } from '@msviderok/base-ui-solid/toggle';
+import { ToggleGroup } from '@msviderok/base-ui-solid/toggle-group';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';

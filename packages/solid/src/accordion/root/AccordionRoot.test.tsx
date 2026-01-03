@@ -1,6 +1,6 @@
 import { createRenderer, describeConformance, isJSDOM } from '#test-utils';
-import { Accordion } from '@base-ui-components/solid/accordion';
-import { DirectionProvider } from '@base-ui-components/solid/direction-provider';
+import { Accordion } from '@msviderok/base-ui-solid/accordion';
+import { DirectionProvider } from '@msviderok/base-ui-solid/direction-provider';
 import { screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';

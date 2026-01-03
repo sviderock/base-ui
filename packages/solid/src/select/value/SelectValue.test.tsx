@@ -1,5 +1,5 @@
 import { createRenderer, describeConformance, flushMicrotasks } from '#test-utils';
-import { Select } from '@base-ui-components/solid/select';
+import { Select } from '@msviderok/base-ui-solid/select';
 import { fireEvent, screen } from '@solidjs/testing-library';
 import { expect } from 'chai';
 import { spy } from 'sinon';

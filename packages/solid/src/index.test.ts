@@ -7,7 +7,7 @@ import { expect } from 'chai';
 import { describe, it } from 'vitest';
 import * as BaseUI from './index';
 
-describe('@base-ui-components/solid', () => {
+describe('@msviderok/base-ui-solid', () => {
   it('should have exports', () => {
     expect(typeof BaseUI).to.equal('object');
   });
@@ -26,7 +26,7 @@ describe('@base-ui-components/solid', () => {
       Object.keys(subpathExports)
         .filter((key) => !['.', './utils'].includes(key) && !key.startsWith('./unstable-'))
         .map(async (subpath) => {
-          const importSpecifier = `@base-ui-components/solid/${subpath.replace('./', '')}`;
+          const importSpecifier = `@msviderok/base-ui-solid/${subpath.replace('./', '')}`;
           const module = await import(/* @vite-ignore */ importSpecifier);
 
           Object.keys(module).forEach((exportKey) => {

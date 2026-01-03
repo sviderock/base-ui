@@ -35,7 +35,7 @@ export function ColumnHeader(props: Omit<ComponentProps<'th'>, 'scope'>) {
 }
 
 export function RowHeader(props: Omit<ComponentProps<'th'>, 'scope'>) {
-  const [local, rest] = splitProps(props, ['class', 'children']);
+  const [local] = splitProps(props, ['class', 'children']);
   return (
     <th scope="row" ref={observeInnerScrollable} class={clsx('TableCell', local.class)} {...props}>
       <span class="TableCellInner">{local.children}</span>
