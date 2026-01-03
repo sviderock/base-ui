@@ -1,5 +1,5 @@
+import { combineProps } from '@solid-primitives/props';
 import { type Accessor, type JSX } from 'solid-js';
-import { mergeProps } from '../../merge-props';
 import { access } from '../../solid-helpers';
 import type { ElementProps } from '../types';
 import { ACTIVE_KEY, FOCUSABLE_ATTRIBUTE, SELECTED_KEY } from '../utils/constants';
@@ -42,7 +42,9 @@ export function useInteractions(
         referenceList.push(userProps);
       }
 
-      return mergeProps(referenceList);
+      const combined = combineProps(referenceList);
+
+      return Object.assign({}, combined);
     },
     getFloatingProps(userProps) {
       const list = propsList
@@ -55,7 +57,9 @@ export function useInteractions(
         list.push(userProps);
       }
 
-      return mergeProps(list);
+      const combined = combineProps(list);
+
+      return Object.assign({}, combined);
     },
     getItemProps(userProps) {
       let list: ElementProps['item'][] = propsList
@@ -71,7 +75,9 @@ export function useInteractions(
 
       list = list.map((item) => (typeof item === 'function' ? item(userProps ?? {}) : item));
 
-      return mergeProps(list);
+      const combined = combineProps(list);
+
+      return Object.assign({}, combined);
     },
   };
 }
