@@ -1,6 +1,6 @@
 {
   "name": "@msviderok/base-ui-solid",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0-beta.3",
   "private": false,
   "author": "MUI Team",
   "description": "Base UI is a library of headless ('unstyled') Solid components and low-level hooks. You gain complete control over your app's CSS and accessibility features.",
