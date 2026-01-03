@@ -1,40 +1,29 @@
-import { compile, CompileOptions, run, type UseMdxComponents } from '@mdx-js/mdx';
-import { clientOnly } from '@solidjs/start';
+import { evaluate, EvaluateOptions } from '@mdx-js/mdx';
 import type { MDXModule } from 'mdx/types';
-import { createMemo, createSignal, onMount, splitProps } from 'solid-js';
+import { createMemo, createSignal, onMount } from 'solid-js';
 import * as jsxRuntime from 'solid-js/h/jsx-runtime';
 
-async function createMdxComponent(
-  markdown = '',
-  // Real CompileOptions types are really stingy and hard to use, so just the keys are enough for our purposes
-  options: Partial<Record<keyof CompileOptions, unknown>> = {},
+export function createMdxComponent(
+  markdown: string = '',
+  options: Partial<Record<keyof EvaluateOptions, unknown>>,
 ) {
-  return String(
-    await compile(markdown, { outputFormat: 'function-body', ...(options as CompileOptions) }),
-  );
+  const [mdxModule, setMdxModule] = createSignal<MDXModule>();
+  const Content = createMemo(() => mdxModule()?.default ?? null);
+
+  async function compileComponent() {
+    const Comp = await evaluate(markdown, {
+      elementAttributeNameCase: 'html',
+      stylePropertyNameCase: 'css',
+      ...jsxRuntime,
+      ...options,
+    } as EvaluateOptions);
+
+    setMdxModule(Comp);
+  }
+
+  onMount(() => {
+    compileComponent();
+  });
+
+  return <>{Content()}</>;
 }
-
-export const AsyncMDXComponent = clientOnly(async () => ({
-  default: (props: {
-    markdown: string | undefined;
-    options: Partial<Record<keyof CompileOptions, unknown>> & { useMDXComponents?: any };
-  }) => {
-    const [local, rest] = splitProps(props.options, ['useMDXComponents']);
-    const [mdxModule, setMdxModule] = createSignal<MDXModule>();
-    const Content = createMemo(() => mdxModule()?.default ?? (() => <></>));
-
-    onMount(() => {
-      createMdxComponent(props.markdown ?? '', rest).then(async (code) => {
-        const compiledComponent = await run(code, {
-          ...jsxRuntime,
-          baseUrl: import.meta.url,
-          useMDXComponents: (() => local.useMDXComponents) as UseMdxComponents,
-        });
-
-        setMdxModule(compiledComponent);
-      });
-    });
-
-    return <>{Content()}</>;
-  },
-}));

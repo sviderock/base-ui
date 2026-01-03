@@ -1,5 +1,5 @@
 import { inlineMdxComponents } from 'docs-solid/src/mdx-components';
-import { AsyncMDXComponent } from 'docs-solid/src/mdx/createMdxComponent';
+import { createMdxComponent } from 'docs-solid/src/mdx/createMdxComponent';
 import { rehypeSyntaxHighlighting } from 'docs-solid/src/syntax-highlighting';
 import { For, splitProps, type ComponentProps } from 'solid-js';
 import * as Table from '../Table';
@@ -28,31 +28,22 @@ export function AttributesReferenceTable(props: AttributesReferenceTableProps) {
       <Table.Body>
         <For each={Object.keys(local.data)}>
           {(name) => {
+            const attribute = local.data[name];
+
+            const AttributeDescription = createMdxComponent(attribute.description, {
+              rehypePlugins: rehypeSyntaxHighlighting,
+              useMDXComponents: () => inlineMdxComponents,
+            });
+
             return (
               <Table.Row>
                 <Table.RowHeader>
                   <TableCode class="text-navy">{name}</TableCode>
                 </Table.RowHeader>
                 <Table.Cell colSpan={2}>
-                  <div class="hidden xs:contents">
-                    <AsyncMDXComponent
-                      markdown={local.data[name].description}
-                      options={{
-                        rehypePlugins: rehypeSyntaxHighlighting,
-                        useMDXComponents: () => inlineMdxComponents,
-                      }}
-                    />
-                  </div>
+                  <div class="hidden xs:contents">{AttributeDescription}</div>
                   <div class="contents xs:hidden">
-                    <ReferenceTablePopover>
-                      <AsyncMDXComponent
-                        markdown={local.data[name].description}
-                        options={{
-                          rehypePlugins: rehypeSyntaxHighlighting,
-                          useMDXComponents: () => inlineMdxComponents,
-                        }}
-                      />
-                    </ReferenceTablePopover>
+                    <ReferenceTablePopover>{AttributeDescription}</ReferenceTablePopover>
                   </div>
                 </Table.Cell>
               </Table.Row>
