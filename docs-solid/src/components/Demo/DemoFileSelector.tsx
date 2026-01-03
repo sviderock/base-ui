@@ -20,7 +20,7 @@ export function DemoFileSelector(props: DemoFileSelectorProps) {
       fallback={<div class="DemoFilename">{selectedVariant().files[0].name}</div>}
     >
       <Tabs.Root
-        value={selectedFile}
+        value={selectedFile()}
         onValueChange={(value) => {
           batch(() => {
             setSelectedFile(value);
