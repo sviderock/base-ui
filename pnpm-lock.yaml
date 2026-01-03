@@ -776,18 +776,9 @@ importers:
       '@floating-ui/utils':
         specifier: ^0.2.10
         version: 0.2.10
-      '@solid-primitives/props':
-        specifier: ^3.2.2
-        version: 3.2.2(solid-js@1.9.9)
-      '@solid-primitives/refs':
-        specifier: ^1.1.2
-        version: 1.1.2(solid-js@1.9.9)
       '@solidjs/router':
         specifier: ^0.15.3
         version: 0.15.3(solid-js@1.9.9)
-      reselect:
-        specifier: ^5.1.1
-        version: 5.1.1
       tabbable:
         specifier: ^6.2.0
         version: 6.2.0
@@ -795,9 +786,6 @@ importers:
       '@mui/internal-test-utils':
         specifier: ^2.0.10
         version: 2.0.13(@babel/core@7.28.4)(@playwright/test@1.53.2)(@types/react-dom@19.1.9(@types/react@19.1.13))(@types/react@19.1.13)(chai@4.5.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      '@rollup/plugin-node-resolve':
-        specifier: ^16.0.1
-        version: 16.0.1(rollup@4.52.0)
       '@solidjs/testing-library':
         specifier: ^0.8.10
         version: 0.8.10(@solidjs/router@0.15.3(solid-js@1.9.9))(solid-js@1.9.9)
@@ -5329,11 +5317,6 @@ packages:
 
   '@solid-primitives/props@3.2.2':
     resolution: {integrity: sha512-lZOTwFJajBrshSyg14nBMEP0h8MXzPowGO0s3OeiR3z6nXHTfj0FhzDtJMv+VYoRJKQHG2QRnJTgCzK6erARAw==}
-    peerDependencies:
-      solid-js: ^1.6.12
-
-  '@solid-primitives/refs@1.1.2':
-    resolution: {integrity: sha512-K7tf2thy7L+YJjdqXspXOg5xvNEOH8tgEWsp0+1mQk3obHBRD6hEjYZk7p7FlJphSZImS35je3UfmWuD7MhDfg==}
     peerDependencies:
       solid-js: ^1.6.12
 
@@ -17673,16 +17656,6 @@ snapshots:
     optionalDependencies:
       rollup: 4.45.1
 
-  '@rollup/plugin-node-resolve@16.0.1(rollup@4.52.0)':
-    dependencies:
-      '@rollup/pluginutils': 5.1.4(rollup@4.52.0)
-      '@types/resolve': 1.20.2
-      deepmerge: 4.3.1
-      is-module: 1.0.0
-      resolve: 1.22.10
-    optionalDependencies:
-      rollup: 4.52.0
-
   '@rollup/plugin-replace@6.0.2(rollup@4.45.1)':
     dependencies:
       '@rollup/pluginutils': 5.1.4(rollup@4.45.1)
@@ -18429,11 +18402,6 @@ snapshots:
       tslib: 2.8.1
 
   '@solid-primitives/props@3.2.2(solid-js@1.9.9)':
-    dependencies:
-      '@solid-primitives/utils': 6.3.2(solid-js@1.9.9)
-      solid-js: 1.9.9
-
-  '@solid-primitives/refs@1.1.2(solid-js@1.9.9)':
     dependencies:
       '@solid-primitives/utils': 6.3.2(solid-js@1.9.9)
       solid-js: 1.9.9

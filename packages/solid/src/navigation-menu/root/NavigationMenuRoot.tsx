@@ -37,17 +37,15 @@ export function NavigationMenuRoot(componentProps: NavigationMenuRoot.Props) {
     'orientation',
     'onOpenChangeComplete',
   ]);
-  const defaultValue = () => access(local.defaultValue) ?? null;
-  const valueParam = () => access(local.value);
-  const actionsRef = () => access(local.actionsRef);
-  const delay = () => access(local.delay) ?? 50;
-  const closeDelay = () => access(local.closeDelay) ?? 50;
-  const orientation = () => access(local.orientation) ?? 'horizontal';
+  const defaultValue = () => local.defaultValue ?? null;
+  const delay = () => local.delay ?? 50;
+  const closeDelay = () => local.closeDelay ?? 50;
+  const orientation = () => local.orientation ?? 'horizontal';
 
   const nested = () => useFloatingParentNodeId() != null;
 
   const [value, setValueUnwrapped] = useControlled({
-    controlled: valueParam,
+    controlled: () => local.value,
     default: defaultValue,
     name: 'NavigationMenu',
     state: 'value',
@@ -122,7 +120,7 @@ export function NavigationMenuRoot(componentProps: NavigationMenuRoot.Props) {
   };
 
   useOpenChangeComplete({
-    enabled: () => !actionsRef(),
+    enabled: () => !local.actionsRef,
     open,
     ref: popupElement,
     onComplete() {
@@ -179,7 +177,6 @@ function TreeContext(componentProps: NavigationMenuRoot.Props) {
     'orientation',
     'onOpenChangeComplete',
   ]);
-  const orientation = () => access(local.orientation);
 
   const nodeId = useFloatingNodeId();
 
@@ -204,7 +201,7 @@ function TreeContext(componentProps: NavigationMenuRoot.Props) {
     props: [
       {
         get 'aria-orientation'() {
-          return orientation();
+          return local.orientation;
         },
       },
       elementProps,

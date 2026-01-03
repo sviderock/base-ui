@@ -36,7 +36,7 @@ import {
   useRole,
   useTypeahead,
 } from '../../src/floating-ui-solid';
-import { access, callEventHandler } from '../../src/solid-helpers';
+import { callEventHandler } from '../../src/solid-helpers';
 
 type MenuContextType = {
   getItemProps: ReturnType<typeof useInteractions>['getItemProps'];
@@ -377,7 +377,7 @@ export function MenuItem(props: MenuItemProps & JSX.HTMLAttributes<HTMLButtonEle
           if (
             event.key === 'ArrowRight' &&
             // If the root reference is in a menubar, close parents
-            access(tree?.nodesRef[0].context)?.elements.domReference()?.closest('[role="menubar"]')
+            tree?.nodesRef[0].context?.elements.domReference()?.closest('[role="menubar"]')
           ) {
             closeParents(menu.parent);
           }

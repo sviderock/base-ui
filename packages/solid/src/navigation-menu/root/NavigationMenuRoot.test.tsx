@@ -303,7 +303,7 @@ describe('<NavigationMenu.Root />', () => {
 
     it('should be controlled by value prop', async () => {
       const [value, setValue] = createSignal('item-1');
-      render(() => <TestNavigationMenu value={value} />);
+      render(() => <TestNavigationMenu value={value()} />);
 
       let trigger1 = screen.getByTestId('trigger-1');
       fireEvent.mouseEnter(trigger1);

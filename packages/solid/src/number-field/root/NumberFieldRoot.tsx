@@ -10,7 +10,7 @@ import {
 } from 'solid-js';
 import type { FieldRoot } from '../../field/root/FieldRoot';
 import { useFieldRootContext } from '../../field/root/FieldRootContext';
-import { access, splitComponentProps } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { isIOS } from '../../utils/detectBrowser';
 import { formatNumber, formatNumberMaxPrecision } from '../../utils/formatNumber';
 import { ownerDocument, ownerWindow } from '../../utils/owner';
@@ -54,14 +54,14 @@ export function NumberFieldRoot(componentProps: NumberFieldRoot.Props) {
     'locale',
     'refs',
   ]);
-  const smallStep = () => access(local.smallStep) ?? 0.1;
-  const step = () => access(local.step) ?? 1;
-  const largeStep = () => access(local.largeStep) ?? 10;
-  const required = () => access(local.required) ?? false;
-  const disabledProp = () => access(local.disabled) ?? false;
-  const readOnly = () => access(local.readOnly) ?? false;
-  const allowWheelScrub = () => access(local.allowWheelScrub) ?? false;
-  const snapOnStep = () => access(local.snapOnStep) ?? false;
+  const smallStep = () => local.smallStep ?? 0.1;
+  const step = () => local.step ?? 1;
+  const largeStep = () => local.largeStep ?? 10;
+  const required = () => local.required ?? false;
+  const disabledProp = () => local.disabled ?? false;
+  const readOnly = () => local.readOnly ?? false;
+  const allowWheelScrub = () => local.allowWheelScrub ?? false;
+  const snapOnStep = () => local.snapOnStep ?? false;
 
   const {
     setDirty,

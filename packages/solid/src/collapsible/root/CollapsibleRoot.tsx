@@ -1,5 +1,5 @@
 import { Show, mergeProps as solidMergeProps } from 'solid-js';
-import { type MaybeAccessor, access, splitComponentProps } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useRenderElement } from '../../utils/useRenderElement';
 import type { TransitionStatus } from '../../utils/useTransitionStatus';
@@ -20,16 +20,15 @@ export function CollapsibleRoot(componentProps: CollapsibleRoot.Props) {
     'onOpenChange',
     'open',
   ]);
-  const open = () => access(local.open);
-  const defaultOpen = () => access(local.defaultOpen) ?? false;
-  const disabled = () => access(local.disabled) ?? false;
+  const defaultOpen = () => local.defaultOpen ?? false;
+  const disabled = () => local.disabled ?? false;
 
   const onOpenChange = (newOpen: boolean) => {
     local.onOpenChange?.(newOpen);
   };
 
   const collapsible = useCollapsibleRoot({
-    open,
+    open: () => local.open,
     defaultOpen,
     onOpenChange,
     disabled,
@@ -81,7 +80,7 @@ export namespace CollapsibleRoot {
      *
      * To render an uncontrolled collapsible, use the `defaultOpen` prop instead.
      */
-    open?: MaybeAccessor<boolean | undefined>;
+    open?: boolean;
 
     /**
      * Whether the collapsible panel is initially open.
@@ -89,7 +88,7 @@ export namespace CollapsibleRoot {
      * To render a controlled collapsible, use the `open` prop instead.
      * @default false
      */
-    defaultOpen?: MaybeAccessor<boolean | undefined>;
+    defaultOpen?: boolean;
     /**
      * Event handler called when the panel is opened or closed.
      */
@@ -98,6 +97,6 @@ export namespace CollapsibleRoot {
      * Whether the component should ignore user interaction.
      * @default false
      */
-    disabled?: MaybeAccessor<boolean | undefined>;
+    disabled?: boolean;
   }
 }

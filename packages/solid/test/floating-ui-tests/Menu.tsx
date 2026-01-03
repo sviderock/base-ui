@@ -288,12 +288,8 @@ export function MenuComponent(props: MenuProps & JSX.HTMLAttributes<HTMLButtonEl
                   ref={refs.setFloating}
                   class={c(
                     'border-slate-900/10 rounded border bg-white bg-clip-padding p-1 shadow-lg outline-none',
-                    {
-                      'flex flex-col': !local.cols,
-                    },
-                    {
-                      [`grid grid-cols-[repeat(var(--cols),_minmax(0,_1fr))] gap-3`]: local.cols,
-                    },
+                    { 'flex flex-col': !local.cols },
+                    { [`grid grid-cols-[repeat(var(--cols),_minmax(0,_1fr))] gap-3`]: local.cols },
                   )}
                   style={{
                     ...floatingStyles(),

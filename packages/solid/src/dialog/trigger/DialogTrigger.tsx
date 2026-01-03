@@ -1,4 +1,4 @@
-import { access, splitComponentProps } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button/useButton';
 import { triggerOpenStateMapping } from '../../utils/popupStateMapping';
 import type { BaseUIComponentProps } from '../../utils/types';
@@ -18,8 +18,8 @@ export function DialogTrigger(componentProps: DialogTrigger.Props) {
     'disabled',
     'nativeButton',
   ]);
-  const disabled = () => access(local.disabled) ?? false;
-  const native = () => access(local.nativeButton) ?? true;
+  const disabled = () => local.disabled ?? false;
+  const native = () => local.nativeButton ?? true;
 
   const { open, setTriggerElement, triggerProps } = useDialogRootContext();
 

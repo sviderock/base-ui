@@ -1,5 +1,5 @@
 import { type JSX } from 'solid-js';
-import { access, splitComponentProps } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { useButton } from '../../use-button';
 import { triggerOpenStateMapping } from '../../utils/collapsibleOpenStateMapping';
 import type { CustomStyleHookMapping } from '../../utils/getStyleHookProps';
@@ -34,7 +34,7 @@ export function CollapsibleTrigger(componentProps: CollapsibleTrigger.Props): JS
     state,
   } = useCollapsibleRootContext();
   const nativeButton = () => local.nativeButton ?? true;
-  const disabled = () => access(local.disabled) ?? contextDisabled();
+  const disabled = () => local.disabled ?? contextDisabled();
 
   const button = useButton({
     disabled,

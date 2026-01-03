@@ -1,5 +1,5 @@
 import { createEffect, createSignal, onCleanup } from 'solid-js';
-import { access, splitComponentProps } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { isWebKit } from '../../utils/detectBrowser';
 import { ownerDocument, ownerWindow } from '../../utils/owner';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
@@ -24,8 +24,8 @@ export function NumberFieldScrubArea(componentProps: NumberFieldScrubArea.Props)
     'pixelSensitivity',
     'teleportDistance',
   ]);
-  const direction = () => access(local.direction) ?? 'horizontal';
-  const pixelSensitivity = () => access(local.pixelSensitivity) ?? 2;
+  const direction = () => local.direction ?? 'horizontal';
+  const pixelSensitivity = () => local.pixelSensitivity ?? 2;
 
   const { state } = useNumberFieldRootContext();
 

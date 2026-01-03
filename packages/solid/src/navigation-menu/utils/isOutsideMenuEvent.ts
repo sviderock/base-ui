@@ -4,7 +4,6 @@ import {
   type ReferenceType,
 } from '../../floating-ui-solid';
 import { contains, getNodeChildren } from '../../floating-ui-solid/utils';
-import { access } from '../../solid-helpers';
 
 interface Targets {
   currentTarget: HTMLElement | null | undefined;
@@ -25,7 +24,7 @@ export function isOutsideMenuEvent({ currentTarget, relatedTarget }: Targets, pa
   const nodeChildrenContains =
     tree || virtualFloatingTree
       ? getNodeChildren(tree?.nodesRef || virtualFloatingTree || [], nodeId).some((node) =>
-          contains(access(node.context)?.elements.floating(), relatedTarget),
+          contains(node.context?.elements.floating(), relatedTarget),
         )
       : [];
 

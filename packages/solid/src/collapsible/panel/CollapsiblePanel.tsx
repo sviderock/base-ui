@@ -1,5 +1,5 @@
 import { createEffect, createMemo, Show } from 'solid-js';
-import { access, type MaybeAccessor, splitComponentProps } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { BaseUIComponentProps } from '../../utils/types';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
 import { useRenderElement } from '../../utils/useRenderElement';
@@ -22,8 +22,8 @@ export function CollapsiblePanel(componentProps: CollapsiblePanel.Props) {
     'keepMounted',
     'id',
   ]);
-  const hiddenUntilFound = () => access(local.hiddenUntilFound) ?? false;
-  const keepMounted = () => access(local.keepMounted) ?? false;
+  const hiddenUntilFound = () => local.hiddenUntilFound ?? false;
+  const keepMounted = () => local.keepMounted ?? false;
 
   if (process.env.NODE_ENV !== 'production') {
     createEffect(() => {
@@ -142,12 +142,12 @@ export namespace CollapsiblePanel {
      *
      * @default false
      */
-    hiddenUntilFound?: MaybeAccessor<boolean | undefined>;
+    hiddenUntilFound?: boolean;
     /**
      * Whether to keep the element in the DOM while the panel is hidden.
      * This prop is ignored when `hiddenUntilFound` is used.
      * @default false
      */
-    keepMounted?: MaybeAccessor<boolean | undefined>;
+    keepMounted?: boolean;
   }
 }

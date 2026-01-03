@@ -199,7 +199,7 @@ export function useDialogRoot(params: useDialogRoot.Parameters): useDialogRoot.R
     mounted,
     transitionStatus,
     triggerProps: (otherProps) => mergeProps(otherProps, getReferenceProps(triggerProps)),
-    getPopupProps: getFloatingProps,
+    getPopupProps: (otherProps) => mergeProps(otherProps, getFloatingProps),
     setTriggerElement,
     setPopupElement,
     refs,

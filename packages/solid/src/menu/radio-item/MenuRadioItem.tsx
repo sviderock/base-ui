@@ -1,7 +1,7 @@
 import { type JSX } from 'solid-js';
 import { useCompositeListItem } from '../../composite/list/useCompositeListItem';
 import { useFloatingTree } from '../../floating-ui-solid';
-import { access, splitComponentProps } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import type { BaseUIComponentProps } from '../../utils/types';
 import { useBaseUiId } from '../../utils/useBaseUiId';
 import { useRenderElement } from '../../utils/useRenderElement';
@@ -27,9 +27,9 @@ export function MenuRadioItem(componentProps: MenuRadioItem.Props) {
     'nativeButton',
   ]);
 
-  const disabledProp = () => access(local.disabled) ?? false;
-  const closeOnClick = () => access(local.closeOnClick) ?? false;
-  const nativeButton = () => access(local.nativeButton) ?? false;
+  const disabledProp = () => local.disabled ?? false;
+  const closeOnClick = () => local.closeOnClick ?? false;
+  const nativeButton = () => local.nativeButton ?? false;
 
   const listItem = useCompositeListItem({ label: () => local.label });
 

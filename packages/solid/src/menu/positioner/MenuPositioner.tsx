@@ -9,7 +9,7 @@ import {
   type Padding,
   type VirtualElement,
 } from '../../floating-ui-solid';
-import { access, splitComponentProps } from '../../solid-helpers';
+import { splitComponentProps } from '../../solid-helpers';
 import { DROPDOWN_COLLISION_AVOIDANCE } from '../../utils/constants';
 import { inertValue } from '../../utils/inertValue';
 import { InternalBackdrop } from '../../utils/InternalBackdrop';
@@ -79,30 +79,28 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
   const contextMenuContext = useContextMenuRootContext(true);
 
   const anchor = () => {
-    const a = access(local.anchor);
+    const a = local.anchor;
     const p = parent();
     return p.type === 'context-menu' ? (p.context?.anchor ?? a) : a;
   };
 
   const computedAlign = () => {
-    const a = access(local.align);
     const p = parent();
     if (p.type === 'context-menu' || p.type === 'menu' || p.type === 'menubar') {
-      return a ?? 'start';
+      return local.align ?? 'start';
     }
-    return a;
+    return local.align;
   };
 
   const computedSide = () => {
-    const s = access(local.side);
     const p = parent();
     if (p.type === 'menu') {
-      return s ?? 'inline-end';
+      return local.side ?? 'inline-end';
     }
     if (p.type === 'menubar') {
-      return s ?? 'bottom';
+      return local.side ?? 'bottom';
     }
-    return s;
+    return local.side;
   };
 
   const alignOffset = () => {
@@ -209,7 +207,7 @@ export function MenuPositioner(componentProps: MenuPositioner.Props) {
     arrowUncentered: positioner.arrowUncentered,
     arrowStyles: positioner.arrowStyles,
     get floatingContext() {
-      return access(positioner.context);
+      return positioner.context;
     },
   };
 
