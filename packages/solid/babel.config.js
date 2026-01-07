@@ -19,11 +19,11 @@ module.exports = function getBabelConfig(api) {
     ],
     [
       'babel-preset-solid',
-      {
-        runtime: 'automatic',
-        useBuiltIns: true,
-        useSpread: true,
-      },
+      // {
+      //   runtime: 'automatic',
+      //   useBuiltIns: true,
+      //   useSpread: true,
+      // },
     ],
     '@babel/preset-typescript',
   ];

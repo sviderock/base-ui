@@ -1,18 +1,18 @@
-import * as React from 'react';
 import { NoSsr } from '@base-ui-components/react/unstable-no-ssr';
-import { DemoLoader } from './components/Demo/DemoLoader';
-import * as CodeBlock from './components/CodeBlock';
-import * as Table from './components/Table';
-import * as QuickNav from './components/QuickNav/QuickNav';
+import * as React from 'react';
 import { Code } from './components/Code';
-import { PropsReferenceTable } from './components/ReferenceTable/PropsReferenceTable';
+import * as CodeBlock from './components/CodeBlock';
+import { DemoLoader } from './components/Demo/DemoLoader';
+import { HeadingLink } from './components/HeadingLink';
+import { Kbd } from './components/Kbd/Kbd';
+import { Link } from './components/Link';
+import * as QuickNav from './components/QuickNav/QuickNav';
 import { AttributesReferenceTable } from './components/ReferenceTable/AttributesReferenceTable';
 import { CssVariablesReferenceTable } from './components/ReferenceTable/CssVariablesReferenceTable';
-import { getChildrenText } from './utils/getChildrenText';
-import { Link } from './components/Link';
-import { HeadingLink } from './components/HeadingLink';
+import { PropsReferenceTable } from './components/ReferenceTable/PropsReferenceTable';
 import { Subtitle } from './components/Subtitle/Subtitle';
-import { Kbd } from './components/Kbd/Kbd';
+import * as Table from './components/Table';
+import { getChildrenText } from './utils/getChildrenText';
 
 interface MDXComponents {
   [key: string]: React.FC<any> | MDXComponents;
