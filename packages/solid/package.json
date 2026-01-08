@@ -1,6 +1,6 @@
 {
   "name": "@msviderok/base-ui-solid",
-  "version": "1.0.0-beta.3",
+  "version": "1.0.0-beta.6",
   "private": false,
   "author": "MUI Team",
   "description": "Base UI is a library of headless ('unstyled') Solid components and low-level hooks. You gain complete control over your app's CSS and accessibility features.",
@@ -13,12 +13,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sviderock/base-ui.git",
+    "url": "git+https://github.com/msviderok/base-ui.git",
     "directory": "packages/solid"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sviderock/base-ui/issues"
+    "url": "https://github.com/msviderok/base-ui/issues"
   },
   "homepage": "https://base-ui.com",
   "funding": {
@@ -121,8 +121,5 @@
   "engines": {
     "node": ">=14.0.0"
   },
-  "main": "index.js",
-  "directories": {
-    "test": "test"
-  }
+  "main": "index.js"
 }

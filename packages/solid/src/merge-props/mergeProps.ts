@@ -176,19 +176,31 @@ export function mergeProps<
   for (let props of sources) {
     let propsOverride = false;
     if (typeof props === 'function') {
-      const mergedListeners = { ...cachedListeners };
-      const mergedStyles = reduce(cacheStyles, 'style', combineStyle);
-      const mergedRefs = reverseChain(cacheRefs);
-      const mergedClasses = reduce(cacheClasses, 'class', (a, b) => `${a} ${b}`);
-      const mergedClassList = reduce(cacheClassList, 'classList', (a, b) => ({ ...a, ...b }));
+      const mergedListeners = Object.assign({}, cachedListeners);
+      const mergedStyles = Object.assign([], cacheStyles);
+      const mergedRefs = Object.assign([], cacheRefs);
+      const mergedClasses = Object.assign([], cacheClasses);
+      const mergedClassList = Object.assign([], cacheClassList);
+
+      const localMerged = {
+        get style() {
+          return reduce(mergedStyles, 'style', combineStyle);
+        },
+        get ref() {
+          return reverseChain(mergedRefs);
+        },
+        get class() {
+          return reduce(mergedClasses, 'class', (a, b) => `${a} ${b}`);
+        },
+        get classList() {
+          return reduce(mergedClassList, 'classList', (a, b) => ({ ...a, ...b }));
+        },
+      };
 
       const mergedForGetter = new Proxy(merge, {
         get(target, key, receiver) {
           if (typeof key !== 'string') return Reflect.get(target, key, receiver);
-          if (key === 'style') return mergedStyles;
-          if (key === 'ref') return mergedRefs;
-          if (key === 'class') return mergedClasses;
-          if (key === 'classList') return mergedClassList;
+          if (key in localMerged) return localMerged[key as keyof typeof localMerged];
 
           if (key[0] === 'o' && key[1] === 'n' && key[2]) {
             const name = key.toLowerCase();
@@ -264,19 +276,26 @@ export function mergeProps<
   }
 
   const mergedListeners = { ...cachedListeners };
-  const mergedStyles = reduce(cacheStyles, 'style', combineStyle);
-  const mergedRefs = reverseChain(cacheRefs);
-  const mergedClasses = reduce(cacheClasses, 'class', (a, b) => `${a} ${b}`);
-  const mergedClassList = reduce(cacheClassList, 'classList', (a, b) => ({ ...a, ...b }));
+  const localMerged = {
+    get style() {
+      return reduce(cacheStyles, 'style', combineStyle);
+    },
+    get ref() {
+      return reverseChain(cacheRefs);
+    },
+    get class() {
+      return reduce(cacheClasses, 'class', (a, b) => `${a} ${b}`);
+    },
+    get classList() {
+      return reduce(cacheClassList, 'classList', (a, b) => ({ ...a, ...b }));
+    },
+  };
 
   return new Proxy(
     {
       get(key) {
         if (typeof key !== 'string') return Reflect.get(merge, key);
-        if (key === 'style') return mergedStyles;
-        if (key === 'ref') return mergedRefs;
-        if (key === 'class') return mergedClasses;
-        if (key === 'classList') return mergedClassList;
+        if (key in localMerged) return localMerged[key as keyof typeof localMerged];
 
         if (key[0] === 'o' && key[1] === 'n' && key[2]) {
           const name = key.toLowerCase();

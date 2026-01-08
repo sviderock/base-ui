@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { spy } from 'sinon';
+import { createMemo, createRoot, createSignal } from 'solid-js';
 import { callEventHandler } from '../solid-helpers';
 import type { BaseUIEvent } from '../utils/types';
 import { mergeProps } from './mergeProps';
@@ -301,6 +302,113 @@ describe('mergeProps', () => {
 
       expect(result).to.deep.equal({
         class: 'test-class',
+      });
+    });
+
+    it('properly merges native object getters in a reactive way (class/style/ref/classList + other dynamic props)', () => {
+      createRoot((dispose) => {
+        const [isOn, setIsOn] = createSignal(false);
+        const [color, setColor] = createSignal<'blue' | 'red'>('blue');
+        const [isEnabled, setIsEnabled] = createSignal(false);
+        const [count, setCount] = createSignal(0);
+        const [mode, setMode] = createSignal<'a' | 'b'>('a');
+
+        let classGetterCalls = 0;
+        let styleGetterCalls = 0;
+        let classListGetterCalls = 0;
+        let titleGetterCalls = 0;
+        let tabIndexGetterCalls = 0;
+
+        const refA = spy();
+        const refB = spy();
+
+        const mergedProps = mergeProps<'div'>(
+          {
+            get class() {
+              classGetterCalls += 1;
+              return isOn() ? 'on' : 'off';
+            },
+            get style() {
+              styleGetterCalls += 1;
+              return { color: color() };
+            },
+            get classList() {
+              classListGetterCalls += 1;
+              return { enabled: isEnabled() };
+            },
+            get title() {
+              titleGetterCalls += 1;
+              return `title-${count()}`;
+            },
+            get tabIndex() {
+              tabIndexGetterCalls += 1;
+              return mode() === 'a' ? 0 : -1;
+            },
+          },
+          {
+            class: 'static-class',
+            style: { padding: '1px' },
+            classList: { staticKey: true },
+            ref: refA,
+            id: 'static-id',
+          },
+          { ref: refB },
+        );
+
+        // Getters should be evaluated lazily, not during mergeProps() call.
+        expect(classGetterCalls).to.equal(0);
+        expect(styleGetterCalls).to.equal(0);
+        expect(classListGetterCalls).to.equal(0);
+        expect(titleGetterCalls).to.equal(0);
+        expect(tabIndexGetterCalls).to.equal(0);
+
+        const classValue = createMemo(() => mergedProps.class);
+        const styleValue = createMemo(() => mergedProps.style);
+        const classListValue = createMemo(() => mergedProps.classList);
+        const titleValue = createMemo(() => mergedProps.title);
+        const tabIndexValue = createMemo(() => mergedProps.tabIndex);
+        const staticValue = createMemo(() => mergedProps.id);
+
+        expect(classValue()).to.equal('off static-class');
+        expect(styleValue()).to.deep.equal({ color: 'blue', padding: '1px' });
+        expect(classListValue()).to.deep.equal({ enabled: false, staticKey: true });
+        expect(titleValue()).to.equal('title-0');
+        expect(tabIndexValue()).to.equal(0);
+        expect(staticValue()).to.equal('static-id');
+
+        expect(classGetterCalls).to.equal(1);
+        expect(styleGetterCalls).to.equal(1);
+        expect(classListGetterCalls).to.equal(1);
+
+        const titleCallsBefore = titleGetterCalls;
+        const tabIndexCallsBefore = tabIndexGetterCalls;
+
+        const element = document.createElement('div');
+        (mergedProps.ref as any)?.(element);
+        expect(refB.calledBefore(refA)).to.equal(true);
+        expect(refA.calledWith(element)).to.equal(true);
+        expect(refB.calledWith(element)).to.equal(true);
+
+        setIsOn(true);
+        setColor('red');
+        setIsEnabled(true);
+        setCount(1);
+        setMode('b');
+
+        expect(classValue()).to.equal('on static-class');
+        expect(styleValue()).to.deep.equal({ color: 'red', padding: '1px' });
+        expect(classListValue()).to.deep.equal({ enabled: true, staticKey: true });
+        expect(titleValue()).to.equal('title-1');
+        expect(tabIndexValue()).to.equal(-1);
+        expect(staticValue()).to.equal('static-id');
+
+        expect(classGetterCalls).to.equal(2);
+        expect(styleGetterCalls).to.equal(2);
+        expect(classListGetterCalls).to.equal(2);
+        expect(titleGetterCalls).to.be.greaterThan(titleCallsBefore);
+        expect(tabIndexGetterCalls).to.be.greaterThan(tabIndexCallsBefore);
+
+        dispose();
       });
     });
   });
