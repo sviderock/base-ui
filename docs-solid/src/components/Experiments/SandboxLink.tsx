@@ -14,7 +14,11 @@ export function SandboxLink(props: SandboxLinkProps) {
       title: 'Base UI experiment',
       dependencies: {
         'solid-js': '^1.9.7',
-        '@msviderok/base-ui-solid': '^1.0.0-beta.8',
+      },
+      devDependencies: {
+        typescript: '^5.7.2',
+        vite: '^6.0.3',
+        'vite-plugin-solid': '^2.11.0',
       },
       dependencyResolver: resolveDependencies,
       customIndexFile: indexTs,

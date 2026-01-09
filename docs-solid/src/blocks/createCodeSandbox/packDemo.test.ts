@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { DemoFile } from 'docs/src/blocks/Demo';
+import { DemoFile } from 'docs-solid/src/blocks/Demo';
 import { describe, it } from 'vitest';
 import { packDemo } from './packDemo';
 

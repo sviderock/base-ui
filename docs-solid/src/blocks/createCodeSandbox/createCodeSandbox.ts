@@ -110,11 +110,17 @@ function createCodeSandboxRequestPayload(options: createCodeSandbox.Options) {
         `src/index${indexExtension}`,
       ),
     },
+    'vite.config.ts': {
+      content: CSA.getViteConfig(),
+    },
   };
 
   if (demoLanguage === 'ts') {
     files['tsconfig.json'] = {
       content: CSA.getTsconfig(),
+    };
+    files['tsconfig.node.json'] = {
+      content: CSA.getTsconfigNode(),
     };
   }
 
@@ -156,10 +162,9 @@ function createPackageJson(
     dependencies: Object.fromEntries(dependencies),
     devDependencies,
     scripts: {
-      start: 'vite',
       dev: 'vite',
-      build: 'vite build',
-      serve: 'vite preview',
+      build: 'tsc && vite build',
+      preview: 'vite preview',
     },
     main: mainFile,
   };

@@ -81,6 +81,11 @@ export function CodeSandboxLink(componentProps: CodeSandboxLinkProps) {
       dependencies: {
         'solid-js': '^1.9.7',
       },
+      devDependencies: {
+        typescript: '^5.7.2',
+        vite: '^6.0.3',
+        'vite-plugin-solid': '^2.11.0',
+      },
       dependencyResolver: resolveDependencies,
       additionalHtmlHeadContent,
       onAddingFile: (fileName, content) => {
@@ -110,7 +115,10 @@ export function CodeSandboxLink(componentProps: CodeSandboxLinkProps) {
 export function resolveDependencies(packageName: string): Record<string, string> {
   switch (packageName) {
     case '@msviderok/base-ui-solid': {
-      if (COMMIT_REF === undefined || SOURCE_CODE_REPO !== 'https://github.com/mui/base-ui') {
+      if (
+        COMMIT_REF === undefined ||
+        SOURCE_CODE_REPO !== 'https://github.com/msviderok/base-ui-solid'
+      ) {
         // #default-branch-switch
         return {
           '@msviderok/base-ui-solid': 'latest',
@@ -118,17 +126,9 @@ export function resolveDependencies(packageName: string): Record<string, string>
       }
       const shortSha = COMMIT_REF.slice(0, 8);
       return {
-        '@msviderok/base-ui-solid': `https://pkg.csb.dev/mui/base-ui/commit/${shortSha}/@msviderok/base-ui-solid`,
+        '@msviderok/base-ui-solid': `https://pkg.csb.dev/msviderok/base-ui-solid/commit/${shortSha}/@msviderok/base-ui-solid`,
       };
     }
-
-    case '@mui/material':
-    case '@mui/system':
-      return {
-        [packageName]: 'latest',
-        '@emotion/react': 'latest',
-        '@emotion/styled': 'latest',
-      };
 
     default:
       return {
