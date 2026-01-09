@@ -1,5 +1,5 @@
-import { Checkbox } from '@base-ui-components/solid/checkbox';
-import { CheckboxGroup } from '@base-ui-components/solid/checkbox-group';
+import { Checkbox } from '@msviderok/base-ui-solid/checkbox';
+import { CheckboxGroup } from '@msviderok/base-ui-solid/checkbox-group';
 import { type ComponentProps } from 'solid-js';
 import styles from './index.module.css';
 

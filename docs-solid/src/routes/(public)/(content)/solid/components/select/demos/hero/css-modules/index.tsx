@@ -1,4 +1,4 @@
-import { Select } from '@base-ui-components/solid/select';
+import { Select } from '@msviderok/base-ui-solid/select';
 import { type ComponentProps, For } from 'solid-js';
 import styles from './index.module.css';
 

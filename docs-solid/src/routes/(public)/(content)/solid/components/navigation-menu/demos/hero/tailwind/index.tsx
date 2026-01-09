@@ -1,4 +1,4 @@
-import { NavigationMenu } from '@base-ui-components/solid/navigation-menu';
+import { NavigationMenu } from '@msviderok/base-ui-solid/navigation-menu';
 import { type ComponentProps, For } from 'solid-js';
 
 export default function ExampleNavigationMenu() {

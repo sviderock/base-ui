@@ -1,7 +1,7 @@
-import { Select } from '@base-ui-components/solid/select';
-import { Toggle } from '@base-ui-components/solid/toggle';
-import { ToggleGroup } from '@base-ui-components/solid/toggle-group';
-import { Toolbar } from '@base-ui-components/solid/toolbar';
+import { Select } from '@msviderok/base-ui-solid/select';
+import { Toggle } from '@msviderok/base-ui-solid/toggle';
+import { ToggleGroup } from '@msviderok/base-ui-solid/toggle-group';
+import { Toolbar } from '@msviderok/base-ui-solid/toolbar';
 import { type ComponentProps } from 'solid-js';
 
 export default function ExampleToolbar() {

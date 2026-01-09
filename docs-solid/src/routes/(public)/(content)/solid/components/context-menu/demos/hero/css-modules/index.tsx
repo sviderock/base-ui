@@ -1,4 +1,4 @@
-import { ContextMenu } from '@base-ui-components/solid/context-menu';
+import { ContextMenu } from '@msviderok/base-ui-solid/context-menu';
 import styles from './index.module.css';
 
 export default function ExampleMenu() {

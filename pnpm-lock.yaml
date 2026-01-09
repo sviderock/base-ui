@@ -506,6 +506,9 @@ importers:
       '@mdx-js/rollup':
         specifier: ^3.1.1
         version: 3.1.1(rollup@4.55.1)
+      '@msviderok/base-ui-solid':
+        specifier: workspace:*
+        version: link:../packages/solid/build
       '@solid-primitives/props':
         specifier: ^3.2.2
         version: 3.2.2(solid-js@1.9.10)

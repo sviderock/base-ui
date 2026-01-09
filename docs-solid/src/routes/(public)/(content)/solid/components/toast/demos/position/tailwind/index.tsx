@@ -1,4 +1,4 @@
-import { Toast } from '@base-ui-components/solid/toast';
+import { Toast } from '@msviderok/base-ui-solid/toast';
 import { type ComponentProps, createSignal, For } from 'solid-js';
 
 export default function ExampleToast() {

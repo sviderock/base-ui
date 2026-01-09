@@ -1,4 +1,4 @@
-import { Avatar } from '@base-ui-components/solid/avatar';
+import { Avatar } from '@msviderok/base-ui-solid/avatar';
 import styles from './index.module.css';
 
 export default function ExampleAvatar() {

@@ -1,5 +1,5 @@
-import { Radio } from '@base-ui-components/solid/radio';
-import { RadioGroup } from '@base-ui-components/solid/radio-group';
+import { Radio } from '@msviderok/base-ui-solid/radio';
+import { RadioGroup } from '@msviderok/base-ui-solid/radio-group';
 import styles from './index.module.css';
 
 export default function ExampleRadioGroup() {

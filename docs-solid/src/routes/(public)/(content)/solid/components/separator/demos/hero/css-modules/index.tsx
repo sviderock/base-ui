@@ -1,4 +1,4 @@
-import { Separator } from '@base-ui-components/solid/separator';
+import { Separator } from '@msviderok/base-ui-solid/separator';
 import styles from './index.module.css';
 
 export default function ExampleSeparator() {

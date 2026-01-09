@@ -1,4 +1,4 @@
-import { Toggle } from '@base-ui-components/solid/toggle';
+import { Toggle } from '@msviderok/base-ui-solid/toggle';
 import { type ComponentProps } from 'solid-js';
 
 export default function ExampleToggle() {

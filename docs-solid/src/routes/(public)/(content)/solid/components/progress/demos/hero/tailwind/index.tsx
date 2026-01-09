@@ -1,4 +1,4 @@
-import { Progress } from '@base-ui-components/solid/progress';
+import { Progress } from '@msviderok/base-ui-solid/progress';
 import { createSignal, onCleanup, onMount } from 'solid-js';
 
 export default function ExampleProgress() {

@@ -1,4 +1,4 @@
-import { ScrollArea } from '@base-ui-components/solid/scroll-area';
+import { ScrollArea } from '@msviderok/base-ui-solid/scroll-area';
 import { A, useLocation } from '@solidjs/router';
 import clsx from 'clsx';
 import scrollIntoView from 'scroll-into-view-if-needed';

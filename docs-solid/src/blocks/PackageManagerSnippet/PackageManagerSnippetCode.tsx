@@ -1,4 +1,4 @@
-import { Tabs } from '@base-ui-components/solid/tabs';
+import { Tabs } from '@msviderok/base-ui-solid/tabs';
 import type { JSX } from 'solid-js';
 
 export function PackageManagerSnippetCode(props: PackageManagerSnippetCode.Props) {

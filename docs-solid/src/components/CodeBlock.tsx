@@ -1,4 +1,4 @@
-import { useId } from '@base-ui-components/solid/utils';
+import { useId } from '@msviderok/base-ui-solid/utils';
 import copy from 'clipboard-copy';
 import clsx from 'clsx';
 import {

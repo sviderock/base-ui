@@ -1,4 +1,4 @@
-import { Input as BaseInput } from '@base-ui-components/solid/input';
+import { Input as BaseInput } from '@msviderok/base-ui-solid/input';
 import clsx from 'clsx';
 import styles from './Input.module.css';
 

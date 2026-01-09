@@ -1,5 +1,5 @@
-import { ContextMenu } from '@base-ui-components/solid/context-menu';
-import { Menu } from '@base-ui-components/solid/menu';
+import { ContextMenu } from '@msviderok/base-ui-solid/context-menu';
+import { Menu } from '@msviderok/base-ui-solid/menu';
 import { type ComponentProps } from 'solid-js';
 import styles from './index.module.css';
 

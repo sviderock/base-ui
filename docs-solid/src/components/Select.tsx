@@ -1,4 +1,4 @@
-import { Select } from '@base-ui-components/solid/select';
+import { Select } from '@msviderok/base-ui-solid/select';
 import clsx from 'clsx';
 import { splitProps } from 'solid-js';
 import { ChevronDownIcon } from '../icons/ChevronDownIcon';

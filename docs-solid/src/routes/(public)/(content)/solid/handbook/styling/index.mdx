@@ -52,7 +52,7 @@ Check out each component's API reference for a complete list of available data a
 Apply Tailwind classes to each part via the `class` prop.
 
 ```tsx title="menu.tsx"
-import { Menu } from '@base-ui-components/solid/menu';
+import { Menu } from '@msviderok/base-ui-solid/menu';
 
 export default function ExampleMenu() {
   return (
@@ -83,7 +83,7 @@ Apply custom CSS classes to each part via the `class` prop.
 Then style those classes in a CSS Modules file.
 
 ```tsx title="menu.tsx"
-import { Menu } from '@base-ui-components/solid/menu';
+import { Menu } from '@msviderok/base-ui-solid/menu';
 import styles from './menu.module.css';
 
 export default function ExampleMenu() {
@@ -110,7 +110,7 @@ export default function ExampleMenu() {
 Wrap each component part and apply styles, then assemble your styled components.
 
 ```tsx title="menu.tsx"
-import { Menu } from '@base-ui-components/solid/menu';
+import { Menu } from '@msviderok/base-ui-solid/menu';
 import styled from '@emotion/styled';
 
 const StyledMenuTrigger = styled(Menu.Trigger)`

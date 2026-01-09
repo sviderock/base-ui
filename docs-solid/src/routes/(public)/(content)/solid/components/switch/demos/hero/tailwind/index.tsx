@@ -1,4 +1,4 @@
-import { Switch } from '@base-ui-components/solid/switch';
+import { Switch } from '@msviderok/base-ui-solid/switch';
 
 export default function ExampleSwitch() {
   return (

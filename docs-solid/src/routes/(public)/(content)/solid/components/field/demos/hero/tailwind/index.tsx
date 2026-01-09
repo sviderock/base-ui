@@ -1,4 +1,4 @@
-import { Field } from '@base-ui-components/solid/field';
+import { Field } from '@msviderok/base-ui-solid/field';
 
 export default function ExampleField() {
   return (

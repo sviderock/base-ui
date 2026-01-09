@@ -1,4 +1,4 @@
-import { Tooltip } from '@base-ui-components/solid/tooltip';
+import { Tooltip } from '@msviderok/base-ui-solid/tooltip';
 import { PackageManagerSnippetProvider } from 'docs-solid/src/blocks/PackageManagerSnippet/PackageManagerSnippetProvider';
 import { DemoVariantSelectorProvider } from 'docs-solid/src/components/Demo/DemoVariantSelectorProvider';
 import type { ParentProps } from 'solid-js';

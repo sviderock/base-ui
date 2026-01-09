@@ -1,4 +1,3 @@
-import { callEventHandler } from '@base-ui-components/solid/solid-helpers';
 import copy from 'clipboard-copy';
 import {
   createMemo,
@@ -25,7 +24,9 @@ export function DemoSourceCopy(props: DemoSourceCopy.Props) {
     }
 
     // TODO: fix typing
-    callEventHandler(local.onClick, event as any);
+    if (local.onClick) {
+      (local.onClick as any)(event);
+    }
   };
 
   const renderProps = createMemo<ComponentProps<'button'>>(() => {

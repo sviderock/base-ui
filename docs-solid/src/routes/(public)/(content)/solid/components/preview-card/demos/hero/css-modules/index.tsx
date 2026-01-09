@@ -1,4 +1,4 @@
-import { PreviewCard } from '@base-ui-components/solid/preview-card';
+import { PreviewCard } from '@msviderok/base-ui-solid/preview-card';
 import { type ComponentProps } from 'solid-js';
 import styles from './index.module.css';
 

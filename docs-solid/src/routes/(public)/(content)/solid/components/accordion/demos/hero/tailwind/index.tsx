@@ -1,4 +1,4 @@
-import { Accordion } from '@base-ui-components/solid/accordion';
+import { Accordion } from '@msviderok/base-ui-solid/accordion';
 import type { ComponentProps } from 'solid-js';
 
 export default function ExampleAccordion() {

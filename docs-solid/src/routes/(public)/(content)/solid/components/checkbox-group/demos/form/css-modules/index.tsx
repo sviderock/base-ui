@@ -1,8 +1,8 @@
-import { Checkbox } from '@base-ui-components/solid/checkbox';
-import { CheckboxGroup } from '@base-ui-components/solid/checkbox-group';
-import { Field } from '@base-ui-components/solid/field';
-import { Fieldset } from '@base-ui-components/solid/fieldset';
-import { Form } from '@base-ui-components/solid/form';
+import { Checkbox } from '@msviderok/base-ui-solid/checkbox';
+import { CheckboxGroup } from '@msviderok/base-ui-solid/checkbox-group';
+import { Field } from '@msviderok/base-ui-solid/field';
+import { Fieldset } from '@msviderok/base-ui-solid/fieldset';
+import { Form } from '@msviderok/base-ui-solid/form';
 import { createSignal, type ComponentProps } from 'solid-js';
 import styles from './index.module.css';
 

@@ -1,5 +1,5 @@
-import { Field } from '@base-ui-components/solid/field';
-import { Fieldset } from '@base-ui-components/solid/fieldset';
+import { Field } from '@msviderok/base-ui-solid/field';
+import { Fieldset } from '@msviderok/base-ui-solid/fieldset';
 
 export default function ExampleField() {
   return (

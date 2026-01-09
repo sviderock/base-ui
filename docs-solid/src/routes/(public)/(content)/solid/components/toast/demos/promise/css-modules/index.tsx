@@ -1,4 +1,4 @@
-import { Toast } from '@base-ui-components/solid/toast';
+import { Toast } from '@msviderok/base-ui-solid/toast';
 import { For, type ComponentProps } from 'solid-js';
 import styles from './index.module.css';
 

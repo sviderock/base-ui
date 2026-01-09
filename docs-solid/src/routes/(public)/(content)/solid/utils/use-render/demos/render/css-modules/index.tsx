@@ -1,5 +1,5 @@
-import { mergeProps } from '@base-ui-components/solid/merge-props';
-import { useRender } from '@base-ui-components/solid/use-render';
+import { mergeProps } from '@msviderok/base-ui-solid/merge-props';
+import { useRender } from '@msviderok/base-ui-solid/use-render';
 import { splitProps } from 'solid-js';
 import styles from './index.module.css';
 

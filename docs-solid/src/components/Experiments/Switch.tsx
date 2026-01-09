@@ -1,5 +1,5 @@
-import { Field } from '@base-ui-components/solid/field';
-import { Switch as BaseSwitch } from '@base-ui-components/solid/switch';
+import { Field } from '@msviderok/base-ui-solid/field';
+import { Switch as BaseSwitch } from '@msviderok/base-ui-solid/switch';
 import { splitProps, type JSX } from 'solid-js';
 import classes from './Switch.module.css';
 

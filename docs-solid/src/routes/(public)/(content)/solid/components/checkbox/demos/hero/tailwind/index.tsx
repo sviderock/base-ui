@@ -1,4 +1,4 @@
-import { Checkbox } from '@base-ui-components/solid/checkbox';
+import { Checkbox } from '@msviderok/base-ui-solid/checkbox';
 import { type ComponentProps } from 'solid-js';
 
 export default function ExampleCheckbox() {

@@ -1,4 +1,4 @@
-import { useMediaQuery } from '@base-ui-components/solid/unstable-use-media-query';
+import { useMediaQuery } from '@msviderok/base-ui-solid/unstable-use-media-query';
 import { createEffect, on, onCleanup, onMount } from 'solid-js';
 
 let boundDataGaListener = false;

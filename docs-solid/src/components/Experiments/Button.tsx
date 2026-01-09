@@ -1,4 +1,4 @@
-import type { HTMLProps } from '@base-ui-components/solid/utils/types';
+import type { HTMLProps } from '@msviderok/base-ui-solid/utils/types';
 import clsx from 'clsx';
 import { createMemo, Show, splitProps, type Accessor, type JSX } from 'solid-js';
 import classes from './Button.module.css';

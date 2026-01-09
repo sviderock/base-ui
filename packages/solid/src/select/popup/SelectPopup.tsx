@@ -1,4 +1,4 @@
-import { createEffect, onCleanup, type JSX } from 'solid-js';
+import { createEffect, onCleanup, onMount, type JSX } from 'solid-js';
 import { FloatingFocusManager } from '../../floating-ui-solid';
 import { splitComponentProps } from '../../solid-helpers';
 import { DISABLED_TRANSITIONS_STYLE } from '../../utils/constants';
@@ -8,7 +8,7 @@ import { isMouseWithinBounds } from '../../utils/isMouseWithinBounds';
 import { ownerDocument, ownerWindow } from '../../utils/owner';
 import { popupStateMapping } from '../../utils/popupStateMapping';
 import { transitionStatusMapping } from '../../utils/styleHookMapping';
-import { styleDisableScrollbar } from '../../utils/styles';
+import { STYLE_TAG_ID, styleDisableScrollbar } from '../../utils/styles';
 import type { BaseUIComponentProps, HTMLProps } from '../../utils/types';
 import type { Side } from '../../utils/useAnchorPositioning';
 import { useOpenChangeComplete } from '../../utils/useOpenChangeComplete';
@@ -373,13 +373,22 @@ export function SelectPopup(componentProps: SelectPopup.Props) {
     ],
   });
 
+  onMount(() => {
+    if (!document.head.getElementsByTagName('style').namedItem(STYLE_TAG_ID)) {
+      const el = styleDisableScrollbar.element();
+      document.head.appendChild(el);
+      onCleanup(() => {
+        if (document.head.getElementsByTagName('style').namedItem(STYLE_TAG_ID)) {
+          document.head.removeChild(el);
+        }
+      });
+    }
+  });
+
   return (
-    <>
-      {styleDisableScrollbar.element}
-      <FloatingFocusManager context={context} modal={false} disabled={!store.mounted} restoreFocus>
-        {element()}
-      </FloatingFocusManager>
-    </>
+    <FloatingFocusManager context={context} modal={false} disabled={!store.mounted} restoreFocus>
+      {element()}
+    </FloatingFocusManager>
   );
 }
 

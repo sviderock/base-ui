@@ -1,4 +1,4 @@
-import { Menu } from '@base-ui-components/solid/menu';
+import { Menu } from '@msviderok/base-ui-solid/menu';
 import { createSignal, type ComponentProps } from 'solid-js';
 import styles from './index.module.css';
 

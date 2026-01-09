@@ -1,4 +1,4 @@
-import { Collapsible } from '@base-ui-components/solid/collapsible';
+import { Collapsible } from '@msviderok/base-ui-solid/collapsible';
 import * as BaseDemo from 'docs-solid/src/blocks/Demo';
 import { Show, useContext, type ComponentProps } from 'solid-js';
 import * as ScrollArea from '../ScrollArea';

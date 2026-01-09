@@ -1,4 +1,4 @@
-import { NumberField } from '@base-ui-components/solid/number-field';
+import { NumberField } from '@msviderok/base-ui-solid/number-field';
 import { createUniqueId, type ComponentProps } from 'solid-js';
 
 export default function ExampleNumberField() {

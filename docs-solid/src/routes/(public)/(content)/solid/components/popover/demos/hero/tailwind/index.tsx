@@ -1,4 +1,4 @@
-import { Popover } from '@base-ui-components/solid/popover';
+import { Popover } from '@msviderok/base-ui-solid/popover';
 import type { ComponentProps } from 'solid-js';
 
 export default function ExamplePopover() {

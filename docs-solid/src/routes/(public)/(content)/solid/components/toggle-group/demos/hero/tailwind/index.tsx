@@ -1,5 +1,5 @@
-import { Toggle } from '@base-ui-components/solid/toggle';
-import { ToggleGroup } from '@base-ui-components/solid/toggle-group';
+import { Toggle } from '@msviderok/base-ui-solid/toggle';
+import { ToggleGroup } from '@msviderok/base-ui-solid/toggle-group';
 import { type ComponentProps } from 'solid-js';
 
 export default function ExampleToggleGroup() {

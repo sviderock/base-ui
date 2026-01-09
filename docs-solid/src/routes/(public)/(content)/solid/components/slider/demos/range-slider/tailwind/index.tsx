@@ -1,4 +1,4 @@
-import { Slider } from '@base-ui-components/solid/slider';
+import { Slider } from '@msviderok/base-ui-solid/slider';
 
 export default function ExampleSlider() {
   return (

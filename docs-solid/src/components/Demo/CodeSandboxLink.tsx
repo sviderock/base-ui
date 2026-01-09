@@ -109,16 +109,16 @@ export function CodeSandboxLink(componentProps: CodeSandboxLinkProps) {
 
 export function resolveDependencies(packageName: string): Record<string, string> {
   switch (packageName) {
-    case '@base-ui-components/solid': {
+    case '@msviderok/base-ui-solid': {
       if (COMMIT_REF === undefined || SOURCE_CODE_REPO !== 'https://github.com/mui/base-ui') {
         // #default-branch-switch
         return {
-          '@base-ui-components/solid': 'latest',
+          '@msviderok/base-ui-solid': 'latest',
         };
       }
       const shortSha = COMMIT_REF.slice(0, 8);
       return {
-        '@base-ui-components/solid': `https://pkg.csb.dev/mui/base-ui/commit/${shortSha}/@base-ui-components/solid`,
+        '@msviderok/base-ui-solid': `https://pkg.csb.dev/mui/base-ui/commit/${shortSha}/@msviderok/base-ui-solid`,
       };
     }
 

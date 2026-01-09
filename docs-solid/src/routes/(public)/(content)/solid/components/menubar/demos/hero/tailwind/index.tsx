@@ -1,5 +1,5 @@
-import { Menu } from '@base-ui-components/solid/menu';
-import { Menubar } from '@base-ui-components/solid/menubar';
+import { Menu } from '@msviderok/base-ui-solid/menu';
+import { Menubar } from '@msviderok/base-ui-solid/menubar';
 import { type ComponentProps } from 'solid-js';
 
 export default function ExampleMenubar() {

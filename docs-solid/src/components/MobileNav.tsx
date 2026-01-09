@@ -1,5 +1,5 @@
-import { Dialog } from '@base-ui-components/solid/dialog';
-import { useScrollLock } from '@base-ui-components/solid/utils';
+import { Dialog } from '@msviderok/base-ui-solid/dialog';
+import { useScrollLock } from '@msviderok/base-ui-solid/utils';
 import { A } from '@solidjs/router';
 import clsx from 'clsx';
 import {

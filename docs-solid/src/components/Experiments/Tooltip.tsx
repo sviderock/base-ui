@@ -1,5 +1,5 @@
-import { Tooltip as BaseTooltip } from '@base-ui-components/solid/tooltip';
-import type { HTMLProps } from '@base-ui-components/solid/utils/types';
+import { Tooltip as BaseTooltip } from '@msviderok/base-ui-solid/tooltip';
+import type { HTMLProps } from '@msviderok/base-ui-solid/utils/types';
 import type { Accessor, Component, ComponentProps } from 'solid-js';
 import classes from './Tooltip.module.css';
 

@@ -1,4 +1,4 @@
-import { Collapsible } from '@base-ui-components/solid/collapsible';
+import { Collapsible } from '@msviderok/base-ui-solid/collapsible';
 import type { JSX } from 'solid-js';
 
 export default function ExampleCollapsible() {

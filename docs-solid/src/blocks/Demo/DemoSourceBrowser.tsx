@@ -1,4 +1,4 @@
-import { combineStyle } from '@base-ui-components/solid/merge-props';
+import { combineStyle } from '@msviderok/base-ui-solid/merge-props';
 import clsx from 'clsx';
 import { createMemo, Show, useContext, type ComponentProps } from 'solid-js';
 import { DemoContext } from './DemoContext';

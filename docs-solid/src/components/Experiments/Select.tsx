@@ -1,4 +1,4 @@
-import { Select as BaseSelect } from '@base-ui-components/solid/select';
+import { Select as BaseSelect } from '@msviderok/base-ui-solid/select';
 import clsx from 'clsx';
 import { For, splitProps, type ComponentProps, type JSX } from 'solid-js';
 import classes from './Select.module.css';
@@ -38,8 +38,10 @@ export function Select(props: Select.Props) {
 }
 
 export namespace Select {
-  export interface Props
-    extends Omit<JSX.HTMLAttributes<HTMLDivElement>, 'defaultValue' | 'onChange'> {
+  export interface Props extends Omit<
+    JSX.HTMLAttributes<HTMLDivElement>,
+    'defaultValue' | 'onChange'
+  > {
     value: string;
     onChange: (value: string) => void;
     options: string[];

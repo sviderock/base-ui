@@ -1,4 +1,4 @@
-import { Meter } from '@base-ui-components/solid/meter';
+import { Meter } from '@msviderok/base-ui-solid/meter';
 
 export default function ExampleMeter() {
   return (

@@ -73,7 +73,7 @@ The `mergeProps` function merges two or more sets of React props together. It sa
 `mergeProps` merges objects from left to right, so that subsequent objects' properties in the arguments overwrite previous ones. Merging props is useful when creating custom components, as well as inside the callback version of the `render` prop for any Base UI component.
 
 ```tsx title="Using mergeProps in the render callback"
-import { mergeProps } from '@base-ui-components/solid/merge-props';
+import { mergeProps } from '@msviderok/base-ui-solid/merge-props';
 import styles from './index.module.css';
 
 function Button() {
@@ -146,7 +146,7 @@ function Button(props: ButtonProps) {
 In Base UI, `useRender` lets you implement a `render` prop. The example below is the equivalent implementation to the Radix example above.
 
 ```jsx title="Base UI render prop"
-import { useRender } from '@base-ui-components/solid/use-render';
+import { useRender } from '@msviderok/base-ui-solid/use-render';
 
 function Button(props: ButtonProps) {
   const [local, otherProps] = splitProps(props, ['render']);

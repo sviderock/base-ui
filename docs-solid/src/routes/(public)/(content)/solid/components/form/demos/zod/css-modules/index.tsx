@@ -1,5 +1,5 @@
-import { Field } from '@base-ui-components/solid/field';
-import { Form } from '@base-ui-components/solid/form';
+import { Field } from '@msviderok/base-ui-solid/field';
+import { Form } from '@msviderok/base-ui-solid/form';
 import { createSignal } from 'solid-js';
 import { z } from 'zod';
 import styles from './index.module.css';

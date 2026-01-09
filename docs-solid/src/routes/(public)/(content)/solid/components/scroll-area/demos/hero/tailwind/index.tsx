@@ -1,4 +1,4 @@
-import { ScrollArea } from '@base-ui-components/solid/scroll-area';
+import { ScrollArea } from '@msviderok/base-ui-solid/scroll-area';
 
 export default function ExampleScrollArea() {
   return (

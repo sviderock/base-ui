@@ -1,4 +1,4 @@
-import { Dialog } from '@base-ui-components/solid/dialog';
+import { Dialog } from '@msviderok/base-ui-solid/dialog';
 import styles from './index.module.css';
 
 export default function ExampleDialog() {

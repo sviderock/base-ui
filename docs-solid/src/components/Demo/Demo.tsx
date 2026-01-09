@@ -1,4 +1,4 @@
-import { Collapsible } from '@base-ui-components/solid/collapsible';
+import { Collapsible } from '@msviderok/base-ui-solid/collapsible';
 import clsx from 'clsx';
 import * as BaseDemo from 'docs-solid/src/blocks/Demo';
 import { CheckIcon } from 'docs-solid/src/icons/CheckIcon';

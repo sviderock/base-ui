@@ -1,4 +1,4 @@
-import { Menu } from '@base-ui-components/solid/menu';
+import { Menu } from '@msviderok/base-ui-solid/menu';
 import { type ComponentProps, createSignal } from 'solid-js';
 
 export default function ExampleMenu() {

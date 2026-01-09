@@ -9,7 +9,7 @@ export default defineConfig({
     alias: {
       '@base-ui-components/react': path.join(process.cwd(), 'packages/react/src'),
       './fonts': path.join(process.cwd(), '/docs/src/fonts'),
-      '@base-ui-components/solid': path.join(process.cwd(), 'packages/solid/src'),
+      '@msviderok/base-ui-solid': path.join(process.cwd(), 'packages/solid/src'),
       docs: path.join(process.cwd(), '/docs'),
       'docs-solid': path.join(process.cwd(), '/docs-solid'),
       stream: null,

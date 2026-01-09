@@ -1,4 +1,4 @@
-import { Input } from '@base-ui-components/solid/input';
+import { Input } from '@msviderok/base-ui-solid/input';
 
 export default function ExampleInput() {
   return (

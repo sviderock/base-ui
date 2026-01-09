@@ -1,5 +1,5 @@
-import { Field } from '@base-ui-components/solid/field';
-import { Popover } from '@base-ui-components/solid/popover';
+import { Field } from '@msviderok/base-ui-solid/field';
+import { Popover } from '@msviderok/base-ui-solid/popover';
 import clsx from 'clsx';
 import {
   batch,

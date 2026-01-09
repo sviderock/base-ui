@@ -1,4 +1,4 @@
-import { Tooltip } from '@base-ui-components/solid/tooltip';
+import { Tooltip } from '@msviderok/base-ui-solid/tooltip';
 import type { ComponentProps } from 'solid-js';
 
 export default function ExampleTooltip() {

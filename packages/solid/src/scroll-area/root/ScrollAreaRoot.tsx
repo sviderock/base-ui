@@ -203,14 +203,14 @@ export function ScrollAreaRoot(componentProps: ScrollAreaRoot.Props) {
 
   onMount(() => {
     if (!document.head.getElementsByTagName('style').namedItem(STYLE_TAG_ID)) {
-      document.head.appendChild(styleDisableScrollbar.element);
+      const el = styleDisableScrollbar.element();
+      document.head.appendChild(el);
+      onCleanup(() => {
+        if (document.head.getElementsByTagName('style').namedItem(STYLE_TAG_ID)) {
+          document.head.removeChild(el);
+        }
+      });
     }
-
-    onCleanup(() => {
-      if (document.head.getElementsByTagName('style').namedItem(STYLE_TAG_ID)) {
-        document.head.removeChild(styleDisableScrollbar.element);
-      }
-    });
   });
 
   const element = useRenderElement('div', componentProps, {

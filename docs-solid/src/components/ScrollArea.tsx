@@ -1,4 +1,4 @@
-import { ScrollArea } from '@base-ui-components/solid/scroll-area';
+import { ScrollArea } from '@msviderok/base-ui-solid/scroll-area';
 import clsx from 'clsx';
 import { splitProps } from 'solid-js';
 

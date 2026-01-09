@@ -1,4 +1,4 @@
-import { AlertDialog } from '@base-ui-components/solid/alert-dialog';
+import { AlertDialog } from '@msviderok/base-ui-solid/alert-dialog';
 
 export default function ExampleAlertDialog() {
   return (
