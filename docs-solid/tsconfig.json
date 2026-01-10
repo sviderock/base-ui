@@ -5,6 +5,7 @@
     "scripts/*.mts",
     "src",
     "src/global.d.ts",
+    "types.d.ts",
     "../node_modules/solid-mdx/**/*.d.ts"
   ],
   "compilerOptions": {
@@ -13,7 +14,6 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "allowJs": true,
     "strict": true,
@@ -26,7 +26,13 @@
     "incremental": true,
     "composite": true,
     "allowImportingTsExtensions": true,
-    "strictNullChecks": true
+    "paths": {
+      "@msviderok/base-ui-solid": ["../packages/solid/src"],
+      "@msviderok/base-ui-solid/*": ["../packages/solid/src/*"],
+      "@base-ui/utils/*": ["../packages/utils/src/*"]
+    },
+    "strictNullChecks": true,
+    "jsx": "preserve"
   },
   "exclude": ["node_modules"],
   "references": [

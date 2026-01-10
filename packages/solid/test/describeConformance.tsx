@@ -139,6 +139,7 @@ export type ConformantComponentProps = {
   'data-testid'?: string;
   class?: string | ((state: unknown) => string);
   style?: JSX.CSSProperties;
+  nativeButton?: boolean;
 };
 
 export type RenderOptions = Parameters<typeof render>[1];
@@ -153,6 +154,7 @@ export interface BaseUiConformanceTestsOptions<
   ) => MuiRenderResult;
   skip?: (keyof typeof fullSuite)[];
   testRenderPropWith?: keyof JSX.IntrinsicElements;
+  button?: boolean;
 }
 
 const fullSuite = {

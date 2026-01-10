@@ -15,5 +15,6 @@
     "jsxImportSource": "solid-js"
   },
   "include": ["src/**/*.ts*"],
-  "exclude": ["src/**/*.spec.ts*", "src/**/*.test.ts*", "../../node_modules/@types/react"]
+  "exclude": ["src/**/*.spec.ts*", "src/**/*.test.ts*", "../../node_modules/@types/react"],
+  "references": [{ "path": "../utils/tsconfig.build.json" }]
 }

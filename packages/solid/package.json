@@ -29,11 +29,14 @@
     ".": "./src/index.ts",
     "./accordion": "./src/accordion/index.ts",
     "./alert-dialog": "./src/alert-dialog/index.ts",
+    // "./autocomplete": "./src/autocomplete/index.ts",
     "./avatar": "./src/avatar/index.ts",
+    // "./button": "./src/button/index.ts",
     "./checkbox": "./src/checkbox/index.ts",
     "./checkbox-group": "./src/checkbox-group/index.ts",
     "./context-menu": "./src/context-menu/index.ts",
     "./collapsible": "./src/collapsible/index.ts",
+    // "./combobox": "./src/combobox/index.ts",
     "./dialog": "./src/dialog/index.ts",
     "./direction-provider": "./src/direction-provider/index.ts",
     "./field": "./src/field/index.ts",
@@ -62,13 +65,17 @@
     "./toggle-group": "./src/toggle-group/index.ts",
     "./toolbar": "./src/toolbar/index.ts",
     "./tooltip": "./src/tooltip/index.ts",
+    // TODO: TO DELETE
     "./unstable-no-ssr": "./src/unstable-no-ssr/index.ts",
+    // "./types": "./src/types/index.ts",
     "./unstable-use-media-query": "./src/unstable-use-media-query/index.ts",
     "./use-render": "./src/use-render/index.ts",
+    // TODO: TO DELETE
     "./utils": "./src/utils/index.ts"
   },
   "imports": {
-    "#test-utils": "./test/index.ts"
+    "#test-utils": "./test/index.ts",
+    "#formatErrorMessage": "@base-ui/utils/formatErrorMessage"
   },
   "type": "commonjs",
   "scripts": {
@@ -85,31 +92,28 @@
     "typescript": "tsc -b tsconfig.json"
   },
   "dependencies": {
-    "@babel/runtime": "^7.27.6",
+    "@babel/runtime": "^7.28.4",
+    "@base-ui/utils": "workspace:*",
     "@floating-ui/dom": "^1.7.2",
     "@floating-ui/utils": "^0.2.10",
     "@solid-primitives/props": "^3.2.2",
     "@solidjs/router": "^0.15.3",
     "babel-preset-solid": "^1.9.10",
-    "tabbable": "^6.2.0"
+    "tabbable": "^6.4.0"
   },
   "devDependencies": {
-    "@mui/internal-test-utils": "^2.0.10",
-    "@solidjs/testing-library": "^0.8.10",
-    "@testing-library/user-event": "^14.6.1",
-    "@types/chai": "^4.3.20",
-    "@types/chai-dom": "^1.11.3",
-    "@types/sinon": "^17.0.4",
-    "chai": "^4.5.0",
-    "clsx": "^2.1.1",
-    "eslint-plugin-solid": "^0.14.5",
-    "fs-extra": "^11.3.0",
-    "lodash": "^4.17.21",
-    "sinon": "^21.0.0",
-    "solid-js": "^1.9.7",
-    "typescript": "^5.8.3",
-    "vite-plugin-solid": "^2.11.7",
-    "vitest": "^3.1.4"
+    "@solidjs/testing-library": "0.8.10",
+    "@testing-library/user-event": "14.6.1",
+    "@types/chai": "5.2.3",
+    "@types/chai-dom": "1.11.3",
+    "@types/sinon": "21.0.0",
+    "chai": "6.2.1",
+    "clsx": "2.1.1",
+    "eslint-plugin-solid": "0.14.5",
+    "sinon": "21.0.0",
+    "solid-js": "1.9.7",
+    "typescript": "5.9.3",
+    "vite-plugin-solid": "2.11.7",
   },
   "peerDependencies": {
     "solid-js": "^1.9.7"
