@@ -29,14 +29,11 @@
     ".": "./src/index.ts",
     "./accordion": "./src/accordion/index.ts",
     "./alert-dialog": "./src/alert-dialog/index.ts",
-    // "./autocomplete": "./src/autocomplete/index.ts",
     "./avatar": "./src/avatar/index.ts",
-    // "./button": "./src/button/index.ts",
     "./checkbox": "./src/checkbox/index.ts",
     "./checkbox-group": "./src/checkbox-group/index.ts",
     "./context-menu": "./src/context-menu/index.ts",
     "./collapsible": "./src/collapsible/index.ts",
-    // "./combobox": "./src/combobox/index.ts",
     "./dialog": "./src/dialog/index.ts",
     "./direction-provider": "./src/direction-provider/index.ts",
     "./field": "./src/field/index.ts",
@@ -65,12 +62,9 @@
     "./toggle-group": "./src/toggle-group/index.ts",
     "./toolbar": "./src/toolbar/index.ts",
     "./tooltip": "./src/tooltip/index.ts",
-    // TODO: TO DELETE
     "./unstable-no-ssr": "./src/unstable-no-ssr/index.ts",
-    // "./types": "./src/types/index.ts",
     "./unstable-use-media-query": "./src/unstable-use-media-query/index.ts",
     "./use-render": "./src/use-render/index.ts",
-    // TODO: TO DELETE
     "./utils": "./src/utils/index.ts"
   },
   "imports": {
@@ -113,7 +107,7 @@
     "sinon": "21.0.0",
     "solid-js": "1.9.7",
     "typescript": "5.9.3",
-    "vite-plugin-solid": "2.11.7",
+    "vite-plugin-solid": "2.11.7"
   },
   "peerDependencies": {
     "solid-js": "^1.9.7"
