@@ -6,7 +6,7 @@ import {
   EXTENSION_TEST_FILE,
   EXTENSION_TS,
 } from '@mui/internal-code-infra/eslint';
-import { defineConfig } from 'eslint/config';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import * as path from 'node:path';
 import { fileURLToPath } from 'url';
 
@@ -20,7 +20,7 @@ const OneLevelImportMessage = [
 
 const NO_RESTRICTED_IMPORTS_PATTERNS_DEEPLY_NESTED = [
   {
-    group: ['@base-ui-components/react/*/*'],
+    group: ['@base-ui/react/*/*'],
     message: OneLevelImportMessage,
   },
 ];
@@ -31,11 +31,13 @@ const NO_RESTRICTED_IMPORTS_PATHS_TOP_LEVEL_PACKAGES = [
 ];
 
 export default defineConfig(
+  globalIgnores(['./examples']),
+  createBaseConfig({
+    baseDirectory: dirname,
+  }),
   {
-    name: 'Base Config',
-    extends: createBaseConfig({
-      baseDirectory: dirname,
-    }),
+    name: 'Base UI overrides',
+    files: [`**/*${EXTENSION_TS}`],
     settings: {
       'import/resolver': {
         typescript: {
@@ -48,6 +50,8 @@ export default defineConfig(
      * their own groups.
      */
     rules: {
+      // @TODO: Remove this once we move away from namespaces
+      '@typescript-eslint/no-namespace': 'off',
       'import/export': 'off', // FIXME: Maximum call stack exceeded
       'no-restricted-imports': [
         'error',
@@ -57,12 +61,13 @@ export default defineConfig(
       ],
       // We LOVE non-breaking spaces, and both straight and curly quotes here
       'no-irregular-whitespace': ['warn', { skipJSXText: true, skipStrings: true }],
+      'react/react-in-jsx-scope': 'off',
       'react/no-unescaped-entities': ['warn', { forbid: ['>', '}'] }],
       'react/prop-types': 'off',
       'react-hooks/exhaustive-deps': [
         'error',
         {
-          additionalHooks: 'useModernLayoutEffect',
+          additionalHooks: 'useIsoLayoutEffect',
         },
       ],
       // This prevents us from creating components like `<h1 {...props} />`
@@ -71,6 +76,12 @@ export default defineConfig(
 
       // This rule doesn't recognise <label> wrapped around custom controls
       'jsx-a11y/label-has-associated-control': 'off',
+
+      // Turn off new eslint-plugin-react-hooks rules till we can fix all warnings
+      'react-hooks/globals': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/incompatible-library': 'off',
+      'react-hooks/refs': 'off',
     },
   },
   {
@@ -79,34 +90,11 @@ export default defineConfig(
       `**/*${EXTENSION_TEST_FILE}`,
     ],
     extends: createTestConfig({ useMocha: false }),
-    rules: {
-      // tests are not driven by assistive technology
-      // add `jsx-a11y` rules once you encounter them in tests
-      'jsx-a11y/click-events-have-key-events': 'off',
-      'jsx-a11y/control-has-associated-label': 'off',
-      'jsx-a11y/iframe-has-title': 'off',
-      'jsx-a11y/label-has-associated-control': 'off',
-      'jsx-a11y/mouse-events-have-key-events': 'off',
-      'jsx-a11y/no-noninteractive-tabindex': 'off',
-      'jsx-a11y/no-static-element-interactions': 'off',
-      'jsx-a11y/tabindex-no-positive': 'off',
-
-      // In tests this is generally intended.
-      'react/button-has-type': 'off',
-    },
   },
   baseSpecRules,
   {
-    files: [`packages/**/*.test.${EXTENSION_TS}`],
-    rules: {
-      'testing-library/prefer-screen-queries': 'off', // TODO: enable and fix
-      'testing-library/no-container': 'off', // TODO: enable and fix
-      'testing-library/render-result-naming-convention': 'off', // False positives
-    },
-  },
-  {
     name: 'MUI ESLint config for docs',
-    files: [`docs/**/*.${EXTENSION_TS}`],
+    files: [`docs/**/*${EXTENSION_TS}`],
     extends: createDocsConfig(),
     rules: {
       '@typescript-eslint/no-use-before-define': 'off',
@@ -130,7 +118,7 @@ export default defineConfig(
     },
   },
   {
-    files: [`docs/src/app/(private)/experiments/**/*.${EXTENSION_TS}`],
+    files: [`docs/src/app/(private)/experiments/**/*${EXTENSION_TS}`],
     rules: {
       '@typescript-eslint/no-use-before-define': 'off',
       'no-alert': 'off',
@@ -139,7 +127,7 @@ export default defineConfig(
     },
   },
   {
-    files: [`docs/src/app/(public)/(content)/react/utils/use-render/demos/**/*.${EXTENSION_TS}`],
+    files: [`docs/src/app/(docs)/react/utils/use-render/demos/**/*${EXTENSION_TS}`],
     rules: {
       'jsx-a11y/control-has-associated-label': 'off',
       'react/button-has-type': 'off',
@@ -148,8 +136,8 @@ export default defineConfig(
   {
     name: 'Disable image rule for demos',
     files: [
-      `docs/src/app/(public)/(content)/**/demos/**/*.${EXTENSION_TS}`,
-      `docs/src/app/(private)/experiments/**/*.${EXTENSION_TS}`,
+      `docs/src/app/(docs)/**/demos/**/*${EXTENSION_TS}`,
+      `docs/src/app/(private)/experiments/**/*${EXTENSION_TS}`,
     ],
     ignores: ['docs/src/app/(private)/experiments/**/page.tsx'],
     rules: {
@@ -157,10 +145,11 @@ export default defineConfig(
     },
   },
   {
-    files: [`test/**/*.${EXTENSION_TS}`],
+    files: [`test/**/*${EXTENSION_TS}`],
     rules: {
       'guard-for-in': 'off',
-      'testing-library/no-dom-import': 'off', // We use `screen` in tests, so we need to import `@testing-library/dom`.
+      'testing-library/prefer-screen-queries': 'off', // Enable usage of playwright queries
+      'testing-library/no-await-sync-queries': 'off',
       'testing-library/render-result-naming-convention': 'off', // inconsequential in regression tests
     },
   },

@@ -14,6 +14,12 @@
     },
     {
       "path": "packages/solid/tsconfig.json"
+    },
+    {
+      "path": "packages/utils/tsconfig.json"
+    },
+    {
+      "path": "scripts/tsconfig.json"
     }
   ]
 }
